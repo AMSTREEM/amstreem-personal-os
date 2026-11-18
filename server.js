@@ -2,38 +2,95 @@ const express = require('express');
 const path = require('path');
 const Database = require('better-sqlite3');
 const { AsyncLocalStorage } = require('node:async_hooks');
-const fs = require('node:fs');
-const crypto = require('node:crypto');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const supabaseConfig = require('./supabase-config.json');
 const ownerUserId = process.env.ADMIN_USER_ID || supabaseConfig.ownerUserId;
 const tenantContext = new AsyncLocalStorage();
-const dataDir = process.env.DATA_DIR || path.join(__dirname, 'data');
-fs.mkdirSync(dataDir, { recursive: true });
-const legacyOwnerDb = path.join(__dirname, 'amstreem.db');
-const ownerDb = new Database(fs.existsSync(legacyOwnerDb) ? legacyOwnerDb : path.join(dataDir, 'owner.db'));
-const tenantDbs = new Map();
+const userLocks = new Map();
+const workspaceTables = [
+  'tasks','modules','learning_paths','learning_lessons','learning_resources',
+  'learning_study_logs','sessions','notes','settings','goals','habits','habit_logs',
+  'prayer_logs','quran_logs','tahajjud_logs','self_control_logs',
+  'self_control_trackers','self_control_entries','email_events'
+];
 function currentDb() {
-  const userId = tenantContext.getStore();
-  if (!userId || userId === ownerUserId) return ownerDb;
-  if (!tenantDbs.has(userId)) {
-    const file = path.join(dataDir, crypto.createHash('sha256').update(userId).digest('hex') + '.db');
-    const tenantDb = new Database(file);
-    tenantDb.pragma('journal_mode = WAL'); tenantDb.pragma('foreign_keys = ON');
-    tenantDb.exec(schemaSql);
-    for (const [key,value] of [['daily_target','80'],['display_name',''],['north_star','']]) tenantDb.prepare('INSERT OR IGNORE INTO settings(key,value) VALUES(?,?)').run(key,value);
-    tenantDbs.set(userId, tenantDb);
-  }
-  return tenantDbs.get(userId);
+  const context = tenantContext.getStore();
+  if (!context?.db) throw new Error('Workspace database accessed outside an authenticated request.');
+  return context.db;
 }
 const db = new Proxy({}, { get(_target, prop) { const active = currentDb(); const value = active[prop]; return typeof value === 'function' ? value.bind(active) : value; } });
-app.use(express.json({limit:'1mb'}));
+app.use(express.json({limit:'10mb'}));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Every authenticated account receives a physically separate SQLite database.
-// Admin endpoints are separately authorised and never query tenant databases.
+// A short per-account queue prevents overlapping requests from overwriting
+// each other's workspace snapshots on a single application instance.
+async function acquireUserLock(userId) {
+  const previous = userLocks.get(userId) || Promise.resolve();
+  let release;
+  const current = new Promise(resolve => { release = resolve; });
+  const tail = previous.then(() => current);
+  userLocks.set(userId, tail);
+  await previous;
+  return () => { release(); if (userLocks.get(userId) === tail) userLocks.delete(userId); };
+}
+async function readWorkspaceSnapshot(userId, token) {
+  const url = `${supabaseConfig.url}/rest/v1/personal_os_workspace_snapshots?select=data&user_id=eq.${encodeURIComponent(userId)}`;
+  const response = await fetch(url, { headers: { apikey: supabaseConfig.publishableKey, Authorization: `Bearer ${token}` } });
+  if (!response.ok) throw new Error('Could not load your saved workspace from Supabase.');
+  const rows = await response.json();
+  return rows[0]?.data || null;
+}
+function createWorkspaceDatabase(snapshot) {
+  const workspaceDb = new Database(':memory:');
+  workspaceDb.pragma('foreign_keys = ON');
+  workspaceDb.exec(schemaSql);
+  if (snapshot?.format === 'personal-os-sqlite-snapshot-v1' && snapshot.tables && typeof snapshot.tables === 'object') {
+    const insertRows = workspaceDb.transaction(() => {
+      for (const table of workspaceTables) {
+        const rows = Array.isArray(snapshot.tables[table]) ? snapshot.tables[table] : [];
+        if (!rows.length) continue;
+        const columns = workspaceDb.prepare(`PRAGMA table_info(${table})`).all().map(column => column.name);
+        const insert = workspaceDb.prepare(`INSERT INTO ${table} (${columns.join(',')}) VALUES (${columns.map(() => '?').join(',')})`);
+        for (const row of rows) {
+          if (!row || typeof row !== 'object' || columns.some(column => !Object.prototype.hasOwnProperty.call(row, column))) {
+            throw new Error(`Saved workspace contains an invalid ${table} record. No data was changed.`);
+          }
+          insert.run(...columns.map(column => row[column]));
+        }
+      }
+    });
+    insertRows();
+  } else if (snapshot && Object.keys(snapshot).length) {
+    // Preserve unknown legacy workspace payloads rather than silently replacing them.
+    throw new Error('An older workspace format was found. It must be exported and migrated before this app can write to it.');
+  }
+  for (const [key, value] of [['daily_target','80'],['display_name',''],['north_star','']]) {
+    workspaceDb.prepare('INSERT OR IGNORE INTO settings(key,value) VALUES(?,?)').run(key,value);
+  }
+  return workspaceDb;
+}
+function serializeWorkspaceDatabase(workspaceDb) {
+  const tables = {};
+  for (const table of workspaceTables) tables[table] = workspaceDb.prepare(`SELECT * FROM ${table}`).all();
+  return { format: 'personal-os-sqlite-snapshot-v1', tables };
+}
+async function writeWorkspaceSnapshot(userId, token, workspaceDb) {
+  const response = await fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspace_snapshots`, {
+    method: 'POST',
+    headers: {
+      apikey: supabaseConfig.publishableKey,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=merge-duplicates,return=minimal'
+    },
+    body: JSON.stringify({ user_id: userId, data: serializeWorkspaceDatabase(workspaceDb), updated_at: new Date().toISOString() })
+  });
+  if (!response.ok) throw new Error('Supabase rejected the workspace save.');
+}
 app.use('/api', async (req, res, next) => {
+  let release;
+  let workspaceDb;
   try {
     const auth = req.headers.authorization || '';
     const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
@@ -46,16 +103,39 @@ app.use('/api', async (req, res, next) => {
     const adminRoute = req.path.startsWith('/admin');
     if (adminRoute && user.id !== ownerUserId) return res.status(403).json({ error: 'Administrator access required.' });
     req.user = user;
-    tenantContext.run(user.id, next);
+    release = await acquireUserLock(user.id);
+    const snapshot = await readWorkspaceSnapshot(user.id, token);
+    workspaceDb = createWorkspaceDatabase(snapshot);
+    const context = { userId: user.id, db: workspaceDb };
+    tenantContext.run(context, () => {
+      const originalEnd = res.end.bind(res);
+      let ending = false;
+      res.end = (...args) => {
+        if (ending) return res;
+        ending = true;
+        writeWorkspaceSnapshot(user.id, token, workspaceDb)
+          .then(() => originalEnd(...args))
+          .catch(error => {
+            console.error('Workspace save failed:', error.message);
+            res.statusCode = 503;
+            res.removeHeader('Content-Length');
+            res.setHeader('Content-Type', 'application/json; charset=utf-8');
+            originalEnd(JSON.stringify({ error: 'Your workspace could not be saved. Please retry.' }));
+          })
+          .finally(() => { workspaceDb.close(); release?.(); });
+        return res;
+      };
+      next();
+    });
   } catch (error) {
-    console.error('Authentication check failed:', error.message);
-    res.status(503).json({ error: 'Authentication service is temporarily unavailable.' });
+    console.error('Workspace request failed:', error.message);
+    workspaceDb?.close();
+    release?.();
+    if (!res.headersSent) res.status(503).json({ error: 'Your workspace is temporarily unavailable. Please retry.' });
   }
 });
 app.get('/api/session', (req, res) => res.json({ user: { id: req.user.id, email: req.user.email, name: req.user.user_metadata?.full_name || '', username: req.user.user_metadata?.username || '' }, role: req.user.id === ownerUserId ? 'admin' : 'user' }));
 
-ownerDb.pragma('journal_mode = WAL');
-ownerDb.pragma('foreign_keys = ON');
 const schemaSql = `
 CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, detail TEXT DEFAULT '', category TEXT DEFAULT 'Learning', due_date TEXT, done INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS modules (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, track TEXT DEFAULT 'Personal Learning', status TEXT DEFAULT 'Not started', minutes INTEGER DEFAULT 0, sort_order INTEGER DEFAULT 0);
@@ -77,12 +157,8 @@ CREATE TABLE IF NOT EXISTS self_control_trackers (id INTEGER PRIMARY KEY AUTOINC
 CREATE TABLE IF NOT EXISTS self_control_entries (id INTEGER PRIMARY KEY AUTOINCREMENT, tracker_id INTEGER NOT NULL, log_date TEXT NOT NULL, outcome TEXT NOT NULL CHECK(outcome IN ('clean','slip')), urge_level INTEGER DEFAULT 0, trigger TEXT DEFAULT '', response TEXT DEFAULT '', note TEXT DEFAULT '', created_at TEXT DEFAULT CURRENT_TIMESTAMP, UNIQUE(tracker_id,log_date), FOREIGN KEY(tracker_id) REFERENCES self_control_trackers(id) ON DELETE CASCADE);
 CREATE TABLE IF NOT EXISTS email_events (event TEXT PRIMARY KEY, sent_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 `;
-ownerDb.exec(schemaSql);
 const one=(s,...a)=>db.prepare(s).get(...a), all=(s,...a)=>db.prepare(s).all(...a);
 const dateKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-if(!one("SELECT 1 FROM settings WHERE key='daily_target'"))db.prepare("INSERT INTO settings(key,value) VALUES('daily_target','80')").run();
-if(!one("SELECT 1 FROM settings WHERE key='display_name'"))db.prepare("INSERT INTO settings(key,value) VALUES('display_name','')").run();
-if(!one("SELECT 1 FROM settings WHERE key='north_star'"))db.prepare("INSERT INTO settings(key,value) VALUES('north_star','')").run();
 // New installs start with no seeded habits; users define their own rituals.
 async function sendResendEmail(to, subject, html) {
  const key=process.env.RESEND_API_KEY, from=process.env.EMAIL_FROM;
