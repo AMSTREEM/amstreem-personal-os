@@ -39,7 +39,7 @@ test('backup restore replaces records atomically and rejects incomplete files', 
   const Database = require('better-sqlite3');
   const { restoreBackup } = require('../workspace-backup');
   const db = new Database(':memory:');
-  db.exec('CREATE TABLE tasks (id INTEGER PRIMARY KEY, title TEXT NOT NULL, detail TEXT NOT NULL DEFAULT ''); CREATE TABLE modules (id INTEGER PRIMARY KEY, title TEXT NOT NULL);');
+  db.exec('CREATE TABLE tasks (id INTEGER PRIMARY KEY, title TEXT NOT NULL, detail TEXT NOT NULL DEFAULT ""); CREATE TABLE modules (id INTEGER PRIMARY KEY, title TEXT NOT NULL);');
   db.prepare('INSERT INTO tasks(id,title) VALUES(1,?)').run('old');
   const allowed = ['tasks','modules'];
   const restored = restoreBackup(db, {
