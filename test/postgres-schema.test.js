@@ -79,3 +79,17 @@ test('workspace schema, snapshot serializer and backup export cover the same tab
     assert.ok(server.includes(`${table}:all('SELECT * FROM ${table}')`), `export includes ${table}`);
   }
 });
+
+test('user-controlled goal and Quran fields are validated before rendering', () => {
+  assert.match(server, /!\['active','completed','archived'\]\.includes\(status\)/);
+  assert.match(server, /Number\.isInteger\(start\)/);
+  assert.match(server, /Number\.isInteger\(end\)/);
+  assert.match(server, /juzNumber<1\|\|juzNumber>30/);
+  assert.match(server, /String\(reflection\)\.slice\(0,2000\)/);
+});
+
+test('workspace export sends the authenticated session token', () => {
+  const app = fs.readFileSync(path.join(__dirname, '..', 'public', 'app.js'), 'utf8');
+  assert.match(app, /async function exportWorkspace\(\)[\s\S]*?Authorization:[^\n]*session\.access_token/);
+  assert.doesNotMatch(app, /location\.href='\/api\/export'/);
+});
