@@ -52,13 +52,19 @@ function createWorkspaceDatabase(snapshot) {
       for (const table of workspaceTables) {
         const rows = Array.isArray(snapshot.tables[table]) ? snapshot.tables[table] : [];
         if (!rows.length) continue;
-        const columns = workspaceDb.prepare(`PRAGMA table_info(${table})`).all().map(column => column.name);
-        const insert = workspaceDb.prepare(`INSERT INTO ${table} (${columns.join(',')}) VALUES (${columns.map(() => '?').join(',')})`);
+        const tableInfo = workspaceDb.prepare(`PRAGMA table_info(${table})`).all();
+        const columns = tableInfo.map(column => column.name);
+        const primaryKeys = tableInfo.filter(column => column.pk).map(column => column.name);
+        const inserts = new Map();
         for (const row of rows) {
-          if (!row || typeof row !== 'object' || columns.some(column => !Object.prototype.hasOwnProperty.call(row, column))) {
+          if (!row || typeof row !== 'object' || Array.isArray(row) ||
+              primaryKeys.some(column => !Object.prototype.hasOwnProperty.call(row, column))) {
             throw new Error(`Saved workspace contains an invalid ${table} record. No data was changed.`);
           }
-          insert.run(...columns.map(column => row[column]));
+          const rowColumns = columns.filter(column => Object.prototype.hasOwnProperty.call(row, column));
+          const key = rowColumns.join(',');
+          if (!inserts.has(key)) inserts.set(key, workspaceDb.prepare(`INSERT INTO ${table} (${key}) VALUES (${rowColumns.map(() => '?').join(',')})`));
+          inserts.get(key).run(...rowColumns.map(column => row[column]));
         }
       }
     });
