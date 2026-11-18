@@ -21,7 +21,7 @@ const workspaceTables = [
   'tasks','modules','learning_paths','learning_lessons','learning_resources',
   'learning_study_logs','sessions','notes','settings','goals','habits','habit_logs',
   'prayer_logs','quran_logs','tahajjud_logs','faith_logs','self_control_logs',
-  'self_control_trackers','self_control_entries','email_events'
+  'self_control_trackers','self_control_entries','email_events','login_events'
 ];
 function currentDb() {
   const context = tenantContext.getStore();
@@ -57,7 +57,7 @@ function createWorkspaceDatabase(snapshot) {
     workspaceDb.exec(schemaSql);
   if (snapshot?.format === 'personal-os-sqlite-snapshot-v1' && snapshot.tables && typeof snapshot.tables === 'object') {
     for (const table of workspaceTables) {
-      if (!Array.isArray(snapshot.tables[table]) && table !== 'faith_logs') {
+      if (!Array.isArray(snapshot.tables[table]) && !['faith_logs','login_events'].includes(table)) {
         throw new Error(`Saved workspace is missing its ${table} section. No data was changed.`);
       }
     }
@@ -188,6 +188,7 @@ CREATE TABLE IF NOT EXISTS self_control_logs (id INTEGER PRIMARY KEY AUTOINCREME
 CREATE TABLE IF NOT EXISTS self_control_trackers (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, symbol TEXT NOT NULL DEFAULT '◇', start_date TEXT NOT NULL, active INTEGER NOT NULL DEFAULT 1, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS self_control_entries (id INTEGER PRIMARY KEY AUTOINCREMENT, tracker_id INTEGER NOT NULL, log_date TEXT NOT NULL, outcome TEXT NOT NULL CHECK(outcome IN ('clean','slip')), urge_level INTEGER DEFAULT 0, trigger TEXT DEFAULT '', response TEXT DEFAULT '', note TEXT DEFAULT '', created_at TEXT DEFAULT CURRENT_TIMESTAMP, UNIQUE(tracker_id,log_date), FOREIGN KEY(tracker_id) REFERENCES self_control_trackers(id) ON DELETE CASCADE);
 CREATE TABLE IF NOT EXISTS email_events (event TEXT PRIMARY KEY, sent_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS login_events (id INTEGER PRIMARY KEY AUTOINCREMENT, login_date TEXT NOT NULL, logged_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 `;
 const one=(s,...a)=>db.prepare(s).get(...a), all=(s,...a)=>db.prepare(s).all(...a);
 const dateKey=(d=new Date())=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -199,6 +200,7 @@ async function sendResendEmail(to, subject, html) {
  if(!response.ok){const detail=await response.text();throw new Error(`Email provider rejected the request: ${detail.slice(0,300)}`)}
  return response.json();
 }
+app.post('/api/login-event',(req,res)=>{const date=dateKey();const last=one('SELECT login_date FROM login_events ORDER BY id DESC LIMIT 1');if(last?.login_date!==date)db.prepare('INSERT INTO login_events(login_date) VALUES(?)').run(date);res.json({ok:true});});
 app.get('/api/admin/users',async(req,res)=>{
  try {
   const key=process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
