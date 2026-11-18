@@ -34,3 +34,19 @@ with check ((select auth.uid()) = user_id);
 grant usage on schema public to authenticated;
 revoke all on table public.personal_os_workspaces from anon, authenticated;
 grant select, insert, update on table public.personal_os_workspaces to authenticated;
+
+-- Other setup tables are server-managed only. Their RLS remains enabled,
+-- but browser roles receive no direct table privileges.
+revoke all on table public.personal_os_profiles from anon, authenticated;
+revoke all on table public.personal_os_admins from anon, authenticated;
+revoke all on table public.personal_os_invites from anon, authenticated;
+
+-- These SECURITY DEFINER routines are internal only. The auth bootstrap
+-- routine continues to run from its auth.users trigger; clients cannot call
+-- any of these routines through the Data API.
+revoke execute on function public.personal_os_bootstrap_user() from public, anon, authenticated;
+revoke execute on function public.personal_os_is_admin() from public, anon, authenticated;
+revoke execute on function public.rls_auto_enable() from public, anon, authenticated;
+
+create index if not exists personal_os_invites_invited_by_idx
+on public.personal_os_invites(invited_by);
