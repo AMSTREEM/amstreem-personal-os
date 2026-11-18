@@ -820,3 +820,38 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
 :root[data-theme^="light-"] .self-slip-btn:hover{background:color-mix(in srgb,var(--red) 14%,var(--surface))}
 :root[data-theme^="light-"] .btn-primary{color:#fff}
 :root[data-theme^="light-"] .ambient{opacity:.06}
+
+
+/* Cross-palette polish: keep shared controls tied to the active theme tokens.
+   Applies to every selected colour palette, not only the light palettes. */
+:root[data-theme] .library-search{
+  background:var(--surface2);
+  color:var(--accent);
+  border-color:var(--line);
+}
+:root[data-theme] .library-search input{
+  background:transparent;
+  color:var(--text);
+}
+:root[data-theme] .timer-progress{
+  background:var(--surface)!important;
+}
+:root[data-theme] .timer-inner strong{
+  color:var(--text);
+}
+:root[data-theme] .timer-state{
+  color:var(--accent);
+}
+:root[data-theme] .timer-caption{
+  color:var(--muted);
+}
+:root[data-theme] .timer-presets button{
+  background:var(--surface2);
+  color:var(--text);
+  border-color:var(--line);
+}
+:root[data-theme] .timer-presets button.selected{
+  background:var(--accent-soft);
+  color:var(--accent);
+  border-color:var(--accent);
+}
