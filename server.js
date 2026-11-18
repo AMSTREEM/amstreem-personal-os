@@ -192,22 +192,22 @@ async function sendResendEmail(to, subject, html) {
 }
 app.get('/api/admin/users',async(req,res)=>{
  try {
-  const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!key)return res.status(503).json({error:'Admin directory is not configured. Add SUPABASE_SERVICE_ROLE_KEY to the server environment.'});
+  const key=process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if(!key)return res.status(503).json({error:'Admin directory is not configured. Add SUPABASE_SECRET_KEY to the server environment.'});
   let page=1,users=[],more=true;
-  while(more&&page<=100){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});if(!r.ok)throw new Error('Could not retrieve the account directory.');const payload=await r.json();const batch=payload.users||[];users.push(...batch);more=batch.length===100;page++;}
+  while(more&&page<=100){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:{apikey:key}});if(!r.ok)throw new Error('Could not retrieve the account directory.');const payload=await r.json();const batch=payload.users||[];users.push(...batch);more=batch.length===100;page++;}
   res.json({users:users.map(u=>({id:u.id,name:String(u.user_metadata?.full_name||u.user_metadata?.name||'—').slice(0,80),username:String(u.user_metadata?.username||'').slice(0,30),email:u.email||'',created_at:u.created_at||null,email_confirmed:!!u.email_confirmed_at})).sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''))});
  } catch(e){res.status(502).json({error:e.message||'Could not load users.'})}
 });
 app.post('/api/admin/thank-you',async(req,res)=>{
  try {
-  const key=process.env.SUPABASE_SERVICE_ROLE_KEY;if(!key)return res.status(503).json({error:'Admin directory is not configured.'});
+  const key=process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;if(!key)return res.status(503).json({error:'Admin directory is not configured.'});
   const subject=String(req.body.subject||'Thank you for using Personal OS').trim().slice(0,120);
   const message=String(req.body.message||'Thank you for being part of Personal OS. I appreciate you giving the system a place in your daily life.').trim().slice(0,4000);
   if(!message)return res.status(400).json({error:'Write a message first.'});
   let recipients=[];
-  if(req.body.all===true){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=1&per_page=1000`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});if(!r.ok)throw new Error('Could not retrieve recipients.');recipients=(await r.json()).users||[];}
-  else if(Array.isArray(req.body.userIds)){const ids=new Set(req.body.userIds.filter(x=>typeof x==='string'));const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=1&per_page=1000`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});if(!r.ok)throw new Error('Could not retrieve recipients.');recipients=(await r.json()).users.filter(u=>ids.has(u.id));}
+  if(req.body.all===true){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=1&per_page=1000`,{headers:{apikey:key}});if(!r.ok)throw new Error('Could not retrieve recipients.');recipients=(await r.json()).users||[];}
+  else if(Array.isArray(req.body.userIds)){const ids=new Set(req.body.userIds.filter(x=>typeof x==='string'));const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=1&per_page=1000`,{headers:{apikey:key}});if(!r.ok)throw new Error('Could not retrieve recipients.');recipients=(await r.json()).users.filter(u=>ids.has(u.id));}
   else return res.status(400).json({error:'Choose recipients.'});
   const targets=recipients.filter(u=>u.email&&u.id!==ownerUserId);let sent=0,failed=0;
   for(const user of targets){const name=String(user.user_metadata?.full_name||'there').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const body=message.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])).replace(/\n/g,'<br>');try{await sendResendEmail(user.email,subject,`<div style="font-family:Arial,sans-serif;line-height:1.7;color:#222"><p>Hello ${name},</p><p>${body}</p><p>— Personal OS</p></div>`);sent++;}catch(e){failed++;console.error('Email delivery failed:',e.message)}}
