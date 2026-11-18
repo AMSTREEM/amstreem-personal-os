@@ -256,3 +256,74 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
+
+
+/* Admin console layout refinement: separate metadata, filters and actions. */
+.admin-users-panel,.admin-mail-panel{padding:clamp(18px,2.2vw,28px);border-radius:16px}
+.admin-users-panel .panel-head{align-items:flex-start;margin-bottom:18px}
+.admin-users-panel .panel-head>div{min-width:0}
+.admin-users-panel .panel-head h2{font-size:clamp(17px,1.7vw,20px);letter-spacing:-.45px}
+.admin-users-panel .panel-head>.panel-meta{
+  display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+  padding:7px 10px;border:1px solid var(--line);border-radius:8px;
+  background:var(--surface2);font-size:8px;letter-spacing:.8px;white-space:nowrap;
+}
+.admin-users-panel>.admin-mail-actions{
+  display:grid;grid-template-columns:minmax(155px,190px) minmax(140px,1fr) auto;
+  align-items:end;gap:12px;padding:14px;margin:0 0 16px;
+  border:1px solid var(--line);border-radius:12px;background:var(--surface2);
+}
+.admin-users-panel>.admin-mail-actions>label{
+  display:grid;gap:7px;min-width:0;color:var(--muted);
+  font:9px var(--mono);letter-spacing:1px;
+}
+.admin-users-panel>.admin-mail-actions select{
+  display:block;width:100%;min-width:0;min-height:40px;padding:9px 34px 9px 12px;
+  border:1px solid var(--line);border-radius:9px;background:var(--surface);
+  color:var(--text);font:500 12px var(--sans);letter-spacing:0;
+}
+.admin-users-panel>.admin-mail-actions>.panel-meta{
+  display:flex;align-items:center;gap:7px;flex-wrap:wrap;align-self:center;
+  padding:0 5px;color:var(--muted);font:10px var(--sans);letter-spacing:0;
+}
+.admin-users-panel>.admin-mail-actions>.panel-meta b{
+  color:var(--text);font:700 14px var(--display);font-variant-numeric:tabular-nums;
+}
+.admin-users-panel>.admin-mail-actions>.panel-meta b:first-child{color:var(--accent)}
+.admin-users-panel>.admin-mail-actions>button{
+  justify-self:end;min-height:40px;white-space:nowrap;padding:9px 13px;font-size:11px;
+}
+.admin-table-wrap{
+  border:1px solid var(--line);border-radius:12px;background:var(--surface);
+  scrollbar-width:thin;scrollbar-color:var(--muted) transparent;
+}
+.admin-table{min-width:820px;border-collapse:separate;border-spacing:0}
+.admin-table thead{background:var(--surface2)}
+.admin-table th{position:sticky;top:0;background:var(--surface2);z-index:1;padding:13px 14px;font-size:9px;letter-spacing:.9px}
+.admin-table td{padding:14px;color:var(--text);font-size:12px}
+.admin-table tbody tr:last-child td{border-bottom:0}
+.admin-table tbody tr:hover td{background:var(--accent-soft)}
+.admin-table th:first-child,.admin-table td:first-child{width:42px;text-align:center}
+.admin-table input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent)}
+.admin-mail-panel{border:1px solid var(--line);border-radius:16px}
+.admin-mail-panel>h2{font-size:19px;margin-top:7px}
+.admin-mail-panel>p{font-size:12px;margin:8px 0 20px}
+.admin-mail-panel form{max-width:780px;gap:16px}
+.admin-mail-panel form>label{font-size:9px;letter-spacing:.9px}
+.admin-mail-panel input,.admin-mail-panel textarea{border-radius:10px;padding:13px 14px;font:13px var(--sans);line-height:1.6}
+.admin-mail-actions button{min-height:40px}
+.admin-mail-panel .auth-message{padding-top:5px}
+@media(max-width:720px){
+  .admin-users-panel>.admin-mail-actions{grid-template-columns:1fr 1fr;align-items:stretch}
+  .admin-users-panel>.admin-mail-actions>label{grid-column:1/-1}
+  .admin-users-panel>.admin-mail-actions>.panel-meta{align-self:center;padding:0}
+  .admin-users-panel>.admin-mail-actions>button{justify-self:stretch;white-space:normal}
+  .admin-users-panel .panel-head{flex-direction:column;align-items:flex-start}
+}
+@media(max-width:420px){
+  .admin-users-panel>.admin-mail-actions{grid-template-columns:1fr}
+  .admin-users-panel>.admin-mail-actions>label{grid-column:auto}
+  .admin-users-panel>.admin-mail-actions>button{width:100%}
+  .admin-mail-actions{flex-direction:column;align-items:stretch}
+  .admin-mail-actions button{width:100%}
+}
