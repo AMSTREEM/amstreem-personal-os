@@ -855,3 +855,209 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
   color:var(--accent);
   border-color:var(--accent);
 }
+
+
+/* Atlas-wide palette harmonisation.
+   All app surfaces below resolve from the active palette tokens, so every
+   component stays coherent when switching between any of the available themes. */
+:root[data-theme] .sidebar,
+:root[data-theme] .topbar,
+:root[data-theme] .panel,
+:root[data-theme] .stat-card,
+:root[data-theme] .quote-widget,
+:root[data-theme] .quick-widget,
+:root[data-theme] .next-widget,
+:root[data-theme] .module-group,
+:root[data-theme] .settings-panel,
+:root[data-theme] .settings-card,
+:root[data-theme] .goal-card,
+:root[data-theme] .note-card,
+:root[data-theme] .announcement-card,
+:root[data-theme] .learning-path-card,
+:root[data-theme] .learning-lesson,
+:root[data-theme] .streak-card,
+:root[data-theme] .calendar-day,
+:root[data-theme] .quran-entry,
+:root[data-theme] .self-control-card {
+  background:var(--surface);
+  color:var(--text);
+  border-color:var(--line);
+}
+:root[data-theme] .side-mantra,
+:root[data-theme] .group-head,
+:root[data-theme] .task-row,
+:root[data-theme] .priority-row,
+:root[data-theme] .habit-item,
+:root[data-theme] .quick-capture,
+:root[data-theme] .widget-toggle,
+:root[data-theme] .module-status,
+:root[data-theme] .filter.active,
+:root[data-theme] .calendar-detail-chip,
+:root[data-theme] .timer-progress,
+:root[data-theme] .timer-presets button,
+:root[data-theme] .library-search,
+:root[data-theme] .focus-input-label input,
+:root[data-theme] .modal input,
+:root[data-theme] .modal textarea,
+:root[data-theme] .settings-panel input,
+:root[data-theme] .settings-panel textarea,
+:root[data-theme] .announcement-form input,
+:root[data-theme] .announcement-form select,
+:root[data-theme] .announcement-form textarea,
+:root[data-theme] .feedback-form select,
+:root[data-theme] .feedback-form textarea {
+  background:var(--surface2);
+  color:var(--text);
+  border-color:var(--line);
+}
+:root[data-theme] .topbar {
+  background:color-mix(in srgb,var(--surface) 94%,transparent);
+  border-bottom-color:var(--line);
+}
+:root[data-theme] .nav-item,
+:root[data-theme] .top-icon,
+:root[data-theme] .btn-quiet,
+:root[data-theme] .btn-secondary,
+:root[data-theme] .btn-cancel,
+:root[data-theme] .modal-close,
+:root[data-theme] .sidebar-toggle,
+:root[data-theme] .calendar-toolbar button,
+:root[data-theme] .delete-btn,
+:root[data-theme] .quote-refresh {
+  color:var(--muted);
+}
+:root[data-theme] .nav-item:hover,
+:root[data-theme] .top-icon:hover,
+:root[data-theme] .btn-quiet:hover,
+:root[data-theme] .link-btn:hover,
+:root[data-theme] .edit-inline:hover {
+  color:var(--accent);
+}
+:root[data-theme] .nav-item.active {
+  color:var(--text);
+  background:var(--accent-soft);
+  border-color:color-mix(in srgb,var(--accent) 35%,var(--line));
+}
+:root[data-theme] .nav-item.active .nav-icon,
+:root[data-theme] .nav-icon,
+:root[data-theme] .brand-os,
+:root[data-theme] .side-foot span,
+:root[data-theme] .stat-label span,
+:root[data-theme] .spark,
+:root[data-theme] .habit-item span:first-child,
+:root[data-theme] .quick-capture span,
+:root[data-theme] .quick-capture b,
+:root[data-theme] .history-date,
+:root[data-theme] .next-index,
+:root[data-theme] .goal-symbol,
+:root[data-theme] .search-input-row {
+  color:var(--accent);
+}
+:root[data-theme] .brand,
+:root[data-theme] .brand b,
+:root[data-theme] .side-profile b,
+:root[data-theme] .crumb b,
+:root[data-theme] .priority-copy strong,
+:root[data-theme] .module-info strong,
+:root[data-theme] .task-copy strong,
+:root[data-theme] .goal-card h3,
+:root[data-theme] .note-card h3,
+:root[data-theme] .panel h2,
+:root[data-theme] .panel h3,
+:root[data-theme] .settings-panel h2,
+:root[data-theme] .modal-head h2,
+:root[data-theme] .timer-inner strong {
+  color:var(--text);
+}
+:root[data-theme] .side-label,
+:root[data-theme] .brand small,
+:root[data-theme] .crumb,
+:root[data-theme] .clock-zone,
+:root[data-theme] .kicker,
+:root[data-theme] .eyebrow,
+:root[data-theme] .page-sub,
+:root[data-theme] .panel-meta,
+:root[data-theme] .stat-foot,
+:root[data-theme] .stat-label,
+:root[data-theme] .stat-number small,
+:root[data-theme] .task-copy p,
+:root[data-theme] .module-info small,
+:root[data-theme] .goal-card p,
+:root[data-theme] .note-card p,
+:root[data-theme] .settings-panel>p,
+:root[data-theme] .settings-panel label,
+:root[data-theme] .focus-note,
+:root[data-theme] .timer-caption,
+:root[data-theme] .subtle-count,
+:root[data-theme] .footer,
+:root[data-theme] .home-footer-line {
+  color:var(--muted);
+}
+:root[data-theme] .timer-state,
+:root[data-theme] .timer-presets button.selected {
+  color:var(--accent);
+}
+:root[data-theme] .timer-presets button.selected {
+  background:var(--accent-soft);
+  border-color:var(--accent);
+}
+:root[data-theme] .check {
+  background:var(--surface2);
+  border-color:color-mix(in srgb,var(--muted) 65%,var(--line));
+}
+:root[data-theme] .check:checked {
+  background:var(--accent);
+  border-color:var(--accent);
+}
+:root[data-theme] .check:checked:after {color:var(--bg)}
+:root[data-theme] .thin-track,
+:root[data-theme] .week-day .bar-track,
+:root[data-theme] .ring:before {
+  background:var(--surface2);
+}
+:root[data-theme] .week-day .bar-fill {background:var(--accent)}
+:root[data-theme] .filter.active,
+:root[data-theme] .module-status,
+:root[data-theme] .task-pill,
+:root[data-theme] .priority-tag,
+:root[data-theme] .goal-meta button {
+  border-color:var(--line);
+  background:var(--surface2);
+  color:var(--muted);
+}
+:root[data-theme] .btn-primary {
+  color:var(--bg);
+  text-shadow:none;
+}
+:root[data-theme] .modal-backdrop,
+:root[data-theme] .search-backdrop,
+:root[data-theme] .announcement-overlay {
+  background:color-mix(in srgb,var(--bg) 78%,transparent);
+}
+:root[data-theme] .modal,
+:root[data-theme] .search-modal {
+  background:var(--surface);
+  color:var(--text);
+  border-color:var(--line);
+}
+:root[data-theme] .toast {
+  background:var(--surface2);
+  color:var(--text);
+  border-color:var(--line);
+}
+:root[data-theme] .empty {
+  color:var(--muted);
+  border-color:var(--line);
+}
+:root[data-theme] input::placeholder,
+:root[data-theme] textarea::placeholder {
+  color:var(--muted);
+  opacity:.8;
+}
+:root[data-theme] button:focus-visible,
+:root[data-theme] a:focus-visible,
+:root[data-theme] input:focus-visible,
+:root[data-theme] textarea:focus-visible,
+:root[data-theme] select:focus-visible {
+  outline-color:var(--accent);
+}
