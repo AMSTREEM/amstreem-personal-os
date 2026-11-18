@@ -236,7 +236,7 @@ async function enterWorkspace(session){
     document.body.classList.remove('auth-locked');
     $('#authGate').classList.add('hidden');
     await load();await loadFeedbackHistory();if(isAdmin)await loadAdminFeedback();
-    if(needsFirstRunTour)openOnboardingTour();
+    if(isAdmin||needsFirstRunTour)openOnboardingTour();
     api('/login-event',{method:'POST',body:'{}'}).catch(()=>{});
     api('/welcome',{method:'POST',body:'{}'}).catch(()=>{});
     await new Promise(resolve=>setTimeout(resolve,Math.max(0,1400-(Date.now()-welcomeStarted))));
