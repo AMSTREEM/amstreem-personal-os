@@ -201,6 +201,20 @@ async function sendResendEmail(to, subject, html) {
  return response.json();
 }
 app.post('/api/login-event',(req,res)=>{const date=dateKey();const last=one('SELECT login_date FROM login_events ORDER BY id DESC LIMIT 1');if(last?.login_date!==date)db.prepare('INSERT INTO login_events(login_date) VALUES(?)').run(date);res.json({ok:true});});
+app.get('/api/admin/analytics',async(req,res)=>{
+ try {
+  const key=process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if(!key)return res.status(503).json({error:'Admin analytics are not configured.'});
+  const response=await fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=user_id,data`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
+  if(!response.ok)throw new Error('Could not load aggregate workspace activity.');
+  const rows=await response.json(),today=dateKey(),toDate=s=>new Date(s+'T12:00:00');
+  const addDays=(date,n)=>{const d=toDate(date);d.setDate(d.getDate()+n);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+  const loginSets=rows.map(row=>new Set((row.data?.tables?.login_events||[]).map(x=>x.login_date).filter(x=>/^\\d{4}-\\d{2}-\\d{2}$/.test(x))));
+  const active=(n)=>loginSets.filter(set=>[...set].some(date=>date>=addDays(today,-(n-1))&&date<=today)).length;
+  const streaks=loginSets.map(set=>{let current=0,cursor=today;if(!set.has(cursor))cursor=addDays(cursor,-1);while(set.has(cursor)&&current<5000){current++;cursor=addDays(cursor,-1);}let best=0,run=0,prev=null;for(const date of [...set].sort()){run=prev&&Math.round((toDate(date)-toDate(prev))/86400000)===1?run+1:1;best=Math.max(best,run);prev=date;}return {current,best};});
+  res.json({activeToday:active(1),activeWeek:active(7),activeMonth:active(30),loginsToday:loginSets.reduce((n,set)=>n+(set.has(today)?1:0),0),topCurrent:Math.max(0,...streaks.map(x=>x.current)),bestStreak:Math.max(0,...streaks.map(x=>x.best))});
+ } catch(error){res.status(502).json({error:error.message||'Could not load analytics.'});}
+});
 app.get('/api/admin/users',async(req,res)=>{
  try {
   const key=process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
