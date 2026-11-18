@@ -76,7 +76,7 @@ const workspaceTables = [
   'tasks','modules','learning_paths','learning_lessons','learning_resources',
   'learning_study_logs','sessions','notes','settings','goals','habits','habit_logs',
   'prayer_logs','quran_logs','tahajjud_logs','faith_logs','self_control_logs',
-  'self_control_trackers','self_control_entries','email_events','login_events','xp_events'
+  'self_control_trackers','self_control_entries','email_events','login_events','xp_events','feedback_logs'
 ];
 function currentDb() {
   const context = tenantContext.getStore();
@@ -114,7 +114,7 @@ function createWorkspaceDatabase(snapshot) {
     workspaceDb.exec(schemaSql);
   if (snapshot?.format === 'personal-os-sqlite-snapshot-v1' && snapshot.tables && typeof snapshot.tables === 'object') {
     for (const table of workspaceTables) {
-      if (!Array.isArray(snapshot.tables[table]) && !['faith_logs','login_events','xp_events'].includes(table)) {
+      if (!Array.isArray(snapshot.tables[table]) && !['faith_logs','login_events','xp_events','feedback_logs'].includes(table)) {
         throw new Error(`Saved workspace is missing its ${table} section. No data was changed.`);
       }
     }
@@ -278,7 +278,7 @@ CREATE TABLE IF NOT EXISTS self_control_trackers (id INTEGER PRIMARY KEY AUTOINC
 CREATE TABLE IF NOT EXISTS self_control_entries (id INTEGER PRIMARY KEY AUTOINCREMENT, tracker_id INTEGER NOT NULL, log_date TEXT NOT NULL, outcome TEXT NOT NULL CHECK(outcome IN ('clean','slip')), urge_level INTEGER DEFAULT 0, trigger TEXT DEFAULT '', response TEXT DEFAULT '', note TEXT DEFAULT '', created_at TEXT DEFAULT CURRENT_TIMESTAMP, UNIQUE(tracker_id,log_date), FOREIGN KEY(tracker_id) REFERENCES self_control_trackers(id) ON DELETE CASCADE);
 CREATE TABLE IF NOT EXISTS email_events (event TEXT PRIMARY KEY, sent_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS login_events (id INTEGER PRIMARY KEY AUTOINCREMENT, login_date TEXT NOT NULL, logged_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
-CREATE TABLE IF NOT EXISTS xp_events (id INTEGER PRIMARY KEY AUTOINCREMENT, event_key TEXT NOT NULL UNIQUE, category TEXT NOT NULL, points INTEGER NOT NULL CHECK(points > 0), awarded_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS xp_events (id INTEGER PRIMARY KEY AUTOINCREMENT, event_key TEXT NOT NULL UNIQUE, category TEXT NOT NULL, points INTEGER NOT NULL CHECK(points > 0), awarded_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);\nCREATE TABLE IF NOT EXISTS feedback_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, message TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 `;
 const one=(s,...a)=>db.prepare(s).get(...a), all=(s,...a)=>db.prepare(s).all(...a);
 function awardXp(eventKey,category,points){if(!eventKey||!Number.isInteger(points)||points<1)return;db.prepare('INSERT OR IGNORE INTO xp_events(event_key,category,points) VALUES(?,?,?)').run(eventKey,category,points);}
@@ -291,6 +291,9 @@ async function sendResendEmail(to, subject, html) {
  if(!response.ok){const detail=await response.text();throw new Error(`Email provider rejected the request: ${detail.slice(0,300)}`)}
  return response.json();
 }
+app.get('/api/feedback',(req,res)=>{const labels={feedback:'General feedback',suggestion:'Feature suggestion',bug:'Something is broken',complaint:'A complaint',other:'Something else'};res.json(all('SELECT id,type,message,created_at FROM feedback_logs ORDER BY id DESC LIMIT 50').map(row=>({...row,type_label:labels[row.type]||'Feedback'})));});
+app.post('/api/feedback',(req,res)=>{const type=String(req.body?.type||'feedback'),message=String(req.body?.message||'').trim();if(!['feedback','suggestion','bug','complaint','other'].includes(type))return res.status(400).json({error:'Choose a valid feedback category.'});if(message.length<5||message.length>4000)return res.status(400).json({error:'Your message must be between 5 and 4,000 characters.'});const result=db.prepare('INSERT INTO feedback_logs(type,message) VALUES(?,?)').run(type,message);res.status(201).json(one('SELECT id,type,message,created_at FROM feedback_logs WHERE id=?',result.lastInsertRowid));});
+app.get('/api/admin/feedback',async(req,res)=>{try{const key=process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY;if(!key)return res.status(503).json({error:'The feedback inbox is not configured on the server.'});const response=await fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=user_id,data`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});if(!response.ok)throw new Error('Could not read workspace feedback.');const rows=await response.json(),labels={feedback:'General feedback',suggestion:'Feature suggestion',bug:'Something is broken',complaint:'A complaint',other:'Something else'},items=[];for(const row of rows){const entries=row.data?.tables?.feedback_logs||[];for(const item of entries)items.push({id:item.id,type:item.type,type_label:labels[item.type]||'Feedback',message:item.message,created_at:item.created_at,user_ref:String(row.user_id).slice(-6).toUpperCase()});}items.sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)));res.json(items.slice(0,200));}catch(error){console.error('Admin feedback inbox:',error.message);res.status(502).json({error:'The feedback inbox is temporarily unavailable.'});}});
 app.post('/api/login-event',(req,res)=>{const date=dateKey();const last=one('SELECT login_date FROM login_events ORDER BY id DESC LIMIT 1');if(last?.login_date!==date)db.prepare('INSERT INTO login_events(login_date) VALUES(?)').run(date);res.json({ok:true});});
 app.get('/api/leaderboard',async(q,s)=>{
  try{
