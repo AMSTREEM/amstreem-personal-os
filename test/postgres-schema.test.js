@@ -39,7 +39,7 @@ test('backup restore replaces records atomically and rejects incomplete files', 
   const Database = require('better-sqlite3');
   const { restoreBackup } = require('../workspace-backup');
   const db = new Database(':memory:');
-  db.exec('CREATE TABLE tasks (id INTEGER PRIMARY KEY, title TEXT NOT NULL); CREATE TABLE modules (id INTEGER PRIMARY KEY, title TEXT NOT NULL);');
+  db.exec('CREATE TABLE tasks (id INTEGER PRIMARY KEY, title TEXT NOT NULL, detail TEXT NOT NULL DEFAULT ''); CREATE TABLE modules (id INTEGER PRIMARY KEY, title TEXT NOT NULL);');
   db.prepare('INSERT INTO tasks(id,title) VALUES(1,?)').run('old');
   const allowed = ['tasks','modules'];
   const restored = restoreBackup(db, {
@@ -47,14 +47,14 @@ test('backup restore replaces records atomically and rejects incomplete files', 
     modules: [{id:7,title:'module'}]
   }, allowed);
   assert.equal(restored, 2);
-  assert.deepEqual(db.prepare('SELECT * FROM tasks').all(), [{id:2,title:'new task'}]);
-  assert.throws(() => restoreBackup(db, {tasks:[{id:3}],modules:[]}, allowed), /incomplete/i);
-  assert.deepEqual(db.prepare('SELECT * FROM tasks').all(), [{id:2,title:'new task'}]);
+  assert.deepEqual(db.prepare('SELECT * FROM tasks').all(), [{id:2,title:'new task',detail:''}]);
+  assert.throws(() => restoreBackup(db, {tasks:[{title:'missing id'}],modules:[]}, allowed), /primary key/i);
+  assert.deepEqual(db.prepare('SELECT * FROM tasks').all(), [{id:2,title:'new task',detail:''}]);
   assert.throws(() => restoreBackup(db, {
     tasks:[{id:3,title:'first'},{id:3,title:'duplicate'}],
     modules:[]
   }, allowed));
-  assert.deepEqual(db.prepare('SELECT * FROM tasks').all(), [{id:2,title:'new task'}]);
+  assert.deepEqual(db.prepare('SELECT * FROM tasks').all(), [{id:2,title:'new task',detail:''}]);
   db.close();
 });
 
