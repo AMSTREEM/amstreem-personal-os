@@ -28,7 +28,7 @@ test('API persists request-scoped in-memory workspaces through Supabase', () => 
 test('existing workspace export can be restored through an authenticated import route', () => {
   assert.match(server, /app\.get\('\/api\/export'/);
   assert.match(server, /app\.post\('\/api\/import'/);
-  assert.match(server, /restoreBackup\(db, q\.body, workspaceTables\)/);
+  assert.match(server, /restoreBackup\(db,\s*q\.body,\s*workspaceTables\)/);
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
   const app = fs.readFileSync(path.join(__dirname, '..', 'public', 'app.js'), 'utf8');
   assert.match(html, /id="settingsImport"/);
