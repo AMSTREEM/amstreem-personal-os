@@ -21,4 +21,5 @@ create policy personal_os_user_isolation on public.personal_os_workspaces
   with check (user_id = (select auth.uid()));
 
 revoke all on public.personal_os_workspaces from anon;
+grant usage on schema public to authenticated;
 grant select, insert, update on public.personal_os_workspaces to authenticated;
