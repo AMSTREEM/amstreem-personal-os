@@ -268,6 +268,18 @@ app.post('/api/admin/thank-you',async(req,res)=>{
   res.json({sent,failed,pending,skippedAlreadySent,skippedPending,total:targets.length});
  }catch(e){res.status(502).json({error:e.message||'Could not send emails.'})}
 });
+app.post('/api/admin/thank-you/mark-sent',async(req,res)=>{
+ try{
+  const key=process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if(!key)return res.status(503).json({error:'Admin directory is not configured.'});
+  if(!Array.isArray(req.body.userIds)||!req.body.userIds.length)return res.status(400).json({error:'Select accounts to mark as sent.'});
+  const ids=new Set(req.body.userIds.filter(x=>typeof x==='string'));let users=[],page=1,more=true;
+  while(more&&page<=100){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});if(!r.ok)throw new Error('Could not retrieve recipients.');const batch=(await r.json()).users||[];users.push(...batch);more=batch.length===100;page++;}
+  const targets=users.filter(u=>ids.has(u.id)&&u.email&&u.id!==ownerUserId&&u.app_metadata?.personal_os_thank_you?.status!=='sent');let marked=0;
+  for(const user of targets){const metadata={...(user.app_metadata||{}),personal_os_thank_you:{status:'sent',sent_at:new Date().toISOString(),manually_marked:true}};const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users/${encodeURIComponent(user.id)}`,{method:'PUT',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({app_metadata:metadata})});if(!r.ok)throw new Error('Could not save a recipient status.');marked++;}
+  res.json({marked});
+ }catch(e){res.status(502).json({error:e.message||'Could not update recipient statuses.'});}
+});
 app.post('/api/welcome',async(req,res)=>{
  try {
   const already=one('SELECT 1 FROM email_events WHERE event=?','welcome');if(already)return res.json({sent:false});
