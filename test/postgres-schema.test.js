@@ -6,15 +6,17 @@ const path = require('node:path');
 const sql = fs.readFileSync(path.join(__dirname, '..', 'supabase-postgres-schema.sql'), 'utf8');
 const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
 
-test('Supabase migration uses the existing per-user workspace table', () => {
-  assert.match(sql, /create table if not exists public\.personal_os_workspaces/i);
-  assert.match(sql, /user_id uuid primary key references auth\.users\(id\) on delete cascade/i);
-  assert.match(sql, /data jsonb not null default '\{\}'::jsonb/i);
-  assert.match(sql, /alter table public\.personal_os_workspaces enable row level security/i);
-  assert.match(sql, /alter table public\.personal_os_workspaces force row level security/i);
-  assert.match(sql, /create policy personal_os_user_isolation on public\.personal_os_workspaces[\s\S]*?auth\.uid\(\)/i);
-  assert.match(sql, /grant select, insert, update on public\.personal_os_workspaces to authenticated/i);
-  assert.match(sql, /revoke all on public\.personal_os_workspaces from anon/i);
+test('Supabase migration uses the existing per-user workspace table and least-privilege RLS', () => {
+  assert.match(sql, /create table if not exists public\\.personal_os_workspaces/i);
+  assert.match(sql, /user_id uuid primary key references auth\\.users\\(id\\) on delete cascade/i);
+  assert.match(sql, /data jsonb not null default '\\{\\}'::jsonb/i);
+  assert.match(sql, /alter table public\\.personal_os_workspaces enable row level security/i);
+  assert.match(sql, /alter table public\\.personal_os_workspaces force row level security/i);
+  assert.match(sql, /create policy "workspace owner read"[\\s\\S]*?select auth\\.uid\\(\\)/i);
+  assert.match(sql, /create policy "workspace owner insert"[\\s\\S]*?select auth\\.uid\\(\\)/i);
+  assert.match(sql, /create policy "workspace owner update"[\\s\\S]*?select auth\\.uid\\(\\)/i);
+  assert.match(sql, /revoke all on table public\\.personal_os_workspaces from anon, authenticated/i);
+  assert.match(sql, /grant select, insert, update on table public\\.personal_os_workspaces to authenticated/i);
 });
 
 test('API persists request-scoped in-memory workspaces through Supabase', () => {
