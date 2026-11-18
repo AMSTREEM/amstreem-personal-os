@@ -35,7 +35,7 @@ async function acquireUserLock(userId) {
   return () => { release(); if (userLocks.get(userId) === tail) userLocks.delete(userId); };
 }
 async function readWorkspaceSnapshot(userId, token) {
-  const url = `${supabaseConfig.url}/rest/v1/personal_os_workspace_snapshots?select=data&user_id=eq.${encodeURIComponent(userId)}`;
+  const url = `${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=data&user_id=eq.${encodeURIComponent(userId)}`;
   const response = await fetch(url, { headers: { apikey: supabaseConfig.publishableKey, Authorization: `Bearer ${token}` } });
   if (!response.ok) throw new Error('Could not load your saved workspace from Supabase.');
   const rows = await response.json();
@@ -81,7 +81,7 @@ function serializeWorkspaceDatabase(workspaceDb) {
   return { format: 'personal-os-sqlite-snapshot-v1', tables };
 }
 async function writeWorkspaceSnapshot(userId, token, workspaceDb) {
-  const response = await fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspace_snapshots`, {
+  const response = await fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces`, {
     method: 'POST',
     headers: {
       apikey: supabaseConfig.publishableKey,
