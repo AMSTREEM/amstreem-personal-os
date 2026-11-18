@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const Database = require('better-sqlite3');
+const { restoreBackup } = require('./workspace-backup');
 const { AsyncLocalStorage } = require('node:async_hooks');
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -312,33 +313,11 @@ app.get('/api/settings',(q,s)=>s.json(Object.fromEntries(all('SELECT key,value F
 app.patch('/api/settings',(q,s)=>{const allowed=['daily_target','display_name','username','north_star'];const tx=db.transaction(()=>{for(const k of allowed)if(q.body[k]!==undefined){let v=String(q.body[k]).trim();if(k==='daily_target')v=String(Math.max(10,Math.min(600,Number(v)||80)));db.prepare('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').run(k,v)}});tx();s.json(Object.fromEntries(all('SELECT key,value FROM settings').map(x=>[x.key,x.value])));});
 app.get('/api/export',(q,s)=>{s.setHeader('Content-Disposition','attachment; filename="personal-os-backup.json"');s.json({exportedAt:new Date().toISOString(),tasks:all('SELECT * FROM tasks'),modules:all('SELECT * FROM modules'),learning_paths:all('SELECT * FROM learning_paths'),learning_lessons:all('SELECT * FROM learning_lessons'),learning_resources:all('SELECT * FROM learning_resources'),learning_study_logs:all('SELECT * FROM learning_study_logs'),sessions:all('SELECT * FROM sessions'),notes:all('SELECT * FROM notes'),goals:all('SELECT * FROM goals'),habits:all('SELECT * FROM habits'),habit_logs:all('SELECT * FROM habit_logs'),prayer_logs:all('SELECT * FROM prayer_logs'),quran_logs:all('SELECT * FROM quran_logs'),tahajjud_logs:all('SELECT * FROM tahajjud_logs'),self_control_logs:all('SELECT * FROM self_control_logs'),self_control_trackers:all('SELECT * FROM self_control_trackers'),self_control_entries:all('SELECT * FROM self_control_entries'),settings:all('SELECT * FROM settings'),email_events:all('SELECT * FROM email_events')});});
 app.post('/api/import',(q,s)=>{
- const backup=q.body;
- if(!backup||typeof backup!=='object'||Array.isArray(backup))return s.status(400).json({error:'Choose a valid Personal OS backup file.'});
- const importTables=['tasks','modules','learning_paths','learning_lessons','learning_resources','learning_study_logs','sessions','notes','goals','habits','habit_logs','prayer_logs','quran_logs','tahajjud_logs','self_control_logs','self_control_trackers','self_control_entries','settings','email_events'];
- const rowsByTable={};
  try {
-  for(const table of importTables){
-   if(table!=='email_events'&&!Array.isArray(backup[table]))throw new Error(`The backup is missing its ${table} section.`);
-   const rows=backup[table]??[];
-   if(!Array.isArray(rows))throw new Error(`The ${table} section is invalid.`);
-   const columns=workspaceTables.includes(table)?db.prepare(`PRAGMA table_info(${table})`).all().map(column=>column.name):[];
-   rowsByTable[table]=rows.map(row=>{
-    if(!row||typeof row!=='object'||Array.isArray(row)||columns.some(column=>!Object.prototype.hasOwnProperty.call(row,column)))throw new Error(`A record in ${table} is incomplete.`);
-    return row;
-   });
-  }
-  const order=['tasks','modules','learning_paths','learning_lessons','learning_resources','learning_study_logs','sessions','notes','goals','habits','habit_logs','prayer_logs','quran_logs','tahajjud_logs','self_control_logs','self_control_trackers','self_control_entries','settings','email_events'];
-  const restore=db.transaction(()=>{
-   for(const table of [...order].reverse())db.prepare(`DELETE FROM ${table}`).run();
-   for(const table of order){
-    const rows=rowsByTable[table];if(!rows.length)continue;
-    const columns=db.prepare(`PRAGMA table_info(${table})`).all().map(column=>column.name);
-    const insert=db.prepare(`INSERT INTO ${table} (${columns.join(',')}) VALUES (${columns.map(()=>'?').join(',')})`);
-    for(const row of rows)insert.run(...columns.map(column=>row[column]));
-   }
-  });
-  restore();
-  s.json({ok:true,imported:order.reduce((sum,table)=>sum+rowsByTable[table].length,0)});
- }catch(error){s.status(400).json({error:error.message||'The backup could not be imported.'})}
+  const imported=restoreBackup(db,q.body,workspaceTables);
+  s.json({ok:true,imported});
+ } catch(error) {
+  s.status(400).json({error:error.message||'The backup could not be imported.'});
+ }
 });
 app.listen(PORT,()=>console.log(`Personal OS running at http://localhost:${PORT}`));
