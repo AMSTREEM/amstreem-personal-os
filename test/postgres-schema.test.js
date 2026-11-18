@@ -118,8 +118,8 @@ test('calendar, faith practices, and religion preferences are persisted per work
   const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
   const app = fs.readFileSync(path.join(__dirname, '..', 'public', 'app.js'), 'utf8');
   assert.match(server, /CREATE TABLE IF NOT EXISTS faith_logs/);
-  assert.match(server, /app\\.get\\('\\/api\\/calendar'/);
-  assert.match(server, /faith_logs:all\\('SELECT \\* FROM faith_logs'\\)/);
+  assert.ok(server.includes("app.get('/api/calendar'"));
+  assert.ok(server.includes("faith_logs:all('SELECT * FROM faith_logs')"));
   assert.match(backup, /'faith_logs'/);
   assert.match(html, /id="signupReligion"/);
   assert.match(html, /id="page-calendar"/);
