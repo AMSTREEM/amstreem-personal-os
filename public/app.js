@@ -185,10 +185,23 @@ $('#loginForm').addEventListener('submit',async event=>{
   event.preventDefault();
   const button=event.currentTarget.querySelector('button');
   const message=$('#authMessage');button.disabled=true;button.textContent='Signing in…';message.textContent='';
-  const {data,error}=await supabaseClient.auth.signInWithPassword({email:$('#loginEmail').value.trim(),password:$('#loginPassword').value});
+  const identifier=$('#loginEmail').value.trim();
+  let session=null,error=null;
+  if(identifier.includes('@')){
+    const result=await supabaseClient.auth.signInWithPassword({email:identifier,password:$('#loginPassword').value});
+    session=result.data?.session||null;error=result.error;
+  }else{
+    try{
+      const response=await fetch('/api/auth/username-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:identifier,password:$('#loginPassword').value})});
+      const result=await response.json();
+      if(!response.ok)throw new Error(result.error||'Invalid username or password.');
+      const restored=await supabaseClient.auth.setSession({access_token:result.access_token,refresh_token:result.refresh_token});
+      session=restored.data?.session||null;error=restored.error;
+    }catch(e){error=e;}
+  }
   button.disabled=false;button.innerHTML='Enter your residence <span>→</span>';
   if(error){message.textContent=error.message;return;}
-  await enterWorkspace(data.session);
+  await enterWorkspace(session);
 });
 function renderAdminUsers(){const body=$('#adminUserRows'),filter=$('#adminMailFilter')?.value||'new';const visible=adminUsers.filter(u=>filter==='all'||(filter==='sent'?u.thank_you_status==='sent':u.thank_you_status!=='sent'&&u.thank_you_status!=='pending'));$('#adminNewMailCount').textContent=adminUsers.filter(u=>u.email&&u.thank_you_status!=='sent'&&u.thank_you_status!=='pending'&&u.id!==authUser?.id).length;$('#adminSentMailCount').textContent=adminUsers.filter(u=>u.thank_you_status==='sent').length;body.innerHTML=visible.length?visible.map(u=>{const sent=u.thank_you_status==='sent';const status=sent?'Sent'+(u.thank_you_sent_at?' · '+new Date(u.thank_you_sent_at).toLocaleDateString():''):(u.thank_you_status==='pending'?'Sending / verify':'Not sent');return '<tr><td><input type="checkbox" class="admin-user-check" value="'+esc(u.id)+'" aria-label="Select '+esc(u.name)+'" '+(sent||u.thank_you_status==='pending'?'disabled':'')+'></td><td>'+esc(u.name)+'</td><td>'+(u.username?'@'+esc(u.username):'—')+'</td><td>'+esc(u.email)+'</td><td>'+(u.created_at?new Date(u.created_at).toLocaleDateString():'—')+'</td><td><span class="admin-status '+(u.email_confirmed?'confirmed':'pending')+'">'+(u.email_confirmed?'Verified':'Unverified')+'</span></td><td><span class="admin-status '+(sent?'confirmed':'pending')+'">'+esc(status)+'</span></td></tr>';}).join(''):'<tr><td colspan="7">No accounts in this view.</td></tr>';$('#adminSelectAll').checked=false;}
 async function loadAdminUsers(){const body=$('#adminUserRows');loadAdminAnalytics();body.innerHTML='<tr><td colspan="7">Loading account directory…</td></tr>';try{const data=await api('/admin/users');adminUsers=data.users||[];if(!data.email_configured)$('#adminMailStatus').textContent='Email is not configured yet. Add RESEND_API_KEY and EMAIL_FROM in Render to activate sending.';else $('#adminMailStatus').textContent='Email sender is configured. New recipients are ready to receive the thank-you message.';$('#adminUserCount').textContent=adminUsers.length;$('#adminConfirmedCount').textContent=adminUsers.filter(u=>u.email_confirmed).length;renderAdminUsers();}catch(e){body.innerHTML='<tr><td colspan="7">'+esc(e.message)+'</td></tr>';}}
