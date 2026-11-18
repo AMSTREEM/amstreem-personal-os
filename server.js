@@ -314,8 +314,8 @@ app.post('/api/admin/thank-you',async(req,res)=>{
   const key=process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if(!key)return res.status(503).json({error:'Admin directory is not configured.'});
   if(!process.env.RESEND_API_KEY||!process.env.EMAIL_FROM)return res.status(503).json({error:'Thank-you email is not activated yet. Configure RESEND_API_KEY and EMAIL_FROM in Render.'});
-  const subject=String(req.body.subject||'Thank you for using Personal OS').trim().slice(0,120);
-  const message=String(req.body.message||'Thank you for being part of Personal OS. I appreciate you giving the system a place in your daily life.').trim().slice(0,4000);
+  const subject=String(req.body.subject||'Thank you for using Amstreem Atlas').trim().slice(0,120);
+  const message=String(req.body.message||'Thank you for being part of Amstreem Atlas. I appreciate you giving the system a place in your daily life.').trim().slice(0,4000);
   if(!message)return res.status(400).json({error:'Write a message first.'});
   let recipients=[];
   if(req.body.all===true||Array.isArray(req.body.userIds)){let page=1,more=true;while(more&&page<=100){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});if(!r.ok)throw new Error('Could not retrieve recipients.');const batch=(await r.json()).users||[];recipients.push(...batch);more=batch.length===100;page++;}}
@@ -326,7 +326,7 @@ app.post('/api/admin/thank-you',async(req,res)=>{
   let sent=0,failed=0,pending=0,skippedAlreadySent=eligible.filter(u=>u.app_metadata?.personal_os_thank_you?.status==='sent').length,skippedPending=eligible.filter(u=>u.app_metadata?.personal_os_thank_you?.status==='pending').length;
   const escapeHtml=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const updateMailStatus=async(user,status,extra={})=>{const metadata={...(user.app_metadata||{}),personal_os_thank_you:{status,...extra}};const response=await fetch(`${supabaseConfig.url}/auth/v1/admin/users/${encodeURIComponent(user.id)}`,{method:'PUT',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({app_metadata:metadata})});if(!response.ok)throw new Error('Could not save recipient email status.');user.app_metadata=metadata;};
-  for(const user of targets){try{await updateMailStatus(user,'pending',{started_at:new Date().toISOString()});const name=escapeHtml(user.user_metadata?.full_name||'there'),body=escapeHtml(message).replace(/\n/g,'<br>');const result=await sendResendEmail(user.email,subject,`<div style="font-family:Arial,sans-serif;line-height:1.7;color:#222"><p>Hello ${name},</p><p>${body}</p><p>— Personal OS</p></div>`);try{await updateMailStatus(user,'sent',{sent_at:new Date().toISOString(),email_id:result?.id||null});sent++;}catch(markError){pending++;console.error('Email sent but status update is pending:',markError.message);}}catch(e){failed++;console.error('Thank-you email failed:',e.message);try{await updateMailStatus(user,'failed',{failed_at:new Date().toISOString()});}catch(markError){pending++;console.error('Could not update failed email status:',markError.message);}}}
+  for(const user of targets){try{await updateMailStatus(user,'pending',{started_at:new Date().toISOString()});const name=escapeHtml(user.user_metadata?.full_name||'there'),body=escapeHtml(message).replace(/\n/g,'<br>');const result=await sendResendEmail(user.email,subject,`<div style="font-family:Arial,sans-serif;line-height:1.7;color:#222"><p>Hello ${name},</p><p>${body}</p><p>— Amstreem Atlas</p></div>`);try{await updateMailStatus(user,'sent',{sent_at:new Date().toISOString(),email_id:result?.id||null});sent++;}catch(markError){pending++;console.error('Email sent but status update is pending:',markError.message);}}catch(e){failed++;console.error('Thank-you email failed:',e.message);try{await updateMailStatus(user,'failed',{failed_at:new Date().toISOString()});}catch(markError){pending++;console.error('Could not update failed email status:',markError.message);}}}
   res.json({sent,failed,pending,skippedAlreadySent,skippedPending,total:targets.length});
  }catch(e){res.status(502).json({error:e.message||'Could not send emails.'})}
 });
@@ -349,7 +349,7 @@ app.post('/api/welcome',async(req,res)=>{
   // Email is optional during local development; never let it interrupt workspace loading.
   if(!process.env.RESEND_API_KEY||!process.env.EMAIL_FROM)return res.json({sent:false,skipped:true,reason:'Email is not configured.'});
   const name=String(req.user.user_metadata?.full_name||'there').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  await sendResendEmail(req.user.email,'Welcome to Personal OS',`<div style="font-family:Arial,sans-serif;line-height:1.7;color:#222"><p>Hello ${name},</p><p>Thank you for joining Personal OS. Your space is yours to shape—your records remain private to your account.</p><p>— Personal OS</p></div>`);
+  await sendResendEmail(req.user.email,'Welcome to Amstreem Atlas',`<div style="font-family:Arial,sans-serif;line-height:1.7;color:#222"><p>Hello ${name},</p><p>Thank you for joining Amstreem Atlas. Your space is yours to shape—your records remain private to your account.</p><p>— Amstreem Atlas</p></div>`);
   db.prepare('INSERT OR IGNORE INTO email_events(event) VALUES(?)').run('welcome');res.json({sent:true});
  }catch(e){console.error('Welcome email:',e.message);res.json({sent:false,error:'Your account is ready, but the welcome email could not be sent.'})}
 });
@@ -479,4 +479,4 @@ app.post('/api/import',(q,s)=>{
   s.status(400).json({error:error.message||'The backup could not be imported.'});
  }
 });
-app.listen(PORT,()=>console.log(`Personal OS running at http://localhost:${PORT}`));
+app.listen(PORT,()=>console.log(`Amstreem Atlas running at http://localhost:${PORT}`));
