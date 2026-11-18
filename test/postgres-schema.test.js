@@ -110,3 +110,21 @@ test('UI safely renders values restored from imported backups', () => {
   assert.match(app, /data-status="\$\{esc\(g\.status\)\}"/);
   assert.match(app, /self-outcome \$\{esc\(l\.outcome\)\}/);
 });
+
+
+test('calendar, faith practices, and religion preferences are persisted per workspace', () => {
+  const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
+  const backup = fs.readFileSync(path.join(__dirname, '..', 'workspace-backup.js'), 'utf8');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'index.html'), 'utf8');
+  const app = fs.readFileSync(path.join(__dirname, '..', 'public', 'app.js'), 'utf8');
+  assert.match(server, /CREATE TABLE IF NOT EXISTS faith_logs/);
+  assert.match(server, /app\\.get\\('\\/api\\/calendar'/);
+  assert.match(server, /faith_logs:all\\('SELECT \\* FROM faith_logs'\\)/);
+  assert.match(backup, /'faith_logs'/);
+  assert.match(html, /id="signupReligion"/);
+  assert.match(html, /id="page-calendar"/);
+  assert.match(html, /id="page-faith"/);
+  assert.match(app, /function applyReligionVisibility/);
+  assert.match(app, /function renderCalendar/);
+  assert.match(app, /function renderFaith/);
+});
