@@ -2,14 +2,14 @@ const importTables = [
   'tasks','modules','learning_paths','learning_lessons','learning_resources',
   'learning_study_logs','sessions','notes','goals','habits','habit_logs',
   'prayer_logs','quran_logs','tahajjud_logs','faith_logs','self_control_logs',
-  'self_control_trackers','self_control_entries','settings','email_events','login_events','xp_events','feedback_logs','feedback_logs'
+  'self_control_trackers','self_control_entries','settings','email_events','login_events','xp_events','feedback_logs'
 ];
 
 const insertOrder = [
   'tasks','modules','learning_paths','learning_lessons','learning_resources',
   'learning_study_logs','sessions','notes','goals','habits','habit_logs',
   'prayer_logs','quran_logs','tahajjud_logs','faith_logs','self_control_logs',
-  'self_control_trackers','self_control_entries','settings','email_events','login_events','xp_events'
+  'self_control_trackers','self_control_entries','settings','email_events','login_events','xp_events','feedback_logs'
 ];
 
 function restoreBackup(db, backup, allowedTables) {
