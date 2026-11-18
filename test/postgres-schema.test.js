@@ -41,3 +41,11 @@ test('child records are tied to parent records within the same user account', ()
     assert.match(sql, new RegExp('foreign key\\s*\\(user_id,\\s*' + fk + '\\)\\s*references public\\.' + parent + '\\(user_id,\\s*id\\)', 'i'), child);
   }
 });
+
+test('workspace snapshot storage is private and accessible through authenticated RLS only', () => {
+  assert.match(sql, /create table if not exists public\.personal_os_workspace_snapshots/i);
+  assert.match(sql, /alter table public\.personal_os_workspace_snapshots enable row level security/i);
+  assert.match(sql, /alter table public\.personal_os_workspace_snapshots force row level security/i);
+  assert.match(sql, /create policy personal_os_user_isolation on public\.personal_os_workspace_snapshots[\s\S]*?auth\.uid\(\)/i);
+  assert.match(sql, /grant select, insert, update, delete on public\.personal_os_workspace_snapshots to authenticated/i);
+});
