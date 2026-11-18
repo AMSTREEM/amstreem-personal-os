@@ -414,3 +414,34 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
 .auth-card .signup-step-actions .btn-secondary{min-height:49px;margin:8px 0 0;border-radius:10px;background:var(--surface);border-color:var(--line);color:var(--muted)}
 .auth-card .signup-step-actions .btn-secondary:hover{border-color:var(--accent);color:var(--text);background:var(--hover)}
 @media(max-width:480px){.auth-card{padding:26px 20px}.auth-card .signup-step-actions{grid-template-columns:.68fr 1.32fr}}
+
+/* Profile preferences: style the actual saved-account religion control and action */
+.settings-panel #profileForm label:has(#religionInput){
+  padding:15px 15px 16px;border:1px solid color-mix(in srgb,var(--accent) 24%,var(--line));
+  border-radius:11px;background:linear-gradient(120deg,var(--accent-soft),transparent 72%);
+  color:var(--accent);gap:10px;
+}
+.settings-panel #profileForm #religionInput{
+  display:block;width:100%;min-height:48px;margin:0;padding:0 46px 0 14px;
+  appearance:none;-webkit-appearance:none;border:1px solid color-mix(in srgb,var(--accent) 38%,var(--line));
+  border-radius:9px;color:var(--text);font:600 12px var(--sans);letter-spacing:0;
+  background-color:var(--surface);
+  background-image:linear-gradient(45deg,transparent 50%,var(--accent) 50%),linear-gradient(135deg,var(--accent) 50%,transparent 50%),linear-gradient(to right,var(--line),var(--line));
+  background-position:calc(100% - 19px) 21px,calc(100% - 14px) 21px,calc(100% - 38px) 50%;
+  background-size:5px 5px,5px 5px,1px 22px;background-repeat:no-repeat;
+  box-shadow:inset 0 1px 0 #ffffff08;cursor:pointer;transition:border-color .18s,box-shadow .18s,background-color .18s;
+}
+.settings-panel #profileForm #religionInput:hover{border-color:var(--accent);background-color:var(--hover)}
+.settings-panel #profileForm #religionInput:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft),0 5px 18px #0002}
+.settings-panel #profileForm #religionInput option{background:var(--surface);color:var(--text)}
+.settings-panel #profileForm button.btn-primary{
+  display:inline-flex;align-items:center;justify-content:center;gap:12px;min-width:190px;min-height:48px;
+  margin-top:7px;padding:12px 18px;border:1px solid color-mix(in srgb,var(--accent) 78%,white);
+  border-radius:9px;background:linear-gradient(115deg,var(--accent),color-mix(in srgb,var(--accent) 68%,white));
+  color:var(--bg);font:700 11px var(--sans);box-shadow:0 7px 22px var(--accent-soft);
+  transition:transform .18s,box-shadow .18s,filter .18s;
+}
+.settings-panel #profileForm button.btn-primary:hover{transform:translateY(-1px);filter:brightness(1.06);box-shadow:0 10px 26px var(--accent-soft)}
+.settings-panel #profileForm button.btn-primary:active{transform:translateY(0)}
+@media(max-width:540px){.settings-panel #profileForm button.btn-primary{width:100%}}
+
