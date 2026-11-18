@@ -318,6 +318,7 @@ app.post('/api/import',(q,s)=>{
  const rowsByTable={};
  try {
   for(const table of importTables){
+   if(table!=='email_events'&&!Array.isArray(backup[table]))throw new Error(`The backup is missing its ${table} section.`);
    const rows=backup[table]??[];
    if(!Array.isArray(rows))throw new Error(`The ${table} section is invalid.`);
    const columns=workspaceTables.includes(table)?db.prepare(`PRAGMA table_info(${table})`).all().map(column=>column.name):[];
