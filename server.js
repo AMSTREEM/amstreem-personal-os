@@ -48,6 +48,11 @@ function createWorkspaceDatabase(snapshot) {
     workspaceDb.pragma('foreign_keys = ON');
     workspaceDb.exec(schemaSql);
   if (snapshot?.format === 'personal-os-sqlite-snapshot-v1' && snapshot.tables && typeof snapshot.tables === 'object') {
+    for (const table of workspaceTables) {
+      if (!Array.isArray(snapshot.tables[table])) {
+        throw new Error(`Saved workspace is missing its ${table} section. No data was changed.`);
+      }
+    }
     const insertRows = workspaceDb.transaction(() => {
       for (const table of workspaceTables) {
         const rows = Array.isArray(snapshot.tables[table]) ? snapshot.tables[table] : [];
