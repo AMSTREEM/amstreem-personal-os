@@ -78,3 +78,32 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;back
 
 /* Short, branded return-to-workspace loading screen. */
 .welcome-loader{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;animation:welcomeFade .25s ease}.welcome-loader.hidden{display:none!important}.welcome-loader-mark{font-size:38px;color:var(--accent);margin-bottom:18px}.welcome-loader-kicker{font:9px var(--mono);letter-spacing:2px;color:var(--muted)}.welcome-loader h2{font:700 clamp(24px,4vw,36px) var(--display);margin:18px 0 7px}.welcome-loader p{color:var(--muted);margin:0}.welcome-loader-track{width:min(220px,60vw);height:3px;background:var(--line);border-radius:5px;overflow:hidden;margin-top:28px}.welcome-loader-track i{display:block;width:40%;height:100%;background:var(--accent);border-radius:5px;animation:welcomeProgress 1.4s ease-in-out infinite alternate}@keyframes welcomeProgress{from{transform:translateX(-20%)}to{transform:translateX(170%)}}@keyframes welcomeFade{from{opacity:0}to{opacity:1}}
+
+
+/* Brand emblem: use the same mark in the browser tab, sign-in, loader and app shell. */
+.auth-mark img,.welcome-loader-mark img,.brand-mark img,.art-core img{display:block;width:100%;height:100%;object-fit:contain}
+.auth-mark img,.welcome-loader-mark img{width:54px;height:54px;border-radius:14px}
+.brand-mark{display:grid;place-items:center;overflow:hidden}
+.brand-mark img{width:34px;height:34px;border-radius:9px}
+.art-core img{width:48px;height:48px;border-radius:14px;margin:0 auto 8px}
+.leaderboard-widget,.rankings-page-panel,.hall-of-fame-panel{min-width:0}
+.leaderboard-podium{display:grid;gap:8px;margin:14px 0}
+.leaderboard-podium-row,.leaderboard-full-row,.champion-row{display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface2)}
+.leaderboard-podium-row.is-you,.leaderboard-full-row.is-you{border-color:var(--accent);background:var(--accent-soft)}
+.leaderboard-place{font-size:20px;text-align:center}
+.leaderboard-person{display:grid;min-width:0}
+.leaderboard-person b,.leaderboard-full-row>b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.leaderboard-person small{font:9px var(--mono);color:var(--muted)}
+.leaderboard-podium-row>strong,.leaderboard-full-row>strong,.champion-row>strong{font:600 11px var(--mono);white-space:nowrap}
+.leaderboard-you{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 14px;border:1px solid var(--line);border-radius:10px;color:var(--muted);font-size:11px}
+.leaderboard-you b{color:var(--text);font:600 11px var(--mono)}
+.leaderboard-lifetime{color:var(--muted);font-size:10px}
+.leaderboard-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;color:var(--muted);font-size:10px}
+.leaderboard-full-list,.leaderboard-champions{display:grid;gap:8px;margin:14px 0}
+.leaderboard-full-row{grid-template-columns:42px minmax(0,1fr) auto}
+.leaderboard-rank{font:600 12px var(--mono);color:var(--muted)}
+.champion-row{grid-template-columns:28px minmax(0,1fr) minmax(0,1fr) auto;font-size:11px}
+.champion-row>span:nth-child(3){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+.leaderboard-privacy-setting{display:flex;align-items:center;gap:10px}
+.leaderboard-privacy-setting input{width:16px;height:16px;accent-color:var(--accent)}
+@media(max-width:620px){.leaderboard-foot{align-items:flex-start;flex-direction:column}.champion-row{grid-template-columns:24px minmax(0,1fr) minmax(0,1fr)}.champion-row strong{grid-column:2/-1}}
