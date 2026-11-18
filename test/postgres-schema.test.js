@@ -17,6 +17,10 @@ test('Supabase migration uses the existing per-user workspace table and least-pr
   assert.match(sql, /create policy "workspace owner update"[\s\S]*?select auth\.uid\(\)/i);
   assert.match(sql, /revoke all on table public\.personal_os_workspaces from anon, authenticated/i);
   assert.match(sql, /grant select, insert, update on table public\.personal_os_workspaces to authenticated/i);
+  assert.match(sql, /revoke all on table public\.personal_os_profiles from anon, authenticated/i);
+  assert.match(sql, /revoke all on table public\.personal_os_admins from anon, authenticated/i);
+  assert.match(sql, /revoke all on table public\.personal_os_invites from anon, authenticated/i);
+  assert.match(sql, /revoke execute on function public\.personal_os_is_admin\(\) from public, anon, authenticated/i);
 });
 
 test('API persists request-scoped in-memory workspaces through Supabase', () => {
