@@ -327,3 +327,23 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
   .admin-mail-actions{flex-direction:column;align-items:stretch}
   .admin-mail-actions button{width:100%}
 }
+
+/* Settings: compact category rail with one focused settings panel at a time. */
+.settings-layout{display:grid;grid-template-columns:220px minmax(0,1fr);align-items:start;gap:16px}
+.settings-subnav{position:sticky;top:86px;display:grid;gap:5px;padding:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.settings-subnav-label{padding:7px 9px 9px;font:8px var(--mono);letter-spacing:1.2px;color:var(--muted)}
+.settings-subnav-item{display:grid;grid-template-columns:22px minmax(0,1fr) 12px;align-items:center;gap:9px;width:100%;padding:11px 10px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--muted);text-align:left;cursor:pointer;transition:background .18s,border-color .18s,color .18s}
+.settings-subnav-item>span:first-child{font-size:16px;text-align:center;color:var(--accent)}
+.settings-subnav-item>span:nth-child(2){display:grid;gap:2px;min-width:0}
+.settings-subnav-item b{font:600 10px var(--sans);color:var(--text)}
+.settings-subnav-item small{font:8px var(--sans);color:var(--muted)}
+.settings-subnav-item i{font:15px var(--sans);font-style:normal;opacity:0}
+.settings-subnav-item:hover{background:var(--surface2);color:var(--text)}
+.settings-subnav-item.active{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 30%,var(--line))}
+.settings-subnav-item.active i{opacity:1;color:var(--accent)}
+.settings-content{min-width:0}
+.settings-content>[data-settings-section]{display:none;margin:0;animation:rise .2s ease}
+.settings-content>[data-settings-section].active{display:block}
+.settings-content .settings-panel{padding:24px}
+@media(max-width:780px){.settings-layout{grid-template-columns:1fr;gap:12px}.settings-subnav{position:static;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;padding:8px}.settings-subnav-label{grid-column:1/-1}.settings-subnav-item{grid-template-columns:20px minmax(0,1fr);padding:9px 8px}.settings-subnav-item i{display:none}.settings-subnav-item small{font-size:7px}.settings-content .settings-panel{padding:18px}}
+@media(max-width:430px){.settings-subnav{grid-template-columns:1fr 1fr}.settings-subnav-item b{font-size:9px}}
