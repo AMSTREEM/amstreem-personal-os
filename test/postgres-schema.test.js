@@ -101,3 +101,12 @@ test('Express adds baseline browser security headers and hides its version', () 
   assert.match(server, /Referrer-Policy/);
   assert.match(server, /Permissions-Policy/);
 });
+
+test('UI safely renders values restored from imported backups', () => {
+  const app = fs.readFileSync(path.join(__dirname, '..', 'public', 'app.js'), 'utf8');
+  assert.match(app, /safeHttpUrl=value=>/);
+  assert.match(app, /href="\$\{esc\(safeHttpUrl\(r\.url\)\)\}"/);
+  assert.match(app, /Ayah \$\{esc\(x\.ayah_start\)\}/);
+  assert.match(app, /data-status="\$\{esc\(g\.status\)\}"/);
+  assert.match(app, /self-outcome \$\{esc\(l\.outcome\)\}/);
+});
