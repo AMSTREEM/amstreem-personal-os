@@ -5,9 +5,9 @@ Personal OS keeps its existing Express API and SQLite query behaviour while pers
 ## Storage and privacy model
 
 - Supabase Auth remains responsible for signup, email confirmation, login and sessions.
-- Each user's complete workspace is stored in one row in `public.personal_os_workspace_snapshots`.
+- Each user's complete workspace is stored in one row in `public.personal_os_workspaces`.
 - The row is protected by RLS: authenticated users can select or mutate only the row whose `user_id` equals `auth.uid()`.
-- The app loads a user's snapshot into a request-scoped in-memory SQLite database, runs the existing API logic, then saves the updated snapshot before completing the response.
+- The app uses the existing `personal_os_workspaces` row: it loads that user's JSONB snapshot into a request-scoped in-memory SQLite database, runs the existing API logic, then saves the updated snapshot before completing the response.
 - Requests for the same account are serialized within one app instance to prevent overlapping requests from overwriting one another.
 - No user workspace is stored on the host filesystem. This permits an ephemeral/free web host.
 - The admin directory remains a separate, owner-only Auth operation. It returns account metadata only and never reads workspace snapshots.
@@ -16,7 +16,7 @@ Personal OS keeps its existing Express API and SQLite query behaviour while pers
 ## Required Supabase setup
 
 1. Keep Supabase Auth email confirmation enabled.
-2. In the Supabase SQL Editor, run `supabase-postgres-schema.sql`. It creates the snapshot table and RLS policy, as well as the relational schema reserved for a future normalized-storage migration.
+2. In the Supabase SQL Editor, run `supabase-postgres-schema.sql`. It safely ensures the existing `personal_os_workspaces` table has the required RLS policy and grants. It does not delete or rewrite existing workspace rows.
 3. Confirm `supabase-config.json` and `public/supabase-config.js` point to the same Supabase project.
 4. Set `ADMIN_USER_ID` on the server to the UUID of the owner account. Do not use user-editable metadata as an admin role.
 5. Keep public signups disabled until the deployment and account-isolation tests are complete.
@@ -39,7 +39,7 @@ The current snapshot approach is intended for a single app instance. Do not scal
 
 ## Existing SQLite data
 
-This release does not automatically copy pre-existing local or hosted SQLite files into Supabase. Keep the old deployment and its database files intact until a verified export/import migration has been completed. Do not delete old databases or replace the current production deployment based only on a successful build.
+This release includes a backup importer. Before switching from the old SQLite release, export a Personal OS backup from the old app. After the new release is configured, sign in with the same account and use **Import existing backup** in Settings. The import is transactional and replaces that account's current records only after the file validates. Keep the old deployment and database files intact until the imported workspace has been checked.
 
 ## Release status
 
