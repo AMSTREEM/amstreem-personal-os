@@ -126,6 +126,6 @@ test('calendar, faith practices, and religion preferences are persisted per work
   assert.match(html, /id="page-faith"/);
   assert.match(app, /function applyReligionVisibility/);
   assert.match(app, /function renderCalendar/);
-  assert.ok(app.includes("$('[data-calendar-date]').forEach"));
+  assert.ok(app.includes("$$('[data-calendar-date]').forEach"));
   assert.match(app, /function renderFaith/);
 });
