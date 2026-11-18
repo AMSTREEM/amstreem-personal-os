@@ -379,3 +379,38 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
 .signup-religion-label select option{background:var(--surface);color:var(--text)}
 .signup-religion-card .field-hint{grid-column:1/-1;margin:0;padding-top:10px;border-top:1px solid var(--line);font-size:9px;line-height:1.6;color:var(--muted)}
 @media(max-width:480px){.signup-religion-card{padding:14px;grid-template-columns:35px minmax(0,1fr)}.signup-religion-mark{width:34px;height:34px;border-radius:10px}}
+
+/* Auth walkthrough controls: explicit styling for the religion selector and step buttons */
+.auth-card .signup-religion-label{display:grid;gap:8px;color:var(--muted);font:8px var(--mono);letter-spacing:1px}
+.auth-card .signup-religion-label select#signupReligion{
+  display:block;width:100%;min-height:48px;margin:0;padding:0 46px 0 15px;
+  appearance:none;-webkit-appearance:none;
+  border:1px solid color-mix(in srgb,var(--accent) 38%,var(--line));border-radius:10px;
+  color:var(--text);font:600 12px var(--sans);letter-spacing:0;
+  background-color:var(--surface);
+  background-image:linear-gradient(45deg,transparent 50%,var(--accent) 50%),linear-gradient(135deg,var(--accent) 50%,transparent 50%),linear-gradient(to right,var(--line),var(--line));
+  background-position:calc(100% - 19px) 21px,calc(100% - 14px) 21px,calc(100% - 38px) 50%;
+  background-size:5px 5px,5px 5px,1px 22px;background-repeat:no-repeat;
+  box-shadow:inset 0 1px 0 #ffffff08;cursor:pointer;transition:border-color .18s,box-shadow .18s,background-color .18s;
+}
+.auth-card .signup-religion-label select#signupReligion:hover{border-color:var(--accent);background-color:var(--hover)}
+.auth-card .signup-religion-label select#signupReligion:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft),0 5px 18px #0002}
+.auth-card .signup-religion-label select#signupReligion option{background:var(--surface);color:var(--text)}
+.auth-card #signupContinue,
+.auth-card .signup-step-actions button[type="submit"]{
+  display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:49px;
+  margin:8px 0 0;padding:12px 18px;border-radius:10px;
+  color:var(--bg);font:700 11px var(--sans);letter-spacing:.02em;
+  background:linear-gradient(115deg,var(--accent),color-mix(in srgb,var(--accent) 68%,white));
+  border:1px solid color-mix(in srgb,var(--accent) 78%,white);
+  box-shadow:0 7px 22px color-mix(in srgb,var(--accent) 22%,transparent);
+  transition:transform .18s,box-shadow .18s,filter .18s;
+}
+.auth-card #signupContinue:hover,
+.auth-card .signup-step-actions button[type="submit"]:hover{transform:translateY(-2px);filter:brightness(1.07);box-shadow:0 11px 28px color-mix(in srgb,var(--accent) 30%,transparent)}
+.auth-card #signupContinue:active,
+.auth-card .signup-step-actions button[type="submit"]:active{transform:translateY(0) scale(.99)}
+.auth-card .signup-step-actions{display:grid;grid-template-columns:.72fr 1.28fr;gap:10px}
+.auth-card .signup-step-actions .btn-secondary{min-height:49px;margin:8px 0 0;border-radius:10px;background:var(--surface);border-color:var(--line);color:var(--muted)}
+.auth-card .signup-step-actions .btn-secondary:hover{border-color:var(--accent);color:var(--text);background:var(--hover)}
+@media(max-width:480px){.auth-card{padding:26px 20px}.auth-card .signup-step-actions{grid-template-columns:.68fr 1.32fr}}
