@@ -114,6 +114,10 @@ $$('[data-auth-view]').forEach(b=>b.addEventListener('click',()=>setAuthView(b.d
 $('#signupForm').addEventListener('submit',async event=>{event.preventDefault();const button=event.currentTarget.querySelector('button');const message=$('#signupMessage');const name=$('#signupName').value.trim(),username=$('#signupUsername').value.trim().replace(/^@/,''),email=$('#signupEmail').value.trim(),password=$('#signupPassword').value,religion=$('#signupReligion').value;if(!/^[A-Za-z0-9_]{3,24}$/.test(username)){message.textContent='Username must be 3–24 letters, numbers or underscores.';return}button.disabled=true;button.textContent='Creating your account…';message.textContent='';if(!religion){button.disabled=false;button.innerHTML='Create your account <span>→</span>';message.textContent='Choose an option to personalise your workspace.';return}const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:name,username,religion},emailRedirectTo:window.location.origin}});button.disabled=false;button.innerHTML='Create your account <span>→</span>';if(error){message.textContent=error.message;return}if(data.session){await enterWorkspace(data.session)}else{message.textContent='Your account has been created. Check your email to confirm your address, then sign in.';$('#loginEmail').value=email;setAuthView('login');$('#authMessage').textContent='Check your inbox for the confirmation link, then sign in here.';}});
 async function enterWorkspace(session){
   const message=$('#authMessage');
+  const welcomeMessages=[['Welcome back.','Restoring your personal environment…'],['Your workspace is waking up.','Bringing your plans and progress back into focus…'],['Picking up where you left off.','Syncing your latest activity…'],['Good to have you back.','Preparing your next step…'],['Your progress is right where you left it.','Loading your private residence…']];
+  const welcome=welcomeMessages[Math.floor(Math.random()*welcomeMessages.length)];
+  $('#welcomeLoaderTitle').textContent=welcome[0];$('#welcomeLoaderMessage').textContent=welcome[1];$('#welcomeLoader').classList.remove('hidden');
+  const welcomeStarted=Date.now();
   try {
     const response=await fetch('/api/session',{headers:{Authorization:`Bearer ${session.access_token}`}});
     const result=await response.json();
@@ -121,9 +125,13 @@ async function enterWorkspace(session){
     authUser=session.user||result.user;isAdmin=result.role==='admin';$('#adminNav').classList.toggle('hidden',!isAdmin);document.body.classList.toggle('is-admin',isAdmin);
     document.body.classList.remove('auth-locked');
     $('#authGate').classList.add('hidden');
-    load();
+    await load();
+    api('/login-event',{method:'POST',body:'{}'}).catch(()=>{});
     api('/welcome',{method:'POST',body:'{}'}).catch(()=>{});
+    await new Promise(resolve=>setTimeout(resolve,Math.max(0,1400-(Date.now()-welcomeStarted))));
+    $('#welcomeLoader').classList.add('hidden');
   } catch(error) {
+    $('#welcomeLoader').classList.add('hidden');
     await supabaseClient.auth.signOut();
     if(message) message.textContent=error.message;
   }
