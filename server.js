@@ -125,6 +125,11 @@ app.use('/api', async (req, res, next) => {
       res.end = (...args) => {
         if (ending) return res;
         ending = true;
+        if (req.method === 'GET' || req.method === 'HEAD') {
+          workspaceDb.close();
+          release?.();
+          return originalEnd(...args);
+        }
         writeWorkspaceSnapshot(user.id, token, workspaceDb)
           .then(() => originalEnd(...args))
           .catch(error => {
