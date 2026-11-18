@@ -93,3 +93,11 @@ test('workspace export sends the authenticated session token', () => {
   assert.match(app, /async function exportWorkspace\(\)[\s\S]*?Authorization:[^\n]*session\.access_token/);
   assert.doesNotMatch(app, /location\.href='\/api\/export'/);
 });
+
+test('Express adds baseline browser security headers and hides its version', () => {
+  assert.match(server, /app\.disable\('x-powered-by'\)/);
+  assert.match(server, /X-Content-Type-Options/);
+  assert.match(server, /X-Frame-Options/);
+  assert.match(server, /Referrer-Policy/);
+  assert.match(server, /Permissions-Policy/);
+});
