@@ -43,8 +43,9 @@ async function readWorkspaceSnapshot(userId, token) {
 }
 function createWorkspaceDatabase(snapshot) {
   const workspaceDb = new Database(':memory:');
-  workspaceDb.pragma('foreign_keys = ON');
-  workspaceDb.exec(schemaSql);
+  try {
+    workspaceDb.pragma('foreign_keys = ON');
+    workspaceDb.exec(schemaSql);
   if (snapshot?.format === 'personal-os-sqlite-snapshot-v1' && snapshot.tables && typeof snapshot.tables === 'object') {
     const insertRows = workspaceDb.transaction(() => {
       for (const table of workspaceTables) {
@@ -68,7 +69,11 @@ function createWorkspaceDatabase(snapshot) {
   for (const [key, value] of [['daily_target','80'],['display_name',''],['north_star','']]) {
     workspaceDb.prepare('INSERT OR IGNORE INTO settings(key,value) VALUES(?,?)').run(key,value);
   }
-  return workspaceDb;
+    return workspaceDb;
+  } catch (error) {
+    workspaceDb.close();
+    throw error;
+  }
 }
 function serializeWorkspaceDatabase(workspaceDb) {
   const tables = {};
@@ -125,6 +130,7 @@ app.use('/api', async (req, res, next) => {
           .finally(() => { workspaceDb.close(); release?.(); });
         return res;
       };
+      res.on('close', () => { if (!ending) { workspaceDb.close(); release?.(); } });
       next();
     });
   } catch (error) {
