@@ -231,7 +231,7 @@ async function enterWorkspace(session){
     const response=await fetch('/api/session',{headers:{Authorization:`Bearer ${session.access_token}`}});
     const result=await response.json();
     if(!response.ok) throw new Error(result.error||'Access denied.');
-    authUser=session.user||result.user;isAdmin=result.role==='admin';const needsFirstRunTour=authUser?.user_metadata?.onboarding_completed===false;
+    authUser=session.user||result.user;isAdmin=result.role==='admin';const needsFirstRunTour=authUser?.user_metadata?.onboarding_completed!==true;
     if(isAdmin){
       try{await supabaseClient.auth.updateUser({data:{username:'admin'}});authUser={...authUser,user_metadata:{...(authUser.user_metadata||{}),username:'admin'}};await api('/settings',{method:'PATCH',body:JSON.stringify({username:'admin'})});}
       catch(error){console.warn('Could not synchronise administrator username:',error.message);}
