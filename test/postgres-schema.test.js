@@ -57,3 +57,18 @@ test('backup restore replaces records atomically and rejects incomplete files', 
   assert.deepEqual(db.prepare('SELECT * FROM tasks').all(), [{id:2,title:'new task'}]);
   db.close();
 });
+
+test('workspace schema, snapshot serializer and backup export cover the same tables', () => {
+  const workspaceBlock = server.match(/const workspaceTables = \[([\s\S]*?)\];/);
+  assert.ok(workspaceBlock, 'workspace table allowlist exists');
+  const workspaceTables = [...workspaceBlock[1].matchAll(/'([^']+)'/g)].map(match => match[1]);
+  const schemaTables = [...server.matchAll(/CREATE TABLE IF NOT EXISTS (\w+)/gi)].map(match => match[1]);
+  const backupSource = fs.readFileSync(path.join(__dirname, '..', 'workspace-backup.js'), 'utf8');
+  const importBlock = backupSource.match(/const importTables = \[([\s\S]*?)\];/);
+  const importTables = [...importBlock[1].matchAll(/'([^']+)'/g)].map(match => match[1]);
+  assert.deepEqual([...schemaTables].sort(), [...workspaceTables].sort());
+  assert.deepEqual([...importTables].sort(), [...workspaceTables].sort());
+  for (const table of workspaceTables) {
+    assert.ok(server.includes(`${table}:all('SELECT * FROM ${table}')`), `export includes ${table}`);
+  }
+});
