@@ -1061,3 +1061,41 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
 :root[data-theme] select:focus-visible {
   outline-color:var(--accent);
 }
+
+
+/* Theme-aware interaction polish: keep hover and active states inside the selected palette. */
+:root[data-theme] .nav-item.active {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--line));
+  color: var(--text);
+}
+:root[data-theme] .top-icon:hover,
+:root[data-theme] .habit-item:hover,
+:root[data-theme] .note-card:hover,
+:root[data-theme] .btn-secondary:hover,
+:root[data-theme] .learning-card-actions button:hover,
+:root[data-theme] .lesson-action:hover {
+  border-color: color-mix(in srgb, var(--accent) 62%, var(--line));
+}
+:root[data-theme] .btn-secondary:hover,
+:root[data-theme] .btn-cancel:hover {
+  color: var(--accent);
+}
+:root[data-theme] .top-icon:hover,
+:root[data-theme] .btn-quiet:hover,
+:root[data-theme] .link-btn:hover,
+:root[data-theme] .edit-inline:hover {
+  color: var(--accent);
+}
+:root[data-theme] .btn-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+:root[data-theme] .focus-input-label input:focus,
+:root[data-theme] .modal input:focus,
+:root[data-theme] .modal textarea:focus,
+:root[data-theme] .settings-panel input:focus,
+:root[data-theme] .settings-panel textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
