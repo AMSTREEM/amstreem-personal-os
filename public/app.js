@@ -22,6 +22,32 @@ function applyTheme(name,save=true){const key=themes[name]?name:'nocturnal-ameth
 function renderThemePicker(){const host=$('#themeOptions');if(!host)return;const render=entries=>entries.map(([key,t])=>`<button type="button" class="theme-choice ${document.documentElement.dataset.theme===key?'selected':''}" data-theme-choice="${key}"><span class="theme-swatches"><i style="background:${t.bg}"></i><i style="background:${t.surface}"></i><i style="background:${t.accent}"></i><i style="background:${t.reward}"></i></span><span class="theme-choice-copy"><b>${t.name}</b><small>${t.sub}</small></span><span class="theme-check">✓</span></button>`).join('');host.innerHTML='<div class="theme-group"><h3>Dark palettes <small>5 options</small></h3>'+render(Object.entries(themes).filter(([k])=>!k.startsWith('light-')))+'</div><div class="theme-group"><h3>Light palettes <small>5 options</small></h3>'+render(Object.entries(themes).filter(([k])=>k.startsWith('light-')))+'</div>';$$('[data-theme-choice]').forEach(b=>b.onclick=async()=>{const key=b.dataset.themeChoice;applyTheme(key);try{settings=await api('/settings',{method:'PATCH',body:JSON.stringify({theme:key})});toast(themes[key].name+' applied and saved.')}catch(e){toast('Theme changed on this device; account sync failed.')}});}
 applyTheme(localStorage.getItem('personalOsTheme')||'nocturnal-amethyst',false);
 let authUser=null,isAdmin=false,adminUsers=[],leaderboardData=null,tasks=[],modules=[],learningPaths=[],sessions=[],notes=[],goals=[],habits=[],settings={},filter='all',editingNote=null,quranLogs=[],deenDate=null,calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),calendarSelected=today(),calendarData=[],timer={duration:3000,left:3000,running:false,interval:null};
+window.addEventListener('error',event=>{const message=document.querySelector('#authMessage');if(message&&document.body.classList.contains('auth-locked'))message.textContent='Workspace startup error: '+(event.message||'Please refresh and try again.');});
+$('#loginForm').addEventListener('submit',async event=>{
+  event.preventDefault();
+  const button=event.currentTarget.querySelector('button'),message=$('#authMessage');
+  const identifier=$('#loginEmail').value.trim(),password=$('#loginPassword').value;
+  button.disabled=true;button.textContent='Signing in…';message.textContent='';
+  try{
+    let session=null;
+    if(identifier.includes('@')){
+      const result=await supabaseClient.auth.signInWithPassword({email:identifier,password});
+      if(result.error)throw result.error;
+      session=result.data?.session||null;
+    }else{
+      const response=await fetch('/api/auth/username-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:identifier,password})});
+      const result=await response.json();
+      if(!response.ok)throw new Error(result.error||'Invalid username or password.');
+      const restored=await supabaseClient.auth.setSession({access_token:result.access_token,refresh_token:result.refresh_token});
+      if(restored.error)throw restored.error;
+      session=restored.data?.session||null;
+    }
+    if(!session)throw new Error('Sign-in did not return an active session. Check your email confirmation and try again.');
+    await enterWorkspace(session);
+  }catch(error){message.textContent=error.message||'Sign-in failed. Please try again.';}
+  finally{button.disabled=false;button.innerHTML='Enter your residence <span>→</span>';}
+});
+
 const quotes=[['You do not rise to the level of your goals. You fall to the level of your systems.','THE DAILY REMINDER'],['The secret of getting ahead is getting started.','MARK TWAIN'],['Great things are done by a series of small things brought together.','VINCENT VAN GOGH'],['Well done is better than well said.','BENJAMIN FRANKLIN'],['It always seems impossible until it is done.','NELSON MANDELA'],['Action is the foundational key to all success.','PABLO PICASSO'],['Discipline is choosing between what you want now and what you want most.','THE LONG GAME']];
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2600)}
 function localDate(d){return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}
@@ -188,30 +214,7 @@ async function enterWorkspace(session){
     if(message) message.textContent=error.message;
   }
 }
-$('#loginForm').addEventListener('submit',async event=>{
-  event.preventDefault();
-  const button=event.currentTarget.querySelector('button'),message=$('#authMessage');
-  const identifier=$('#loginEmail').value.trim(),password=$('#loginPassword').value;
-  button.disabled=true;button.textContent='Signing in…';message.textContent='';
-  try{
-    let session=null;
-    if(identifier.includes('@')){
-      const result=await supabaseClient.auth.signInWithPassword({email:identifier,password});
-      if(result.error)throw result.error;
-      session=result.data?.session||null;
-    }else{
-      const response=await fetch('/api/auth/username-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:identifier,password})});
-      const result=await response.json();
-      if(!response.ok)throw new Error(result.error||'Invalid username or password.');
-      const restored=await supabaseClient.auth.setSession({access_token:result.access_token,refresh_token:result.refresh_token});
-      if(restored.error)throw restored.error;
-      session=restored.data?.session||null;
-    }
-    if(!session)throw new Error('Sign-in did not return an active session. Check your email confirmation and try again.');
-    await enterWorkspace(session);
-  }catch(error){message.textContent=error.message||'Sign-in failed. Please try again.';}
-  finally{button.disabled=false;button.innerHTML='Enter your residence <span>→</span>';}
-});
+
 function renderAdminUsers(){const body=$('#adminUserRows'),filter=$('#adminMailFilter')?.value||'new';const visible=adminUsers.filter(u=>filter==='all'||(filter==='sent'?u.thank_you_status==='sent':u.thank_you_status!=='sent'&&u.thank_you_status!=='pending'));$('#adminNewMailCount').textContent=adminUsers.filter(u=>u.email&&u.thank_you_status!=='sent'&&u.thank_you_status!=='pending'&&u.id!==authUser?.id).length;$('#adminSentMailCount').textContent=adminUsers.filter(u=>u.thank_you_status==='sent').length;body.innerHTML=visible.length?visible.map(u=>{const sent=u.thank_you_status==='sent';const status=sent?'Sent'+(u.thank_you_sent_at?' · '+new Date(u.thank_you_sent_at).toLocaleDateString():''):(u.thank_you_status==='pending'?'Sending / verify':'Not sent');return '<tr><td><input type="checkbox" class="admin-user-check" value="'+esc(u.id)+'" aria-label="Select '+esc(u.name)+'" '+(sent||u.thank_you_status==='pending'?'disabled':'')+'></td><td>'+esc(u.name)+'</td><td>'+(u.username?'@'+esc(u.username):'—')+'</td><td>'+esc(u.email)+'</td><td>'+(u.created_at?new Date(u.created_at).toLocaleDateString():'—')+'</td><td><span class="admin-status '+(u.email_confirmed?'confirmed':'pending')+'">'+(u.email_confirmed?'Verified':'Unverified')+'</span></td><td><span class="admin-status '+(sent?'confirmed':'pending')+'">'+esc(status)+'</span></td></tr>';}).join(''):'<tr><td colspan="7">No accounts in this view.</td></tr>';$('#adminSelectAll').checked=false;}
 async function loadAdminUsers(){const body=$('#adminUserRows');loadAdminAnalytics();body.innerHTML='<tr><td colspan="7">Loading account directory…</td></tr>';try{const data=await api('/admin/users');adminUsers=data.users||[];if(!data.email_configured)$('#adminMailStatus').textContent='Email is not configured yet. Add RESEND_API_KEY and EMAIL_FROM in Render to activate sending.';else $('#adminMailStatus').textContent='Email sender is configured. New recipients are ready to receive the thank-you message.';$('#adminUserCount').textContent=adminUsers.length;$('#adminConfirmedCount').textContent=adminUsers.filter(u=>u.email_confirmed).length;renderAdminUsers();}catch(e){body.innerHTML='<tr><td colspan="7">'+esc(e.message)+'</td></tr>';}}
 async function loadAdminAnalytics(){try{const x=await api('/admin/analytics');$('#adminActiveToday').textContent=x.activeToday;$('#adminActiveWeek').textContent=x.activeWeek;$('#adminActiveMonth').textContent=x.activeMonth;$('#adminLoginCount').textContent=x.loginsToday;$('#adminTopStreak').textContent=x.topCurrent+' days';$('#adminBestStreak').textContent=x.bestStreak+' days';}catch(e){['adminActiveToday','adminActiveWeek','adminActiveMonth','adminLoginCount','adminTopStreak','adminBestStreak'].forEach(id=>$('#'+id).textContent='—');console.warn('Admin analytics unavailable:',e.message)}}
