@@ -326,7 +326,7 @@ app.post('/api/import',(q,s)=>{
     return row;
    });
   }
-  const order=['tasks','modules','learning_paths','learning_lessons','learning_resources','learning_study_logs','sessions','notes','goals','habits','habit_logs','prayer_logs','quran_logs','tahajjud_logs','self_control_logs','self_control_trackers','self_control_entries','settings'];
+  const order=['tasks','modules','learning_paths','learning_lessons','learning_resources','learning_study_logs','sessions','notes','goals','habits','habit_logs','prayer_logs','quran_logs','tahajjud_logs','self_control_logs','self_control_trackers','self_control_entries','settings','email_events'];
   const restore=db.transaction(()=>{
    for(const table of [...order].reverse())db.prepare(`DELETE FROM ${table}`).run();
    for(const table of order){
