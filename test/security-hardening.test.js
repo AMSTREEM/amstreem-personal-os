@@ -36,4 +36,5 @@ test('production installs are reproducible and CI audits production dependencies
   assert.match(workflow, /npm ci/);
   assert.match(workflow, /npm audit --omit=dev --audit-level=high/);
   assert.match(render, /buildCommand: npm ci/);
+  assert.match(render, /healthCheckPath: \/healthz/);
 });
