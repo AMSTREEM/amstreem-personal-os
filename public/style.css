@@ -1099,3 +1099,14 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
+
+
+/* Make primary-button hover visibly change within the selected palette. */
+:root[data-theme] .btn-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 78%, var(--text)) !important;
+  border-color: color-mix(in srgb, var(--accent) 78%, var(--text)) !important;
+  color: var(--bg) !important;
+  filter: none;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 34%, transparent);
+}
