@@ -7,7 +7,15 @@
 <label>Full name<input id="signupName" type="text" maxlength="40" autocomplete="name" placeholder="Your name" required></label>
 <label>Username<input id="signupUsername" type="text" minlength="3" maxlength="24" pattern="[A-Za-z0-9_]+" autocomplete="username" placeholder="e.g. amstreem" required></label>
 <label>Email address<input id="signupEmail" type="email" autocomplete="email" placeholder="you@example.com" required></label>
-<label>Password<input id="signupPassword" type="password" minlength="8" autocomplete="new-password" placeholder="At least 8 characters" required></label>
+<label>Password<input id="signupPassword" type="password" minlength="8" autocomplete="new-password" placeholder="At least 8 characters" required></label><div class="password-guidance" id="passwordGuidance" aria-live="polite">
+<div class="password-strength-head"><span>Password strength</span><strong id="passwordStrengthLabel">Not checked</strong></div>
+<div class="password-strength-track" aria-hidden="true"><i id="passwordStrengthFill"></i></div>
+<ul class="password-rules">
+<li data-password-rule="length">At least 8 characters</li>
+<li data-password-rule="letter">Contains a letter</li>
+<li data-password-rule="number">Contains a number</li>
+<li data-password-rule="symbol">Contains a symbol (e.g. ! @ #)</li>
+</ul></div>
 <button class="btn-primary" type="button" id="signupContinue">Continue to workspace setup <span>→</span></button>
 </section>
 <section id="signupStepSetup" class="signup-step hidden">
