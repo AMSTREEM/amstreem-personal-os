@@ -617,3 +617,104 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
 .tour-theme-live-row i{height:5px;flex:1;border-radius:5px;background:var(--line)}
 .tour-theme-live-row i:first-child{background:var(--accent)}
 .tour-theme-live-card button{border:1px solid var(--accent);border-radius:6px;padding:6px 10px;background:var(--accent-soft);color:var(--accent);font:600 9px var(--sans)}
+
+
+/* Light palettes: remove the remaining fixed dark surfaces throughout Atlas. */
+:root[data-theme^="light-"] body{background:var(--bg);color:var(--text)}
+:root[data-theme^="light-"] .sidebar,
+:root[data-theme^="light-"] .topbar,
+:root[data-theme^="light-"] .stat-card,
+:root[data-theme^="light-"] .panel,
+:root[data-theme^="light-"] .quote-widget,
+:root[data-theme^="light-"] .quick-widget,
+:root[data-theme^="light-"] .next-widget,
+:root[data-theme^="light-"] .module-group,
+:root[data-theme^="light-"] .group-head,
+:root[data-theme^="light-"] .task-row,
+:root[data-theme^="light-"] .announcement-card,
+:root[data-theme^="light-"] .settings-panel,
+:root[data-theme^="light-"] .settings-card,
+:root[data-theme^="light-"] .modal,
+:root[data-theme^="light-"] .modal-card,
+:root[data-theme^="light-"] .signup-card,
+:root[data-theme^="light-"] .auth-card,
+:root[data-theme^="light-"] .onboarding-tour .signup-tour-card{
+  background:var(--surface);color:var(--text);border-color:var(--line);
+}
+:root[data-theme^="light-"] .main,
+:root[data-theme^="light-"] .content,
+:root[data-theme^="light-"] .app-shell{background:var(--bg);color:var(--text)}
+:root[data-theme^="light-"] .topbar{border-bottom-color:var(--line)}
+:root[data-theme^="light-"] .sidebar{background:var(--surface);border-right-color:var(--line)}
+:root[data-theme^="light-"] .side-mantra,
+:root[data-theme^="light-"] .learning-banner,
+:root[data-theme^="light-"] .intention-widget,
+:root[data-theme^="light-"] .focus-room,
+:root[data-theme^="light-"] .quote-widget,
+:root[data-theme^="light-"] .stat-highlight{
+  background:var(--surface2);border-color:var(--line);color:var(--text)
+}
+:root[data-theme^="light-"] .module-row,
+:root[data-theme^="light-"] .priority-row,
+:root[data-theme^="light-"] .history-row,
+:root[data-theme^="light-"] .week-legend,
+:root[data-theme^="light-"] .home-footer-line,
+:root[data-theme^="light-"] .footer{border-color:var(--line)}
+:root[data-theme^="light-"] .group-head,
+:root[data-theme^="light-"] .task-controls,
+:root[data-theme^="light-"] .filter.active,
+:root[data-theme^="light-"] .module-status,
+:root[data-theme^="light-"] .habit-item,
+:root[data-theme^="light-"] .quick-capture,
+:root[data-theme^="light-"] .timer-presets button,
+:root[data-theme^="light-"] .timer-progress,
+:root[data-theme^="light-"] .ring:before{
+  background:var(--surface2);border-color:var(--line);color:var(--text)
+}
+:root[data-theme^="light-"] .top-icon,
+:root[data-theme^="light-"] .check,
+:root[data-theme^="light-"] .focus-input-label input,
+:root[data-theme^="light-"] .modal input,
+:root[data-theme^="light-"] .modal textarea,
+:root[data-theme^="light-"] .settings-panel input,
+:root[data-theme^="light-"] .settings-panel textarea,
+:root[data-theme^="light-"] .announcement-form input,
+:root[data-theme^="light-"] .announcement-form select,
+:root[data-theme^="light-"] .announcement-form textarea,
+:root[data-theme^="light-"] .feedback-form select,
+:root[data-theme^="light-"] .feedback-form textarea{
+  background:var(--surface2);color:var(--text);border-color:var(--line)
+}
+:root[data-theme^="light-"] .nav-item,
+:root[data-theme^="light-"] .nav-item.active,
+:root[data-theme^="light-"] .nav-item:hover,
+:root[data-theme^="light-"] .btn-quiet,
+:root[data-theme^="light-"] .priority-copy strong,
+:root[data-theme^="light-"] .quote-widget blockquote,
+:root[data-theme^="light-"] .stat-number b,
+:root[data-theme^="light-"] .crumb b,
+:root[data-theme^="light-"] .clock-chip{color:var(--text)}
+:root[data-theme^="light-"] .nav-item:hover,
+:root[data-theme^="light-"] .nav-item.active{background:var(--surface2);border-color:var(--line)}
+:root[data-theme^="light-"] .nav-item,
+:root[data-theme^="light-"] .nav-icon,
+:root[data-theme^="light-"] .side-label,
+:root[data-theme^="light-"] .side-foot,
+:root[data-theme^="light-"] .brand small,
+:root[data-theme^="light-"] .crumb,
+:root[data-theme^="light-"] .panel-meta,
+:root[data-theme^="light-"] .stat-label,
+:root[data-theme^="light-"] .stat-foot,
+:root[data-theme^="light-"] .week-day .bar-label,
+:root[data-theme^="light-"] .week-legend,
+:root[data-theme^="light-"] .module-info small,
+:root[data-theme^="light-"] .task-copy p,
+:root[data-theme^="light-"] .page-sub{color:var(--muted)}
+:root[data-theme^="light-"] .week-day .bar-track,
+:root[data-theme^="light-"] .thin-track{background:var(--line)}
+:root[data-theme^="light-"] .week-day .bar-fill{background:var(--accent)}
+:root[data-theme^="light-"] .onboarding-tour .signup-tour-card{background:var(--surface);border-color:var(--line)}
+:root[data-theme^="light-"] .onboarding-tour .onboarding-skip{background:var(--surface2);color:var(--text)}
+:root[data-theme^="light-"] .announcement-overlay{background:color-mix(in srgb,var(--text) 35%,transparent)}
+:root[data-theme^="light-"] .announcement-popup-card{background:var(--surface);color:var(--text);border-color:var(--line)}
+:root[data-theme^="light-"] .ambient{opacity:.05}
