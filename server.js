@@ -5,15 +5,70 @@ const { restoreBackup } = require('./workspace-backup');
 const { AsyncLocalStorage } = require('node:async_hooks');
 const app = express();
 app.disable('x-powered-by');
+app.set('trust proxy', 1);
+const PORT = process.env.PORT || 3000;
+const supabaseConfig = require('./supabase-config.json');
+const supabaseOrigin = new URL(supabaseConfig.url).origin;
+const supabaseHost = new URL(supabaseConfig.url).host;
+
 app.use((req,res,next)=>{
   res.setHeader('X-Content-Type-Options','nosniff');
   res.setHeader('X-Frame-Options','DENY');
   res.setHeader('Referrer-Policy','strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy','camera=(), microphone=(), geolocation=()');
+  res.setHeader('Cross-Origin-Opener-Policy','same-origin');
+  res.setHeader('Cross-Origin-Resource-Policy','same-origin');
+  res.setHeader('Content-Security-Policy',[
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "script-src 'self' https://cdn.jsdelivr.net",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data: blob: https:",
+    `connect-src 'self' ${supabaseOrigin} wss://${supabaseHost}`,
+    "upgrade-insecure-requests"
+  ].join('; '));
+  if (process.env.NODE_ENV === 'production' && req.secure) {
+    res.setHeader('Strict-Transport-Security','max-age=31536000; includeSubDomains');
+  }
+  if (req.path.startsWith('/api/')) res.setHeader('Cache-Control','no-store');
   next();
 });
-const PORT = process.env.PORT || 3000;
-const supabaseConfig = require('./supabase-config.json');
+
+// Small in-process limits protect the single Render instance from accidental
+// request floods. These are deliberately conservative and do not store tokens.
+const rateBuckets = new Map();
+function consumeRateLimit(key, max, windowMs = 60_000) {
+  const now = Date.now();
+  let bucket = rateBuckets.get(key);
+  if (!bucket || now >= bucket.resetAt) {
+    bucket = { count: 0, resetAt: now + windowMs };
+    rateBuckets.set(key, bucket);
+  }
+  bucket.count += 1;
+  if (rateBuckets.size > 10000) {
+    for (const [bucketKey, value] of rateBuckets) {
+      if (now >= value.resetAt) rateBuckets.delete(bucketKey);
+    }
+  }
+  return bucket.count > max ? Math.max(1, Math.ceil((bucket.resetAt - now) / 1000)) : 0;
+}
+function rateLimit({ max, windowMs = 60_000, prefix = 'ip' }) {
+  return (req, res, next) => {
+    const retryAfter = consumeRateLimit(`${prefix}:${req.ip || req.socket.remoteAddress || 'unknown'}`, max, windowMs);
+    if (retryAfter) {
+      res.setHeader('Retry-After', String(retryAfter));
+      return res.status(429).json({ error: 'Too many requests. Please wait and try again.' });
+    }
+    next();
+  };
+}
+app.get('/healthz', (req,res) => res.status(200).json({ ok: true }));
+app.use('/api/admin', rateLimit({ max: 30, prefix: 'admin' }));
+app.use('/api', rateLimit({ max: 120 }));
 const ownerUserId = process.env.ADMIN_USER_ID || supabaseConfig.ownerUserId;
 const tenantContext = new AsyncLocalStorage();
 const userLocks = new Map();
@@ -29,7 +84,9 @@ function currentDb() {
   return context.db;
 }
 const db = new Proxy({}, { get(_target, prop) { const active = currentDb(); const value = active[prop]; return typeof value === 'function' ? value.bind(active) : value; } });
-app.use(express.json({limit:'10mb'}));
+// Keep ordinary API payloads small; allow larger JSON only for explicit backup imports.
+app.use('/api/import', express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // A short per-account queue prevents overlapping requests from overwriting
@@ -128,6 +185,11 @@ app.use('/api', async (req, res, next) => {
     const adminRoute = req.path.startsWith('/admin');
     if (adminRoute && user.id !== ownerUserId) return res.status(403).json({ error: 'Administrator access required.' });
     req.user = user;
+    const accountRetryAfter = consumeRateLimit(`account:${user.id}`, 90);
+    if (accountRetryAfter) {
+      res.setHeader('Retry-After', String(accountRetryAfter));
+      return res.status(429).json({ error: 'Too many requests for this account. Please wait and try again.' });
+    }
     release = await acquireUserLock(user.id);
     const snapshot = await readWorkspaceSnapshot(user.id, token);
     workspaceDb = createWorkspaceDatabase(snapshot);
