@@ -49,3 +49,14 @@ test('workspace snapshot storage is private and accessible through authenticated
   assert.match(sql, /create policy personal_os_user_isolation on public\.personal_os_workspace_snapshots[\s\S]*?auth\.uid\(\)/i);
   assert.match(sql, /grant select, insert, update, delete on public\.personal_os_workspace_snapshots to authenticated/i);
 });
+
+test('API uses request-scoped memory databases and Supabase snapshot persistence', () => {
+  const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
+  assert.match(server, /new Database\(':memory:'\)/);
+  assert.match(server, /personal_os_workspace_snapshots/);
+  assert.match(server, /writeWorkspaceSnapshot\(user\.id, token, workspaceDb\)/);
+  assert.match(server, /app\.post\('\/api\/import'/);
+  assert.match(server, /app\.get\('\/api\/export'/);
+  assert.match(server, /acquireUserLock\(user\.id\)/);
+  assert.doesNotMatch(server, /DATA_DIR|owner\.db|amstreem\.db/);
+});
