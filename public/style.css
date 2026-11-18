@@ -1136,3 +1136,23 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
 @media (prefers-reduced-motion: reduce) {
   :root[data-theme] .btn-primary { transition: none; }
 }
+
+
+/* Global button hover consistency: smooth every button, not only primary CTAs. */
+:root[data-theme] button,
+:root[data-theme] [role="button"] {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity, filter;
+  transition-duration: .22s;
+  transition-timing-function: cubic-bezier(.2,.7,.2,1);
+}
+:root[data-theme] button:hover:not(:disabled),
+:root[data-theme] [role="button"]:hover {
+  filter: none !important;
+}
+:root[data-theme] button:focus:not(:focus-visible) {
+  outline: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme] button,
+  :root[data-theme] [role="button"] { transition: none !important; }
+}
