@@ -22,19 +22,31 @@
 <div class="signup-step-heading"><span>02 / YOUR RESIDENCE</span><h2>Make it <em>yours.</em></h2><p>Choose a look and the sections you want. You can change everything later in Settings.</p></div>
 <label>Colour theme<select id="signupTheme"><optgroup label="Dark"><option value="nocturnal-amethyst">Nocturnal Amethyst</option><option value="shadowed-alchemist">Shadowed Alchemist</option><option value="abyssal-trench">Abyssal Trench</option><option value="whispering-woods">Whispering Woods</option><option value="crimson-velvet">Crimson Velvet</option></optgroup><optgroup label="Light"><option value="light-porcelain">Porcelain</option><option value="light-sandstone">Sandstone</option><option value="light-sage">Sage</option><option value="light-lavender">Lavender Mist</option><option value="light-sky">Sky Glass</option></optgroup></select></label>
 <div class="signup-religion-card"><div class="signup-religion-mark" aria-hidden="true">✳</div><div class="signup-religion-copy"><span class="kicker">A PERSONAL SETTING</span><h3>Your religious experience.</h3><p>Choose what feels right. Atlas will only use this to shape the faith space shown in your workspace.</p></div><label class="signup-religion-label">RELIGION / FAITH SPACE<select id="signupReligion" required><option value="" selected disabled>Choose an option</option><option value="islam">Islam</option><option value="christianity">Christianity</option><option value="none">Other / no religious section</option><option value="prefer_not_to_say">Prefer not to say</option></select></label><small class="field-hint">Private to your workspace. You can change this later in Settings.</small></div>
-<div class="signup-feature-box"><div class="kicker">YOUR WORKSPACE SECTIONS</div><p>Start with the tools that matter to you. Turn any of them on or off later.</p>
-<div class="signup-feature-grid">
-<label><input type="checkbox" data-signup-feature="calendar" checked> Calendar & streaks</label>
-<label><input type="checkbox" data-signup-feature="learning" checked> Learning</label>
-<label><input type="checkbox" data-signup-feature="tasks" checked> Projects & tasks</label>
-<label><input type="checkbox" data-signup-feature="focus" checked> Focus room</label>
-<label><input type="checkbox" data-signup-feature="library" checked> Library</label>
-<label><input type="checkbox" data-signup-feature="goals" checked> Goals</label>
-<label><input type="checkbox" data-signup-feature="selfcontrol" checked> Self-control</label>
-<label><input type="checkbox" data-signup-feature="rankings" checked> Monthly rankings</label>
-<label id="signupDeenOption"><input type="checkbox" data-signup-feature="deen"> Deen & Qur’an</label>
-<label id="signupFaithOption"><input type="checkbox" data-signup-feature="faith"> Christian faith</label>
-</div></div>
+<section class="signup-tour" aria-label="Interactive workspace tour">
+  <div class="signup-tour-top"><div><span class="kicker">EXPLORE YOUR WORKSPACE</span><h3>One space at a time.</h3><p>See what each section does, try a small preview, then decide whether it belongs in your workspace.</p></div><span class="signup-tour-count" id="signupTourCount">01 / 10</span></div>
+  <div class="signup-tour-progress" id="signupTourProgress" aria-hidden="true"><i></i></div>
+  <article class="signup-tour-card" id="signupTourCard" aria-live="polite">
+    <div class="signup-tour-icon" id="signupTourIcon">▦</div>
+    <div class="signup-tour-copy"><span class="kicker" id="signupTourCategory">PLAN YOUR DAYS</span><h4 id="signupTourTitle">Calendar & streaks</h4><p id="signupTourDescription"></p></div>
+    <div class="signup-tour-preview" id="signupTourPreview"></div>
+    <div class="signup-tour-how"><b>HOW IT WORKS</b><p id="signupTourHow"></p></div>
+    <div class="signup-tour-choice"><span id="signupTourChoiceLabel">Included in your workspace</span><button type="button" id="signupTourToggle" aria-pressed="true">✓ Added to my workspace</button></div>
+  </article>
+  <div class="signup-tour-controls"><button class="btn-secondary" type="button" id="signupTourPrev">← Previous</button><button class="btn-primary" type="button" id="signupTourNext">Next section <span>→</span></button></div>
+  <p class="signup-tour-foot" id="signupTourFoot">You can change these choices any time in Settings.</p>
+</section>
+<div class="signup-feature-state" aria-hidden="true">
+  <input type="checkbox" data-signup-feature="calendar" checked>
+  <input type="checkbox" data-signup-feature="learning" checked>
+  <input type="checkbox" data-signup-feature="tasks" checked>
+  <input type="checkbox" data-signup-feature="focus" checked>
+  <input type="checkbox" data-signup-feature="library" checked>
+  <input type="checkbox" data-signup-feature="goals" checked>
+  <input type="checkbox" data-signup-feature="selfcontrol" checked>
+  <input type="checkbox" data-signup-feature="rankings" checked>
+  <input type="checkbox" data-signup-feature="deen">
+  <input type="checkbox" data-signup-feature="faith">
+</div>
 <div class="signup-step-actions"><button class="btn-secondary" type="button" id="signupBack">← Back</button><button class="btn-primary" type="submit">Create your account <span>→</span></button></div>
 <div id="signupMessage" class="auth-message" role="status">Create your account to begin.</div>
 </section></form><div class="auth-foot">PRIVATE WORKSPACE · YOUR SPACE, YOUR IDENTITY</div></div></div><div class="ambient ambient-one"></div><div class="ambient ambient-two"></div><div id="welcomeLoader" class="welcome-loader hidden" role="status" aria-live="polite"><div class="welcome-loader-mark"><img src="/favicon.svg" alt="Amstreem"></div><div class="welcome-loader-kicker">AMSTREEM ATLAS / PRIVATE WORKSPACE</div><h2 id="welcomeLoaderTitle">Welcome back.</h2><p id="welcomeLoaderMessage">Restoring your workspace…</p><div class="welcome-loader-track"><i></i></div></div><div class="app-shell">
