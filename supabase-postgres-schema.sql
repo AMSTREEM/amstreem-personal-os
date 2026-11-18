@@ -154,3 +154,20 @@ begin
 end $$;
 
 grant usage, select on all sequences in schema public to authenticated;
+
+
+-- Durable workspace snapshots used by the current API compatibility layer.
+-- Each account can read and write only its own row using its Supabase JWT.
+create table if not exists public.personal_os_workspace_snapshots (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  data jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+alter table public.personal_os_workspace_snapshots enable row level security;
+alter table public.personal_os_workspace_snapshots force row level security;
+drop policy if exists personal_os_user_isolation on public.personal_os_workspace_snapshots;
+create policy personal_os_user_isolation on public.personal_os_workspace_snapshots
+  for all to authenticated
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()));
+grant select, insert, update, delete on public.personal_os_workspace_snapshots to authenticated;
