@@ -1,6 +1,6 @@
-# Personal OS 3.6 — Supabase-backed release candidate
+# Amstreem Atlas — Supabase-backed release candidate
 
-Personal OS keeps its existing Express API and SQLite query behaviour while persisting each account's workspace snapshot in Supabase PostgreSQL. The browser continues to authenticate with Supabase Auth. The app server reads and writes only the signed-in user's snapshot using that user's access token; Supabase row-level security enforces ownership.
+Amstreem Atlas keeps its existing Express API and SQLite query behaviour while persisting each account's workspace snapshot in Supabase PostgreSQL. The browser continues to authenticate with Supabase Auth. The app server reads and writes only the signed-in user's snapshot using that user's access token; Supabase row-level security enforces ownership.
 
 ## Storage and privacy model
 
@@ -39,7 +39,7 @@ The current snapshot approach is intended for a single app instance. Do not scal
 
 ## Existing SQLite data
 
-This release includes a backup importer. Before switching from the old SQLite release, export a Personal OS backup from the old app. After the new release is configured, sign in with the same account and use **Import existing backup** in Settings. The import is transactional and replaces that account's current records only after the file validates. Keep the old deployment and database files intact until the imported workspace has been checked.
+This release includes a backup importer. Before switching from the old SQLite release, export a backup from the previous Personal OS release. After the new release is configured, sign in with the same account and use **Import existing backup** in Settings. The import is transactional and replaces that account's current records only after the file validates. Keep the old deployment and database files intact until the imported workspace has been checked.
 
 ## Release status
 
