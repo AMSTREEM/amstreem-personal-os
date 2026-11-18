@@ -1,37 +1,46 @@
-# Personal OS 3.6 — Multi-user launch candidate
+# Personal OS 3.6 — Supabase-backed release candidate
 
-This release opens public account creation, personalises each workspace from the signup name/username, separates each account's records into its own SQLite database file, and adds an owner-only account directory and email console.
+Personal OS keeps its existing Express API and SQLite query behaviour while persisting each account's workspace snapshot in Supabase PostgreSQL. The browser continues to authenticate with Supabase Auth. The app server reads and writes only the signed-in user's snapshot using that user's access token; Supabase row-level security enforces ownership.
 
-## Privacy and access model
-- Supabase Auth handles account creation, email confirmation, login and sessions. The browser uses only the Supabase publishable key.
-- Each authenticated user gets a separate SQLite database file, named using a SHA-256 digest of the Supabase user ID. No user's private records are queried by the admin directory.
-- The admin identity is fixed by the server-only `ADMIN_USER_ID` environment variable. The admin endpoints require a verified Supabase access token and that exact user ID.
-- The admin directory returns only name, username, email, signup date and email-confirmation status. It does not return workspace records.
-- The Supabase service-role key is server-only and required only for the admin user directory. Never expose it to the browser.
-- Welcome emails and owner-triggered thank-you emails use Resend. Configure a verified sender domain before sending.
+## Storage and privacy model
 
-## Local setup
-1. Install Node.js 20 or newer.
-2. Copy `.env.example` to `.env` and fill in server-only secrets.
-3. Run `npm install` and `npm start`.
-4. Open `http://localhost:3000`.
+- Supabase Auth remains responsible for signup, email confirmation, login and sessions.
+- Each user's complete workspace is stored in one row in `public.personal_os_workspace_snapshots`.
+- The row is protected by RLS: authenticated users can select or mutate only the row whose `user_id` equals `auth.uid()`.
+- The app loads a user's snapshot into a request-scoped in-memory SQLite database, runs the existing API logic, then saves the updated snapshot before completing the response.
+- Requests for the same account are serialized within one app instance to prevent overlapping requests from overwriting one another.
+- No user workspace is stored on the host filesystem. This permits an ephemeral/free web host.
+- The admin directory remains a separate, owner-only Auth operation. It returns account metadata only and never reads workspace snapshots.
+- The browser receives only the Supabase publishable key. Never put a Supabase secret/service-role key in frontend files.
 
-## Supabase setup before opening registration
-- Run `supabase-setup.sql` once in the Supabase SQL Editor. It creates a private profile table, enforces case-insensitive username uniqueness and enables row-level security.
-- Confirm the project URL and publishable key in `supabase-config.json` and `public/supabase-config.js`.
-- Enable email/password signups and email confirmation in Supabase Authentication settings.
-- Configure the production Site URL and allowed redirect URLs to your deployed HTTPS domain.
-- Set `ADMIN_USER_ID` to your existing owner account UUID. Do not rely on a client-side role or user metadata for admin privileges.
-- Create a server-side secret/service-role key and set it as `SUPABASE_SERVICE_ROLE_KEY` in the host's secret environment settings. Never paste it into frontend files or commit it.
+## Required Supabase setup
+
+1. Keep Supabase Auth email confirmation enabled.
+2. In the Supabase SQL Editor, run `supabase-postgres-schema.sql`. It creates the snapshot table and RLS policy, as well as the relational schema reserved for a future normalized-storage migration.
+3. Confirm `supabase-config.json` and `public/supabase-config.js` point to the same Supabase project.
+4. Set `ADMIN_USER_ID` on the server to the UUID of the owner account. Do not use user-editable metadata as an admin role.
+5. Keep public signups disabled until the deployment and account-isolation tests are complete.
+
+The app uses the signed-in user's access token for PostgREST requests. It does not require the service-role key for workspace storage. The optional service-role key is used only by the owner-only account directory.
+
+## Local development
+
+- Node.js 20 or newer
+- `npm install`
+- `npm test`
+- `npm start`
+- Open `http://localhost:3000`
 
 ## Hosting
-The included `render.yaml` describes an Express web service with a persistent disk mounted at `/var/data`. Set the four secret environment values (`ADMIN_USER_ID`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `EMAIL_FROM`) in the host dashboard. The persistent disk is essential: SQLite data is not durable on an ephemeral filesystem.
 
-## Email
-Set up a Resend account, verify a domain you control, create an API key and set `EMAIL_FROM` to an address on that verified domain. New accounts receive one welcome email on their first authenticated session. The admin page can send a custom message to selected users or all users except the admin account.
+The included `render.yaml` targets Render's free web service and does not mount a persistent disk. Workspace persistence is provided by Supabase. Configure `ADMIN_USER_ID` and, only if the owner directory is needed, `SUPABASE_SERVICE_ROLE_KEY` as server-side environment variables.
 
-## Important limitations before public launch
-This is a multi-user pilot using one persistent SQLite file per user. It is suitable for a single persistent-disk instance, not multiple horizontally scaled instances or high-availability deployment. Configure disk backups and test restore before inviting users. Add rate limiting, abuse monitoring, email delivery limits, account deletion/export workflows and operational monitoring before a broad public launch.
+The current snapshot approach is intended for a single app instance. Do not scale the service horizontally until distributed request locking and concurrency-safe snapshot writes have been implemented. Free web hosts may sleep when idle; the first request after sleep can take longer.
 
-## Existing owner data
-If `amstreem.db` exists beside `server.js`, the owner account continues using it. On a fresh deployment the owner database is created under `DATA_DIR`. Each new user starts with a clean, separate database.
+## Existing SQLite data
+
+This release does not automatically copy pre-existing local or hosted SQLite files into Supabase. Keep the old deployment and its database files intact until a verified export/import migration has been completed. Do not delete old databases or replace the current production deployment based only on a successful build.
+
+## Release status
+
+This branch is a migration candidate, not a production-ready release. Before opening registration, run the SQL migration, test signup/login, verify two separate accounts cannot read or overwrite one another's workspace, test every feature, and confirm backup/restore behaviour.
