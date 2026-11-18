@@ -174,9 +174,7 @@ async function writeWorkspaceSnapshot(userId, token, workspaceDb) {
 app.post('/api/auth/username-login', rateLimit({ max: 8, windowMs: 60_000, prefix: 'username-login' }), async (req, res) => {
   const username=String(req.body?.username||'').trim().replace(/^@/,'').toLowerCase();
   const password=String(req.body?.password||'');
-  if(!/^[a-z0-9_]{3,24}$/.test(username)||!password||password.length>256) {
-    return res.status(400).json({error:'Enter a valid username and password.'});
-  }
+  if(!/^[a-z0-9_]{3,24}$/.test(username)||!password||password.length>256) return res.status(400).json({error:'Enter a valid username and password.'});
   const key=process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY;
   if(!key)return res.status(503).json({error:'Username sign-in is temporarily unavailable. Please use your email address.'});
   try {
@@ -185,22 +183,19 @@ app.post('/api/auth/username-login', rateLimit({ max: 8, windowMs: 60_000, prefi
       const listing=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
       if(!listing.ok)throw new Error('Account lookup unavailable.');
       const payload=await listing.json(),batch=payload.users||[];
-      matches.push(...batch.filter(user=>String(user.user_metadata?.username||'').toLowerCase()===username));
+      matches.push(...batch.filter(user=>username==='admin'?user.id===ownerUserId:String(user.user_metadata?.username||'').toLowerCase()===username));
       more=batch.length===100;page++;
     }
     if(matches.length!==1||!matches[0].email)return res.status(401).json({error:'Invalid username or password.'});
-    const auth=await fetch(`${supabaseConfig.url}/auth/v1/token?grant_type=password`,{
-      method:'POST',
-      headers:{apikey:supabaseConfig.publishableKey,'Content-Type':'application/json'},
-      body:JSON.stringify({email:matches[0].email,password})
-    });
+    if(username==='admin'&&String(matches[0].user_metadata?.username||'').toLowerCase()!=='admin'){
+      const updated=await fetch(`${supabaseConfig.url}/auth/v1/admin/users/${matches[0].id}`,{method:'PUT',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({user_metadata:{...(matches[0].user_metadata||{}),username:'admin'}})});
+      if(!updated.ok)throw new Error('Could not configure the administrator username.');
+    }
+    const auth=await fetch(`${supabaseConfig.url}/auth/v1/token?grant_type=password`,{method:'POST',headers:{apikey:supabaseConfig.publishableKey,'Content-Type':'application/json'},body:JSON.stringify({email:matches[0].email,password})});
     if(!auth.ok)return res.status(401).json({error:'Invalid username or password.'});
     const session=await auth.json();
     return res.json({access_token:session.access_token,refresh_token:session.refresh_token});
-  } catch(error) {
-    console.error('Username sign-in failed:',error.message);
-    return res.status(503).json({error:'Username sign-in is temporarily unavailable. Please try your email address.'});
-  }
+  }catch(error){console.error('Username sign-in failed:',error.message);return res.status(503).json({error:'Username sign-in is temporarily unavailable. Please try your email address.'});}
 });
 app.use('/api', async (req, res, next) => {
   let release;
