@@ -1297,3 +1297,26 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
 .atlas-progress-foot small{font-size:10px;text-align:right}
 @media(max-width:600px){.atlas-progress-widget{padding:16px}.atlas-progress-foot{align-items:flex-start;flex-direction:column;gap:5px}.atlas-progress-foot small{text-align:left}}
 @media(prefers-reduced-motion:reduce){.atlas-level-track span{transition:none}}
+
+/* Achievement milestones: recognition for real progress, never arbitrary engagement. */
+.atlas-achievements-widget{margin:0 0 24px;padding:20px 22px}
+.achievement-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}
+.achievement-head .kicker{font-size:10px;letter-spacing:.15em;color:var(--accent);font-weight:750}
+.achievement-head h2{margin:6px 0 0;color:var(--text);font-size:18px;letter-spacing:-.025em}
+.achievement-count{color:var(--muted);font-size:9px;letter-spacing:.1em;white-space:nowrap}
+.achievement-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.achievement-item{display:flex;align-items:flex-start;gap:11px;min-width:0;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--surface2)}
+.achievement-item.earned{border-color:color-mix(in srgb,var(--accent) 38%,var(--line));background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
+.achievement-icon{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:10px;background:var(--surface);color:var(--muted);font-size:17px}
+.achievement-item.earned .achievement-icon{color:var(--accent);background:color-mix(in srgb,var(--accent) 13%,var(--surface))}
+.achievement-copy{min-width:0;flex:1}
+.achievement-copy>b{display:block;color:var(--text);font-size:11px;line-height:1.35}
+.achievement-copy>small{display:block;margin-top:4px;color:var(--muted);font-size:10px;line-height:1.4}
+.achievement-track{height:4px;margin-top:9px;overflow:hidden;border-radius:99px;background:var(--line)}
+.achievement-track i{display:block;height:100%;border-radius:inherit;background:var(--accent);transition:width .45s ease}
+.achievement-status{display:block;margin-top:6px;color:var(--muted);font-size:8px;letter-spacing:.06em}
+.achievement-item.earned .achievement-status{color:var(--accent);font-weight:750}
+.achievement-foot{margin-top:13px;padding-top:11px;border-top:1px solid var(--line);color:var(--muted);font-size:10px}
+@media(max-width:760px){.achievement-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:460px){.atlas-achievements-widget{padding:16px}.achievement-grid{grid-template-columns:1fr}.achievement-item{padding:11px}}
+@media(prefers-reduced-motion:reduce){.achievement-track i{transition:none}}
