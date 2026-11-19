@@ -408,29 +408,52 @@ app.get('/api/overview',(req,res)=>{
  const dates=all('SELECT DISTINCT session_date FROM sessions ORDER BY session_date DESC').map(x=>x.session_date);let streak=0,cursor=new Date();if(!dates.includes(today))cursor.setDate(cursor.getDate()-1);const set=new Set(dates);while(set.has(dateKey(cursor))){streak++;cursor.setDate(cursor.getDate()-1)}
  res.json({today,todayMin,weekMin,completed,moduleTotal,sessions,streak,dailyTarget:Number(one("SELECT value FROM settings WHERE key='daily_target'").value),openTasks:one('SELECT COUNT(*) n FROM tasks WHERE done=0').n});
 });
+function readIntelligenceFeedback(){
+ try{const raw=one("SELECT value FROM settings WHERE key='atlas_intelligence_feedback'")?.value;const parsed=raw?JSON.parse(raw):[];return Array.isArray(parsed)?parsed.slice(-40):[];}catch{return [];}
+}
 app.get('/api/intelligence',(req,res)=>{
- const today=dateKey(),target=Number(one("SELECT value FROM settings WHERE key='daily_target'")?.value||80);
+ const today=dateKey(),target=Number(one("SELECT value FROM settings WHERE key='daily_target'")?.value||80),feedback=readIntelligenceFeedback();
+ const recent=feedback.filter(x=>x.date>=today.slice(0,7)+'-01');
+ const stats={};for(const item of recent){stats[item.id]??={helpful:0,notUseful:0,opened:0};if(item.signal==='helpful')stats[item.id].helpful++;if(item.signal==='not_useful')stats[item.id].notUseful++;if(item.signal==='opened')stats[item.id].opened++;}
+ const candidates=[];
+ const add=(id,title,detail,reason,action,destination,priority,extra={})=>candidates.push({id,title,detail,reason,action,destination,priority,...extra});
  const overdue=one("SELECT id,title,due_date FROM tasks WHERE done=0 AND due_date<? ORDER BY due_date,id LIMIT 1",today);
  const dueToday=one("SELECT id,title,due_date FROM tasks WHERE done=0 AND due_date=? ORDER BY id LIMIT 1",today);
  const habit=one("SELECT h.id,h.title FROM habits h LEFT JOIN habit_logs l ON l.habit_id=h.id AND l.log_date=? WHERE h.active=1 AND l.id IS NULL ORDER BY h.sort_order,h.id LIMIT 1",today);
  const focus=one("SELECT COALESCE(SUM(minutes),0) n FROM sessions WHERE session_date=?",today).n;
  const lesson=one("SELECT l.id,l.title,p.title path_title FROM learning_lessons l JOIN learning_paths p ON p.id=l.path_id WHERE l.status!='Completed' AND p.status='active' ORDER BY CASE l.status WHEN 'In progress' THEN 0 ELSE 1 END,l.sort_order,l.id LIMIT 1");
  const goal=one("SELECT id,title,target_date FROM goals WHERE status='active' AND target_date IS NOT NULL AND target_date>=? AND target_date<=date(?,'+14 days') ORDER BY target_date,id LIMIT 1",today,today);
- let recommendation;
- if(overdue)recommendation={id:'overdue-task',title:'Clear the oldest overdue priority.',detail:overdue.title,reason:'This commitment is already past its due date. A clear next step will reduce the load.',action:'Open this task',destination:'tasks',taskId:overdue.id,priority:'high'};
- else if(dueToday)recommendation={id:'today-task',title:'Move today’s priority forward.',detail:dueToday.title,reason:'You have a task due today. Giving it attention now protects the rest of your day.',action:'Open today’s priorities',destination:'tasks',taskId:dueToday.id,priority:'high'};
- else if(habit)recommendation={id:'daily-ritual',title:'Keep one promise you chose.',detail:habit.title,reason:'This ritual is still unchecked today. A small return is enough.',action:'Complete this ritual',destination:'habit',habitId:habit.id,priority:'medium'};
- else if(focus<target)recommendation={id:'focus-gap',title:focus?'Build on the focus you’ve started.':'Give one important thing your attention.',detail:focus+' of '+target+' minutes of your daily focus intention completed.',reason:'A focused block would move you closer to the intention you set.',action:focus?'Continue a focus session':'Start a focus session',destination:'focus',priority:'medium'};
- else if(lesson)recommendation={id:'learning-next',title:'Continue your learning path.',detail:lesson.title+' · '+lesson.path_title,reason:'You have an unfinished lesson ready. Continue from where you left off.',action:'Open this lesson',destination:'learning',lessonId:lesson.id,priority:'medium'};
- else if(goal)recommendation={id:'goal-near',title:'Give an approaching goal a concrete next step.',detail:goal.title+' · target '+goal.target_date,reason:'This goal is approaching its target date. Decide what would move it forward next.',action:'Review this goal',destination:'goals',goalId:goal.id,priority:'medium'};
- else recommendation={id:'choose-direction',title:'Choose what deserves your attention next.',detail:'Your workspace has room for a clear next commitment.',reason:'There is no urgent unfinished action showing in your current records. Set a direction, or enjoy the breathing room.',action:'Review your goals',destination:'goals',priority:'low'};
+ if(overdue)add('overdue-task','Clear the oldest overdue priority.',overdue.title,'This commitment is already past its due date. A clear next step can reduce the load.','Open this task','tasks','high',{taskId:overdue.id});
+ if(dueToday)add('today-task','Move today’s priority forward.',dueToday.title,'You have a task due today. Giving it attention now protects the rest of your day.','Open today’s priorities','tasks','high',{taskId:dueToday.id});
+ if(habit)add('daily-ritual','Keep one promise you chose.',habit.title,'This ritual is still unchecked today. A small return is enough.','Complete this ritual','habit','medium',{habitId:habit.id});
+ if(focus<target)add('focus-gap',focus?'Build on the focus you’ve started.':'Give one important thing your attention.',focus+' of '+target+' minutes of your daily focus intention completed.','A focused block would move you closer to the intention you set.',focus?'Continue a focus session':'Start a focus session','focus','medium');
+ if(lesson)add('learning-next','Continue your learning path.',lesson.title+' · '+lesson.path_title,'You have an unfinished lesson ready. Continue from where you left off.','Open this lesson','learning','medium',{lessonId:lesson.id});
+ if(goal)add('goal-near','Give an approaching goal a concrete next step.',goal.title+' · target '+goal.target_date,'This goal is approaching its target date. Decide what would move it forward next.','Review this goal','goals','medium',{goalId:goal.id});
+ if(!candidates.length)add('choose-direction','Choose what deserves your attention next.','Your workspace has room for a clear next commitment.','There is no urgent unfinished action showing in your current records. Set a direction, or enjoy the breathing room.','Review your goals','goals','low');
+ const priority={high:30,medium:20,low:0};
+ candidates.sort((a,b)=>{
+  const score=x=>priority[x.priority]+Math.min(4,stats[x.id]?.helpful||0)*3-Math.min(5,stats[x.id]?.notUseful||0)*12+Math.min(3,stats[x.id]?.opened||0);
+  return score(b)-score(a);
+ });
+ const recommendation=candidates[0],recommendationStats=stats[recommendation.id]||{helpful:0,notUseful:0,opened:0};
  const recentFocus=one("SELECT COALESCE(SUM(minutes),0) n,COUNT(*) sessions FROM sessions WHERE session_date>=date(?,'-6 days') AND session_date<=?",today,today);
  const priorFocus=one("SELECT COALESCE(SUM(minutes),0) n FROM sessions WHERE session_date>=date(?,'-13 days') AND session_date<date(?,'-6 days')",today,today).n;
+ const dayPattern=all("SELECT strftime('%w',session_date) weekday,COALESCE(SUM(minutes),0) minutes FROM sessions WHERE session_date>=date(?,'-27 days') AND session_date<=? GROUP BY weekday ORDER BY minutes DESC LIMIT 1",today,today)[0];
  let pattern;
- if(priorFocus>0){const delta=recentFocus.n-priorFocus;const pct=Math.round(Math.abs(delta)/priorFocus*100);pattern=delta>0?'Your focus time is up '+pct+'% compared with the previous seven days.':delta<0?'Your focus time is down '+pct+'% compared with the previous seven days. No need to catch up all at once.':'Your focus time is holding steady across both weeks.';}
+ if(priorFocus>0){const delta=recentFocus.n-priorFocus,pct=Math.round(Math.abs(delta)/priorFocus*100);pattern=delta>0?'Your focus time is up '+pct+'% compared with the previous seven days.':delta<0?'Your focus time is down '+pct+'% compared with the previous seven days. No need to catch up all at once.':'Your focus time is holding steady across both weeks.';}
  else if(recentFocus.sessions)pattern='You logged '+recentFocus.sessions+' focus session'+(recentFocus.sessions===1?'':'s')+' in the last seven days.';
  else pattern='Your next focus session will give Atlas a clearer picture of your rhythm.';
- res.json({recommendation,pattern,signals:{todayFocus:focus,dailyTarget:target,focusLast7Days:recentFocus.n,focusSessionsLast7Days:recentFocus.sessions,focusPrevious7Days:priorFocus}});
+ const weekdayNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+ const rhythm=dayPattern&&dayPattern.minutes>0?'Your strongest focus day over the last four weeks has been '+weekdayNames[Number(dayPattern.weekday)]+'.':null;
+ res.json({recommendation,pattern,rhythm,feedback:recommendationStats,signals:{todayFocus:focus,dailyTarget:target,focusLast7Days:recentFocus.n,focusSessionsLast7Days:recentFocus.sessions,focusPrevious7Days:priorFocus}});
+});
+app.post('/api/intelligence/feedback',(req,res)=>{
+ const {recommendationId,signal}=req.body||{};
+ const allowed=['overdue-task','today-task','daily-ritual','focus-gap','learning-next','goal-near','choose-direction'];
+ if(!allowed.includes(recommendationId)||!['helpful','not_useful','opened'].includes(signal))return res.status(400).json({error:'Invalid recommendation feedback.'});
+ const history=readIntelligenceFeedback();history.push({id:recommendationId,signal,date:dateKey(),at:new Date().toISOString()});
+ db.prepare("INSERT INTO settings(key,value) VALUES('atlas_intelligence_feedback',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(JSON.stringify(history.slice(-40)));
+ res.json({ok:true});
 });
 function achievementMetrics(){
  return {
