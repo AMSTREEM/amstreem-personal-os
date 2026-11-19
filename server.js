@@ -76,7 +76,7 @@ const workspaceTables = [
   'tasks','modules','learning_paths','learning_lessons','learning_resources',
   'learning_study_logs','sessions','notes','settings','goals','habits','habit_logs',
   'prayer_logs','quran_logs','tahajjud_logs','faith_logs','self_control_logs',
-  'self_control_trackers','self_control_entries','email_events','login_events','xp_events','achievement_unlocks','feedback_logs'
+  'self_control_trackers','self_control_entries','email_events','login_events','xp_events','achievement_unlocks','weekly_challenges','feedback_logs'
 ];
 function currentDb() {
   const context = tenantContext.getStore();
@@ -114,7 +114,7 @@ function createWorkspaceDatabase(snapshot) {
     workspaceDb.exec(schemaSql);
   if (snapshot?.format === 'personal-os-sqlite-snapshot-v1' && snapshot.tables && typeof snapshot.tables === 'object') {
     for (const table of workspaceTables) {
-      if (!Array.isArray(snapshot.tables[table]) && !['faith_logs','login_events','xp_events','achievement_unlocks','feedback_logs'].includes(table)) {
+      if (!Array.isArray(snapshot.tables[table]) && !['faith_logs','login_events','xp_events','achievement_unlocks','weekly_challenges','feedback_logs'].includes(table)) {
         throw new Error(`Saved workspace is missing its ${table} section. No data was changed.`);
       }
     }
@@ -280,6 +280,7 @@ CREATE TABLE IF NOT EXISTS email_events (event TEXT PRIMARY KEY, sent_at TEXT NO
 CREATE TABLE IF NOT EXISTS login_events (id INTEGER PRIMARY KEY AUTOINCREMENT, login_date TEXT NOT NULL, logged_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS xp_events (id INTEGER PRIMARY KEY AUTOINCREMENT, event_key TEXT NOT NULL UNIQUE, category TEXT NOT NULL, points INTEGER NOT NULL CHECK(points > 0), awarded_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS achievement_unlocks (achievement_id TEXT PRIMARY KEY, unlocked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS weekly_challenges (week_start TEXT PRIMARY KEY, challenge_id TEXT NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL, metric TEXT NOT NULL, target INTEGER NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, completed_at TEXT, claimed_at TEXT);
 CREATE TABLE IF NOT EXISTS feedback_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, message TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 `;
 const one=(s,...a)=>db.prepare(s).get(...a), all=(s,...a)=>db.prepare(s).all(...a);
@@ -435,6 +436,55 @@ function achievementDefinitions(metrics){
   return {...item,value,unlocked:value>=item.target,progress:Math.min(100,Math.round(value/item.target*100)),remaining:Math.max(0,item.target-value),unlockedAt:unlock?.unlocked_at||null};
  });
 }
+function currentWeekStart(){
+ const now=new Date(),local=new Date(now.toLocaleString('en-US',{timeZone:'Africa/Lagos'}));
+ local.setHours(0,0,0,0);local.setDate(local.getDate()-((local.getDay()+6)%7));
+ return dateKey(local);
+}
+function weeklyChallengeState(challenge,weekStart){
+ const metrics={
+  focus_minutes:one("SELECT COALESCE(SUM(minutes),0) n FROM sessions WHERE session_date>=? AND session_date<date(?,'+7 days')",weekStart,weekStart).n,
+  study_minutes:one("SELECT COALESCE(SUM(minutes),0) n FROM learning_study_logs WHERE log_date>=? AND log_date<date(?,'+7 days')",weekStart,weekStart).n,
+  habit_checkins:one("SELECT COUNT(*) n FROM habit_logs WHERE log_date>=? AND log_date<date(?,'+7 days')",weekStart,weekStart).n
+ };
+ const value=Number(metrics[challenge.metric]||0),complete=value>=challenge.target;
+ return {...challenge,weekStart,value,progress:Math.min(100,Math.round(value/challenge.target*100)),remaining:Math.max(0,challenge.target-value),complete,earned:!!challenge.claimed_at,completedAt:challenge.completed_at};
+}
+function createWeeklyChallenge(weekStart){
+ const activeHabits=one('SELECT COUNT(*) n FROM habits WHERE active=1').n;
+ const activeLessons=one("SELECT COUNT(*) n FROM learning_lessons WHERE status!='Completed'").n;
+ const focusRecent=one("SELECT COALESCE(SUM(minutes),0) n FROM sessions WHERE session_date>=date(?,'-14 days') AND session_date<?",weekStart,weekStart).n;
+ const studyRecent=one("SELECT COALESCE(SUM(minutes),0) n FROM learning_study_logs WHERE log_date>=date(?,'-14 days') AND log_date<?",weekStart,weekStart).n;
+ const habitRecent=one("SELECT COUNT(*) n FROM habit_logs WHERE log_date>=date(?,'-14 days') AND log_date<?",weekStart,weekStart).n;
+ const options=[];
+ if(activeHabits>0)options.push({id:'ritual-rhythm',title:'Keep your rituals alive',description:'Record a few check-ins for the habits you chose.',metric:'habit_checkins',target:Math.max(3,Math.min(10,activeHabits*3)),score:habitRecent+activeHabits*2});
+ if(activeLessons>0)options.push({id:'learning-investment',title:'Invest in your next chapter',description:'Put focused study time into a lesson you are working through.',metric:'study_minutes',target:Math.max(45,Math.min(150,Math.round((studyRecent/2||60)/15)*15)),score:studyRecent+activeLessons*5});
+ options.push({id:'focus-foundation',title:'Make room for deep work',description:'Protect a little time for focused work this week.',metric:'focus_minutes',target:Math.max(60,Math.min(180,Math.round((focusRecent/2||75)*1.15/15)*15)),score:focusRecent+20});
+ options.sort((a,b)=>b.score-a.score||a.id.localeCompare(b.id));
+ const chosen=options[0];
+ db.prepare('INSERT OR IGNORE INTO weekly_challenges(week_start,challenge_id,title,description,metric,target) VALUES(?,?,?,?,?,?)').run(weekStart,chosen.id,chosen.title,chosen.description,chosen.metric,chosen.target);
+ return one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
+}
+app.post('/api/weekly-challenge/sync',(req,res)=>{
+ const weekStart=currentWeekStart();
+ let challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
+ if(!challenge)challenge=createWeeklyChallenge(weekStart);
+ let state=weeklyChallengeState(challenge,weekStart);
+ if(state.complete&&!challenge.claimed_at){
+  const completedAt=new Date().toISOString();
+  db.prepare('UPDATE weekly_challenges SET completed_at=COALESCE(completed_at,?),claimed_at=? WHERE week_start=?').run(completedAt,completedAt,weekStart);
+  awardXp('weekly-challenge:'+weekStart,'Weekly challenge',50);
+  challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
+  state=weeklyChallengeState(challenge,weekStart);
+  state.justCompleted=true;
+ }
+ res.json(state);
+});
+app.get('/api/weekly-challenge',(req,res)=>{
+ const weekStart=currentWeekStart(),challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
+ if(!challenge)return res.status(404).json({error:'This week’s challenge has not been created yet.'});
+ res.json(weeklyChallengeState(challenge,weekStart));
+});
 app.get('/api/achievements',(req,res)=>{
  const metrics=achievementMetrics(),achievements=achievementDefinitions(metrics);
  res.json({metrics,achievements,unlocked:achievements.filter(x=>x.unlocked).length,total:achievements.length,recent:achievements.filter(x=>x.unlockedAt).sort((a,b)=>b.unlockedAt.localeCompare(a.unlockedAt)).slice(0,5)});
