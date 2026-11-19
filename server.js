@@ -76,7 +76,7 @@ const workspaceTables = [
   'tasks','modules','learning_paths','learning_lessons','learning_resources',
   'learning_study_logs','sessions','notes','settings','goals','habits','habit_logs',
   'prayer_logs','quran_logs','tahajjud_logs','faith_logs','self_control_logs',
-  'self_control_trackers','self_control_entries','email_events','login_events','xp_events','feedback_logs'
+  'self_control_trackers','self_control_entries','email_events','login_events','xp_events','achievement_unlocks','feedback_logs'
 ];
 function currentDb() {
   const context = tenantContext.getStore();
@@ -114,7 +114,7 @@ function createWorkspaceDatabase(snapshot) {
     workspaceDb.exec(schemaSql);
   if (snapshot?.format === 'personal-os-sqlite-snapshot-v1' && snapshot.tables && typeof snapshot.tables === 'object') {
     for (const table of workspaceTables) {
-      if (!Array.isArray(snapshot.tables[table]) && !['faith_logs','login_events','xp_events','feedback_logs'].includes(table)) {
+      if (!Array.isArray(snapshot.tables[table]) && !['faith_logs','login_events','xp_events','achievement_unlocks','feedback_logs'].includes(table)) {
         throw new Error(`Saved workspace is missing its ${table} section. No data was changed.`);
       }
     }
@@ -279,6 +279,7 @@ CREATE TABLE IF NOT EXISTS self_control_entries (id INTEGER PRIMARY KEY AUTOINCR
 CREATE TABLE IF NOT EXISTS email_events (event TEXT PRIMARY KEY, sent_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS login_events (id INTEGER PRIMARY KEY AUTOINCREMENT, login_date TEXT NOT NULL, logged_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS xp_events (id INTEGER PRIMARY KEY AUTOINCREMENT, event_key TEXT NOT NULL UNIQUE, category TEXT NOT NULL, points INTEGER NOT NULL CHECK(points > 0), awarded_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS achievement_unlocks (achievement_id TEXT PRIMARY KEY, unlocked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS feedback_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, message TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 `;
 const one=(s,...a)=>db.prepare(s).get(...a), all=(s,...a)=>db.prepare(s).all(...a);
@@ -406,8 +407,8 @@ app.get('/api/overview',(req,res)=>{
  const dates=all('SELECT DISTINCT session_date FROM sessions ORDER BY session_date DESC').map(x=>x.session_date);let streak=0,cursor=new Date();if(!dates.includes(today))cursor.setDate(cursor.getDate()-1);const set=new Set(dates);while(set.has(dateKey(cursor))){streak++;cursor.setDate(cursor.getDate()-1)}
  res.json({today,todayMin,weekMin,completed,moduleTotal,sessions,streak,dailyTarget:Number(one("SELECT value FROM settings WHERE key='daily_target'").value),openTasks:one('SELECT COUNT(*) n FROM tasks WHERE done=0').n});
 });
-app.get('/api/achievements',(req,res)=>{
- const metrics={
+function achievementMetrics(){
+ return {
   tasks:one("SELECT COUNT(*) n FROM tasks WHERE done=1").n,
   focusMinutes:one("SELECT COALESCE(SUM(minutes),0) n FROM sessions").n,
   focusSessions:one("SELECT COUNT(*) n FROM sessions").n,
@@ -415,7 +416,9 @@ app.get('/api/achievements',(req,res)=>{
   goals:one("SELECT COUNT(*) n FROM goals WHERE status='completed'").n,
   habitCheckins:one("SELECT COUNT(*) n FROM habit_logs").n
  };
- const definitions=[
+}
+function achievementDefinitions(metrics){
+ return [
   {id:'first-finish',name:'First things first',description:'Complete your first task',icon:'✓',metric:'tasks',target:1},
   {id:'task-ten',name:'Getting things done',description:'Complete 10 tasks',icon:'↗',metric:'tasks',target:10},
   {id:'task-fifty',name:'Reliable executor',description:'Complete 50 tasks',icon:'◆',metric:'tasks',target:50},
@@ -426,8 +429,23 @@ app.get('/api/achievements',(req,res)=>{
   {id:'first-goal',name:'A promise kept',description:'Complete your first goal',icon:'⌖',metric:'goals',target:1},
   {id:'ritual-week',name:'Small promises',description:'Record 7 daily ritual check-ins',icon:'✳',metric:'habitCheckins',target:7},
   {id:'ritual-month',name:'Consistency, compounded',description:'Record 30 daily ritual check-ins',icon:'✧',metric:'habitCheckins',target:30}
- ].map(item=>{const value=Number(metrics[item.metric]||0);return {...item,value,unlocked:value>=item.target,progress:Math.min(100,Math.round(value/item.target*100)),remaining:Math.max(0,item.target-value)};});
- res.json({metrics,achievements:definitions,unlocked:definitions.filter(x=>x.unlocked).length,total:definitions.length});
+ ].map(item=>{
+  const value=Number(metrics[item.metric]||0);
+  const unlock=one('SELECT unlocked_at FROM achievement_unlocks WHERE achievement_id=?',item.id);
+  return {...item,value,unlocked:value>=item.target,progress:Math.min(100,Math.round(value/item.target*100)),remaining:Math.max(0,item.target-value),unlockedAt:unlock?.unlocked_at||null};
+ });
+}
+app.get('/api/achievements',(req,res)=>{
+ const metrics=achievementMetrics(),achievements=achievementDefinitions(metrics);
+ res.json({metrics,achievements,unlocked:achievements.filter(x=>x.unlocked).length,total:achievements.length,recent:achievements.filter(x=>x.unlockedAt).sort((a,b)=>b.unlockedAt.localeCompare(a.unlockedAt)).slice(0,5)});
+});
+app.post('/api/achievements/sync',(req,res)=>{
+ const metrics=achievementMetrics(),eligible=achievementDefinitions(metrics).filter(x=>x.unlocked&&!x.unlockedAt);
+ const insert=db.prepare('INSERT OR IGNORE INTO achievement_unlocks(achievement_id) VALUES(?)');
+ const sync=db.transaction(()=>eligible.forEach(x=>insert.run(x.id)));
+ sync();
+ const achievements=achievementDefinitions(metrics);
+ res.json({newUnlocks:achievements.filter(x=>eligible.some(e=>e.id===x.id)),achievements,unlocked:achievements.filter(x=>x.unlocked).length,total:achievements.length,recent:achievements.filter(x=>x.unlockedAt).sort((a,b)=>b.unlockedAt.localeCompare(a.unlockedAt)).slice(0,5)});
 });
 app.get('/api/progress',(req,res)=>{
  const totalXp=one('SELECT COALESCE(SUM(points),0) total FROM xp_events').total;
