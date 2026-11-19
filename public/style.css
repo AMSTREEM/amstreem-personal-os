@@ -1383,3 +1383,11 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
 .intelligence-pattern p{margin:2px 0 0;color:var(--muted);font-size:10px;line-height:1.55}
 @media(max-width:640px){.atlas-intelligence-widget{padding:17px 15px}.intelligence-recommendation{padding:14px}.intelligence-head h2{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.intelligence-action{transition:none}}
+
+.intelligence-rhythm{margin:6px 0 0!important;color:var(--text)!important;font-weight:650}
+.intelligence-feedback{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:13px;color:var(--muted);font-size:10px}
+.intelligence-feedback>div{display:flex;gap:7px}
+.intelligence-feedback button{padding:6px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--muted);font:inherit;font-size:9px;cursor:pointer;transition:background .2s ease,border-color .2s ease,color .2s ease}
+.intelligence-feedback button:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--surface));color:var(--text)}
+@media(max-width:420px){.intelligence-feedback{align-items:flex-start;flex-direction:column}.intelligence-feedback>div{width:100%}.intelligence-feedback button{flex:1}}
+@media(prefers-reduced-motion:reduce){.intelligence-feedback button{transition:none}}
