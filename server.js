@@ -406,6 +406,29 @@ app.get('/api/overview',(req,res)=>{
  const dates=all('SELECT DISTINCT session_date FROM sessions ORDER BY session_date DESC').map(x=>x.session_date);let streak=0,cursor=new Date();if(!dates.includes(today))cursor.setDate(cursor.getDate()-1);const set=new Set(dates);while(set.has(dateKey(cursor))){streak++;cursor.setDate(cursor.getDate()-1)}
  res.json({today,todayMin,weekMin,completed,moduleTotal,sessions,streak,dailyTarget:Number(one("SELECT value FROM settings WHERE key='daily_target'").value),openTasks:one('SELECT COUNT(*) n FROM tasks WHERE done=0').n});
 });
+app.get('/api/achievements',(req,res)=>{
+ const metrics={
+  tasks:one("SELECT COUNT(*) n FROM tasks WHERE done=1").n,
+  focusMinutes:one("SELECT COALESCE(SUM(minutes),0) n FROM sessions").n,
+  focusSessions:one("SELECT COUNT(*) n FROM sessions").n,
+  lessons:one("SELECT COUNT(*) n FROM learning_lessons WHERE status='Completed'").n,
+  goals:one("SELECT COUNT(*) n FROM goals WHERE status='completed'").n,
+  habitCheckins:one("SELECT COUNT(*) n FROM habit_logs").n
+ };
+ const definitions=[
+  {id:'first-finish',name:'First things first',description:'Complete your first task',icon:'✓',metric:'tasks',target:1},
+  {id:'task-ten',name:'Getting things done',description:'Complete 10 tasks',icon:'↗',metric:'tasks',target:10},
+  {id:'task-fifty',name:'Reliable executor',description:'Complete 50 tasks',icon:'◆',metric:'tasks',target:50},
+  {id:'focus-hour',name:'One focused hour',description:'Invest 60 minutes in focus',icon:'◷',metric:'focusMinutes',target:60},
+  {id:'deep-work',name:'Return to deep work',description:'Complete 10 focus sessions',icon:'◎',metric:'focusSessions',target:10},
+  {id:'first-lesson',name:'Curiosity in motion',description:'Complete your first lesson',icon:'◇',metric:'lessons',target:1},
+  {id:'five-lessons',name:'A learner by practice',description:'Complete 5 lessons',icon:'✦',metric:'lessons',target:5},
+  {id:'first-goal',name:'A promise kept',description:'Complete your first goal',icon:'⌖',metric:'goals',target:1},
+  {id:'ritual-week',name:'Small promises',description:'Record 7 daily ritual check-ins',icon:'✳',metric:'habitCheckins',target:7},
+  {id:'ritual-month',name:'Consistency, compounded',description:'Record 30 daily ritual check-ins',icon:'✧',metric:'habitCheckins',target:30}
+ ].map(item=>{const value=Number(metrics[item.metric]||0);return {...item,value,unlocked:value>=item.target,progress:Math.min(100,Math.round(value/item.target*100)),remaining:Math.max(0,item.target-value)};});
+ res.json({metrics,achievements:definitions,unlocked:definitions.filter(x=>x.unlocked).length,total:definitions.length});
+});
 app.get('/api/progress',(req,res)=>{
  const totalXp=one('SELECT COALESCE(SUM(points),0) total FROM xp_events').total;
  const thresholds=[0,50,150,300,500,800,1200,1700,2300,3000,4000,5200,6600,8200,10000];
