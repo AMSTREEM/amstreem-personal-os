@@ -1,5 +1,5 @@
-const CACHE_NAME = 'amstreem-atlas-shell-v1';
-const SHELL = ['/', '/index.html', '/style.css', '/app.js', '/favicon.svg', '/manifest.webmanifest'];
+const CACHE_NAME = 'amstreem-atlas-shell-v2';
+const SHELL = ['/', '/index.html', '/style.css', '/app.js', '/favicon.svg', '/assets/brand/amstreem-symbol.svg', '/manifest.webmanifest'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
