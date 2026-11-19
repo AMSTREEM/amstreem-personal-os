@@ -1,0 +1,24 @@
+{
+  "id": "/",
+  "name": "Amstreem Atlas",
+  "short_name": "Atlas",
+  "description": "Your private command centre for focused work, learning, goals and personal progress.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "background_color": "#08060D",
+  "theme_color": "#08060D",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
