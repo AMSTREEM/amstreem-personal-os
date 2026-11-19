@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "Amstreem Atlas",
+    "slug": "amstreem-atlas",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "scheme": "amstreematlas",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.amstreem.atlas"
+    },
+    "android": {
+      "package": "com.amstreem.atlas"
+    },
+    "plugins": []
+  }
+}
