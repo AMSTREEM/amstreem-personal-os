@@ -41,6 +41,6 @@ The current snapshot approach is intended for a single app instance. Do not scal
 
 This release includes a backup importer. Before switching from the old SQLite release, export a backup from the previous Personal OS release. After the new release is configured, sign in with the same account and use **Import existing backup** in Settings. The import is transactional and replaces that account's current records only after the file validates. Keep the old deployment and database files intact until the imported workspace has been checked.
 
-## Release status
+## Release readiness
 
-This branch is a migration candidate, not a production-ready release. Before opening registration, run the SQL migration, test signup/login, verify two separate accounts cannot read or overwrite one another's workspace, test every feature, and confirm backup/restore behaviour.
+The current branch is deployed to the Amstreem Atlas Render service as a live release candidate. A successful deploy and passing automated checks do not, by themselves, establish production readiness. Before opening registration or inviting external users, confirm the Supabase migration and Auth redirect settings, test signup/login and password recovery, verify two separate accounts cannot read or overwrite one another's workspace, exercise backup/restore with both old and current backups, and complete desktop plus iPhone visual QA. Keep the prior deployment and a verified backup until those checks pass. See [docs/CLAUDE_HANDOFF.md](docs/CLAUDE_HANDOFF.md) for architecture, guardrails, and the remaining release checklist.
