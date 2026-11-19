@@ -1283,3 +1283,17 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
 .briefing-action:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 @media(max-width:680px){.daily-briefing{align-items:stretch;flex-direction:column;gap:16px;padding:18px;margin-bottom:16px}.briefing-action{width:100%;justify-content:space-between}.briefing-progress{max-width:none}}
 @media(prefers-reduced-motion:reduce){.briefing-progress>i>span,.briefing-action{transition:none}}
+
+/* Long-term progression: visible, transparent rewards tied to real actions. */
+.atlas-progress-widget{margin:0 0 22px;padding:18px 22px}
+.atlas-progress-head{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.atlas-progress-head .kicker{font-size:10px;letter-spacing:.15em;color:var(--accent);font-weight:750}
+.atlas-progress-head h2{margin:7px 0 0;font-size:18px;color:var(--text);letter-spacing:-.025em}
+.atlas-progress-head h2 i{font-style:normal;color:var(--muted);font-weight:400}
+.atlas-progress-head>strong{font-size:13px;color:var(--accent);font-variant-numeric:tabular-nums}
+.atlas-level-track{height:7px;margin:15px 0 10px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.atlas-level-track span{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 55%,white));border-radius:inherit;transition:width .55s cubic-bezier(.2,.75,.25,1)}
+.atlas-progress-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--muted);font-size:10px}
+.atlas-progress-foot small{font-size:10px;text-align:right}
+@media(max-width:600px){.atlas-progress-widget{padding:16px}.atlas-progress-foot{align-items:flex-start;flex-direction:column;gap:5px}.atlas-progress-foot small{text-align:left}}
+@media(prefers-reduced-motion:reduce){.atlas-level-track span{transition:none}}
