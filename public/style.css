@@ -1400,3 +1400,17 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
 .sidebar-backdrop{display:none}
 @media(max-width:780px){body.sidebar-open{overflow:hidden}.sidebar-backdrop{display:block;position:fixed;inset:0;background:rgba(0,0,0,.52);backdrop-filter:blur(2px);border:0;padding:0;opacity:0;visibility:hidden;z-index:19;transition:opacity .22s ease,visibility .22s ease}.sidebar-backdrop.open{opacity:1;visibility:visible}.sidebar{z-index:20}.sidebar.open{box-shadow:18px 0 55px rgba(0,0,0,.35)}.mobile-menu{position:relative;z-index:21}}
 @media(prefers-reduced-motion:reduce){.sidebar-backdrop{transition:none}}
+
+/* Official Amstreem symbol: use the supplied brand mark instead of the former decorative bars. */
+.mantra-logo-image{display:block;width:30px;height:30px;object-fit:contain;flex:0 0 30px}
+.side-mantra>.mantra-logo-image{grid-area:mark;align-self:center}
+.auth-mark{width:64px;height:64px;padding:7px;overflow:hidden;background:#080808;border-color:#373737}
+.auth-mark img{display:block;width:100%;height:100%;object-fit:contain}
+.welcome-loader-mark{width:64px;height:64px;padding:7px;border-radius:16px;background:#080808;overflow:hidden}
+.welcome-loader-mark img{display:block;width:100%;height:100%;object-fit:contain;border-radius:0}
+.brand-mark{width:38px;height:38px;padding:4px;border-radius:10px;background:#080808}
+.brand-mark img{width:100%;height:100%;object-fit:contain;border-radius:0}
+.art-core img{width:58%;height:58%;object-fit:contain}
+.onboarding-brand img{width:38px;height:38px;padding:4px;border-radius:9px;background:#080808;object-fit:contain}
+.atlas-install-brand img,.atlas-install-guide-mark img{background:#080808;object-fit:contain;padding:4px}
+@media(max-width:680px){.onboarding-brand img{width:31px;height:31px}}
