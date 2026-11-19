@@ -406,6 +406,16 @@ app.get('/api/overview',(req,res)=>{
  const dates=all('SELECT DISTINCT session_date FROM sessions ORDER BY session_date DESC').map(x=>x.session_date);let streak=0,cursor=new Date();if(!dates.includes(today))cursor.setDate(cursor.getDate()-1);const set=new Set(dates);while(set.has(dateKey(cursor))){streak++;cursor.setDate(cursor.getDate()-1)}
  res.json({today,todayMin,weekMin,completed,moduleTotal,sessions,streak,dailyTarget:Number(one("SELECT value FROM settings WHERE key='daily_target'").value),openTasks:one('SELECT COUNT(*) n FROM tasks WHERE done=0').n});
 });
+app.get('/api/progress',(req,res)=>{
+ const totalXp=one('SELECT COALESCE(SUM(points),0) total FROM xp_events').total;
+ const thresholds=[0,50,150,300,500,800,1200,1700,2300,3000,4000,5200,6600,8200,10000];
+ while(totalXp>=thresholds[thresholds.length-1])thresholds.push(thresholds[thresholds.length-1]+Math.round(1000+thresholds.length*125));
+ let index=0;while(index+1<thresholds.length&&totalXp>=thresholds[index+1])index++;
+ const level=index+1,currentFloor=thresholds[index],nextFloor=thresholds[index+1];
+ const titles=['Newcomer','Starter','Builder','Pathfinder','Maker','Strategist','Specialist','Architect','Vanguard','Atlas'];
+ const lastEvent=one('SELECT category,points,awarded_at FROM xp_events ORDER BY awarded_at DESC,id DESC LIMIT 1')||null;
+ res.json({totalXp,level,title:titles[index]||'Master Builder',currentFloor,nextFloor,progressPct:Math.max(0,Math.min(100,Math.round((totalXp-currentFloor)/(nextFloor-currentFloor)*100))),remaining:Math.max(0,nextFloor-totalXp),lastEvent});
+});
 app.get('/api/tasks',(q,s)=>s.json(all('SELECT * FROM tasks ORDER BY done ASC, COALESCE(due_date,\'9999-12-31\') ASC,id DESC')));
 app.post('/api/tasks',(q,s)=>{const {title,detail='',category='Learning',due_date=null}=q.body;if(!title?.trim())return s.status(400).json({error:'A task title is required.'});const r=db.prepare('INSERT INTO tasks(title,detail,category,due_date) VALUES(?,?,?,?)').run(title.trim(),detail,category,due_date||null);s.json(one('SELECT * FROM tasks WHERE id=?',r.lastInsertRowid));});
 app.patch('/api/tasks/:id',(q,s)=>{const t=one('SELECT * FROM tasks WHERE id=?',q.params.id);if(!t)return s.status(404).json({error:'Task not found'});const done=q.body.done===undefined?t.done:(q.body.done?1:0);db.prepare('UPDATE tasks SET done=?,title=COALESCE(?,title),detail=COALESCE(?,detail),category=COALESCE(?,category),due_date=COALESCE(?,due_date) WHERE id=?').run(done,q.body.title??null,q.body.detail??null,q.body.category??null,q.body.due_date??null,q.params.id);if(!t.done&&done)awardXp('task:'+t.id,'tasks',5);s.json(one('SELECT * FROM tasks WHERE id=?',q.params.id));});
