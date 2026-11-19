@@ -121,10 +121,22 @@ async function renderProgress(){const host=$('#atlasProgress');if(!host)return;t
 async function renderAchievements(){
  const host=$('#atlasAchievements');if(!host)return;
  try{
-  const data=await api('/achievements');
-  const next=data.achievements.filter(x=>!x.unlocked).sort((a,b)=>b.progress-a.progress||a.target-b.target)[0];
-  const featured=[...data.achievements.filter(x=>x.unlocked).slice(-2),...(next?[next]:[])];
-  host.innerHTML='<div class="achievement-head"><div><div class="kicker">MILESTONES · YOUR RECORD</div><h2>Proof of progress.</h2></div><span class="achievement-count">'+data.unlocked+' / '+data.total+' EARNED</span></div><div class="achievement-grid">'+featured.map(item=>'<article class="achievement-item '+(item.unlocked?'earned':'in-progress')+'"><span class="achievement-icon">'+item.icon+'</span><div class="achievement-copy"><b>'+esc(item.name)+'</b><small>'+esc(item.description)+'</small><div class="achievement-track"><i style="width:'+item.progress+'%"></i></div><span class="achievement-status">'+(item.unlocked?'EARNED':item.value.toLocaleString()+' / '+item.target.toLocaleString()+' · '+item.remaining.toLocaleString()+' TO GO')+'</span></div></article>').join('')+'</div><div class="achievement-foot">'+(next?'Next milestone · '+esc(next.name):'Every milestone earned. Keep building at your own pace.')+'</div>';
+  let data=await api('/achievements');
+  if(data.achievements.some(item=>item.unlocked&&!item.unlockedAt)){
+   const synced=await api('/achievements/sync',{method:'POST',body:JSON.stringify({})});
+   data=synced;
+   if(synced.newUnlocks?.length){
+    const count=synced.newUnlocks.length;
+    toast(count===1?'Milestone unlocked · '+synced.newUnlocks[0].name:count+' milestones unlocked · your progress is adding up.');
+   }
+  }
+  const next=data.achievements.filter(item=>!item.unlocked).sort((a,b)=>b.progress-a.progress||a.target-b.target)[0];
+  const recent=(data.recent||[]).slice(0,3);
+  const earnedDate=value=>{if(!value)return '';const date=new Date(String(value).replace(' ','T')+'Z');return Number.isNaN(date.getTime())?'':date.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});};
+  host.innerHTML='<div class="achievement-head"><div><div class="kicker">MILESTONES · YOUR RECORD</div><h2>Proof of progress.</h2></div><span class="achievement-count">'+data.unlocked+' / '+data.total+' EARNED</span></div>'+
+   (next?'<div class="achievement-next"><span>YOUR NEXT MILESTONE</span><b>'+esc(next.name)+'</b><div class="achievement-track"><i style="width:'+next.progress+'%"></i></div><small>'+next.value.toLocaleString()+' of '+next.target.toLocaleString()+' · '+next.remaining.toLocaleString()+' to go</small></div>':'<div class="achievement-next complete"><span>ALL MILESTONES EARNED</span><b>You’ve built a remarkable record.</b></div>')+
+   '<div class="achievement-subhead"><b>THE COLLECTION</b><span>'+data.total+' milestones</span></div><div class="achievement-grid">'+data.achievements.map(item=>'<article class="achievement-item '+(item.unlocked?'earned':'in-progress')+'"><span class="achievement-icon">'+item.icon+'</span><div class="achievement-copy"><b>'+esc(item.name)+'</b><small>'+esc(item.description)+'</small><div class="achievement-track"><i style="width:'+item.progress+'%"></i></div><span class="achievement-status">'+(item.unlocked?'EARNED'+(item.unlockedAt?' · '+esc(earnedDate(item.unlockedAt)):'') :item.value.toLocaleString()+' / '+item.target.toLocaleString()+' · '+item.remaining.toLocaleString()+' TO GO')+'</span></div></article>').join('')+'</div>'+
+   '<div class="achievement-history"><div class="achievement-subhead"><b>RECENTLY EARNED</b><span>YOUR MILESTONE HISTORY</span></div>'+(recent.length?'<div class="achievement-history-list">'+recent.map(item=>'<div class="achievement-history-row"><span class="achievement-history-icon">'+item.icon+'</span><b>'+esc(item.name)+'</b><time>'+esc(earnedDate(item.unlockedAt))+'</time></div>').join('')+'</div>':'<p class="subtle-count">Your first milestone will be recorded here. Start with one meaningful action.</p>')+'</div>';
  }catch(error){console.warn('Achievements unavailable:',error.message);}
 }
 function renderDailyBriefing(focusMinutes=0,dailyTarget=80){
