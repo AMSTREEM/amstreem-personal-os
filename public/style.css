@@ -1179,3 +1179,14 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
   }
   .nav-icon svg,.nav-item svg{width:19px;height:19px;max-width:19px;max-height:19px}
 }
+
+
+/* Keep the sidebar's decorative mark restrained and reclaim room for navigation. */
+.side-mantra:after{font-size:42px;right:7px;top:-8px;opacity:.65}
+@media(max-width:780px){
+  .side-mantra{padding:10px 12px}
+  .side-mantra>span{font-size:13px}
+  .side-mantra p{font-size:11px;margin:4px 0 6px}
+  .side-mantra small{font-size:7px}
+  .side-mantra:after{font-size:30px;right:6px;top:-4px}
+}
