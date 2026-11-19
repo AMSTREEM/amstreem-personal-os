@@ -20,6 +20,32 @@ Current product systems include:
 - Responsive navigation and a mobile sidebar with a dismissible backdrop.
 - PWA install support; iOS installation is via Safari → Share → Add to Home Screen.
 
+## External services and developer tools used
+
+Claude should understand the existing service ecosystem before proposing replacements. The app is not a standalone frontend and should not be rebuilt around a different provider without a clear migration plan.
+
+### Core services
+- **Render** — hosts the live Node/Express web service at https://amstreematlas.onrender.com. Git-based deploys are connected to the repository; the current service uses the Render free web-service plan and an ephemeral filesystem.
+- **Supabase** — provides Auth (signup, email confirmation, login, sessions, password recovery, admin Auth API where configured) and managed PostgreSQL. The app stores per-user workspace snapshots in `public.personal_os_workspaces` and uses Supabase REST/PostgREST with the signed-in user's access token and RLS.
+- **GitHub** — source control and collaboration for `AMSTREEM/amstreem-personal-os`; current working branch is `audit-and-hardening`. GitHub Actions runs CI checks on pushes and pull requests.
+- **Resend** — email delivery integration used by the server for welcome and owner-triggered thank-you emails. It is optional and only active when `RESEND_API_KEY` and `EMAIL_FROM` are configured in Render. Do not assume it is configured or that email delivery has been live-tested.
+
+### Third-party assets / browser dependencies
+- **Google Fonts** — externally serves DM Sans, Manrope, and DM Mono typography from `fonts.googleapis.com` / `fonts.gstatic.com`.
+- **jsDelivr CDN** — allowed by the Content Security Policy for browser scripts; inspect actual imports/usages before removing or expanding this dependency.
+- **Safari / iOS Home Screen PWA support** — the app is a PWA installed through Safari's Add to Home Screen flow, not a native App Store app. It uses a web manifest and service worker.
+
+### Development and verification tools
+- **Node.js / npm** — runtime, dependency management, local development, and tests.
+- **Playwright** — installed by the user on Windows for browser-based visual QA. A full authenticated run has not yet been completed; do not report it as passed.
+- **GitHub Actions** — automated CI for dependency audit, syntax checks, and tests.
+- **Render deploy/log tools** — used to inspect deployment status and service logs.
+
+### Important boundaries
+- Do not introduce Firebase, Vercel, Clerk, Neon, or another replacement just because they are familiar; first assess the existing Supabase + Render architecture.
+- Do not move secrets into source control or frontend code. Supabase secret/service-role credentials and Resend API credentials must remain server-side in Render environment variables.
+- Distinguish configured integrations from integrations whose credentials are optional or whose live behavior has not been verified.
+
 ## Stack and runtime
 
 - Node.js / Express server: `server.js`.
