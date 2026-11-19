@@ -1156,3 +1156,26 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
   :root[data-theme] button,
   :root[data-theme] [role="button"] { transition: none !important; }
 }
+
+
+/* Mobile sidebar: one control, correctly sized icons, and no hidden-drawer shadow. */
+@media(max-width:780px){
+  .sidebar-toggle{display:none!important}
+  .mobile-menu{
+    display:grid!important;place-items:center;
+    width:40px;height:40px;min-width:40px;flex:0 0 40px;
+    padding:0;margin:0;border:1px solid var(--line);border-radius:10px;
+    background:var(--surface);color:var(--text);
+    font-size:21px;line-height:1;box-shadow:none;
+  }
+  .mobile-menu:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .sidebar{box-shadow:none!important}
+  .sidebar.open{box-shadow:15px 0 45px #0009!important}
+  .nav-item{min-height:46px;gap:12px;padding:11px 13px}
+  .nav-icon{
+    display:inline-grid;place-items:center;
+    width:24px;height:24px;min-width:24px;flex:0 0 24px;
+    font-size:17px;line-height:1;text-align:center;
+  }
+  .nav-icon svg,.nav-item svg{width:19px;height:19px;max-width:19px;max-height:19px}
+}
