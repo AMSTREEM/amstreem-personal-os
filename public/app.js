@@ -130,6 +130,7 @@ async function renderAchievements(){
     toast(count===1?'Milestone unlocked · '+synced.newUnlocks[0].name:count+' milestones unlocked · your progress is adding up.');
    }
   }
+  const freshIds=new Set((data.newUnlocks||[]).map(item=>item.id));
   const next=data.achievements.filter(item=>!item.unlocked).sort((a,b)=>b.progress-a.progress||a.target-b.target)[0];
   const recent=(data.recent||[]).slice(0,3);
   const earnedDate=value=>{if(!value)return '';const date=new Date(String(value).replace(' ','T')+'Z');return Number.isNaN(date.getTime())?'':date.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});};
