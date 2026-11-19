@@ -1343,3 +1343,23 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
 .achievement-history-row>time{color:var(--muted);font-size:9px;font-variant-numeric:tabular-nums}
 @media(max-width:600px){.achievement-grid{grid-template-columns:1fr}.achievement-next{padding:13px}.achievement-history-row{grid-template-columns:26px minmax(0,1fr) auto;gap:7px}}
 @media(prefers-reduced-motion:reduce){.achievement-item.just-unlocked{animation:none}}
+
+/* Personal weekly challenge */
+.atlas-weekly-challenge{margin:0 0 24px;padding:20px 22px;position:relative;overflow:hidden}
+.weekly-challenge-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.weekly-challenge-top .kicker{color:var(--accent);font-size:9px;font-weight:750;letter-spacing:.14em}
+.weekly-challenge-top h2{margin:6px 0 0;color:var(--text);font-size:18px;letter-spacing:-.025em}
+.weekly-challenge-mark{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:12px;background:color-mix(in srgb,var(--accent) 12%,var(--surface));color:var(--accent);font-size:18px}
+.weekly-challenge-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,.8fr);align-items:center;gap:22px;margin-top:20px}
+.weekly-challenge-label{color:var(--muted);font-size:8px;font-weight:750;letter-spacing:.13em}
+.weekly-challenge-copy h3{margin:6px 0;color:var(--text);font-size:15px}
+.weekly-challenge-copy p{margin:0;color:var(--muted);font-size:11px;line-height:1.55}
+.weekly-challenge-progress{padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface2)}
+.weekly-challenge-numbers{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px}
+.weekly-challenge-numbers>b{color:var(--text);font-size:15px;font-variant-numeric:tabular-nums}
+.weekly-challenge-numbers>b small{color:var(--muted);font-size:9px;font-weight:500}
+.weekly-challenge-numbers>strong{color:var(--accent);font-size:11px}
+.weekly-challenge-progress>span{display:block;margin-top:8px;color:var(--muted);font-size:9px}
+.weekly-challenge-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line);color:var(--muted);font-size:9px}
+.weekly-challenge-foot>b{color:var(--accent);font-size:8px;letter-spacing:.1em;white-space:nowrap}
+@media(max-width:620px){.atlas-weekly-challenge{padding:16px}.weekly-challenge-body{grid-template-columns:1fr;gap:14px;margin-top:16px}.weekly-challenge-progress{padding:12px}.weekly-challenge-foot{align-items:flex-start;flex-direction:column;gap:6px}}
