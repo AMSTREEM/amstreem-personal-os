@@ -1210,3 +1210,33 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
   .side-mantra>.mantra-logo-mark i:nth-child(2){height:16px}
   .side-mantra>.mantra-logo-mark i:nth-child(3){height:11px}
 }
+
+
+/* Mobile sidebar footer card: align the logo, message and caption as one tidy unit. */
+@media(max-width:780px){
+  .side-mantra{
+    display:grid;
+    grid-template-columns:30px minmax(0,1fr);
+    grid-template-areas:"mark message" "caption caption";
+    align-items:center;
+    column-gap:10px;
+    row-gap:5px;
+    padding:12px;
+  }
+  .side-mantra>.mantra-logo-mark{grid-area:mark;align-self:center}
+  .side-mantra>p{
+    grid-area:message;
+    min-width:0;
+    margin:0;
+    font-size:11px;
+    line-height:1.45;
+  }
+  .side-mantra>small{
+    grid-area:caption;
+    display:block;
+    margin:0;
+    padding-top:2px;
+    line-height:1.2;
+    letter-spacing:1px;
+  }
+}
