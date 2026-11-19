@@ -119,12 +119,13 @@ async function renderLeaderboard(){
 }
 function renderDailyBriefing(focusMinutes=0,dailyTarget=80){
  const date=today();
- const urgent=tasks.filter(t=>!t.done&&t.due_date&&t.due_date<=date).sort((x,y)=>x.due_date.localeCompare(y.due_date)||Number(x.id)-Number(y.id));
+ const dueTasks=tasks.filter(t=>t.due_date&&t.due_date<=date);
+ const urgent=dueTasks.filter(t=>!t.done).sort((x,y)=>x.due_date.localeCompare(y.due_date)||Number(x.id)-Number(y.id));
  const open=tasks.filter(t=>!t.done);
  const unfinishedHabits=habits.filter(h=>!Number(h.done));
  const focusDone=focusMinutes>=dailyTarget;
- const commitments=urgent.length+habits.length+1;
- const completed=Math.max(0,habits.length-unfinishedHabits.length)+(focusDone?1:0);
+ const commitments=dueTasks.length+habits.length+1;
+ const completed=dueTasks.filter(t=>t.done).length+(habits.length-unfinishedHabits.length)+(focusDone?1:0);
  const progress=commitments?Math.round(completed/commitments*100):0;
  let title="Choose your next move.",detail="A small, deliberate action is enough to get today moving.",action="Choose a task",kind="tasks";
  if(urgent.length){const t=urgent[0];title=t.due_date<date?"Clear an overdue priority.":"Move today's priority forward.";detail=t.title;action="Open your priorities";kind="tasks";}
