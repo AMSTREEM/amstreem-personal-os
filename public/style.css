@@ -1190,3 +1190,23 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
   .side-mantra small{font-size:7px}
   .side-mantra:after{font-size:30px;right:6px;top:-4px}
 }
+
+
+/* Use the Amstreem three-bar mark everywhere the sidebar decoration appeared. */
+.side-mantra:after{content:none!important}
+.side-mantra>.mantra-logo-mark{
+  width:37px;height:37px;display:flex;align-items:center;justify-content:center;gap:3px;
+  border:1px solid color-mix(in srgb,var(--accent) 42%,var(--line));
+  border-radius:11px;background:var(--surface2);
+  box-shadow:0 5px 18px #0003;
+}
+.side-mantra>.mantra-logo-mark i{display:block;width:3px;border-radius:5px;background:var(--accent)}
+.side-mantra>.mantra-logo-mark i:nth-child(1){height:11px;opacity:.65}
+.side-mantra>.mantra-logo-mark i:nth-child(2){height:20px}
+.side-mantra>.mantra-logo-mark i:nth-child(3){height:14px;opacity:.8}
+@media(max-width:780px){
+  .side-mantra>.mantra-logo-mark{width:30px;height:30px;border-radius:9px}
+  .side-mantra>.mantra-logo-mark i:nth-child(1){height:9px}
+  .side-mantra>.mantra-logo-mark i:nth-child(2){height:16px}
+  .side-mantra>.mantra-logo-mark i:nth-child(3){height:11px}
+}
