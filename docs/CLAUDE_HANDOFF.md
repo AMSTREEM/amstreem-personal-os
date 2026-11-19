@@ -46,6 +46,39 @@ Claude should understand the existing service ecosystem before proposing replace
 - Do not move secrets into source control or frontend code. Supabase secret/service-role credentials and Resend API credentials must remain server-side in Render environment variables.
 - Distinguish configured integrations from integrations whose credentials are optional or whose live behavior has not been verified.
 
+## What the app is, who it serves, and what it is trying to achieve
+
+**Amstreem Atlas is a personal operating system (personal OS), not a CRM, project-management tool for teams, generic habit tracker, or simple to-do list.** It is intended to be one coherent, private place where an individual can organise their life, make progress on meaningful priorities, and understand what deserves attention next.
+
+The central product promise is: **help a person turn intentions into consistent, visible progress without making them manage a complicated system.** Atlas should help someone decide what matters today, take the next useful action, build skills, maintain the routines they care about, and see evidence that their effort is adding up.
+
+### The experience it should provide
+
+- **A command centre:** a calm dashboard that brings together today's priorities, due work, goals, focus, learning, routines, and meaningful progress.
+- **Execution:** tasks, notes, goals, planning, focus sessions, and review tools that help users move from intention to action.
+- **Personal development:** learning paths, modules, lessons, study records, and progress tracking.
+- **Routines and self-management:** habits, personal trackers, calendar/rhythm tools, and weekly challenges grounded in actual activity.
+- **Faith and personal values:** an optional, user-controlled faith space. Users choose whether to include it and the relevant experience during setup; it must remain respectful, private, and adaptable rather than imposing one worldview.
+- **Reflection and insight:** a useful record of what the user has done, patterns in their work, achievements, and context-aware suggestions about what to do next.
+- **A sense of ownership:** personal identity, display name, themes, navigation choices, and configurable dashboard sections. The workspace should feel like the user's own environment.
+
+### Product principles
+
+1. **Utility before engagement.** Make Atlas worth returning to because it helps users make real progress. Healthy retention can come from relevant daily value, continuity, useful reminders, milestones, and personal context. Avoid manipulative streak anxiety, shame, artificial scarcity, noisy notifications, endless feeds, or meaningless XP inflation.
+2. **Fast time-to-value.** A new user should be able to create an account, choose a few relevant areas, and complete a meaningful first action quickly. Do not make setup feel like configuring enterprise software.
+3. **One coherent system.** Features should share context and reinforce one another. A goal can connect to tasks; focus can support learning; activity can inform progress and recommendations. Avoid a collection of disconnected mini-apps.
+4. **Personal, not prescriptive.** Let users decide which areas matter to them. Faith features and personal routines are optional. Avoid assuming every user has the same goals, beliefs, schedule, or definition of success.
+5. **Private by design.** Each account's workspace must remain isolated. Personal records should not become public, feed content, or be used for social comparison without an explicit product decision and user consent.
+6. **Calm, premium, and usable.** Preserve the established visual direction: polished, minimal, deliberate, responsive, and theme-aware. Prioritise clear hierarchy, smooth interactions, accessibility, and mobile ergonomics over decorative complexity.
+7. **Progress users can trust.** Achievements, challenges, insights, and progress indicators must derive from real user activity and persist reliably. Never fabricate progress or reward empty interactions.
+8. **A useful mobile experience.** Atlas is a responsive web app and installable PWA. It should work well in mobile Safari and when added to an iPhone Home Screen; it is not currently a native App Store app.
+
+### What success looks like
+
+A user can open Atlas and quickly understand what matters, act on it, and leave with a sense of progress. Over time, Atlas should become more useful because it reflects the user's own goals, records, routines, learning, and feedback. Measure product quality through activation, meaningful task completion, repeat use that correlates with value, successful recovery and data integrity, performance, accessibility, and user trust—not raw session length alone.
+
+When proposing a feature, explain which user problem it solves, how it fits into the whole system, what data it needs, how it affects privacy, and how its success will be measured. Prefer completing and polishing a coherent workflow over adding many shallow features.
+
 ## Stack and runtime
 
 - Node.js / Express server: `server.js`.
