@@ -122,7 +122,7 @@ async function renderAchievements(){
  const host=$('#atlasAchievements');if(!host)return;
  try{
   const data=await api('/achievements');
-  const next=data.achievements.filter(x=>!x.unlocked).sort((a,b)=>a.progress-b.progress||a.target-b.target)[0];
+  const next=data.achievements.filter(x=>!x.unlocked).sort((a,b)=>b.progress-a.progress||a.target-b.target)[0];
   const featured=[...data.achievements.filter(x=>x.unlocked).slice(-2),...(next?[next]:[])];
   host.innerHTML='<div class="achievement-head"><div><div class="kicker">MILESTONES · YOUR RECORD</div><h2>Proof of progress.</h2></div><span class="achievement-count">'+data.unlocked+' / '+data.total+' EARNED</span></div><div class="achievement-grid">'+featured.map(item=>'<article class="achievement-item '+(item.unlocked?'earned':'in-progress')+'"><span class="achievement-icon">'+item.icon+'</span><div class="achievement-copy"><b>'+esc(item.name)+'</b><small>'+esc(item.description)+'</small><div class="achievement-track"><i style="width:'+item.progress+'%"></i></div><span class="achievement-status">'+(item.unlocked?'EARNED':item.value.toLocaleString()+' / '+item.target.toLocaleString()+' · '+item.remaining.toLocaleString()+' TO GO')+'</span></div></article>').join('')+'</div><div class="achievement-foot">'+(next?'Next milestone · '+esc(next.name):'Every milestone earned. Keep building at your own pace.')+'</div>';
  }catch(error){console.warn('Achievements unavailable:',error.message);}
