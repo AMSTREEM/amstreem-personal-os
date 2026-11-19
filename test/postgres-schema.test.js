@@ -129,3 +129,22 @@ test('calendar, faith practices, and religion preferences are persisted per work
   assert.ok(app.includes("$$('[data-calendar-date]').forEach"));
   assert.match(app, /function renderFaith/);
 });
+
+test('new achievement and weekly challenge records survive backup restore, while legacy backups remain valid', () => {
+  const Database = require('better-sqlite3');
+  const { restoreBackup } = require('../workspace-backup');
+  const db = new Database(':memory:');
+  db.exec(`
+    CREATE TABLE achievement_unlocks (achievement_id TEXT PRIMARY KEY, unlocked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
+    CREATE TABLE weekly_challenges (week_start TEXT PRIMARY KEY, challenge_id TEXT NOT NULL, title TEXT NOT NULL, description TEXT NOT NULL, metric TEXT NOT NULL, target INTEGER NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, completed_at TEXT, claimed_at TEXT);
+  `);
+  const tables = ['achievement_unlocks','weekly_challenges'];
+  assert.equal(restoreBackup(db, {}, tables), 0);
+  assert.equal(restoreBackup(db, {
+    achievement_unlocks: [{achievement_id:'first-task',unlocked_at:'2026-11-19 10:00:00'}],
+    weekly_challenges: [{week_start:'2026-11-16',challenge_id:'focus-1',title:'Focus week',description:'Complete focus sessions',metric:'focus_minutes',target:60}]
+  }, tables), 2);
+  assert.equal(db.prepare('SELECT achievement_id FROM achievement_unlocks').get().achievement_id, 'first-task');
+  assert.equal(db.prepare('SELECT title FROM weekly_challenges').get().title, 'Focus week');
+  db.close();
+});
