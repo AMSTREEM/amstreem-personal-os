@@ -437,9 +437,9 @@ function achievementDefinitions(metrics){
  });
 }
 function currentWeekStart(){
- const now=new Date(),local=new Date(now.toLocaleString('en-US',{timeZone:'Africa/Lagos'}));
- local.setHours(0,0,0,0);local.setDate(local.getDate()-((local.getDay()+6)%7));
- return dateKey(local);
+ const localDay=new Date(dateKey()+'T12:00:00Z');
+ localDay.setUTCDate(localDay.getUTCDate()-((localDay.getUTCDay()+6)%7));
+ return localDay.toISOString().slice(0,10);
 }
 function weeklyChallengeState(challenge,weekStart){
  const metrics={
