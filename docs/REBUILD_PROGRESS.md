@@ -21,6 +21,7 @@ Discovery and baseline protection. No production code, Supabase data, or Render 
 - Render currently runs one free Node web-service instance; no persistent disk is attached.
 - The frontend currently contains 14 main page sections and 76 API routes.
 - The SQLite workspace schema currently defines 25 tables.
+- The per-user write queue is process-local; the current single-instance Render setup matches that assumption, but horizontal scaling would require distributed coordination or a different persistence strategy.
 
 ## Verified Supabase baseline
 The connected project contains RLS-enabled public tables for:
@@ -32,7 +33,7 @@ The connected project contains RLS-enabled public tables for:
 - `atlas_announcements`
 - `atlas_announcement_reads`
 
-The workspace table currently contains 8 rows. No workspace rows or schemas have been modified.
+The workspace table currently contains 8 rows: 5 populated snapshots and 3 empty workspace rows. A read-only structural check confirmed that all 5 populated snapshots contain every required section used by the current server. All 5 omit an `analytics_events` section, but the current `workspaceTables` schema does not define or require that table. The earlier missing-section error therefore appears to relate to an older or different code version and must not be treated as proof of current production data corruption. No workspace rows or schemas have been modified.
 
 ## Existing product capabilities observed
 Residence/dashboard, calendar, Deen and Qur'an, faith, self-control, learning paths and lessons, tasks, focus sessions, personal library/notes, goals, rankings, announcements, achievements, progress/intelligence, settings, and owner administration.
@@ -46,14 +47,18 @@ Residence/dashboard, calendar, Deen and Qur'an, faith, self-control, learning pa
 6. Every visible control must have a real, tested behaviour. No placeholder interactions or fabricated analytics.
 7. Test the new app before changing Render's deployment branch.
 
-## Known compatibility item to investigate
-A prior workspace-load failure reported a missing `analytics_events` snapshot section. Verify compatibility across existing workspace snapshots before changing serialization or import/export behaviour.
+## Compatibility investigation
+- [x] Compared the current server's required snapshot sections with the populated Supabase snapshots using read-only aggregate queries.
+- [x] Confirmed all 5 populated snapshots satisfy the current server's required-section checks; 3 additional rows are empty workspaces.
+- [x] Confirmed `analytics_events` is absent from all populated snapshots and is not part of the current server schema or required-section list.
+- [ ] Trace the historical `analytics_events` error to its originating code version before any import/restore compatibility changes.
 
 ## Work sequence
 - [x] Locate repository and confirm production deployment branch.
 - [x] Create isolated `atlas-next` branch from the live code branch.
 - [x] Inspect current frontend, API surface, workspace schema, and Supabase tables.
-- [ ] Finish feature and data-flow audit, including backup/restore and snapshot compatibility.
+- [x] Verify current populated snapshot compatibility against the live server's required sections.
+- [ ] Finish feature and data-flow audit, including backup/restore and historical error tracing.
 - [ ] Define the new information architecture and interaction model.
 - [ ] Implement the new responsive frontend and shared design system.
 - [ ] Connect every module to real persisted data and existing or revised APIs.
@@ -62,3 +67,4 @@ A prior workspace-load failure reported a missing `analytics_events` snapshot se
 
 ## Change log
 - 2026-11-20: Created isolated `atlas-next` branch and recorded the verified baseline. No production changes.
+- 2026-11-20: Read-only Supabase checks confirmed 5 populated snapshots pass the current required-section check and 3 workspaces are empty. No data was changed.
