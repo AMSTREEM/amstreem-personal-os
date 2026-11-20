@@ -727,3 +727,80 @@ body { letter-spacing: -.006em; }
   .tracker-actions { grid-template-columns:1fr; }
   .module-hero h1 { font-size:27px; }
 }
+ 
+
+/* Consistency-first experience: checklist is the primary surface */
+.today-dashboard { gap:12px; }
+.today-dashboard .page-header { margin-bottom:0; }
+.consistency-strip { display:grid; grid-template-columns:minmax(220px,1fr) repeat(3,minmax(90px,auto)); align-items:center; gap:18px; padding:14px 17px; border:1px solid var(--line); border-radius:11px; background:var(--surface); }
+.consistency-main { display:grid; grid-template-columns:1fr; gap:8px; }
+.consistency-main>div:first-child { display:flex; align-items:baseline; gap:9px; flex-wrap:wrap; }
+.consistency-main strong { font:650 24px Manrope,sans-serif; letter-spacing:-.05em; }
+.consistency-main small { color:var(--muted); font-size:10px; }
+.consistency-track,.rituals-progress { height:5px; overflow:hidden; border-radius:99px; background:var(--line); }
+.consistency-track span,.rituals-progress span { display:block; height:100%; border-radius:inherit; background:var(--accent); transition:width .2s ease; }
+.consistency-metric { display:grid; grid-template-columns:18px auto; align-items:center; column-gap:7px; }
+.consistency-metric svg { grid-row:span 2; color:var(--accent); }
+.consistency-metric b { font:600 15px Manrope,sans-serif; }
+.consistency-metric small { color:var(--muted); font-size:9px; }
+.today-columns { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(240px,.8fr); gap:12px; align-items:start; }
+.today-primary,.today-secondary { display:grid; gap:12px; min-width:0; }
+.today-section-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+.today-section-heading h2 { margin:4px 0 2px; font:600 16px Manrope,sans-serif; letter-spacing:-.035em; }
+.today-section-heading p { margin:0; color:var(--muted); font-size:10px; }
+.today-section-heading>svg { color:var(--muted); }
+.today-habits-card,.today-tasks-card,.today-next-card,.today-focus-card,.today-announcements { padding:15px; }
+.today-habit-list,.today-task-list { display:grid; }
+.today-habit-row { display:flex; align-items:center; min-height:43px; gap:10px; padding:6px 2px; border-top:1px solid var(--line-soft); cursor:pointer; }
+.today-habit-check { width:16px; height:16px; flex:none; accent-color:var(--accent); }
+.today-habit-emoji { width:22px; text-align:center; font-size:14px; }
+.today-habit-title { flex:1; font-size:11px; font-weight:550; }
+.today-habit-state { color:var(--subtle); font-size:9px; }
+.today-habit-row.is-done .today-habit-title { color:var(--muted); }
+.today-habit-row.is-done .today-habit-state { color:var(--success); }
+.today-card-footer { display:flex; justify-content:space-between; gap:12px; margin-top:9px; padding-top:10px; border-top:1px solid var(--line-soft); color:var(--muted); font-size:9px; }
+.today-task-row { display:flex; align-items:center; gap:10px; min-height:42px; padding:6px 2px; border-top:1px solid var(--line-soft); cursor:pointer; }
+.today-task-row>span { display:grid; flex:1; gap:2px; min-width:0; }
+.today-task-row b { font-size:11px; font-weight:550; }
+.today-task-row small,.today-task-row time { color:var(--muted); font-size:9px; }
+.today-task-row time { white-space:nowrap; }
+.today-recommendation b { font-size:12px; }
+.today-recommendation p { margin:6px 0 10px; color:var(--muted); font-size:10px; line-height:1.5; }
+.today-focus-values { display:flex; gap:24px; margin:12px 0; }
+.today-focus-values>div { display:grid; gap:2px; }
+.today-focus-values strong { font:600 23px Manrope,sans-serif; }
+.today-focus-values strong small { font-size:12px; }
+.today-focus-values span { color:var(--muted); font-size:9px; }
+.today-announcement { padding-top:9px; margin-top:9px; border-top:1px solid var(--line-soft); }
+.today-announcement b { font-size:11px; }
+.today-announcement p { margin:4px 0; color:var(--muted); font-size:10px; }
+.rituals-page { gap:12px; }
+.rituals-page .page-header { margin-bottom:0; }
+.rituals-summary { display:grid; grid-template-columns:auto minmax(100px,1fr) auto; align-items:center; gap:16px; padding:13px 16px; border:1px solid var(--line); border-radius:11px; background:var(--surface); }
+.rituals-summary>div:first-child { display:grid; grid-template-columns:auto auto; align-items:baseline; column-gap:8px; }
+.rituals-summary .eyebrow { grid-column:1/-1; }
+.rituals-summary strong { font:650 23px Manrope,sans-serif; }
+.rituals-summary strong small { color:var(--muted); font-size:13px; }
+.rituals-summary p { margin:0; color:var(--muted); font-size:9px; }
+.rituals-date { color:var(--muted); font-size:9px; white-space:nowrap; }
+.rituals-add { display:flex; align-items:flex-end; gap:9px; padding:12px 14px; border:1px solid var(--line); border-radius:11px; background:var(--surface); }
+.rituals-add .field { flex:1; }
+.rituals-add .field label { font-size:9px; }
+.rituals-add .field-input { min-height:36px; }
+.rituals-list { overflow:hidden; border:1px solid var(--line); border-radius:11px; background:var(--surface); }
+.rituals-list-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 15px; border-bottom:1px solid var(--line); }
+.rituals-list-head h2 { margin:4px 0 0; font:600 16px Manrope,sans-serif; }
+.rituals-list-head>span { color:var(--muted); font-size:9px; }
+.rituals-row { display:flex; align-items:center; min-height:48px; gap:10px; padding:6px 14px; border-bottom:1px solid var(--line-soft); }
+.rituals-row:last-child { border-bottom:0; }
+.rituals-check { width:19px; height:19px; display:grid; place-items:center; flex:none; border:1px solid var(--line-strong,var(--line)); border-radius:6px; background:transparent; color:white; cursor:pointer; }
+.rituals-check.is-checked { border-color:var(--success); background:var(--success); }
+.rituals-emoji { width:22px; text-align:center; font-size:13px; }
+.rituals-row>b { flex:1; font-size:11px; font-weight:550; }
+.rituals-row-state { color:var(--subtle); font-size:9px; }
+.rituals-row.is-done>b { color:var(--muted); }
+.rituals-row.is-done .rituals-row-state { color:var(--success); }
+.rituals-remove { opacity:.6; }
+.rituals-footnote { margin:0; color:var(--subtle); font-size:9px; }
+@media(max-width:850px) { .today-columns { grid-template-columns:1fr; } .consistency-strip { grid-template-columns:1fr 1fr 1fr; } .consistency-main { grid-column:1/-1; } }
+@media(max-width:560px) { .consistency-strip { gap:12px; padding:12px; } .consistency-metric { grid-template-columns:15px auto; column-gap:5px; } .consistency-metric small { font-size:8px; } .rituals-summary { grid-template-columns:1fr; gap:8px; } .rituals-summary>div:first-child { grid-template-columns:auto auto; justify-content:start; } .rituals-progress { width:100%; } .rituals-add { align-items:stretch; flex-direction:column; } .rituals-row { gap:7px; padding-inline:10px; } .rituals-row-state { display:none; } }
