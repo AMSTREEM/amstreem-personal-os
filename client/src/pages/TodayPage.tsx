@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, CalendarDays, Check, Clock3, Flame, Target } from 'lucide-react';
+import { ArrowRight, CalendarDays, Check, Clock3, Flame, Plus, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Card, EmptyState, PageHeader } from '../components/ui';
@@ -18,12 +19,17 @@ function todayKey() {
 export function TodayPage() {
   const client = useQueryClient();
   const today = todayKey();
+  const [quickTask, setQuickTask] = useState('');
   const overview = useQuery({ queryKey: ['overview'], queryFn: () => api<Overview>('/overview') });
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => api<Task[]>('/tasks') });
   const habits = useQuery({ queryKey: ['habits', today], queryFn: () => api<Habit[]>('/habits?date=' + today) });
   const insight = useQuery({ queryKey: ['intelligence'], queryFn: () => api<Insight>('/intelligence') });
   const announcements = useQuery({ queryKey: ['announcements'], queryFn: () => api<AnnouncementFeed>('/announcements') });
   const markRead = useMutation({ mutationFn: (id: number) => api('/announcements/' + id + '/read', json('POST')), onSuccess: () => void client.invalidateQueries({ queryKey: ['announcements'] }) });
+  const addTask = useMutation({
+    mutationFn: () => api<Task>('/tasks', json('POST', { title: quickTask.trim(), category: 'Personal' })),
+    onSuccess: () => { setQuickTask(''); void client.invalidateQueries({ queryKey: ['tasks'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
+  });
   const toggleTask = useMutation({
     mutationFn: (task: Task) => api<Task>('/tasks/' + task.id, json('PATCH', { done: !task.done })),
     onSuccess: () => { void client.invalidateQueries({ queryKey: ['tasks'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
@@ -36,7 +42,12 @@ export function TodayPage() {
   const completedHabits = habitList.filter(habit => habit.done).length;
   const completion = habitList.length ? Math.round(completedHabits / habitList.length * 100) : 0;
   const openTaskCount = (tasks.data || []).filter(task => !task.done).length;
-  const openTasks = (tasks.data || []).filter(task => !task.done).slice(0, 6);
+  const openTasks = (tasks.data || []).filter(task => !task.done).sort((a, b) => {
+    if (!a.due_date && !b.due_date) return 0;
+    if (!a.due_date) return 1;
+    if (!b.due_date) return -1;
+    return a.due_date.localeCompare(b.due_date);
+  }).slice(0, 6);
   const nextDestination = insight.data?.recommendation.destination === 'habit' ? '/rituals' : '/' + (insight.data?.recommendation.destination || 'tasks');
 
   return <div className="stack today-dashboard">
@@ -65,9 +76,14 @@ export function TodayPage() {
 
         <Card className="today-tasks-card">
           <div className="today-section-heading"><div><span className="eyebrow">GET THINGS DONE</span><h2>Today's priorities</h2></div><Link className="text-link" to="/tasks">All tasks <ArrowRight size={13} /></Link></div>
+          <form className="today-quick-capture" onSubmit={event => { event.preventDefault(); if (quickTask.trim()) addTask.mutate(); }}>
+            <input value={quickTask} onChange={event => setQuickTask(event.target.value)} placeholder="Capture a task…" aria-label="New task title" maxLength={180} />
+            <button type="submit" disabled={!quickTask.trim() || addTask.isPending} aria-label="Add task"><Plus size={15} /> Add</button>
+          </form>
+          {addTask.isError && <p className="inline-error">{addTask.error.message}</p>}
           {openTasks.length ? <div className="today-task-list">{openTasks.map(task => <label className="today-task-row" key={task.id}>
             <input className="check-control" type="checkbox" checked={!!task.done} onChange={() => toggleTask.mutate(task)} />
-            <span><b>{task.title}</b>{task.detail && <small>{task.detail}</small>}</span><time>{task.due_date || ''}</time>
+            <span><b>{task.title}</b>{task.detail && <small>{task.detail}</small>}</span><time>{task.due_date ? (task.due_date < today ? 'Overdue · ' : task.due_date === today ? 'Today · ' : '') + new Date(task.due_date + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''}</time>
           </label>)}</div> : <EmptyState title="You're clear for now." detail="Your unfinished tasks will appear here." />}
         </Card>
       </section>
