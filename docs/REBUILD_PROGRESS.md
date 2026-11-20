@@ -128,3 +128,10 @@ No Render deployment or production Supabase data/schema change has been made fro
 - Updated the security-hardening test to assert the actual install command.
 - Removed the duplicate `atlas-next-ci.yml` workflow.
 - GitHub's connected workflow-run/status endpoints have not exposed a run for the latest branch commits. CI is configured, but its execution/result is still unverified.
+
+
+### CI feedback loop — 2026-11-20
+- First real CI execution surfaced a missing `TextareaHTMLAttributes` import in the shared UI component. The resulting implicit-any errors were all downstream of that missing type.
+- Added the missing React type import in commit `d19e6c7`.
+- Earlier CI steps passed: dependency installation, production dependency audit (zero reported vulnerabilities), and server syntax check.
+- Waiting for CI to execute against the corrected head before considering TypeScript/build/tests validated.
