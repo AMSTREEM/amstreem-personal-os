@@ -6,6 +6,7 @@ import { useAuth } from '../auth/AuthProvider';
 const navigation = [
   { label: 'Today', to: '/today', icon: House, group: 'SPACE' },
   { label: 'Goals', to: '/goals', icon: Target, group: 'PLAN' },
+  { label: 'Projects', to: '/projects', icon: Compass, group: 'PLAN' },
   { label: 'Tasks', to: '/tasks', icon: CheckSquare, group: 'PLAN' },
   { label: 'Calendar', to: '/calendar', icon: CalendarDays, group: 'PLAN' },
   { label: 'Focus', to: '/focus', icon: Timer, group: 'PRACTICE' },
@@ -13,7 +14,8 @@ const navigation = [
   { label: 'Learning', to: '/learning', icon: GraduationCap, group: 'PRACTICE' },
   { label: 'Library', to: '/library', icon: Library, group: 'KNOWLEDGE' },
   { label: 'Values', to: '/values', icon: MoonStar, group: 'PERSONAL' },
-  { label: 'Insights', to: '/insights', icon: Lightbulb, group: 'PERSONAL' }
+  { label: 'Reviews', to: '/reviews', icon: CalendarDays, group: 'REFLECT' },
+  { label: 'Insights', to: '/insights', icon: Lightbulb, group: 'REFLECT' }
 ];
 
 export function AppShell() {
