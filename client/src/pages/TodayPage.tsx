@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, CalendarDays, Check, Clock3, Flame, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { api, json } from '../lib/api';
-import { Button, Card, EmptyState, PageHeader, Stat } from '../components/ui';
+import { Card, EmptyState, PageHeader } from '../components/ui';
 
 type Task = { id: number; title: string; detail: string; due_date: string | null; done: number };
 type Habit = { id: number; title: string; emoji: string; done: number };
@@ -30,42 +30,59 @@ export function TodayPage() {
   });
   const toggleHabit = useMutation({
     mutationFn: (habit: Habit) => api('/habits/' + habit.id + '/toggle', json('POST', { date: today })),
-    onSuccess: () => { void client.invalidateQueries({ queryKey: ['habits', today] }); }
+    onSuccess: () => { void client.invalidateQueries({ queryKey: ['habits', today] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });
-  const openTasks = (tasks.data || []).filter(task => !task.done).slice(0, 5);
+  const habitList = habits.data || [];
+  const completedHabits = habitList.filter(habit => habit.done).length;
+  const completion = habitList.length ? Math.round(completedHabits / habitList.length * 100) : 0;
+  const openTasks = (tasks.data || []).filter(task => !task.done).slice(0, 6);
   const nextDestination = insight.data?.recommendation.destination === 'habit' ? '/rituals' : '/' + (insight.data?.recommendation.destination || 'tasks');
 
-  return <div className="stack">
-    <PageHeader eyebrow={new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date()).toUpperCase()} title="Make today count." description="A clear view of what matters now, without the noise." action={<Link className="button button--secondary" to="/calendar"><CalendarDays size={16} /> Open calendar</Link>} />
-    <div className="stat-grid">
-      <Stat label="FOCUS TODAY" value={overview.data ? overview.data.todayMin + 'm' : '—'} note={overview.data ? 'of ' + overview.data.dailyTarget + 'm intention' : 'Loading activity'} icon={<Clock3 size={16} />} />
-      <Stat label="THIS WEEK" value={overview.data ? Math.round(overview.data.weekMin / 60 * 10) / 10 + 'h' : '—'} note="Time invested in focus" icon={<Flame size={16} />} />
-      <Stat label="OPEN TASKS" value={overview.data?.openTasks ?? '—'} note="Things still in motion" icon={<Check size={16} />} />
-      <Stat label="LEARNING" value={overview.data ? overview.data.completed + '/' + overview.data.moduleTotal : '—'} note="Lessons completed" icon={<Target size={16} />} />
-    </div>
-    <div className="content-grid">
-      <div className="stack">
-        <Card>
-          <div className="card-heading"><div><h2>Your next step</h2><p>One useful move, chosen from your actual workspace.</p></div><span className="eyebrow">ATLAS NOTE</span></div>
-          {insight.data?.recommendation ? <div className="recommendation"><div className="recommendation__priority">{insight.data.recommendation.priority} priority</div><h3>{insight.data.recommendation.title}</h3><p className="recommendation__detail">{insight.data.recommendation.detail}</p><p className="recommendation__reason">{insight.data.recommendation.reason}</p><Link className="text-link" to={nextDestination}>{insight.data.recommendation.action} <ArrowRight size={14} /></Link></div> : <EmptyState title="Your next step is taking shape." detail="Atlas will surface a useful action when your workspace has enough activity." />}
-        </Card>
-        <Card>
-          <div className="card-heading"><div><h2>Today's priorities</h2><p>Keep the list short. Move the important work forward.</p></div><Link className="text-link" to="/tasks">All tasks <ArrowRight size={14} /></Link></div>
-          {openTasks.length ? <div className="list-stack">{openTasks.map(task => <div className="list-row" key={task.id}><input className="check-control" type="checkbox" checked={!!task.done} onChange={() => toggleTask.mutate(task)} aria-label={'Complete ' + task.title} /><div className="list-row__body"><b>{task.title}</b>{task.detail && <small>{task.detail}</small>}</div><span className="list-row__meta">{task.due_date || 'No date'}</span></div>)}</div> : <EmptyState title="Nothing pressing." detail="Your open priorities will appear here. You can use the breathing room." />}
-        </Card>
+  return <div className="stack today-dashboard">
+    <PageHeader eyebrow={new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date()).toUpperCase()} title="Today" description="Show up for the things that matter. One day at a time." action={<Link className="button button--secondary" to="/calendar"><CalendarDays size={15} /> Calendar</Link>} />
+
+    <section className="consistency-strip" aria-label="Consistency summary">
+      <div className="consistency-main">
+        <div><span className="eyebrow">DAILY CONSISTENCY</span><strong>{completion}%</strong><small>{completedHabits} of {habitList.length} habits completed</small></div>
+        <div className="consistency-track"><span style={{ width: completion + '%' }} /></div>
       </div>
-      <div className="stack">
-        <Card>
-          <div className="card-heading"><div><h2>Daily rituals</h2><p>Small practices you chose to keep.</p></div><Link className="text-link" to="/rituals">Manage <ArrowRight size={14} /></Link></div>
-          {habits.data?.length ? <div className="list-stack">{habits.data.map(habit => <div className="list-row" key={habit.id}><input className="check-control" type="checkbox" checked={!!habit.done} onChange={() => toggleHabit.mutate(habit)} aria-label={'Mark ' + habit.title + ' complete'} /><div className="list-row__body"><b>{habit.emoji} {habit.title}</b></div><span className="list-row__meta">{habit.done ? 'Done' : 'Open'}</span></div>)}</div> : <EmptyState title="Choose your rituals." detail="Create a few repeatable practices that support the way you want to live." />}
+      <div className="consistency-metric"><Flame size={16} /><b>{overview.data?.streak ?? 0}</b><small>day streak</small></div>
+      <div className="consistency-metric"><Clock3 size={16} /><b>{overview.data?.todayMin ?? 0}m</b><small>focused today</small></div>
+      <div className="consistency-metric"><Check size={16} /><b>{openTasks.length}</b><small>open priorities</small></div>
+    </section>
+
+    <div className="today-columns">
+      <section className="today-primary">
+        <Card className="today-habits-card">
+          <div className="today-section-heading"><div><span className="eyebrow">YOUR DAILY CHECKLIST</span><h2>Build consistency</h2><p>Small actions. Repeated daily.</p></div><Link className="text-link" to="/rituals">Edit habits <ArrowRight size={13} /></Link></div>
+          {habitList.length ? <div className="today-habit-list">{habitList.map(habit => <label className={'today-habit-row ' + (habit.done ? 'is-done' : '')} key={habit.id}>
+            <input className="today-habit-check" type="checkbox" checked={!!habit.done} onChange={() => toggleHabit.mutate(habit)} />
+            <span className="today-habit-emoji">{habit.emoji || '•'}</span><span className="today-habit-title">{habit.title}</span><span className="today-habit-state">{habit.done ? 'Done' : 'Mark done'}</span>
+          </label>)}</div> : <EmptyState title="Start with a few daily habits." detail="Add the repeatable actions you want to become consistent with." />}
+          <div className="today-card-footer"><span>{completedHabits === habitList.length && habitList.length ? 'All habits completed for today' : (habitList.length - completedHabits) + ' remaining today'}</span><Link to="/rituals" className="text-link">Manage habits <ArrowRight size={13} /></Link></div>
         </Card>
-        <Card>
-          <div className="card-heading"><div><h2>A wider view</h2><p>Patterns from your recent activity.</p></div></div>
-          <p className="insight-copy">{insight.data?.pattern || 'Your activity pattern will appear as you use Atlas.'}</p>
-          {insight.data?.rhythm && <p className="insight-copy insight-copy--muted">{insight.data.rhythm}</p>}
-          <Link className="text-link" to="/insights">Explore insights <ArrowRight size={14} /></Link>
+
+        <Card className="today-tasks-card">
+          <div className="today-section-heading"><div><span className="eyebrow">GET THINGS DONE</span><h2>Today's priorities</h2></div><Link className="text-link" to="/tasks">All tasks <ArrowRight size={13} /></Link></div>
+          {openTasks.length ? <div className="today-task-list">{openTasks.map(task => <label className="today-task-row" key={task.id}>
+            <input className="check-control" type="checkbox" checked={!!task.done} onChange={() => toggleTask.mutate(task)} />
+            <span><b>{task.title}</b>{task.detail && <small>{task.detail}</small>}</span><time>{task.due_date || ''}</time>
+          </label>)}</div> : <EmptyState title="You're clear for now." detail="Your unfinished tasks will appear here." />}
         </Card>
-      </div>
+      </section>
+
+      <aside className="today-secondary">
+        <Card className="today-next-card">
+          <div className="today-section-heading"><div><span className="eyebrow">A USEFUL NEXT STEP</span><h2>Keep moving</h2></div><Target size={16} /></div>
+          {insight.data?.recommendation ? <div className="today-recommendation"><b>{insight.data.recommendation.title}</b><p>{insight.data.recommendation.detail}</p><Link className="text-link" to={nextDestination}>{insight.data.recommendation.action} <ArrowRight size={13} /></Link></div> : <p className="muted">As you build a record of consistency, Atlas will help surface a useful next step.</p>}
+        </Card>
+        <Card className="today-focus-card">
+          <div className="today-section-heading"><div><span className="eyebrow">TIME INVESTED</span><h2>Focus</h2></div><Clock3 size={16} /></div>
+          <div className="today-focus-values"><div><strong>{overview.data?.todayMin ?? 0}<small>m</small></strong><span>Today</span></div><div><strong>{Math.round((overview.data?.weekMin || 0) / 60 * 10) / 10}<small>h</small></strong><span>This week</span></div></div>
+          <Link className="text-link" to="/focus">Open focus timer <ArrowRight size={13} /></Link>
+        </Card>
+        {announcements.data?.items?.filter(item => !announcements.data?.readIds.includes(item.id)).length ? <Card className="today-announcements"><span className="eyebrow">UPDATES</span>{announcements.data.items.filter(item => !announcements.data?.readIds.includes(item.id)).slice(0,2).map(item => <div className="today-announcement" key={item.id}><b>{item.title}</b><p>{item.body}</p><button className="text-link" onClick={() => markRead.mutate(item.id)}>Mark as read</button></div>)}</Card> : null}
+      </aside>
     </div>
   </div>;
 }
