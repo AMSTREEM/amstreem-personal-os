@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { CalendarDays, CheckSquare, Compass, GraduationCap, Heart, House, Library, Lightbulb, LogOut, Menu, MoonStar, Settings, ShieldCheck, Target, Timer, X } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
+import { AtlasWalkthrough } from './AtlasWalkthrough';
 
 const navigation = [
   { label: 'Today', to: '/today', icon: House, group: 'SPACE' },
@@ -25,6 +26,7 @@ export function AppShell() {
   const { user, role, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
   const location = useLocation();
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Record<string, string>>('/settings') });
   useEffect(() => { document.documentElement.dataset.theme = settings.data?.theme || 'shadowed-alchemist'; }, [settings.data?.theme]);
@@ -33,6 +35,7 @@ export function AppShell() {
   const groups = [...new Set(visibleNavigation.map(item => item.group))];
 
   return <div className="app-frame">
+    {tourOpen && <AtlasWalkthrough onClose={() => setTourOpen(false)} />}
     {mobileOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
     <aside className={'sidebar ' + (mobileOpen ? 'sidebar--open' : '')}>
       <NavLink to="/today" className="sidebar-brand" onClick={() => setMobileOpen(false)}><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><span><b>AMSTREEM</b><small>ATLAS</small></span></NavLink>
@@ -58,7 +61,7 @@ export function AppShell() {
       <header className="topbar">
         <button className="mobile-menu-button" onClick={() => setMobileOpen(v => !v)} aria-label={mobileOpen ? 'Close menu' : 'Open menu'}>{mobileOpen ? <X /> : <Menu />}</button>
         <div className="topbar-context"><span>AMSTREEM ATLAS</span><b>{current?.label || 'Settings'}</b></div>
-        <div className="topbar-right"><span className="privacy-indicator"><span /> PRIVATE BY DESIGN</span><span className="topbar-date">{new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric'}).format(new Date())}</span></div>
+        <div className="topbar-right"><button className="tour-launcher" type="button" onClick={() => setTourOpen(true)}><Compass size={14} /> Guided tour</button><span className="privacy-indicator"><span /> PRIVATE BY DESIGN</span><span className="topbar-date">{new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric'}).format(new Date())}</span></div>
       </header>
       <div className="page-container"><Outlet /></div>
       <footer className="app-footer"><span>AMSTREEM ATLAS</span><span>Make room for what matters.</span></footer>
