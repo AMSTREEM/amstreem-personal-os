@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, HeartHandshake, MoonStar } from 'lucide-react';
+import { BookOpen, HeartHandshake, MoonStar, RotateCcw } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
 
@@ -68,14 +68,14 @@ export function ValuesPage() {
         </Card>
       </div>
       <section className="deen-quran-section">
-        <div className="module-section-heading"><div><span className="eyebrow">HIFZ / RECITATION / REVISION</span><h2>Qur’an <em>journey.</em></h2><p>Track memorisation and revision by surah, ayah, page and juz.</p></div><Button onClick={() => document.getElementById('quran-entry')?.scrollIntoView({behavior:'smooth',block:'center'})}><BookOpen size={15}/> Log a session</Button></div>
+        <div className="module-section-heading"><div><span className="eyebrow">HIFZ / RECITATION / REVISION</span><h2>Qur’an <em>journey.</em></h2><p>Track memorisation and revision by surah, ayah, page and juz.</p></div><Button onClick={() => document.querySelector('.deen-quran-entry')?.scrollIntoView({behavior:'smooth',block:'center'})}><BookOpen size={15}/> Log a session</Button></div>
         <div className="stat-grid stat-grid--three deen-quran-stats">
           <div className="stat-card"><div className="stat-card__top">MEMORISATION TODAY<BookOpen size={15}/></div><strong>{memorisedPages}<small> pages</small></strong><span>New material recorded</span></div>
           <div className="stat-card"><div className="stat-card__top">REVISION TODAY<RotateCcw size={15}/></div><strong>{revisedPages}<small> pages</small></strong><span>Previously memorised material</span></div>
           <div className="stat-card"><div className="stat-card__top">SESSIONS TODAY<MoonStar size={15}/></div><strong>{quranLogs.data?.filter(log => log.log_date === date).length ?? 0}<small> sessions</small></strong><span>Memorisation + revision</span></div>
         </div>
         <div className="deen-quran-layout">
-          <Card id="quran-entry">
+          <Card className="deen-quran-entry">
             <div className="module-panel-head"><div><span className="module-kicker">ADD TO YOUR RECORD</span><h2>Log a session.</h2></div><BookOpen size={18}/></div>
             <form className="form-stack" onSubmit={event => { event.preventDefault(); if (surah.trim()) quran.mutate(); }}>
               <div className="field-row"><Field label="Activity"><select className="field-input" value={activity} onChange={event => setActivity(event.target.value)}><option value="memorisation">Memorisation</option><option value="revision">Revision</option></select></Field><Field label="Surah"><TextInput value={surah} onChange={event => setSurah(event.target.value)} placeholder="Surah name" required/></Field></div>
