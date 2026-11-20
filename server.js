@@ -687,7 +687,7 @@ app.get('/api/settings',(q,s)=>s.json(Object.fromEntries(all('SELECT key,value F
 app.patch('/api/settings',(q,s)=>{
  const allowed=['daily_target','display_name','username','north_star','religion','leaderboard_name','leaderboard_public','theme','features','widgets','sidebar_collapsed'];
  const themes=['shadowed-alchemist','nocturnal-amethyst','abyssal-trench','whispering-woods','crimson-velvet','light-porcelain','light-sandstone','light-sage','light-lavender','light-sky'];
- const features=['calendar','deen','faith','selfcontrol','learning','tasks','focus','library','goals','rankings'];
+ const features=['calendar','deen','faith','selfcontrol','learning','tasks','focus','library','goals','rankings','rituals','values'];
  if(q.body.religion!==undefined&&!['islam','christianity','none','prefer_not_to_say'].includes(q.body.religion))return s.status(400).json({error:'Choose a valid religious experience.'});
  if(q.body.theme!==undefined&&!themes.includes(q.body.theme))return s.status(400).json({error:'Choose a valid colour theme.'});
  if(q.body.features!==undefined&&(!Array.isArray(q.body.features)||q.body.features.some(x=>!features.includes(x))))return s.status(400).json({error:'Choose valid workspace sections.'});
