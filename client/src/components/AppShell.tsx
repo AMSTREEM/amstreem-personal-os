@@ -17,7 +17,7 @@ const navigation = [
   { label: 'Self-control', to: '/self-control', icon: Heart, group: 'PRACTICE' , feature: 'selfcontrol' },
   { label: 'Learning', to: '/learning', icon: GraduationCap, group: 'PRACTICE' , feature: 'learning' },
   { label: 'Library', to: '/library', icon: Library, group: 'KNOWLEDGE' , feature: 'library' },
-  { label: 'Values', to: '/values', icon: MoonStar, group: 'PERSONAL' , feature: 'values' },
+  { label: 'Deen', to: '/values', icon: MoonStar, group: 'PERSONAL' , feature: 'deen' },
   { label: 'Reviews', to: '/reviews', icon: CalendarDays, group: 'REFLECT' },
   { label: 'Insights', to: '/insights', icon: Lightbulb, group: 'REFLECT' }
 ];
@@ -46,7 +46,7 @@ export function AppShell() {
   useEffect(() => { document.documentElement.dataset.theme = settings.data?.theme || 'shadowed-alchemist'; }, [settings.data?.theme]);
   const storedFeatures = settings.data?.features;
   let enabledFeatures: string[] | null = null;
-  if (storedFeatures) { try { enabledFeatures = JSON.parse(storedFeatures); } catch { enabledFeatures = null; } }
+  if (storedFeatures) { try { enabledFeatures = JSON.parse(storedFeatures).map((feature: string) => feature === 'values' ? 'deen' : feature); } catch { enabledFeatures = null; } }
   const visibleModules = enabledFeatures === null ? navigation : navigation.filter(item => !('feature' in item) || enabledFeatures!.includes(item.feature as string));
   const visibleNavigation = role === 'admin' ? [...visibleModules, { label: 'Admin', to: '/admin', icon: ShieldCheck, group: 'OWNER' }] : visibleModules;
   const current = visibleNavigation.find(item => item.to === location.pathname);
