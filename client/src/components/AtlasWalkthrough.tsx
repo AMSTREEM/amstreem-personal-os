@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 type Props = { onClose: () => void };
@@ -64,25 +64,37 @@ const steps = [
 
 export function AtlasWalkthrough({ onClose }: Props) {
   const [index, setIndex] = useState(0);
+  const dialogRef = useRef<HTMLElement>(null);
   const step = steps[index];
 
   useEffect(() => {
     const previous = document.body.style.overflow;
+    const previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     document.body.style.overflow = 'hidden';
+    const focusable = () => Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') || []);
+    focusable()[0]?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
       if (event.key === 'ArrowRight') setIndex(value => Math.min(steps.length - 1, value + 1));
       if (event.key === 'ArrowLeft') setIndex(value => Math.max(0, value - 1));
+      if (event.key === 'Tab') {
+        const items = focusable();
+        const first = items[0], last = items[items.length - 1];
+        if (!first || !last) return;
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => {
       document.body.style.overflow = previous;
       window.removeEventListener('keydown', onKey);
+      previouslyFocused?.focus();
     };
   }, [onClose]);
 
   return <div className="atlas-tour-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
-    <section className="atlas-tour" role="dialog" aria-modal="true" aria-labelledby="atlas-tour-title">
+    <section ref={dialogRef} className="atlas-tour" role="dialog" aria-modal="true" aria-labelledby="atlas-tour-title" tabIndex={-1}>
       <header className="atlas-tour__top">
         <div className="atlas-tour__brand"><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><span>AMSTREEM ATLAS</span></div>
         <span className="atlas-tour__count">YOUR FIRST LOOK · {String(index + 1).padStart(2, '0')} / {String(steps.length).padStart(2, '0')}</span>
