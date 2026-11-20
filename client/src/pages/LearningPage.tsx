@@ -11,10 +11,15 @@ export function LearningPage() {
   const client = useQueryClient();
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('');
+  const [lessonDrafts, setLessonDrafts] = useState<Record<number, string>>({});
   const paths = useQuery({ queryKey: ['learning-paths'], queryFn: () => api<Path[]>('/learning/paths') });
   const create = useMutation({
     mutationFn: () => api('/learning/paths', json('POST', { title, subject })),
     onSuccess: () => { setTitle(''); setSubject(''); void client.invalidateQueries({ queryKey: ['learning-paths'] }); }
+  });
+  const createLesson = useMutation({
+    mutationFn: ({ pathId, value }: { pathId: number; value: string }) => api('/learning/paths/' + pathId + '/lessons', json('POST', { title: value })),
+    onSuccess: (_data, variables) => { setLessonDrafts(current => ({ ...current, [variables.pathId]: '' })); void client.invalidateQueries({ queryKey: ['learning-paths'] }); }
   });
   const updateLesson = useMutation({
     mutationFn: ({ lesson, status }: { lesson: Lesson; status: string }) => api('/learning/lessons/' + lesson.id, json('PATCH', { status })),
@@ -33,7 +38,8 @@ export function LearningPage() {
     <div className="stack">
       {paths.data?.length ? paths.data.map(path => <Card key={path.id}>
         <div className="card-heading"><div><span className="eyebrow">{path.subject || 'LEARNING PATH'}</span><h2>{path.title}</h2><p>{path.description || 'Build this path one lesson at a time.'}</p></div><span className="status-pill">{path.status}</span></div>
-        {path.lessons.length ? <div className="list-stack">{path.lessons.map(lesson => <div className="list-row" key={lesson.id}><span className="session-mark"><BookOpen size={16} /></span><div className="list-row__body"><b>{lesson.title}</b><small>{lesson.study_minutes} minutes studied</small></div><select className="status-select" value={lesson.status} onChange={event => updateLesson.mutate({ lesson, status: event.target.value })}><option>Not started</option><option>In progress</option><option>Completed</option></select></div>)}</div> : <EmptyState title="Add the first lesson." detail="This path is ready for its first lesson. Lessons can be added from the full learning workflow." />}
+        {path.lessons.length ? <div className="list-stack">{path.lessons.map(lesson => <div className="list-row" key={lesson.id}><span className="session-mark"><BookOpen size={16} /></span><div className="list-row__body"><b>{lesson.title}</b><small>{lesson.study_minutes} minutes studied</small></div><select className="status-select" value={lesson.status} onChange={event => updateLesson.mutate({ lesson, status: event.target.value })}><option>Not started</option><option>In progress</option><option>Completed</option></select></div>)}</div> : <EmptyState title="Add the first lesson." detail="Give this learning path its first clear checkpoint." />}
+        <form className="form-row milestone-form" onSubmit={event => { event.preventDefault(); const value = lessonDrafts[path.id]?.trim(); if (value) createLesson.mutate({ pathId: path.id, value }); }}><Field label="Add a lesson"><TextInput value={lessonDrafts[path.id] || ''} onChange={event => setLessonDrafts(current => ({ ...current, [path.id]: event.target.value }))} placeholder="Name the next lesson" /></Field><Button type="submit" variant="secondary" disabled={createLesson.isPending || !lessonDrafts[path.id]?.trim()}><Plus size={15} /> Add lesson</Button></form>
       </Card>) : <Card><EmptyState title="Make learning deliberate." detail="Create a path for a subject you want to understand, then build it into lessons and study sessions." /></Card>}
     </div>
   </div>;
