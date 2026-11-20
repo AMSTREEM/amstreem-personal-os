@@ -16,7 +16,7 @@ import { SettingsPage } from './pages/SettingsPage';
 
 export function App() {
   const { session, loading } = useAuth();
-  if (loading) return <div className="app-loading"><span className="brand-symbol">a</span><p>Preparing your space…</p></div>;
+  if (loading) return <div className="app-loading"><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><p>Preparing your space…</p></div>;
   if (!session) return <AuthPage />;
   return <Routes>
     <Route element={<AppShell />}>
