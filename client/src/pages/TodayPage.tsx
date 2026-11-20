@@ -7,6 +7,8 @@ import { Button, Card, EmptyState, PageHeader, Stat } from '../components/ui';
 type Task = { id: number; title: string; detail: string; due_date: string | null; done: number };
 type Habit = { id: number; title: string; emoji: string; done: number };
 type Overview = { today: string; todayMin: number; weekMin: number; completed: number; moduleTotal: number; streak: number; dailyTarget: number; openTasks: number };
+type Announcement = { id: number; title: string; body: string; kind: string; created_at: string; published_at: string | null };
+type AnnouncementFeed = { items: Announcement[]; readIds: number[] };
 type Insight = { recommendation: { title: string; detail: string; reason: string; action: string; destination: string; priority: string }; pattern: string; rhythm: string | null };
 
 function todayKey() {
@@ -20,6 +22,8 @@ export function TodayPage() {
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => api<Task[]>('/tasks') });
   const habits = useQuery({ queryKey: ['habits', today], queryFn: () => api<Habit[]>('/habits?date=' + today) });
   const insight = useQuery({ queryKey: ['intelligence'], queryFn: () => api<Insight>('/intelligence') });
+  const announcements = useQuery({ queryKey: ['announcements'], queryFn: () => api<AnnouncementFeed>('/announcements') });
+  const markRead = useMutation({ mutationFn: (id: number) => api('/announcements/' + id + '/read', json('POST')), onSuccess: () => void client.invalidateQueries({ queryKey: ['announcements'] }) });
   const toggleTask = useMutation({
     mutationFn: (task: Task) => api<Task>('/tasks/' + task.id, json('PATCH', { done: !task.done })),
     onSuccess: () => { void client.invalidateQueries({ queryKey: ['tasks'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
