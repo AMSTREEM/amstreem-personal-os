@@ -120,3 +120,11 @@ No Render deployment or production Supabase data/schema change has been made fro
 - The CI workflow is present and configured to install dependencies, run TypeScript, build the Vite app, and execute Node tests. The GitHub connector did not return a workflow run for the latest commit, so no successful CI result is claimed.
 - Runtime verification remains outstanding: this session has GitHub repository access but no checked-out Node runtime or local browser session for executing the build and end-to-end flows.
 - No production deployment, production data write, schema migration, or PR merge was performed.
+
+
+### CI consolidation — 2026-11-20
+- Consolidated Atlas Next validation into the repository's existing `.github/workflows/test.yml` rather than maintaining duplicate workflows.
+- CI now uses `npm install` (the existing lockfile predates the new frontend dependency set), runs the production dependency audit, checks the Express server syntax, runs the frontend TypeScript check and Vite build, and executes the Node test suite.
+- Updated the security-hardening test to assert the actual install command.
+- Removed the duplicate `atlas-next-ci.yml` workflow.
+- GitHub's connected workflow-run/status endpoints have not exposed a run for the latest branch commits. CI is configured, but its execution/result is still unverified.
