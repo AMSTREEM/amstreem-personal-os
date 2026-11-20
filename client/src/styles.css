@@ -450,3 +450,14 @@ a { color: inherit; text-decoration: none; }
 .ui-badge--danger { border-color:color-mix(in srgb,var(--danger) 35%,var(--line)); background:color-mix(in srgb,var(--danger) 10%,var(--surface)); color:var(--danger); }
 .ui-separator { width:100%; height:1px; background:var(--line-soft); }
 .icon-button:focus-visible,.button:focus-visible { outline-offset:3px; }
+
+
+/* Optional module selection: onboarding and workspace preferences. */
+.atlas-module-choices,.settings-module-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}
+.atlas-module-choice,.settings-module-choice{display:flex;align-items:flex-start;gap:10px;min-width:0;padding:12px;border:1px solid var(--line);border-radius:11px;background:var(--surface);cursor:pointer}
+.atlas-module-choice:has(input:checked),.settings-module-choice:has(input:checked){border-color:var(--accent);background:var(--accent-wash)}
+.atlas-module-choice input,.settings-module-choice input{flex:none;margin:3px 0 0;accent-color:var(--accent)}
+.atlas-module-choice span,.settings-module-choice span{display:grid;gap:4px;min-width:0}
+.atlas-module-choice b,.settings-module-choice b{color:var(--text);font:600 11px Manrope,sans-serif}
+.atlas-module-choice small,.settings-module-choice small{color:var(--muted);font-size:10px;line-height:1.5}
+@media(max-width:760px){.atlas-module-choices,.settings-module-grid{grid-template-columns:1fr}}
