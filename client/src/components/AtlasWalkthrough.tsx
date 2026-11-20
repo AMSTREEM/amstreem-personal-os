@@ -76,7 +76,10 @@ const steps = [
 export function AtlasWalkthrough({ onClose }: Props) {
   const [index, setIndex] = useState(0);
   const [selectedModules, setSelectedModules] = useState<string[]>(optionalModules.map(item => item.id));
-  const finish = async () => { try { await api('/settings', json('PATCH', { features: selectedModules })); } catch (error) { console.error('Could not save Atlas module choices:', error); } onClose(); };
+  const selectedModulesRef = useRef(selectedModules);
+  selectedModulesRef.current = selectedModules;
+  useEffect(() => { void api<Record<string, string>>('/settings').then(settings => { if (settings.features) { try { setSelectedModules(JSON.parse(settings.features)); } catch { /* Keep the available defaults. */ } } }).catch(() => undefined); }, []);
+  const finish = async () => { try { await api('/settings', json('PATCH', { features: selectedModulesRef.current })); } catch (error) { console.error('Could not save Atlas module choices:', error); } onClose(); };
   const dialogRef = useRef<HTMLElement>(null);
   const step = steps[index];
 
