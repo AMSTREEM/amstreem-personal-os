@@ -52,7 +52,7 @@ export function AuthPage() {
 
   return <main className="auth-screen">
     <div className="auth-visual">
-      <div className="auth-brand"><span className="brand-symbol">a</span><span>AMSTREEM <b>ATLAS</b></span></div>
+      <div className="auth-brand"><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><span>AMSTREEM <b>ATLAS</b></span></div>
       <div className="auth-message-block">
         <span className="eyebrow">A PRIVATE OPERATING SYSTEM</span>
         <h1>Make room for<br /><em>what matters.</em></h1>
@@ -62,7 +62,7 @@ export function AuthPage() {
       <div className="auth-footnote">YOUR SPACE. YOUR PACE. YOUR DIRECTION.</div>
     </div>
     <section className="auth-panel"><div className="auth-panel__inner">
-      <div className="auth-mobile-brand"><span className="brand-symbol">a</span> AMSTREEM ATLAS</div>
+      <div className="auth-mobile-brand"><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /> AMSTREEM ATLAS</div>
       <div className="auth-panel__top"><span className="eyebrow">{mode === 'signup' ? 'BEGIN WITH INTENTION' : mode === 'reset' ? 'ACCOUNT RECOVERY' : 'WELCOME BACK'}</span><span className="secure-label"><LockKeyhole size={13} /> PRIVATE WORKSPACE</span></div>
       <h2>{mode === 'signup' ? 'Create your space.' : mode === 'reset' ? 'Reset your password.' : 'Pick up where you left off.'}</h2>
       <p className="auth-subtitle">{mode === 'signup' ? 'A personal space for the things you want to make meaningful.' : mode === 'reset' ? 'We will send a secure reset link to your email.' : 'Sign in to return to your personal operating system.'}</p>
