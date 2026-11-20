@@ -875,3 +875,15 @@ body { letter-spacing: -.006em; }
   .tracker-actions { grid-template-columns: 1fr; }
   .consistency-metric small { font-size: 7px; }
 }
+
+
+/* Daily action polish: capture first, act without leaving Today. */
+.today-quick-capture { display:flex; align-items:center; gap:7px; margin:0 0 8px; padding:5px; border:1px solid var(--line); border-radius:9px; background:var(--bg); }
+.today-quick-capture:focus-within { border-color:color-mix(in srgb,var(--accent) 65%,var(--line)); }
+.today-quick-capture input { flex:1; min-width:0; height:30px; padding:0 8px; border:0; outline:0; background:transparent; color:var(--text); font-size:10px; }
+.today-quick-capture input::placeholder { color:var(--subtle); }
+.today-quick-capture button { min-height:29px; display:inline-flex; align-items:center; justify-content:center; gap:5px; padding:0 9px; border:1px solid var(--line); border-radius:7px; background:var(--surface-raised); color:var(--text); font-size:9px; font-weight:650; }
+.today-quick-capture button:disabled { opacity:.45; cursor:not-allowed; }
+.today-task-row time { max-width:112px; text-align:right; }
+.focus-timer-status { margin:0 auto 14px; max-width:430px; color:var(--muted); font-size:10px; line-height:1.55; text-align:center; }
+@media(max-width:560px) { .today-quick-capture input { font-size:12px; } .today-quick-capture button { min-height:34px; } }
