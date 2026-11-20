@@ -1,8 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { api, json } from '../lib/api';
 
 type Props = { onClose: () => void };
 
+const optionalModules = [
+  { id: 'calendar', name: 'Calendar', description: 'Time-block commitments and see what is coming up.' },
+  { id: 'focus', name: 'Focus', description: 'Protect focused work and record sessions.' },
+  { id: 'rituals', name: 'Rituals', description: 'Build repeatable routines and daily practices.' },
+  { id: 'selfcontrol', name: 'Self-control', description: 'Privately notice triggers and track responses.' },
+  { id: 'learning', name: 'Learning', description: 'Organise skills, subjects and lessons.' },
+  { id: 'library', name: 'Personal Library', description: 'Keep notes, references and useful material.' },
+  { id: 'values', name: 'Values & faith', description: 'Track personal values or faith practices if you want to.' }
+];
 const steps = [
   {
     eyebrow: 'WELCOME TO YOUR SPACE',
@@ -59,11 +69,14 @@ const steps = [
     description: 'Choose the appearance that feels right, manage your data and decide which personal practices belong in your workspace. Values is optional; Atlas should respect the way you choose to use it.',
     rows: ['Choose from distinct dark and light palettes.', 'Export a backup of your workspace at any time.', 'Keep optional values and faith practices on your terms.'],
     label: 'PERSONAL / OWNERSHIP'
-  }
+  },
+  { eyebrow: 'BUILT AROUND YOUR CHOICES', title: 'Choose what belongs in your Atlas.', description: 'The essentials stay available. Add only the extra spaces you want; you can change these choices any time in Settings.', rows: ['Optional spaces can be added or skipped.', 'Your choices shape the navigation.', 'Nothing here is permanent—you stay in control.'], label: 'YOUR OPTIONAL MODULES' }
 ];
 
 export function AtlasWalkthrough({ onClose }: Props) {
   const [index, setIndex] = useState(0);
+  const [selectedModules, setSelectedModules] = useState<string[]>(optionalModules.map(item => item.id));
+  const finish = async () => { try { await api('/settings', json('PATCH', { features: selectedModules })); } catch (error) { console.error('Could not save Atlas module choices:', error); } onClose(); };
   const dialogRef = useRef<HTMLElement>(null);
   const step = steps[index];
 
@@ -74,7 +87,7 @@ export function AtlasWalkthrough({ onClose }: Props) {
     const focusable = () => Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') || []);
     focusable()[0]?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') void finish();
       if (event.key === 'ArrowRight') setIndex(value => Math.min(steps.length - 1, value + 1));
       if (event.key === 'ArrowLeft') setIndex(value => Math.max(0, value - 1));
       if (event.key === 'Tab') {
@@ -93,12 +106,12 @@ export function AtlasWalkthrough({ onClose }: Props) {
     };
   }, [onClose]);
 
-  return <div className="atlas-tour-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
+  return <div className="atlas-tour-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) void finish(); }}>
     <section ref={dialogRef} className="atlas-tour" role="dialog" aria-modal="true" aria-labelledby="atlas-tour-title" tabIndex={-1}>
       <header className="atlas-tour__top">
         <div className="atlas-tour__brand"><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><span>AMSTREEM ATLAS</span></div>
         <span className="atlas-tour__count">YOUR FIRST LOOK · {String(index + 1).padStart(2, '0')} / {String(steps.length).padStart(2, '0')}</span>
-        <button className="icon-button" type="button" aria-label="Close walkthrough" onClick={onClose}><X size={18} /></button>
+        <button className="icon-button" type="button" aria-label="Close walkthrough" onClick={() => void finish()}><X size={18} /></button>
       </header>
       <div className="atlas-tour__body">
         <aside className="atlas-tour__intro">
@@ -117,16 +130,17 @@ export function AtlasWalkthrough({ onClose }: Props) {
           <div className="atlas-tour__preview">
             <div className="atlas-tour__preview-head"><span>{step.label}</span><span>AT A GLANCE</span></div>
             {step.rows.map(row => <div className="atlas-tour__preview-row" key={row}><i />{row}</div>)}
+            {index === steps.length - 1 && <div className="atlas-module-choices">{optionalModules.map(module => <label className="atlas-module-choice" key={module.id}><input type="checkbox" checked={selectedModules.includes(module.id)} onChange={event => setSelectedModules(current => event.target.checked ? [...current, module.id] : current.filter(id => id !== module.id))} /><span><b>{module.name}</b><small>{module.description}</small></span></label>)}</div>}
           </div>
         </main>
       </div>
       <footer className="atlas-tour__actions">
-        <button className="button button--ghost" type="button" onClick={onClose}>Close tour</button>
+        <button className="button button--ghost" type="button" onClick={() => void finish()}>Close tour</button>
         <div>
           <button className="button button--secondary" type="button" disabled={index === 0} onClick={() => setIndex(value => Math.max(0, value - 1))}><ChevronLeft size={15} /> Back</button>
           {index < steps.length - 1
             ? <button className="button button--primary" type="button" onClick={() => setIndex(value => Math.min(steps.length - 1, value + 1))}>Continue <ChevronRight size={15} /></button>
-            : <button className="button button--primary" type="button" onClick={onClose}>Start exploring <ChevronRight size={15} /></button>}
+            : <button className="button button--primary" type="button" onClick={() => void finish()}>Start exploring <ChevronRight size={15} /></button>}
         </div>
       </footer>
     </section>
