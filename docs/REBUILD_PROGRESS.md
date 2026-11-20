@@ -47,6 +47,11 @@ Residence/dashboard, calendar, Deen and Qur'an, faith, self-control, learning pa
 6. Every visible control must have a real, tested behaviour. No placeholder interactions or fabricated analytics.
 7. Test the new app before changing Render's deployment branch.
 
+## Additional findings from the current frontend
+- Signup currently requires a religion choice; the new experience will make Values/faith preferences optional and user-controlled.
+- The current frontend hard-codes the auth confirmation/password-reset redirect to `https://amstreemos.onrender.com/`, while the live Render service URL is `https://amstreematlas.onrender.com`. Verify the Supabase redirect allowlist and intended domain before changing this.
+- Existing backend routes award XP for tasks, goals, habits, and focus sessions. The rebuild will not make points or streaks the centre of the experience; legacy records will be preserved while the need for these mechanics is reassessed.
+
 ## Compatibility investigation
 - [x] Compared the current server's required snapshot sections with the populated Supabase snapshots using read-only aggregate queries.
 - [x] Confirmed all 5 populated snapshots satisfy the current server's required-section checks; 3 additional rows are empty workspaces.
@@ -68,3 +73,4 @@ Residence/dashboard, calendar, Deen and Qur'an, faith, self-control, learning pa
 ## Change log
 - 2026-11-20: Created isolated `atlas-next` branch and recorded the verified baseline. No production changes.
 - 2026-11-20: Read-only Supabase checks confirmed 5 populated snapshots pass the current required-section check and 3 workspaces are empty. No data was changed.
+- 2026-11-20: Reviewed current signup, auth redirect, and gamification behaviour; recorded items to resolve during the frontend rebuild.
