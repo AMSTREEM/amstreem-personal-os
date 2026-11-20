@@ -35,6 +35,7 @@ export function TodayPage() {
   const habitList = habits.data || [];
   const completedHabits = habitList.filter(habit => habit.done).length;
   const completion = habitList.length ? Math.round(completedHabits / habitList.length * 100) : 0;
+  const openTaskCount = (tasks.data || []).filter(task => !task.done).length;
   const openTasks = (tasks.data || []).filter(task => !task.done).slice(0, 6);
   const nextDestination = insight.data?.recommendation.destination === 'habit' ? '/rituals' : '/' + (insight.data?.recommendation.destination || 'tasks');
 
@@ -48,7 +49,7 @@ export function TodayPage() {
       </div>
       <div className="consistency-metric"><Flame size={16} /><b>{overview.data?.streak ?? 0}</b><small>day streak</small></div>
       <div className="consistency-metric"><Clock3 size={16} /><b>{overview.data?.todayMin ?? 0}m</b><small>focused today</small></div>
-      <div className="consistency-metric"><Check size={16} /><b>{openTasks.length}</b><small>open priorities</small></div>
+      <div className="consistency-metric"><Check size={16} /><b>{openTaskCount}</b><small>open tasks</small></div>
     </section>
 
     <div className="today-columns">
