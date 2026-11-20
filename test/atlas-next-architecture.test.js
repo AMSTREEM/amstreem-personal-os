@@ -38,7 +38,7 @@ test('project, task, calendar, focus and review records can be linked', () => {
 });
 
 test('new frontend routes cover the core personal operating system areas', () => {
-  for (const route of ['/today', '/goals', '/projects', '/tasks', '/calendar', '/focus', '/rituals', '/learning', '/library', '/values', '/reviews', '/insights', '/settings']) {
+  for (const route of ['/today', '/goals', '/projects', '/tasks', '/calendar', '/focus', '/rituals', '/self-control', '/learning', '/library', '/values', '/reviews', '/insights', '/settings', '/admin']) {
     assert.ok(app.includes('path="' + route + '"'), 'Missing route ' + route);
   }
 });
