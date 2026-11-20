@@ -29,6 +29,7 @@ export function TodayPage() {
     onSuccess: () => { void client.invalidateQueries({ queryKey: ['habits', today] }); }
   });
   const openTasks = (tasks.data || []).filter(task => !task.done).slice(0, 5);
+  const nextDestination = insight.data?.recommendation.destination === 'habit' ? '/rituals' : '/' + (insight.data?.recommendation.destination || 'tasks');
 
   return <div className="stack">
     <PageHeader eyebrow={new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date()).toUpperCase()} title="Make today count." description="A clear view of what matters now, without the noise." action={<Link className="button button--secondary" to="/calendar"><CalendarDays size={16} /> Open calendar</Link>} />
@@ -42,7 +43,7 @@ export function TodayPage() {
       <div className="stack">
         <Card>
           <div className="card-heading"><div><h2>Your next step</h2><p>One useful move, chosen from your actual workspace.</p></div><span className="eyebrow">ATLAS NOTE</span></div>
-          {insight.data?.recommendation ? <div className="recommendation"><div className="recommendation__priority">{insight.data.recommendation.priority} priority</div><h3>{insight.data.recommendation.title}</h3><p className="recommendation__detail">{insight.data.recommendation.detail}</p><p className="recommendation__reason">{insight.data.recommendation.reason}</p><Link className="text-link" to={'/' + insight.data.recommendation.destination}>{insight.data.recommendation.action} <ArrowRight size={14} /></Link></div> : <EmptyState title="Your next step is taking shape." detail="Atlas will surface a useful action when your workspace has enough activity." />}
+          {insight.data?.recommendation ? <div className="recommendation"><div className="recommendation__priority">{insight.data.recommendation.priority} priority</div><h3>{insight.data.recommendation.title}</h3><p className="recommendation__detail">{insight.data.recommendation.detail}</p><p className="recommendation__reason">{insight.data.recommendation.reason}</p><Link className="text-link" to={nextDestination}>{insight.data.recommendation.action} <ArrowRight size={14} /></Link></div> : <EmptyState title="Your next step is taking shape." detail="Atlas will surface a useful action when your workspace has enough activity." />}
         </Card>
         <Card>
           <div className="card-heading"><div><h2>Today's priorities</h2><p>Keep the list short. Move the important work forward.</p></div><Link className="text-link" to="/tasks">All tasks <ArrowRight size={14} /></Link></div>
