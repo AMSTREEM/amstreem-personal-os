@@ -18,10 +18,11 @@ import { CalendarPage } from './pages/CalendarPage';
 import { ValuesPage } from './pages/ValuesPage';
 import { InsightsPage } from './pages/InsightsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { AdminPage } from './pages/AdminPage';
 import { PasswordRecoveryPage } from './pages/PasswordRecoveryPage';
 
 export function App() {
-  const { session, loading } = useAuth();
+  const { session, role, loading } = useAuth();
   const queryClient = useQueryClient();
   useEffect(() => { queryClient.clear(); }, [session?.user.id, queryClient]);
   if (loading) return <div className="app-loading"><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><p>Preparing your space…</p></div>;
@@ -46,6 +47,7 @@ export function App() {
       <Route path="/insights" element={<InsightsPage />} />
       <Route path="/reviews" element={<ReviewsPage />} />
       <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/admin" element={role === "admin" ? <AdminPage /> : <Navigate to="/today" replace />} />
       <Route path="*" element={<Navigate to="/today" replace />} />
     </Route>
   </Routes>;
