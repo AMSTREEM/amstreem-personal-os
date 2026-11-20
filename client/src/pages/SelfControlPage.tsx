@@ -27,7 +27,7 @@ export function SelfControlPage() {
     onSuccess: () => { setName(''); setSymbol('◇'); void client.invalidateQueries({ queryKey: ['self-control'] }); }
   });
   const checkin = useMutation({
-    mutationFn: () => api('/self-control/' + activeTracker?.id + '/checkin', json('POST', { date: today, outcome, urge_level: Number(urge), trigger, response, note })),
+    mutationFn: (entry: { trackerId: number; outcome: 'clean' | 'slip'; urge?: number; trigger?: string; response?: string; note?: string }) => api('/self-control/' + entry.trackerId + '/checkin', json('POST', { date: today, outcome: entry.outcome, urge_level: entry.urge ?? 0, trigger: entry.trigger ?? '', response: entry.response ?? '', note: entry.note ?? '' })),
     onSuccess: () => { setActiveTracker(null); setTrigger(''); setResponse(''); setNote(''); setUrge('0'); void client.invalidateQueries({ queryKey: ['self-control', today] }); }
   });
   const remove = useMutation({
@@ -36,7 +36,7 @@ export function SelfControlPage() {
   });
 
   return <div className="stack">
-    <PageHeader eyebrow="PRACTICE / SELF-MASTERY" title="Self-control" description="Track the patterns you want to change with honesty and compassion. A reset is information, not a verdict." />
+    <PageHeader eyebrow="PRACTICE / SELF-MASTERY" title="Self-control" description="A private, honest record of the choices you are working towards. A slip is information—not a verdict." />
     <Card>
       <div className="card-heading"><div><h2>Start a tracker</h2><p>Name a behaviour you want to understand or change.</p></div><Heart size={18} /></div>
       <form className="form-row" onSubmit={event => { event.preventDefault(); if (name.trim()) create.mutate(); }}>
@@ -53,7 +53,7 @@ export function SelfControlPage() {
         <h2>{tracker.name}</h2>
         <div className="tracker-count"><strong>{tracker.streak}</strong><span>days since reset</span></div>
         <div className="tracker-meta"><span>Longest: {tracker.longest_days} days</span><span>Started {tracker.start_date}</span></div>
-        {tracker.today ? <div className="tracker-status">{tracker.today.outcome === 'clean' ? 'Today recorded' : 'Today marked as a reset'}</div> : <Button className="tracker-checkin" variant="secondary" onClick={() => { setActiveTracker(tracker); setOutcome('clean'); }}>Record today</Button>}
+        <div className="tracker-status">{tracker.today ? (tracker.today.outcome === 'clean' ? 'Today marked clean' : 'Slip recorded today') : 'No check-in recorded today'}</div><div className="tracker-actions"><Button size="sm" onClick={() => checkin.mutate({ trackerId: tracker.id, outcome: 'clean' })} disabled={checkin.isPending}><ShieldCheck size={14} /> Mark today as clean</Button><Button size="sm" variant="secondary" onClick={() => { setActiveTracker(tracker); setOutcome('slip'); }} disabled={checkin.isPending}><RotateCcw size={14} /> Record a slip</Button></div>
       </Card>) : <Card><EmptyState title="A fresh place to begin." detail="Create a tracker for a pattern you want to change. You control what you track and when." /></Card>}
     </div>
     <Card>
@@ -62,13 +62,13 @@ export function SelfControlPage() {
     </Card>
     {activeTracker && <div className="modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setActiveTracker(null); }}><section className="modal-card" role="dialog" aria-modal="true" aria-labelledby="checkin-title">
       <div className="card-heading"><div><span className="eyebrow">DAILY CHECK-IN</span><h2 id="checkin-title">{activeTracker.name}</h2></div><button className="icon-button" onClick={() => setActiveTracker(null)} aria-label="Close check-in">×</button></div>
-      <form className="form-stack" onSubmit={event => { event.preventDefault(); checkin.mutate(); }}>
-        <Field label="How did today go?"><select className="field-input" value={outcome} onChange={event => setOutcome(event.target.value as 'clean' | 'slip')}><option value="clean">Stayed aligned</option><option value="slip">A reset happened</option></select></Field>
+      <form className="form-stack" onSubmit={event => { event.preventDefault(); checkin.mutate({ trackerId: activeTracker.id, outcome, urge: Number(urge), trigger, response, note }); }}>
+        <Field label="How did today go?"><select className="field-input" value={outcome} onChange={event => setOutcome(event.target.value as 'clean' | 'slip')}><option value="clean">Today was clean</option><option value="slip">Record a slip</option></select></Field>
         <Field label="Urge intensity (0–5)"><TextInput type="number" min="0" max="5" value={urge} onChange={event => setUrge(event.target.value)} /></Field>
         <Field label="What was the trigger?"><TextInput value={trigger} onChange={event => setTrigger(event.target.value)} placeholder="Optional context" /></Field>
         <Field label="How did you respond?"><TextInput value={response} onChange={event => setResponse(event.target.value)} placeholder="What helped or what could help next time?" /></Field>
         <Field label="Note"><TextArea value={note} onChange={event => setNote(event.target.value)} placeholder="Anything else worth remembering" /></Field>
-        <div className="modal-actions"><Button type="submit" disabled={checkin.isPending}>{checkin.isPending ? 'Saving…' : 'Save check-in'}</Button><Button type="button" variant="ghost" onClick={() => setActiveTracker(null)}>Cancel</Button></div>
+        <div className="modal-actions"><Button type="submit" disabled={checkin.isPending}>{checkin.isPending ? 'Saving…' : outcome === 'slip' ? 'Save slip' : 'Mark today as clean'}</Button><Button type="button" variant="ghost" onClick={() => setActiveTracker(null)}>Cancel</Button></div>
       </form>
     </section></div>}
   </div>;
