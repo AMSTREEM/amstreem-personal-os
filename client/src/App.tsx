@@ -5,6 +5,8 @@ import { AppShell } from './components/AppShell';
 import { TodayPage } from './pages/TodayPage';
 import { TasksPage } from './pages/TasksPage';
 import { GoalsPage } from './pages/GoalsPage';
+import { ProjectsPage } from './pages/ProjectsPage';
+import { ReviewsPage } from './pages/ReviewsPage';
 import { FocusPage } from './pages/FocusPage';
 import { RitualsPage } from './pages/RitualsPage';
 import { LearningPage } from './pages/LearningPage';
@@ -28,6 +30,7 @@ export function App() {
       <Route path="/today" element={<TodayPage />} />
       <Route path="/tasks" element={<TasksPage />} />
       <Route path="/goals" element={<GoalsPage />} />
+      <Route path="/projects" element={<ProjectsPage />} />
       <Route path="/calendar" element={<CalendarPage />} />
       <Route path="/focus" element={<FocusPage />} />
       <Route path="/rituals" element={<RitualsPage />} />
@@ -35,6 +38,7 @@ export function App() {
       <Route path="/library" element={<LibraryPage />} />
       <Route path="/values" element={<ValuesPage />} />
       <Route path="/insights" element={<InsightsPage />} />
+      <Route path="/reviews" element={<ReviewsPage />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="*" element={<Navigate to="/today" replace />} />
     </Route>
