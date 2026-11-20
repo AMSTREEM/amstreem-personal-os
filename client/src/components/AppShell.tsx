@@ -11,13 +11,13 @@ const navigation = [
   { label: 'Goals', to: '/goals', icon: Target, group: 'PLAN' },
   { label: 'Projects', to: '/projects', icon: Compass, group: 'PLAN' },
   { label: 'Tasks', to: '/tasks', icon: CheckSquare, group: 'PLAN' },
-  { label: 'Calendar', to: '/calendar', icon: CalendarDays, group: 'PLAN' },
-  { label: 'Focus', to: '/focus', icon: Timer, group: 'PRACTICE' },
-  { label: 'Rituals', to: '/rituals', icon: Compass, group: 'PRACTICE' },
-  { label: 'Self-control', to: '/self-control', icon: Heart, group: 'PRACTICE' },
-  { label: 'Learning', to: '/learning', icon: GraduationCap, group: 'PRACTICE' },
-  { label: 'Library', to: '/library', icon: Library, group: 'KNOWLEDGE' },
-  { label: 'Values', to: '/values', icon: MoonStar, group: 'PERSONAL' },
+  { label: 'Calendar', to: '/calendar', icon: CalendarDays, group: 'PLAN' , feature: 'calendar' },
+  { label: 'Focus', to: '/focus', icon: Timer, group: 'PRACTICE' , feature: 'focus' },
+  { label: 'Rituals', to: '/rituals', icon: Compass, group: 'PRACTICE' , feature: 'rituals' },
+  { label: 'Self-control', to: '/self-control', icon: Heart, group: 'PRACTICE' , feature: 'selfcontrol' },
+  { label: 'Learning', to: '/learning', icon: GraduationCap, group: 'PRACTICE' , feature: 'learning' },
+  { label: 'Library', to: '/library', icon: Library, group: 'KNOWLEDGE' , feature: 'library' },
+  { label: 'Values', to: '/values', icon: MoonStar, group: 'PERSONAL' , feature: 'values' },
   { label: 'Reviews', to: '/reviews', icon: CalendarDays, group: 'REFLECT' },
   { label: 'Insights', to: '/insights', icon: Lightbulb, group: 'REFLECT' }
 ];
@@ -42,7 +42,11 @@ export function AppShell() {
   const location = useLocation();
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Record<string, string>>('/settings') });
   useEffect(() => { document.documentElement.dataset.theme = settings.data?.theme || 'shadowed-alchemist'; }, [settings.data?.theme]);
-  const visibleNavigation = role === 'admin' ? [...navigation, { label: 'Admin', to: '/admin', icon: ShieldCheck, group: 'OWNER' }] : navigation;
+  const storedFeatures = settings.data?.features;
+  let enabledFeatures: string[] | null = null;
+  if (storedFeatures) { try { enabledFeatures = JSON.parse(storedFeatures); } catch { enabledFeatures = null; } }
+  const visibleModules = enabledFeatures === null ? navigation : navigation.filter(item => !('feature' in item) || enabledFeatures!.includes(item.feature as string));
+  const visibleNavigation = role === 'admin' ? [...visibleModules, { label: 'Admin', to: '/admin', icon: ShieldCheck, group: 'OWNER' }] : visibleModules;
   const current = visibleNavigation.find(item => item.to === location.pathname);
   const groups = [...new Set(visibleNavigation.map(item => item.group))];
 
