@@ -13,10 +13,14 @@ import { CalendarPage } from './pages/CalendarPage';
 import { ValuesPage } from './pages/ValuesPage';
 import { InsightsPage } from './pages/InsightsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { PasswordRecoveryPage } from './pages/PasswordRecoveryPage';
 
 export function App() {
   const { session, loading } = useAuth();
   if (loading) return <div className="app-loading"><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><p>Preparing your space…</p></div>;
+  const hashType = new URLSearchParams(window.location.hash.slice(1)).get('type');
+  const queryType = new URLSearchParams(window.location.search).get('type');
+  if (hashType === 'recovery' || queryType === 'recovery') return <PasswordRecoveryPage />;
   if (!session) return <AuthPage />;
   return <Routes>
     <Route element={<AppShell />}>
