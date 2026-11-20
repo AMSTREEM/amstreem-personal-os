@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useCallback, useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { CalendarDays, CheckSquare, Compass, GraduationCap, Heart, House, Library, Lightbulb, LogOut, Menu, MoonStar, Settings, ShieldCheck, Target, Timer, X } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
@@ -24,6 +24,7 @@ const navigation = [
 
 export function AppShell() {
   const { user, role, signOut, session, completeOnboarding } = useAuth();
+  const queryClient = useQueryClient();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
@@ -35,10 +36,11 @@ export function AppShell() {
   }, [session?.user.id, session?.user.user_metadata?.onboarding_completed, user?.id]);
   const closeTour = useCallback(() => {
     setTourOpen(false);
+    void queryClient.invalidateQueries({ queryKey: ['settings'] });
     if (!session?.user.id) return;
     localStorage.setItem(`atlas-tour-complete:${session.user.id}`, 'true');
     void completeOnboarding().catch(error => console.error('Could not save Atlas onboarding completion:', error));
-  }, [session?.user.id, completeOnboarding]);
+  }, [session?.user.id, completeOnboarding, queryClient]);
   const location = useLocation();
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Record<string, string>>('/settings') });
   useEffect(() => { document.documentElement.dataset.theme = settings.data?.theme || 'shadowed-alchemist'; }, [settings.data?.theme]);
