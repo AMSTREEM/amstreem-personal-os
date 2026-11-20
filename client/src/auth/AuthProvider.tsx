@@ -13,6 +13,7 @@ type AuthState = {
   signOut: () => Promise<void>;
   requestPasswordReset: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
+  completeOnboarding: () => Promise<void>;
 };
 const Context = createContext<AuthState | null>(null);
 
@@ -98,7 +99,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   }, []);
 
-  const value = useMemo(() => ({ session, user, role, loading, signIn, signUp, signOut, requestPasswordReset, updatePassword }), [session, user, role, loading, signIn, signUp, signOut, requestPasswordReset, updatePassword]);
+  const completeOnboarding = useCallback(async () => {
+    const { error } = await supabase.auth.updateUser({ data: { onboarding_completed: true, onboarding_version: 1 } });
+    if (error) throw error;
+  }, []);
+
+  const value = useMemo(() => ({ session, user, role, loading, signIn, signUp, signOut, requestPasswordReset, updatePassword, completeOnboarding }), [session, user, role, loading, signIn, signUp, signOut, requestPasswordReset, updatePassword, completeOnboarding]);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 
