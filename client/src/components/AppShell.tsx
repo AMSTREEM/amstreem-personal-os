@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { CalendarDays, CheckSquare, Compass, GraduationCap, Heart, House, Library, Lightbulb, LogOut, Menu, MoonStar, Settings, ShieldCheck, Target, Timer, X } from 'lucide-react';
@@ -33,12 +33,12 @@ export function AppShell() {
     const completed = session.user.user_metadata?.onboarding_completed === true || localStorage.getItem(key) === 'true';
     if (!completed) setTourOpen(true);
   }, [session?.user.id, session?.user.user_metadata?.onboarding_completed, user?.id]);
-  const closeTour = () => {
+  const closeTour = useCallback(() => {
     setTourOpen(false);
     if (!session?.user.id) return;
     localStorage.setItem(`atlas-tour-complete:${session.user.id}`, 'true');
     void completeOnboarding().catch(error => console.error('Could not save Atlas onboarding completion:', error));
-  };
+  }, [session?.user.id, completeOnboarding]);
   const location = useLocation();
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Record<string, string>>('/settings') });
   useEffect(() => { document.documentElement.dataset.theme = settings.data?.theme || 'shadowed-alchemist'; }, [settings.data?.theme]);
