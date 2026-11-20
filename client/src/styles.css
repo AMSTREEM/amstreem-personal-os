@@ -804,3 +804,74 @@ body { letter-spacing: -.006em; }
 .rituals-footnote { margin:0; color:var(--subtle); font-size:9px; }
 @media(max-width:850px) { .today-columns { grid-template-columns:1fr; } .consistency-strip { grid-template-columns:1fr 1fr 1fr; } .consistency-main { grid-column:1/-1; } }
 @media(max-width:560px) { .consistency-strip { gap:12px; padding:12px; } .consistency-metric { grid-template-columns:15px auto; column-gap:5px; } .consistency-metric small { font-size:8px; } .rituals-summary { grid-template-columns:1fr; gap:8px; } .rituals-summary>div:first-child { grid-template-columns:auto auto; justify-content:start; } .rituals-progress { width:100%; } .rituals-add { align-items:stretch; flex-direction:column; } .rituals-row { gap:7px; padding-inline:10px; } .rituals-row-state { display:none; } }
+
+
+/* ATLAS 2.0 FINAL DENSITY PASS — consistency tracker first */
+:root { --radius: 10px; }
+.page-container { padding-top: 24px; padding-bottom: 38px; }
+.page-container > .stack,.stack { gap: 10px; }
+.page-header { margin-bottom: 0; }
+.page-header h1 { font-size: clamp(25px,2.5vw,32px); }
+.page-header p { font-size: 11px; line-height: 1.45; }
+.surface-card { padding: 14px; border-radius: 10px; }
+.card-heading { margin-bottom: 9px; }
+.card-heading h2,.card-heading h3 { font-size: 12px; }
+.card-heading p { font-size: 9px; }
+.content-grid,.goal-grid,.library-grid,.tracker-grid { gap: 9px; }
+.list-stack { gap: 0; }
+.list-row { min-height: 39px; padding: 7px 0; gap: 8px; }
+.list-row__body b { font-size: 10px; }
+.list-row__body small { font-size: 8px; }
+.stat-grid { gap: 8px; }
+.stat-card { padding: 11px 12px; border-radius: 9px; }
+.stat-card strong { margin-top: 6px; font-size: 21px; }
+.stat-card__top,.stat-card small { font-size: 8px; }
+.button { min-height: 34px; padding-inline: 11px; font-size: 10px; border-radius: 8px; }
+.field-input { min-height: 36px; font-size: 11px; }
+.field__label { font-size: 10px; }
+.form-stack { gap: 11px; }
+.capture-form,.form-row { gap: 9px; }
+.goal-card,.project-card,.note-card { padding: 14px; }
+.goal-card h2,.note-card h2,.project-card h2 { margin: 8px 0 4px; font-size: 14px; }
+.goal-card p,.note-card p,.project-description { font-size: 10px; line-height: 1.5; }
+.goal-card__bottom,.project-meta { margin-top: 10px; gap: 8px; font-size: 9px; }
+.calendar-grid { gap: 3px; }
+.calendar-cell { min-height: 52px; padding: 6px 2px; gap: 4px; border-radius: 7px; }
+.module-hero { padding-block: 2px; }
+.module-hero h1 { font-size: clamp(26px,2.7vw,34px); }
+.module-hero p { font-size: 10px; line-height: 1.45; }
+.deen-grid,.deen-quran-layout { gap: 9px; }
+.deen-prayer-row { min-height: 41px; padding-block: 4px; }
+.deen-quran-stats .stat-card { padding: 10px 11px; }
+.self-control-note { padding: 10px 12px; }
+.tracker-grid { grid-template-columns: repeat(auto-fit,minmax(min(100%,250px),1fr)); }
+.tracker-card { padding: 12px; }
+.tracker-card h2 { margin: 8px 0 4px; font-size: 14px; }
+.tracker-actions { gap: 5px; margin-top: 8px; }
+.tracker-actions .button { min-height: 30px; font-size: 9px; }
+.today-columns { gap: 9px; }
+.today-primary,.today-secondary { gap: 9px; }
+.today-habits-card,.today-tasks-card,.today-next-card,.today-focus-card,.today-announcements { padding: 12px; }
+.today-section-heading { margin-bottom: 7px; }
+.today-section-heading h2 { font-size: 14px; }
+.today-habit-row,.today-task-row { min-height: 38px; gap: 8px; padding-block: 4px; }
+.today-habit-title,.today-task-row b { font-size: 10px; }
+.rituals-summary { padding: 10px 13px; gap: 12px; }
+.rituals-list-head { padding: 10px 12px; }
+.rituals-row { min-height: 41px; padding: 4px 11px; }
+.rituals-row>b { font-size: 10px; }
+.rituals-add { padding: 10px 12px; gap: 8px; }
+@media(max-width:760px) {
+  .page-container { padding: 17px 12px 30px; }
+  .page-container > .stack,.stack { gap: 9px; }
+  .surface-card { padding: 12px; }
+  .page-header h1 { font-size: 26px; }
+  .today-columns { grid-template-columns: 1fr; }
+  .consistency-strip { padding: 10px; gap: 9px; }
+  .tracker-card { padding: 12px; }
+  .tracker-actions { grid-template-columns: 1fr 1fr; }
+}
+@media(max-width:380px) {
+  .tracker-actions { grid-template-columns: 1fr; }
+  .consistency-metric small { font-size: 7px; }
+}
