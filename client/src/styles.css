@@ -265,3 +265,9 @@ a { color: inherit; text-decoration: none; }
   .review-switch button { flex: 1; }
   .review-history-row { align-items: flex-start; flex-direction: column; }
 }
+
+.calendar-cell { background: transparent; text-align: center; cursor: pointer; }
+.calendar-cell:hover { border-color: rgba(197,168,120,.4); background: rgba(197,168,120,.06); }
+.calendar-cell--selected { border-color: var(--accent) !important; background: var(--accent-wash) !important; color: var(--accent-strong); }
+.calendar-cell small { color: var(--accent-strong); font-size: 8px; }
+.dot--event { background: #d6d6ca; }
