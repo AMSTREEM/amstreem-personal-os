@@ -74,3 +74,40 @@ Residence/dashboard, calendar, Deen and Qur'an, faith, self-control, learning pa
 - 2026-11-20: Created isolated `atlas-next` branch and recorded the verified baseline. No production changes.
 - 2026-11-20: Read-only Supabase checks confirmed 5 populated snapshots pass the current required-section check and 3 workspaces are empty. No data was changed.
 - 2026-11-20: Reviewed current signup, auth redirect, and gamification behaviour; recorded items to resolve during the frontend rebuild.
+
+
+## Atlas Next implementation update — 2026-11-20
+
+### Implemented on the isolated branch
+- Added a React 19 + TypeScript + Vite frontend under `client/`, built into `dist/`.
+- Added Supabase session handling, email/username sign-in, account creation, password reset and recovery completion.
+- Added a shared responsive app shell, reusable UI primitives, React Query data access, React Hook Form/Zod validation, Lucide icons, and selectable dark/light workspace themes.
+- Replaced the old frontend entry point for the new build while retaining `public/` as the source for existing brand assets, Supabase browser configuration, manifest and service worker.
+- Added functional pages for Today, Goals, Projects, Tasks, Calendar, Focus, Rituals, Self-control, Learning, Library, Values, Reviews, Insights, Settings and owner administration.
+- Added connected project and milestone APIs; tasks can be associated with goals and projects; focus sessions can be associated with tasks and projects; calendar commitments can be associated with projects.
+- Added daily and weekly review records and APIs.
+- Restored Qur'an logging and Tahajjud tracking inside the optional Values area.
+- Added owner-only account, feedback, analytics and announcement views. Sensitive admin endpoints remain server-protected.
+- Added an announcement feed to Today.
+- Added snapshot schema v2 while retaining v1 read compatibility. New tables are optional when loading old snapshots. Export/restore table order was updated for foreign-key dependencies.
+- Added architecture and compatibility tests plus an Atlas Next CI workflow.
+- Opened a draft validation PR from `atlas-next` to `audit-and-hardening`; it is not merged.
+
+### New workspace tables
+`projects`, `project_milestones`, `calendar_events`, and `reviews`.
+
+Existing `tasks` and `sessions` gain nullable links to goals/projects/tasks. Old snapshot rows that do not contain those fields load with null defaults. Existing populated snapshots are not rewritten by this branch unless the new app is deployed and a user subsequently saves workspace data.
+
+### Verification status
+- [ ] TypeScript type-check passed.
+- [ ] Vite production build passed.
+- [ ] Backend test suite passed.
+- [ ] Browser smoke tests passed.
+- [ ] Existing-account login, username login, signup confirmation and password recovery verified against staging.
+- [ ] Snapshot v1 load, v2 save, export and restore verified against staging.
+- [ ] Account-isolation checks passed.
+- [ ] Mobile and desktop responsive checks passed.
+- [ ] Owner/admin functions verified with the server-side admin secret configured.
+- [ ] Render staging deployment reviewed.
+
+No Render deployment or production Supabase data/schema change has been made from this branch. The implementation is still in progress and must not be merged or deployed until the verification gates above are completed.
