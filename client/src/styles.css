@@ -431,3 +431,8 @@ a { color: inherit; text-decoration: none; }
 .atlas-tour__actions { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:17px 24px; border-top:1px solid var(--line-soft); }
 .atlas-tour__actions > div { display:flex; gap:8px; }
 @media (max-width:760px) { .theme-picker-grid { grid-template-columns:1fr; } .atlas-tour__body { grid-template-columns:1fr; } .atlas-tour__intro { padding:24px 22px 14px; border-right:0; border-bottom:1px solid var(--line-soft); } .atlas-tour__content { padding:24px 22px; } .atlas-tour__intro h2 { font-size:30px; } .atlas-tour__top,.atlas-tour__actions { padding:15px 18px; } .tour-launcher { font-size:0; gap:0; padding:0 9px; } }
+
+.icon-button { width:34px; height:34px; display:grid; place-items:center; border:1px solid var(--line); border-radius:10px; background:var(--surface-raised); color:var(--muted); }
+.icon-button:hover { border-color:var(--accent); color:var(--accent-strong); }
+:root[data-theme^="light-"] .tour-launcher { background:var(--surface); }
+:root[data-theme^="light-"] .atlas-tour { box-shadow:0 30px 100px rgba(28,34,28,.2); }
