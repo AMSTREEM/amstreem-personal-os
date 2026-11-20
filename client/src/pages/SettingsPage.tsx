@@ -35,6 +35,7 @@ export function SettingsPage() {
   }
   async function importData(file?: File) {
     if (!file) return;
+    if (!window.confirm('Importing a backup replaces the workspace records represented in that file. Continue only if this is the backup you intend to restore.')) return;
     try {
       const backup = JSON.parse(await file.text());
       await api('/import', json('POST', backup));
