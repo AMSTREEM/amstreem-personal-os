@@ -5,6 +5,22 @@ import { api, json } from '../lib/api';
 import { Button, Card, Field, PageHeader, TextInput } from '../components/ui';
 
 type Settings = Record<string, string>;
+const themes = [
+  { group: 'Dark', items: [
+    { id: 'shadowed-alchemist', name: 'Shadowed Alchemist', note: 'Mysterious balanced', colors: ['#07080A','#0E1014','#CA8A04','#E4E4E7'] },
+    { id: 'nocturnal-amethyst', name: 'Nocturnal Amethyst', note: 'Mysterious all-purple', colors: ['#050408','#0C0914','#C084FC','#EAE6F5'] },
+    { id: 'abyssal-trench', name: 'Abyssal Trench', note: 'Mysterious all-blue', colors: ['#03060C','#080E1A','#38BDF8','#E2E8F0'] },
+    { id: 'whispering-woods', name: 'Whispering Woods', note: 'Mysterious all-green', colors: ['#030806','#08120E','#6EE7B7','#E2F1EC'] },
+    { id: 'crimson-velvet', name: 'Crimson Velvet', note: 'Dark red and rose', colors: ['#080304','#120709','#FB7185','#F5E6E8'] }
+  ]},
+  { group: 'Light', items: [
+    { id: 'light-porcelain', name: 'Porcelain', note: 'Clean neutral', colors: ['#F5F6F3','#FFFFFF','#527A62','#202720'] },
+    { id: 'light-sandstone', name: 'Sandstone', note: 'Warm and grounded', colors: ['#F6F0E7','#FFFCF7','#9A7046','#30271F'] },
+    { id: 'light-sage', name: 'Sage', note: 'Soft green', colors: ['#EFF4EF','#FBFEFB','#43836B','#203128'] },
+    { id: 'light-lavender', name: 'Lavender Mist', note: 'Muted violet', colors: ['#F4F1F8','#FFFDFF','#8062A6','#2B2535'] },
+    { id: 'light-sky', name: 'Sky Glass', note: 'Cool blue', colors: ['#EFF5F9','#FFFFFF','#477DA5','#202D39'] }
+  ]}
+];
 export function SettingsPage() {
   const client = useQueryClient();
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Settings>('/settings') });
@@ -52,7 +68,20 @@ export function SettingsPage() {
         <Field label="Display name"><TextInput value={name} onChange={event => setName(event.target.value)} placeholder="How Atlas should address you" /></Field>
         <Field label="North star"><TextInput value={northStar} onChange={event => setNorthStar(event.target.value)} placeholder="What are you orienting your effort around?" /></Field>
         <Field label="Daily focus intention (minutes)"><TextInput type="number" min="10" max="600" value={target} onChange={event => setTarget(event.target.value)} /></Field>
-        <Field label="Appearance"><select className="field-input" value={theme} onChange={event => { setTheme(event.target.value); document.documentElement.dataset.theme = event.target.value; }}><optgroup label="Dark"><option value="shadowed-alchemist">Shadowed Alchemist</option><option value="nocturnal-amethyst">Nocturnal Amethyst</option><option value="abyssal-trench">Abyssal Trench</option><option value="whispering-woods">Whispering Woods</option><option value="crimson-velvet">Crimson Velvet</option></optgroup><optgroup label="Light"><option value="light-porcelain">Light Porcelain</option><option value="light-sandstone">Light Sandstone</option><option value="light-sage">Light Sage</option><option value="light-lavender">Light Lavender</option><option value="light-sky">Light Sky</option></optgroup></select></Field>
+        <Field label="Appearance">
+          <div className="theme-picker-groups">
+            {themes.map(group => <section className="theme-picker-group" key={group.group}>
+              <div className="theme-picker-group__heading">{group.group} palettes <small>{group.items.length} styles</small></div>
+              <div className="theme-picker-grid">
+                {group.items.map(item => <button key={item.id} type="button" className="theme-preset" aria-pressed={theme === item.id} onClick={() => { setTheme(item.id); document.documentElement.dataset.theme = item.id; }}>
+                  <span className="theme-preset__swatches" aria-hidden="true">{item.colors.map((color, index) => <i key={index} style={{ background: color }} />)}</span>
+                  <span className="theme-preset__copy"><b>{item.name}</b><small>{item.note}</small></span>
+                  <span className="theme-preset__check">{theme === item.id ? '✓' : ''}</span>
+                </button>)}
+              </div>
+            </section>)}
+          </div>
+        </Field>
         <div><Button type="submit" disabled={save.isPending}>Save preferences</Button></div>
       </form>
       {message && <p className="form-message" role="status">{message}</p>}
