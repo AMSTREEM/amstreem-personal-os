@@ -1,0 +1,64 @@
+# Amstreem Atlas Next — Rebuild Progress
+
+## Current status
+Discovery and baseline protection. No production code, Supabase data, or Render configuration has been changed.
+
+## Source and isolation
+- Repository: `AMSTREEM/amstreem-personal-os`
+- New working branch: `atlas-next`
+- Branch created from: `audit-and-hardening`
+- Live Render service: `amstreematlas`
+- Live Render deployment branch: `audit-and-hardening`
+- Production URL: https://amstreematlas.onrender.com
+- The live service continues tracking `audit-and-hardening`; work on `atlas-next` does not deploy to production.
+
+## Verified current architecture
+- Express server with a vanilla JavaScript, HTML, and CSS frontend.
+- Supabase Auth authenticates users.
+- Each user's workspace is stored as a JSONB snapshot in `public.personal_os_workspaces`.
+- The server loads the signed-in user's snapshot into a request-scoped in-memory SQLite database, executes the existing API handlers, then saves the snapshot using that user's access token. Supabase RLS enforces row ownership.
+- A per-user in-process request queue protects snapshot writes within the single Render instance.
+- Render currently runs one free Node web-service instance; no persistent disk is attached.
+- The frontend currently contains 14 main page sections and 76 API routes.
+- The SQLite workspace schema currently defines 25 tables.
+
+## Verified Supabase baseline
+The connected project contains RLS-enabled public tables for:
+- `personal_os_workspaces`
+- `personal_os_profiles`
+- `personal_os_admins`
+- `personal_os_invites`
+- `atlas_feedback`
+- `atlas_announcements`
+- `atlas_announcement_reads`
+
+The workspace table currently contains 8 rows. No workspace rows or schemas have been modified.
+
+## Existing product capabilities observed
+Residence/dashboard, calendar, Deen and Qur'an, faith, self-control, learning paths and lessons, tasks, focus sessions, personal library/notes, goals, rankings, announcements, achievements, progress/intelligence, settings, and owner administration.
+
+## Rebuild principles
+1. Preserve the product's purpose: a personal operating system for direction, planning, execution, learning, reflection, and growth.
+2. Preserve account isolation, authentication, workspace persistence, backups/export/import, and working user data.
+3. Build the new experience on this branch; do not modify the live branch or production data during development.
+4. Reuse or improve backend contracts only after their data and failure modes are understood.
+5. Do not perform destructive schema changes or production migrations without an explicit backup and review.
+6. Every visible control must have a real, tested behaviour. No placeholder interactions or fabricated analytics.
+7. Test the new app before changing Render's deployment branch.
+
+## Known compatibility item to investigate
+A prior workspace-load failure reported a missing `analytics_events` snapshot section. Verify compatibility across existing workspace snapshots before changing serialization or import/export behaviour.
+
+## Work sequence
+- [x] Locate repository and confirm production deployment branch.
+- [x] Create isolated `atlas-next` branch from the live code branch.
+- [x] Inspect current frontend, API surface, workspace schema, and Supabase tables.
+- [ ] Finish feature and data-flow audit, including backup/restore and snapshot compatibility.
+- [ ] Define the new information architecture and interaction model.
+- [ ] Implement the new responsive frontend and shared design system.
+- [ ] Connect every module to real persisted data and existing or revised APIs.
+- [ ] Run functional, security, account-isolation, and responsive checks.
+- [ ] Review production migration and cutover plan before any deployment change.
+
+## Change log
+- 2026-11-20: Created isolated `atlas-next` branch and recorded the verified baseline. No production changes.
