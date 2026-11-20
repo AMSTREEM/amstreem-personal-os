@@ -2,7 +2,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import { CalendarDays, CheckSquare, Compass, GraduationCap, House, Library, Lightbulb, LogOut, Menu, MoonStar, Settings, Target, Timer, X } from 'lucide-react';
+import { CalendarDays, CheckSquare, Compass, GraduationCap, Heart, House, Library, Lightbulb, LogOut, Menu, MoonStar, Settings, Target, Timer, X } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 
 const navigation = [
@@ -13,6 +13,7 @@ const navigation = [
   { label: 'Calendar', to: '/calendar', icon: CalendarDays, group: 'PLAN' },
   { label: 'Focus', to: '/focus', icon: Timer, group: 'PRACTICE' },
   { label: 'Rituals', to: '/rituals', icon: Compass, group: 'PRACTICE' },
+  { label: 'Self-control', to: '/self-control', icon: Heart, group: 'PRACTICE' },
   { label: 'Learning', to: '/learning', icon: GraduationCap, group: 'PRACTICE' },
   { label: 'Library', to: '/library', icon: Library, group: 'KNOWLEDGE' },
   { label: 'Values', to: '/values', icon: MoonStar, group: 'PERSONAL' },
