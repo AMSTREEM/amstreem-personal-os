@@ -67,3 +67,12 @@ test('Focus timer survives refreshes and does not fabricate completed sessions',
   assert.match(focus, /function pauseTimer/);
   assert.match(focus, /function resetTimer/);
 });
+
+
+test('Habit tracker exposes a seven-day completion history', () => {
+  const rituals = read('client/src/pages/RitualsPage.tsx');
+  assert.match(rituals, /Array\.from\(\{ length: 7 \}/);
+  assert.match(rituals, /useQueries/);
+  assert.match(rituals, /rituals-week-dots/);
+  assert.match(rituals, /historyCount \+ '\/7'/);
+});
