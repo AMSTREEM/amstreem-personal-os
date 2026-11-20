@@ -88,7 +88,7 @@ export function FocusPage() {
       <div className="card-heading"><div><h2>Settle into one thing.</h2><p>A dependable timer that survives refreshes and background tabs.</p></div><Clock3 size={18} /></div>
       <div className="timer-display" role="timer" aria-label={timerLabel}>{timerText}</div>
       <p className="focus-timer-status" aria-live="polite">{running ? 'Stay with the task. Your timer keeps its place if you leave this page.' : completed ? 'Your focus block is complete. Take a breath, then record what you worked on.' : 'Choose a duration below, then begin when you are ready.'}</p>
-      <div className="timer-controls"><Button onClick={running ? pauseTimer : startTimer} disabled={remaining === 0 && !completed}>{running ? <><Pause size={15} /> Pause</> : <><Play size={15} /> {completed ? 'Start again' : 'Start focus'}</>}</Button><Button variant="ghost" onClick={resetTimer}><RotateCcw size={15} /> Reset</Button></div>
+      <div className="timer-controls"><Button onClick={() => { if (running) pauseTimer(); else if (completed) resetTimer(); else startTimer(); }} disabled={remaining === 0 && !completed}>{running ? <><Pause size={15} /> Pause</> : <><Play size={15} /> {completed ? 'Set another block' : 'Start focus'}</>}</Button><Button variant="ghost" onClick={resetTimer}><RotateCcw size={15} /> Reset</Button></div>
     </Card>
     <Card>
       <div className="card-heading"><div><h2>Record a focus session</h2><p>Only save the time you actually spent. Timer completion does not create a record automatically.</p></div></div>
