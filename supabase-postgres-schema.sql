@@ -32,6 +32,12 @@ using ((select auth.uid()) = user_id)
 with check ((select auth.uid()) = user_id);
 
 grant usage on schema public to authenticated;
+-- Supabase projects may have broad default Data API grants on public tables.
+-- Remove anonymous access across the schema; authenticated access remains governed
+-- by each table's explicit grants and RLS policies.
+revoke all privileges on all tables in schema public from anon;
+alter default privileges in schema public revoke all on tables from anon;
+
 revoke all on table public.personal_os_workspaces from anon, authenticated;
 grant select, insert, update on table public.personal_os_workspaces to authenticated;
 
