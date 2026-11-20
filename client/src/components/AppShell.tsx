@@ -23,10 +23,22 @@ const navigation = [
 ];
 
 export function AppShell() {
-  const { user, role, signOut } = useAuth();
+  const { user, role, signOut, session, completeOnboarding } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
+  useEffect(() => {
+    if (!session?.user || !user) return;
+    const key = `atlas-tour-complete:${session.user.id}`;
+    const completed = session.user.user_metadata?.onboarding_completed === true || localStorage.getItem(key) === 'true';
+    if (!completed) setTourOpen(true);
+  }, [session?.user.id, session?.user.user_metadata?.onboarding_completed, user?.id]);
+  const closeTour = () => {
+    setTourOpen(false);
+    if (!session?.user.id) return;
+    localStorage.setItem(`atlas-tour-complete:${session.user.id}`, 'true');
+    void completeOnboarding().catch(error => console.error('Could not save Atlas onboarding completion:', error));
+  };
   const location = useLocation();
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Record<string, string>>('/settings') });
   useEffect(() => { document.documentElement.dataset.theme = settings.data?.theme || 'shadowed-alchemist'; }, [settings.data?.theme]);
@@ -35,7 +47,7 @@ export function AppShell() {
   const groups = [...new Set(visibleNavigation.map(item => item.group))];
 
   return <div className="app-frame">
-    {tourOpen && <AtlasWalkthrough onClose={() => setTourOpen(false)} />}
+    {tourOpen && <AtlasWalkthrough onClose={closeTour} />}
     {mobileOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
     <aside className={'sidebar ' + (mobileOpen ? 'sidebar--open' : '')}>
       <NavLink to="/today" className="sidebar-brand" onClick={() => setMobileOpen(false)}><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><span><b>AMSTREEM</b><small>ATLAS</small></span></NavLink>
