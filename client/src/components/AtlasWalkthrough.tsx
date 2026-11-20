@@ -11,7 +11,7 @@ const optionalModules = [
   { id: 'selfcontrol', name: 'Self-control', description: 'Privately notice triggers and track responses.' },
   { id: 'learning', name: 'Learning', description: 'Organise skills, subjects and lessons.' },
   { id: 'library', name: 'Personal Library', description: 'Keep notes, references and useful material.' },
-  { id: 'values', name: 'Values & faith', description: 'Track personal values or faith practices if you want to.' }
+  { id: 'deen', name: 'Deen', description: 'Optional salah, Qur’an and Tahajjud tracking.' }
 ];
 const steps = [
   {
@@ -66,8 +66,8 @@ const steps = [
   {
     eyebrow: 'MAKE ATLAS YOURS',
     title: 'Your space should reflect your values.',
-    description: 'Choose the appearance that feels right, manage your data and decide which personal practices belong in your workspace. Values is optional; Atlas should respect the way you choose to use it.',
-    rows: ['Choose from distinct dark and light palettes.', 'Export a backup of your workspace at any time.', 'Keep optional values and faith practices on your terms.'],
+    description: 'Choose the appearance that feels right, manage your data and decide which personal practices belong in your workspace. Deen is optional; Atlas should respect the way you choose to use it.',
+    rows: ['Choose from distinct dark and light palettes.', 'Export a backup of your workspace at any time.', 'Add Deen when it supports your practice, or leave it out.'],
     label: 'PERSONAL / OWNERSHIP'
   },
   { eyebrow: 'BUILT AROUND YOUR CHOICES', title: 'Choose what belongs in your Atlas.', description: 'The essentials stay available. Add only the extra spaces you want; you can change these choices any time in Settings.', rows: ['Optional spaces can be added or skipped.', 'Your choices shape the navigation.', 'Nothing here is permanent—you stay in control.'], label: 'YOUR OPTIONAL MODULES' }
@@ -78,7 +78,7 @@ export function AtlasWalkthrough({ onClose }: Props) {
   const [selectedModules, setSelectedModules] = useState<string[]>(optionalModules.map(item => item.id));
   const selectedModulesRef = useRef(selectedModules);
   selectedModulesRef.current = selectedModules;
-  useEffect(() => { void api<Record<string, string>>('/settings').then(settings => { if (settings.features) { try { setSelectedModules(JSON.parse(settings.features)); } catch { /* Keep the available defaults. */ } } }).catch(() => undefined); }, []);
+  useEffect(() => { void api<Record<string, string>>('/settings').then(settings => { if (settings.features) { try { setSelectedModules(JSON.parse(settings.features).map((feature: string) => feature === 'values' ? 'deen' : feature)); } catch { /* Keep the available defaults. */ } } }).catch(() => undefined); }, []);
   const finish = async () => { try { await api('/settings', json('PATCH', { features: selectedModulesRef.current })); } catch (error) { console.error('Could not save Atlas module choices:', error); } onClose(); };
   const dialogRef = useRef<HTMLElement>(null);
   const step = steps[index];
