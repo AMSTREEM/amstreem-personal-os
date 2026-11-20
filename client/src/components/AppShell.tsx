@@ -1,5 +1,7 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '../lib/api';
 import { CalendarDays, CheckSquare, Compass, GraduationCap, House, Library, Lightbulb, LogOut, Menu, MoonStar, Settings, Target, Timer, X } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 
@@ -23,6 +25,8 @@ export function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const location = useLocation();
+  const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Record<string, string>>('/settings') });
+  useEffect(() => { document.documentElement.dataset.theme = settings.data?.theme || 'shadowed-alchemist'; }, [settings.data?.theme]);
   const current = navigation.find(item => item.to === location.pathname);
   const groups = [...new Set(navigation.map(item => item.group))];
 
