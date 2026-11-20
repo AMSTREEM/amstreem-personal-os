@@ -461,3 +461,11 @@ a { color: inherit; text-decoration: none; }
 .atlas-module-choice b,.settings-module-choice b{color:var(--text);font:600 11px Manrope,sans-serif}
 .atlas-module-choice small,.settings-module-choice small{color:var(--muted);font-size:10px;line-height:1.5}
 @media(max-width:760px){.atlas-module-choices,.settings-module-grid{grid-template-columns:1fr}}
+
+
+/* Mature, tactile actions for daily self-mastery check-ins. */
+.tracker-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.tracker-actions .button{min-height:36px;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+.tracker-actions .button:hover{transform:translateY(-1px);box-shadow:0 5px 16px color-mix(in srgb,var(--text) 9%,transparent)}
+.tracker-actions .button:active{transform:translateY(0) scale(.985)}
+.tracker-status{font-size:11px;color:var(--muted);margin-top:8px}
