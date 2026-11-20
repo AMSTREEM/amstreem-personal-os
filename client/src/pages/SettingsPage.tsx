@@ -28,6 +28,7 @@ export function SettingsPage() {
   const [northStar, setNorthStar] = useState('');
   const [target, setTarget] = useState('80');
   const [theme, setTheme] = useState('shadowed-alchemist');
+  const [features, setFeatures] = useState<string[]>(['calendar','focus','rituals','selfcontrol','learning','library','values']);
   const [message, setMessage] = useState('');
   useEffect(() => {
     if (settings.data) {
@@ -35,10 +36,11 @@ export function SettingsPage() {
       setNorthStar(settings.data.north_star || '');
       setTarget(settings.data.daily_target || '80');
       setTheme(settings.data.theme || 'shadowed-alchemist');
+      try { setFeatures(settings.data.features ? JSON.parse(settings.data.features) : ['calendar','focus','rituals','selfcontrol','learning','library','values']); } catch { setFeatures(['calendar','focus','rituals','selfcontrol','learning','library','values']); }
     }
   }, [settings.data]);
   const save = useMutation({
-    mutationFn: () => api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), theme })),
+    mutationFn: () => api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), theme, features })),
     onSuccess: () => { setMessage('Your preferences have been saved.'); void client.invalidateQueries({ queryKey: ['settings'] }); }
   });
   async function exportData() {
@@ -68,6 +70,7 @@ export function SettingsPage() {
         <Field label="Display name"><TextInput value={name} onChange={event => setName(event.target.value)} placeholder="How Atlas should address you" /></Field>
         <Field label="North star"><TextInput value={northStar} onChange={event => setNorthStar(event.target.value)} placeholder="What are you orienting your effort around?" /></Field>
         <Field label="Daily focus intention (minutes)"><TextInput type="number" min="10" max="600" value={target} onChange={event => setTarget(event.target.value)} /></Field>
+        <Field label="Your workspace modules"><p className="field__hint">Keep the essentials. Add or remove optional spaces whenever your needs change.</p><div className="settings-module-grid">{[{id:'calendar',name:'Calendar',desc:'Plan commitments in time.'},{id:'focus',name:'Focus',desc:'Protect focused work.'},{id:'rituals',name:'Rituals',desc:'Build repeatable routines.'},{id:'selfcontrol',name:'Self-control',desc:'Notice patterns privately.'},{id:'learning',name:'Learning',desc:'Organise skills and lessons.'},{id:'library',name:'Personal Library',desc:'Keep notes and references.'},{id:'values',name:'Values & faith',desc:'Optional personal or faith practices.'}].map(module => <label className="settings-module-choice" key={module.id}><input type="checkbox" checked={features.includes(module.id)} onChange={event => setFeatures(current => event.target.checked ? [...current,module.id] : current.filter(id => id !== module.id))} /><span><b>{module.name}</b><small>{module.desc}</small></span></label>)}</div></Field>
         <Field label="Appearance">
           <div className="theme-picker-groups">
             {themes.map(group => <section className="theme-picker-group" key={group.group}>
