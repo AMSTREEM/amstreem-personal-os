@@ -11,16 +11,18 @@ export function SettingsPage() {
   const [name, setName] = useState('');
   const [northStar, setNorthStar] = useState('');
   const [target, setTarget] = useState('80');
+  const [theme, setTheme] = useState('shadowed-alchemist');
   const [message, setMessage] = useState('');
   useEffect(() => {
     if (settings.data) {
       setName(settings.data.display_name || '');
       setNorthStar(settings.data.north_star || '');
       setTarget(settings.data.daily_target || '80');
+      setTheme(settings.data.theme || 'shadowed-alchemist');
     }
   }, [settings.data]);
   const save = useMutation({
-    mutationFn: () => api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target) })),
+    mutationFn: () => api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), theme })),
     onSuccess: () => { setMessage('Your preferences have been saved.'); void client.invalidateQueries({ queryKey: ['settings'] }); }
   });
   async function exportData() {
@@ -50,6 +52,7 @@ export function SettingsPage() {
         <Field label="Display name"><TextInput value={name} onChange={event => setName(event.target.value)} placeholder="How Atlas should address you" /></Field>
         <Field label="North star"><TextInput value={northStar} onChange={event => setNorthStar(event.target.value)} placeholder="What are you orienting your effort around?" /></Field>
         <Field label="Daily focus intention (minutes)"><TextInput type="number" min="10" max="600" value={target} onChange={event => setTarget(event.target.value)} /></Field>
+        <Field label="Appearance"><select className="field-input" value={theme} onChange={event => { setTheme(event.target.value); document.documentElement.dataset.theme = event.target.value; }}><optgroup label="Dark"><option value="shadowed-alchemist">Shadowed Alchemist</option><option value="nocturnal-amethyst">Nocturnal Amethyst</option><option value="abyssal-trench">Abyssal Trench</option><option value="whispering-woods">Whispering Woods</option><option value="crimson-velvet">Crimson Velvet</option></optgroup><optgroup label="Light"><option value="light-porcelain">Light Porcelain</option><option value="light-sandstone">Light Sandstone</option><option value="light-sage">Light Sage</option><option value="light-lavender">Light Lavender</option><option value="light-sky">Light Sky</option></optgroup></select></Field>
         <div><Button type="submit" disabled={save.isPending}>Save preferences</Button></div>
       </form>
       {message && <p className="form-message" role="status">{message}</p>}
