@@ -436,3 +436,17 @@ a { color: inherit; text-decoration: none; }
 .icon-button:hover { border-color:var(--accent); color:var(--accent-strong); }
 :root[data-theme^="light-"] .tour-launcher { background:var(--surface); }
 :root[data-theme^="light-"] .atlas-tour { box-shadow:0 30px 100px rgba(28,34,28,.2); }
+
+/* Shared interaction primitives: shadcn-inspired variants, kept in Atlas's own visual language. */
+.button--small { min-height: 35px; padding-inline: 12px; border-radius: 9px; font-size: 11px; }
+.button--large { min-height: 50px; padding-inline: 21px; border-radius: 13px; font-size: 13px; }
+.button--icon { width: 40px; min-width: 40px; height: 40px; padding: 0; }
+.button__spinner { width: 13px; height: 13px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: atlas-spin .7s linear infinite; }
+@keyframes atlas-spin { to { transform: rotate(360deg); } }
+.field-input--invalid { border-color:var(--danger)!important; box-shadow:0 0 0 3px color-mix(in srgb,var(--danger) 13%,transparent); }
+.ui-badge { display:inline-flex; align-items:center; width:fit-content; min-height:23px; padding:3px 9px; border:1px solid var(--line); border-radius:999px; background:var(--surface-raised); color:var(--muted); font-size:10px; font-weight:600; line-height:1.2; }
+.ui-badge--success { border-color:color-mix(in srgb,var(--success) 35%,var(--line)); background:color-mix(in srgb,var(--success) 10%,var(--surface)); color:var(--success); }
+.ui-badge--warning { border-color:color-mix(in srgb,var(--accent) 35%,var(--line)); background:var(--accent-wash); color:var(--accent-strong); }
+.ui-badge--danger { border-color:color-mix(in srgb,var(--danger) 35%,var(--line)); background:color-mix(in srgb,var(--danger) 10%,var(--surface)); color:var(--danger); }
+.ui-separator { width:100%; height:1px; background:var(--line-soft); }
+.icon-button:focus-visible,.button:focus-visible { outline-offset:3px; }
