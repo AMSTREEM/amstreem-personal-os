@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { BookMarked, Plus, Trash2 } from 'lucide-react';
+import { BookMarked, Pencil, Plus, Trash2 } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
 
@@ -9,8 +9,15 @@ export function LibraryPage() {
   const client = useQueryClient();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [editing, setEditing] = useState<number | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editBody, setEditBody] = useState('');
   const notes = useQuery({ queryKey: ['notes'], queryFn: () => api<Note[]>('/notes') });
   const create = useMutation({ mutationFn: () => api('/notes', json('POST', { title, body })), onSuccess: () => { setTitle(''); setBody(''); void client.invalidateQueries({ queryKey: ['notes'] }); } });
+  const update = useMutation({
+    mutationFn: () => api('/notes/' + editing, json('PUT', { title: editTitle, body: editBody })),
+    onSuccess: () => { setEditing(null); void client.invalidateQueries({ queryKey: ['notes'] }); }
+  });
   const remove = useMutation({ mutationFn: (id: number) => api('/notes/' + id, { method: 'DELETE' }), onSuccess: () => void client.invalidateQueries({ queryKey: ['notes'] }) });
   return <div className="stack">
     <PageHeader eyebrow="KNOWLEDGE / PERSONAL LIBRARY" title="Library" description="Keep the ideas, references and notes you want to return to." />
@@ -23,7 +30,7 @@ export function LibraryPage() {
       </form>
     </Card>
     <div className="library-grid">
-      {notes.data?.length ? notes.data.map(note => <Card key={note.id} className="note-card"><div className="note-card__top"><BookMarked size={16} /><button className="icon-button" onClick={() => { if (window.confirm('Delete this note?')) remove.mutate(note.id); }} aria-label="Delete note"><Trash2 size={15} /></button></div><h2>{note.title}</h2><p>{note.body || 'No additional text.'}</p><small>Updated {new Date(note.updated_at).toLocaleDateString()}</small></Card>) : <Card><EmptyState title="Your library is open." detail="Save a useful idea, reference or reflection. Your notes stay private to your account." /></Card>}
+      {notes.data?.length ? notes.data.map(note => <Card key={note.id} className="note-card"><div className="note-card__top"><BookMarked size={16} /><div><button className="icon-button" onClick={() => { setEditing(note.id); setEditTitle(note.title); setEditBody(note.body); }} aria-label="Edit note"><Pencil size={15} /></button><button className="icon-button" onClick={() => { if (window.confirm('Delete this note?')) remove.mutate(note.id); }} aria-label="Delete note"><Trash2 size={15} /></button></div></div>{editing === note.id ? <form className="form-stack note-edit-form" onSubmit={event => { event.preventDefault(); if (editTitle.trim()) update.mutate(); }}><Field label="Title"><TextInput value={editTitle} onChange={event => setEditTitle(event.target.value)} required /></Field><Field label="Note"><TextArea value={editBody} onChange={event => setEditBody(event.target.value)} /></Field><div className="note-edit-actions"><Button type="submit" disabled={update.isPending || !editTitle.trim()}>Save changes</Button><Button type="button" variant="ghost" onClick={() => setEditing(null)}>Cancel</Button></div></form> : <><h2>{note.title}</h2><p>{note.body || 'No additional text.'}</p><small>Updated {new Date(note.updated_at).toLocaleDateString()}</small></>}</Card>) : <Card><EmptyState title="Your library is open." detail="Save a useful idea, reference or reflection. Your notes stay private to your account." /></Card>}
     </div>
   </div>;
 }
