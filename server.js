@@ -7,7 +7,12 @@ const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
-const supabaseConfig = require('./supabase-config.json');
+const fileSupabaseConfig = require('./supabase-config.json');
+const supabaseConfig = {
+  ...fileSupabaseConfig,
+  url: process.env.SUPABASE_URL || fileSupabaseConfig.url,
+  publishableKey: process.env.SUPABASE_PUBLISHABLE_KEY || fileSupabaseConfig.publishableKey
+};
 const supabaseOrigin = new URL(supabaseConfig.url).origin;
 const supabaseHost = new URL(supabaseConfig.url).host;
 
@@ -69,7 +74,7 @@ function rateLimit({ max, windowMs = 60_000, prefix = 'ip' }) {
 app.get('/healthz', (req,res) => res.status(200).json({ ok: true }));
 app.use('/api/admin', rateLimit({ max: 30, prefix: 'admin' }));
 app.use('/api', rateLimit({ max: 120 }));
-const ownerUserId = process.env.ADMIN_USER_ID || supabaseConfig.ownerUserId;
+const ownerUserId = process.env.ADMIN_USER_ID || (process.env.ATLAS_STAGING === 'true' ? null : supabaseConfig.ownerUserId);
 const tenantContext = new AsyncLocalStorage();
 const userLocks = new Map();
 const workspaceTables = [
@@ -87,6 +92,14 @@ const db = new Proxy({}, { get(_target, prop) { const active = currentDb(); cons
 // Keep ordinary API payloads small; allow larger JSON only for explicit backup imports.
 app.use('/api/import', express.json({ limit: '10mb' }));
 app.use(express.json({ limit: '1mb' }));
+app.get('/supabase-config.js', (req, res) => {
+  res.type('application/javascript').set('Cache-Control', 'no-store').send(
+    'window.PERSONAL_OS_SUPABASE = ' + JSON.stringify({
+      url: supabaseConfig.url,
+      publishableKey: supabaseConfig.publishableKey
+    }) + ';'
+  );
+});
 app.use(express.static(path.join(__dirname, 'dist')));
 app.use(express.static(path.join(__dirname, 'public')));
 
