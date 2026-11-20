@@ -87,6 +87,7 @@ const db = new Proxy({}, { get(_target, prop) { const active = currentDb(); cons
 // Keep ordinary API payloads small; allow larger JSON only for explicit backup imports.
 app.use('/api/import', express.json({ limit: '10mb' }));
 app.use(express.json({ limit: '1mb' }));
+app.use(express.static(path.join(__dirname, 'dist')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // A short per-account queue prevents overlapping requests from overwriting
@@ -670,4 +671,9 @@ app.post('/api/import',(q,s)=>{
   s.status(400).json({error:error.message||'The backup could not be imported.'});
  }
 });
+app.get('*',(req,res,next)=>{
+  if(req.path.startsWith('/api/')) return next();
+  res.sendFile(path.join(__dirname,'dist','index.html'),error=>{if(error)next(error);});
+});
+
 app.listen(PORT,()=>console.log(`Amstreem Atlas running at http://localhost:${PORT}`));
