@@ -7,8 +7,13 @@ import { Button, Card, PageHeader } from '../components/ui';
 type CalendarDay = { date: string; sections: string[]; perfect: boolean };
 type CalendarData = { month: string; days: CalendarDay[]; streaks: Record<string, { current: number; best: number }> };
 
+function currentMonth() {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit' }).formatToParts(new Date());
+  return parts.find(part => part.type === 'year')!.value + '-' + parts.find(part => part.type === 'month')!.value;
+}
+
 export function CalendarPage() {
-  const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [month, setMonth] = useState(currentMonth);
   const data = useQuery({ queryKey: ['calendar', month], queryFn: () => api<CalendarData>('/calendar?month=' + month) });
   const first = new Date(month + '-01T12:00:00');
   const daysInMonth = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
