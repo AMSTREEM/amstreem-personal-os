@@ -887,3 +887,20 @@ body { letter-spacing: -.006em; }
 .today-task-row time { max-width:112px; text-align:right; }
 .focus-timer-status { margin:0 auto 14px; max-width:430px; color:var(--muted); font-size:10px; line-height:1.55; text-align:center; }
 @media(max-width:560px) { .today-quick-capture input { font-size:12px; } .today-quick-capture button { min-height:34px; } }
+
+
+/* Seven-day habit history stays glanceable and never dominates the checklist. */
+.rituals-week-head { display:flex; align-items:center; justify-content:flex-end; gap:8px; padding:7px 45px 7px 48px; border-bottom:1px solid var(--line-soft); color:var(--subtle); font:600 8px Manrope,sans-serif; letter-spacing:.08em; }
+.rituals-week-head>span { margin-right:auto; }
+.rituals-week-head>div { display:grid; grid-template-columns:repeat(7,8px); gap:4px; justify-content:center; }
+.rituals-week-head>div span { color:var(--subtle); font-size:8px; text-align:center; }
+.rituals-week-dots { display:grid; grid-template-columns:repeat(7,7px); gap:5px; align-items:center; justify-content:center; }
+.rituals-week-dots i { width:7px; height:7px; border:1px solid var(--line); border-radius:50%; background:transparent; }
+.rituals-week-dots i.is-complete { border-color:var(--success); background:var(--success); box-shadow:0 0 0 2px color-mix(in srgb,var(--success) 12%,transparent); }
+@media(max-width:560px) {
+  .rituals-week-head { padding-inline:40px 39px; }
+  .rituals-week-dots { grid-template-columns:repeat(7,6px); gap:4px; }
+  .rituals-week-dots i { width:6px; height:6px; }
+  .rituals-row { gap:6px; }
+  .rituals-row>b { min-width:48px; }
+}
