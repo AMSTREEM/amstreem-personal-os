@@ -11,6 +11,7 @@ import { ProjectsPage } from './pages/ProjectsPage';
 import { ReviewsPage } from './pages/ReviewsPage';
 import { FocusPage } from './pages/FocusPage';
 import { RitualsPage } from './pages/RitualsPage';
+import { SelfControlPage } from './pages/SelfControlPage';
 import { LearningPage } from './pages/LearningPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { CalendarPage } from './pages/CalendarPage';
@@ -38,6 +39,7 @@ export function App() {
       <Route path="/calendar" element={<CalendarPage />} />
       <Route path="/focus" element={<FocusPage />} />
       <Route path="/rituals" element={<RitualsPage />} />
+      <Route path="/self-control" element={<SelfControlPage />} />
       <Route path="/learning" element={<LearningPage />} />
       <Route path="/library" element={<LibraryPage />} />
       <Route path="/values" element={<ValuesPage />} />
