@@ -27,7 +27,7 @@ export function AppShell() {
   return <div className="app-frame">
     {mobileOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
     <aside className={'sidebar ' + (mobileOpen ? 'sidebar--open' : '')}>
-      <NavLink to="/today" className="sidebar-brand" onClick={() => setMobileOpen(false)}><span className="brand-symbol">a</span><span><b>AMSTREEM</b><small>ATLAS</small></span></NavLink>
+      <NavLink to="/today" className="sidebar-brand" onClick={() => setMobileOpen(false)}><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><span><b>AMSTREEM</b><small>ATLAS</small></span></NavLink>
       <div className="sidebar-caption">YOUR PRIVATE WORKSPACE</div>
       <nav className="primary-nav">
         {groups.map(group => <div className="nav-group" key={group}>
