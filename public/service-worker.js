@@ -1,5 +1,5 @@
-const CACHE_NAME = 'amstreem-atlas-shell-v3';
-const SHELL = ['/', '/index.html', '/style.css', '/app.js', '/favicon.svg', '/assets/brand/amstreem-symbol.svg', '/assets/brand/amstreem-apple-touch-icon.png', '/manifest.webmanifest'];
+const CACHE_NAME = 'amstreem-atlas-shell-v4';
+const SHELL = ['/', '/index.html', '/supabase-config.js', '/assets/brand/amstreem-symbol.svg', '/assets/brand/amstreem-apple-touch-icon.png', '/manifest.webmanifest'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
