@@ -2,7 +2,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import { CalendarDays, CheckSquare, Compass, GraduationCap, Heart, House, Library, Lightbulb, LogOut, Menu, MoonStar, Settings, Target, Timer, X } from 'lucide-react';
+import { CalendarDays, CheckSquare, Compass, GraduationCap, Heart, House, Library, Lightbulb, LogOut, Menu, MoonStar, Settings, ShieldCheck, Target, Timer, X } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 
 const navigation = [
@@ -22,14 +22,15 @@ const navigation = [
 ];
 
 export function AppShell() {
-  const { user, signOut } = useAuth();
+  const { user, role, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const location = useLocation();
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Record<string, string>>('/settings') });
   useEffect(() => { document.documentElement.dataset.theme = settings.data?.theme || 'shadowed-alchemist'; }, [settings.data?.theme]);
-  const current = navigation.find(item => item.to === location.pathname);
-  const groups = [...new Set(navigation.map(item => item.group))];
+  const visibleNavigation = role === 'admin' ? [...navigation, { label: 'Admin', to: '/admin', icon: ShieldCheck, group: 'OWNER' }] : navigation;
+  const current = visibleNavigation.find(item => item.to === location.pathname);
+  const groups = [...new Set(visibleNavigation.map(item => item.group))];
 
   return <div className="app-frame">
     {mobileOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
@@ -39,7 +40,7 @@ export function AppShell() {
       <nav className="primary-nav">
         {groups.map(group => <div className="nav-group" key={group}>
           <div className="nav-group__label">{group}</div>
-          {navigation.filter(item => item.group === group).map(item => {
+          {visibleNavigation.filter(item => item.group === group).map(item => {
             const Icon = item.icon;
             return <NavLink key={item.to} to={item.to} onClick={() => setMobileOpen(false)} className={({ isActive }) => 'nav-link ' + (isActive ? 'nav-link--active' : '')}><Icon size={17} strokeWidth={1.8} /><span>{item.label}</span></NavLink>;
           })}
