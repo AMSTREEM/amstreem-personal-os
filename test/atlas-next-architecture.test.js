@@ -48,3 +48,22 @@ test('Express serves the built app while retaining legacy public assets', () => 
   assert.match(server, /express\.static\(path\.join\(__dirname, 'public'\)\)/);
   assert.match(server, /res\.sendFile\(path\.join\(__dirname,'dist','index\.html'\)/);
 });
+
+
+test('Today supports fast task capture and deadline-aware priorities', () => {
+  const today = read('client/src/pages/TodayPage.tsx');
+  assert.match(today, /today-quick-capture/);
+  assert.match(today, /api<Task>\('\/tasks'/);
+  assert.match(today, /a\.due_date\.localeCompare\(b\.due_date\)/);
+  assert.match(today, /Overdue/);
+});
+
+test('Focus timer survives refreshes and does not fabricate completed sessions', () => {
+  const focus = read('client/src/pages/FocusPage.tsx');
+  assert.match(focus, /atlas-focus-timer-v1/);
+  assert.match(focus, /deadline - now/);
+  assert.match(focus, /localStorage\.setItem/);
+  assert.match(focus, /Timer completion does not create a record automatically/);
+  assert.match(focus, /function pauseTimer/);
+  assert.match(focus, /function resetTimer/);
+});
