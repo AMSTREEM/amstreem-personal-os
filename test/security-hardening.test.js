@@ -32,9 +32,9 @@ test('browser responses have CSP, HSTS in production, and no-store API responses
   assert.match(server, /Cross-Origin-Opener-Policy/);
 });
 
-test('production installs are reproducible and CI audits production dependencies', () => {
+test('production installs dependencies, builds the frontend, and CI audits production dependencies', () => {
   assert.match(workflow, /npm ci/);
   assert.match(workflow, /npm audit --omit=dev --audit-level=high/);
-  assert.match(render, /buildCommand: npm ci/);
+  assert.match(render, /buildCommand: npm install && npm run build/);
   assert.match(render, /healthCheckPath: \/healthz/);
 });
