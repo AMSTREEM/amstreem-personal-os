@@ -13,6 +13,14 @@ const supabaseConfig = {
   url: process.env.SUPABASE_URL || fileSupabaseConfig.url,
   publishableKey: process.env.SUPABASE_PUBLISHABLE_KEY || fileSupabaseConfig.publishableKey
 };
+if (process.env.ATLAS_STAGING === 'true') {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_PUBLISHABLE_KEY) {
+    throw new Error('Staging requires its own Supabase URL and publishable key.');
+  }
+  if (process.env.SUPABASE_URL.includes('skjxwzmpajdcrfacwoap')) {
+    throw new Error('Staging must never connect to the production Supabase project.');
+  }
+}
 const supabaseOrigin = new URL(supabaseConfig.url).origin;
 const supabaseHost = new URL(supabaseConfig.url).host;
 
