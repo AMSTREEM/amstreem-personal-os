@@ -13,7 +13,7 @@ export function PageHeader({ eyebrow, title, description, action }: { eyebrow?: 
 export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={clsx('field-input', props.className)} />;
 }
-export function TextArea(props: InputHTMLAttributes<HTMLTextAreaElement>) {
+export function TextArea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return <textarea {...props} className={clsx('field-input field-input--area', props.className)} />;
 }
 export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
