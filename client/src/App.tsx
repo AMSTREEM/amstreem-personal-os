@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './auth/AuthProvider';
 import { AuthPage } from './components/AuthPage';
 import { AppShell } from './components/AppShell';
@@ -19,6 +21,8 @@ import { PasswordRecoveryPage } from './pages/PasswordRecoveryPage';
 
 export function App() {
   const { session, loading } = useAuth();
+  const queryClient = useQueryClient();
+  useEffect(() => { queryClient.clear(); }, [session?.user.id, queryClient]);
   if (loading) return <div className="app-loading"><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><p>Preparing your space…</p></div>;
   const hashType = new URLSearchParams(window.location.hash.slice(1)).get('type');
   const queryType = new URLSearchParams(window.location.search).get('type');
