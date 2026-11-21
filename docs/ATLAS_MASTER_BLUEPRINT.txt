@@ -1,0 +1,29 @@
+# Amstreem Atlas — Master Blueprint
+**Repository:** AMSTREEM/amstreem-personal-os  
+**Working branch:** atlas-original-polish  
+**Preview:** amstreem-atlas-original-preview.onrender.com  
+**Staging Supabase:** yllzeblecyqnncgktnjw (never production during development)
+
+## Backbone
+1. **Owner Console / Engagement:** server-authorized administration, account directory, verification status, onboarding and aggregate engagement/activity analytics. Admin reports must not reveal private journal, prayer, note, task titles, or workspace content.
+2. **Six connected pillars:** Residence, faith/reflection, self-control, tasks/projects, focus, learning/library and goals share progress and activity signals.
+3. **Residence command center:** default route for every account including owner. Owner Console is only on its dedicated route.
+4. **Zero-build stack:** HTML/CSS/vanilla JS, Express, SQLite in-memory workspace snapshot and Supabase JSONB storage; no framework or bundler.
+5. **User-controlled personalization:** optional Islam, Christianity, or general reflection; preference is private and never exposed in owner engagement reporting.
+6. **Engagement without coercion:** aggregate product usage, task completion and focus metrics; optional grace mechanics; avoid shame-based reminders or punitive streaks.
+7. **10-theme design system:** five dark and five light themes; typography Plus Jakarta Sans and JetBrains Mono; Lucide; keyboard command palette; responsive bento-style layout.
+8. **Privacy/security:** strict per-user workspace isolation, admin authorization validated server-side, no secrets in frontend or repository, verification and status indicators sourced from Auth metadata.
+
+## Administration backbone
+- Registered accounts, verified/unverified, joined date, username, email and account statuses.
+- Aggregate active today / 7 / 30 days; task completion totals and rate; weekly completion; focus time; habit-log counts.
+- No private task names, journal content, religious details or note contents in aggregate analytics.
+- Admin directory pagination must fail with actionable errors and timeouts rather than hang.
+
+## Implementation / QA
+- Audit routes, auth flows, account directory and admin analytics.
+- Confirm preview configuration uses staging URL/key and redirect URLs.
+- Redesign navigation and persistent shell, command palette, themes, mobile drawer.
+- Wire and test six pillars and cross-pillar progress.
+- Verify with syntax checks, tests, staging and runtime logs.
+- Production changes/deployment require explicit authorization.
