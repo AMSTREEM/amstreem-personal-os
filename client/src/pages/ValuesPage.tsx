@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
 import { Cascade } from '../components/Cascade';
-import { playAtlasFeedback } from '../lib/microFeedback';
 
 type Settings = Record<string, string>;
 type Prayer = { prayer: string; completed: number; on_time: number };
@@ -57,7 +56,6 @@ export function ValuesPage() {
     onSuccess: () => { void client.invalidateQueries({ queryKey: ['rhythm-records', date] }); void client.invalidateQueries({ queryKey: ['rhythm-summary'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });
   const prayer = useMutation({
-    onMutate: entry => { if (entry.status !== 'pending') playAtlasFeedback('tick'); },
     mutationFn: (entry: { item: Prayer; status: 'pending'|'on_time'|'qada' }) => api('/deen/prayer', json('PATCH', { date, prayer: entry.item.prayer, completed: entry.status === 'pending' ? 0 : 1, on_time: entry.status === 'on_time' ? 1 : 0 })),
     onSuccess: () => { void client.invalidateQueries({ queryKey: ['deen', date] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });

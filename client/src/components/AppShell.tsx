@@ -97,13 +97,6 @@ export function AppShell() {
   const focusClock = String(Math.floor(focusRemaining / 60)).padStart(2,'0') + ':' + String(focusRemaining % 60).padStart(2,'0');
   const focusContext = focusTimer.taskTitle || focusTimer.lessonTitle || focusTimer.focusLabel || focusTimer.focus || 'Focus session';
   const focusSessionVisible = focusRemaining > 0 && (focusActive || focusTimer.remaining < 25 * 60 || !!focusTimer.startedAt || !!focusTimer.sessionKey || !!focusTimer.taskId || !!focusTimer.lessonId || !!focusTimer.projectId || (focusTimer.durationSeconds !== undefined && focusTimer.durationSeconds !== 25 * 60));
-  useEffect(() => {
-    if (focusActive && focusTimer.kind !== 'break') {
-      const activeLabel = focusContext !== 'Focus session' ? focusContext : current?.label || 'Focus Room';
-      document.title = focusClock + ' · ' + activeLabel + ' — Amstreem Atlas';
-    } else document.title = 'Amstreem Atlas';
-    return () => { document.title = 'Amstreem Atlas'; };
-  }, [focusActive, focusTimer.kind, focusClock, focusContext, current?.label]);
   function writeTimer(value: SharedTimer) { localStorage.setItem('atlas-focus-timer-v1', JSON.stringify(value)); setFocusTimer(value); window.dispatchEvent(new CustomEvent('atlas-focus-timer-change', { detail: value })); }
   function toggleTimer() { if (focusActive) writeTimer({ ...focusTimer, remaining: focusRemaining, deadline: null }); else if (focusRemaining > 0) writeTimer({ ...focusTimer, deadline: Date.now() + focusRemaining * 1000 }); }
   function finishTimer() { const elapsed = Math.max(0, (focusTimer.durationSeconds || focusTimer.remaining) - focusRemaining); writeTimer({ ...focusTimer, remaining: 0, deadline: null, durationSeconds: elapsed, sessionKey: elapsed >= 60 ? focusTimer.sessionKey : null }); window.location.assign('/focus'); }
@@ -163,6 +156,13 @@ export function AppShell() {
   if (storedFeatures) { try { enabledFeatures = JSON.parse(storedFeatures).map((feature: string) => feature === 'values' ? 'deen' : feature); } catch { enabledFeatures = null; } }
   // The six core pillars are always available; preferences only control secondary views.
   const current = rooms.find(item => item.paths.includes(location.pathname));
+  useEffect(() => {
+    if (focusActive && focusTimer.kind !== 'break') {
+      const activeLabel = focusContext !== 'Focus session' ? focusContext : current?.label || 'Focus Room';
+      document.title = focusClock + ' · ' + activeLabel + ' — Amstreem Atlas';
+    } else document.title = 'Amstreem Atlas';
+    return () => { document.title = 'Amstreem Atlas'; };
+  }, [focusActive, focusTimer.kind, focusClock, focusContext, current?.label]);
   const faithTabLabel = quickReligion === 'islam' ? 'Deen & Reflection' : quickReligion === 'christianity' ? 'Faith & Devotion' : 'Clarity & Reflection';
   const tabsByRoom = {
     residence: [{ label: 'Overview', to: '/today' }, { label: 'Insights', to: '/insights' }],

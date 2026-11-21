@@ -6,7 +6,6 @@ import { BookOpen, Check, ChevronDown, Circle, Clock3, Pause, Play, Plus, Rotate
 import { Link } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, TextArea, TextInput } from '../components/ui';
-import { playAtlasFeedback, primeAtlasAudio } from '../lib/microFeedback';
 
 type Task = { id:number; title:string; detail:string; done:number; priority:number; due_date:string|null; project_id:number|null; project_title?:string|null; goal_title?:string|null; parent_task_id:number|null; focus_minutes:number; subtask_count:number };
 type Project = { id:number; title:string; goal_title?:string|null; target_date:string|null; open_tasks:number; focus_minutes:number; progress_pct:number };
@@ -53,7 +52,6 @@ export function ExecutionFocusPage() {
   const [subtaskDrafts,setSubtaskDrafts]=useState<Record<number,string>>({});
   const [distractionDraft,setDistractionDraft]=useState('');
   const savedKeys=useRef(new Set<string>());
-  const chimedKeys=useRef(new Set<string>());
   const tasks=useQuery({queryKey:['tasks'],queryFn:()=>api<Task[]>('/tasks')});
   const projects=useQuery({queryKey:['projects'],queryFn:()=>api<Project[]>('/projects')});
   const learning=useQuery({queryKey:['learning-paths'],queryFn:()=>api<LearningPath[]>('/learning/paths')});
@@ -68,11 +66,6 @@ export function ExecutionFocusPage() {
 
   useEffect(()=>{if(!running)return;const id=window.setInterval(()=>setNow(Date.now()),250);return()=>window.clearInterval(id);},[running]);
   useEffect(()=>{if(timer.deadline!==null&&remaining===0)setTimer(current=>({...current,remaining:0,deadline:null}));},[timer.deadline,remaining]);
-  useEffect(()=>{
-    if(timer.kind!=='focus'||timer.remaining!==0||timer.deadline!==null||!timer.sessionKey||chimedKeys.current.has(timer.sessionKey))return;
-    chimedKeys.current.add(timer.sessionKey);
-    playAtlasFeedback('complete');
-  },[timer.kind,timer.remaining,timer.deadline,timer.sessionKey]);
   useEffect(()=>{localStorage.setItem(TIMER_KEY,JSON.stringify(timer));window.dispatchEvent(new CustomEvent('atlas-focus-timer-change',{detail:timer}));},[timer]);
   useEffect(()=>{
     const sync=(event:Event)=>{const next=(event as CustomEvent<TimerState>).detail;if(!next||!Number.isFinite(next.remaining))return;setTimer(current=>({...current,...next}));setNow(Date.now());};
@@ -107,7 +100,7 @@ export function ExecutionFocusPage() {
   },[tasks.data,learning.data]);
 
   const createTask=useMutation({mutationFn:()=>api<Task>('/tasks',json('POST',{title:newTask,category:'Personal',project_id:newTaskProject||null,priority:Number(newTaskPriority)})),onSuccess:()=>{setNewTask('');void client.invalidateQueries({queryKey:['tasks']});void client.invalidateQueries({queryKey:['projects']});}});
-  const toggleTask=useMutation({mutationFn:(task:Task)=>api('/tasks/'+task.id,json('PATCH',{done:!task.done})),onMutate:task=>{if(!task.done)playAtlasFeedback('tick');},onSuccess:()=>{void client.invalidateQueries({queryKey:['tasks']});void client.invalidateQueries({queryKey:['projects']});void client.invalidateQueries({queryKey:['overview']});}});
+  const toggleTask=useMutation({mutationFn:(task:Task)=>api('/tasks/'+task.id,json('PATCH',{done:!task.done})),onSuccess:()=>{void client.invalidateQueries({queryKey:['tasks']});void client.invalidateQueries({queryKey:['projects']});void client.invalidateQueries({queryKey:['overview']});}});
   const createSubtask=useMutation({mutationFn:({parentId,title}:{parentId:number;title:string})=>api('/tasks',json('POST',{title,category:'Personal',parent_task_id:parentId,project_id:tasks.data?.find(item=>item.id===parentId)?.project_id||null})),onSuccess:(_data,variables)=>{setSubtaskDrafts(current=>({...current,[variables.parentId]:''}));void client.invalidateQueries({queryKey:['tasks']});}});
   const visibleTasks=useMemo(()=>{
     const rows=tasks.data||[];
@@ -117,7 +110,6 @@ export function ExecutionFocusPage() {
 
   function start(kind:'focus'|'break') {
     if(running)return;
-    if(kind==='focus')primeAtlasAudio();
     const seconds=kind==='break'?Math.max(1,Math.min(60,Number(breakMinutes)||5))*60:Math.max(1,Math.min(600,Number(preset==='custom'?customMinutes:preset)||25))*60;
     const key=kind==='focus'?(globalThis.crypto?.randomUUID?.()||'atlas-'+Date.now()+'-'+Math.random().toString(36).slice(2)):null;
     setTimer(current=>({...current,remaining:seconds,durationSeconds:seconds,deadline:Date.now()+seconds*1000,kind,sessionKey:key,startedAt:Date.now(),focus:current.focus||contextLabel}));

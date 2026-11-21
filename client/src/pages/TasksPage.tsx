@@ -6,7 +6,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'motion/react';
 import { Plus, Trash2 } from 'lucide-react';
 import { api, json } from '../lib/api';
-import { playAtlasFeedback } from '../lib/microFeedback';
 import { Button, Card, EmptyState, Field, PageHeader, TextInput } from '../components/ui';
 
 type Task = { id: number; title: string; detail: string; category: string; due_date: string | null; done: number; project_title?: string | null; goal_title?: string | null };
@@ -30,7 +29,6 @@ export function TasksPage() {
     onSuccess: () => { setTitle(''); setDetail(''); setDueDate(''); setProjectId(''); setGoalId(''); void client.invalidateQueries({ queryKey: ['tasks'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });
   const update = useMutation({
-    onMutate: ({ done }) => { if (done) playAtlasFeedback('tick'); },
     mutationFn: ({ task, done }: { task: Task; done: boolean }) => api('/tasks/' + task.id, json('PATCH', { done })),
     onSuccess: () => { void client.invalidateQueries({ queryKey: ['tasks'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });

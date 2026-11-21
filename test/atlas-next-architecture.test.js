@@ -193,28 +193,3 @@ test('all ten themes inherit specular card surfaces and structural skeletons', (
   assert.match(css, /inset 0 1px 0 0 rgba\(255,255,255,\.85\)/);
   assert.match(css, /atlas-skeleton-shimmer/);
 });
-
-
-test('Feel & Tactile micro-craft keeps browser title, numeric alignment and motion feedback accessible', () => {
-  const shell = read('client/src/components/AppShell.tsx');
-  const ui = read('client/src/components/ui.tsx');
-  const css = read('client/src/styles.css');
-  assert.match(shell, /document\.title = focusClock/);
-  assert.match(shell, /document\.title = 'Amstreem Atlas'/);
-  assert.match(shell, /whileTap=\{\{ scale: 0\.985 \}\}/);
-  assert.match(ui, /whileTap=\{\{ scale: 0\.985 \}\}/);
-  assert.match(css, /font-variant-numeric: tabular-nums/);
-});
-
-test('Web Audio micro-feedback is zero-dependency, opt-in, quiet and tied to check-offs and Focus completion', () => {
-  const audio = read('client/src/lib/microFeedback.ts');
-  assert.match(audio, /atlas-sound-feedback/);
-  assert.match(audio, /localStorage\.getItem\(FEEDBACK_KEY\) !== 'on'/);
-  assert.match(audio, /0\.015/);
-  assert.match(audio, /tone\(660/);
-  assert.match(audio, /tone\(880/);
-  assert.match(read('client/src/pages/SettingsPage.tsx'), /Subtle sound cues/);
-  assert.match(read('client/src/pages/ExecutionFocusPage.tsx'), /playAtlasFeedback\('complete'\)/);
-  assert.match(read('client/src/pages/TodayPage.tsx'), /playAtlasFeedback\('tick'\)/);
-  assert.match(read('client/src/pages/ValuesPage.tsx'), /playAtlasFeedback\('tick'\)/);
-});

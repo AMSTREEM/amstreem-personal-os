@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Download, Upload } from 'lucide-react';
-import { primeAtlasAudio } from '../lib/microFeedback';
 import { api, json } from '../lib/api';
 import { Button, Card, Field, PageHeader, TextInput } from '../components/ui';
 
@@ -47,7 +46,6 @@ export function SettingsPage() {
   const [target, setTarget] = useState('80');
   const [theme, setTheme] = useState('shadowed-alchemist');
   const [features, setFeatures] = useState<string[]>(['calendar','focus','rituals','selfcontrol','learning','library','deen']);
-  const [soundFeedback, setSoundFeedback] = useState(() => { try { return localStorage.getItem('atlas-sound-feedback') === 'on'; } catch { return false; } });
   const [message, setMessage] = useState('');
   useEffect(() => {
     if (settings.data) {
@@ -91,7 +89,6 @@ export function SettingsPage() {
         <Field label="North star"><TextInput value={northStar} onChange={event => setNorthStar(event.target.value)} placeholder="What are you orienting your effort around?" /></Field>
         <Field label="Daily focus intention (minutes)"><TextInput type="number" min="10" max="600" value={target} onChange={event => setTarget(event.target.value)} /></Field>
         <Field label="Optional workspace views"><p className="field__hint">Your six core pillars always stay available. Turn secondary views on or off as your workspace needs change.</p><div className="settings-module-grid">{[{id:'calendar',name:'Calendar',desc:'A calendar view inside Projects & Tasks.'},{id:'library',name:'Personal Library',desc:'A library tab inside Learning Studio.'}].map(module => <label className="settings-module-choice" key={module.id}><input type="checkbox" checked={features.includes(module.id)} onChange={event => setFeatures(current => event.target.checked ? [...current,module.id] : current.filter(id => id !== module.id))} /><span><b>{module.name}</b><small>{module.desc}</small></span></label>)}</div></Field>
-        <Field label="Micro-feedback"><label className="settings-module-choice"><input type="checkbox" checked={soundFeedback} onChange={event => { const enabled = event.target.checked; setSoundFeedback(enabled); try { localStorage.setItem('atlas-sound-feedback', enabled ? 'on' : 'off'); } catch { /* Optional audio. */ } if (enabled) primeAtlasAudio(); }} /><span><b>Subtle sound cues</b><small>Quiet 15ms ticks for task and prayer check-offs, plus a soft Focus completion chime. Off by default.</small></span></label></Field>
         <Field label="Appearance">
           <div className="theme-picker-groups">
             {themes.map(group => <section className="theme-picker-group" key={group.group}>
