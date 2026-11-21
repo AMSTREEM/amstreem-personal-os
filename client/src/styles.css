@@ -1466,3 +1466,9 @@ body { letter-spacing: -.006em; }
 .room4-priority-list { display:grid; gap:8px; }
 .room4-priority-list label { display:flex; align-items:center; gap:10px; min-height:42px; padding:9px 12px; border:1px solid var(--border-hairline); border-radius:9px; color:var(--text-primary); font-size:11px; }
 .room4-priority-list input { width:16px; height:16px; accent-color:var(--accent-primary); }
+
+.room4-card,.room4-card *,.room4-path-card,.room4-path-card *,.goal-card--connected,.goal-card--connected * { font-family:"Plus Jakarta Sans","DM Sans",sans-serif; }
+.room4-progress>div small,.room4-progress>div b,.room4-evidence-grid b { font-family:"JetBrains Mono",monospace; }
+.room4-note-actions { display:flex; gap:4px; opacity:0; transition:opacity 180ms cubic-bezier(0.16,1,0.3,1); }
+.note-card:hover .room4-note-actions,.note-card:focus-within .room4-note-actions { opacity:1; }
+@media(hover:none) { .room4-note-actions { opacity:1; } }
