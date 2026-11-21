@@ -44,7 +44,7 @@ export function SelfControlPage() {
   const cleanToday = data.data?.summary.filter(item => item.today?.outcome === 'clean').length ?? 0;
   return <div className="stack self-control-page">
     <PageHeader eyebrow="PERSONAL DEVELOPMENT / PRIVATE" title="Self-Control & Streaks" description="A private space for the commitments you choose to keep or leave behind. Track progress honestly, without turning a difficult day into a verdict." action={<Button onClick={() => setShowCreate(true)}><Plus size={15}/> Add a habit</Button>}/>
-    <div className="self-control-note surface-card"><span className="self-note-mark"><ShieldCheck size={19}/></span><div><strong>Progress is not perfection.</strong><p>A difficult day does not erase your effort. If you slip, record it honestly, notice what led to it, and begin again without punishing yourself.</p></div><div className="self-note-stats"><span><b>{totalTrackers}</b><small>TRACKERS</small></span><span><b>{cleanToday}</b><small>CLEAN TODAY</small></span></div></div>
+    <div className="self-control-note surface-card"><span className="self-note-mark"><ShieldCheck size={19}/></span><div><strong>Progress is not perfection.</strong><p>A difficult day does not erase your effort. If you slip, record it honestly, notice what led to it, and begin again without punishing yourself. A day without a check-in stays unscored; it is never treated as a slip.</p></div><div className="self-note-stats"><span><b>{totalTrackers}</b><small>TRACKERS</small></span><span><b>{cleanToday}</b><small>CLEAN TODAY</small></span></div></div>
     <section className="self-rhythm-consistency">
       <div className="self-rhythm-metrics">
         <div><span className="module-kicker">ROLLING CONSISTENCY</span><b>{data.data?.consistency.percent7 ?? 0}%</b><small>{data.data?.consistency.days7 ?? 0}/7 days with real check-ins · last 7 days</small></div>
@@ -65,7 +65,7 @@ export function SelfControlPage() {
         <h2>{tracker.name}</h2>
         <div className="tracker-count"><strong>{tracker.streak}</strong><span>verified clean check-ins</span></div>
         <div className="tracker-meta"><span>Longest: {tracker.longest_days} verified days</span><span>Started {tracker.start_date}</span></div>
-        <div className={'tracker-status' + (tracker.today?.outcome === 'slip' ? ' tracker-status--slip' : '')}>{tracker.today ? (tracker.today.outcome === 'clean' ? 'Today marked clean' : 'A reset was recorded today') : 'No check-in recorded today'}</div>
+        <div className={'tracker-status' + (tracker.today?.outcome === 'slip' ? ' tracker-status--slip' : '')}>{tracker.today ? (tracker.today.outcome === 'clean' ? 'Today marked clean' : 'A slip was recorded today') : 'No check-in recorded today'}</div>
         <div className="tracker-actions"><Button size="sm" onClick={() => checkin.mutate({trackerId:tracker.id,outcome:'clean'})} disabled={checkin.isPending}><ShieldCheck size={14}/> Mark today as clean</Button><Button size="sm" variant="secondary" onClick={() => {setActiveTracker(tracker);setOutcome('slip');}} disabled={checkin.isPending}><RotateCcw size={14}/> Record a slip</Button></div>
       </Card>) : <Card className="tracker-empty"><EmptyState title="A fresh place to begin." detail="Add a habit you want to leave behind. Your record is private, honest, and entirely yours."/></Card>}
     </div>
