@@ -698,7 +698,7 @@ app.post('/api/reviews',(q,s)=>{
  if(alignmentComplete&&!intention)return s.status(400).json({error:'Add a daily intention before completing Morning Alignment.'});
  if(shutdownComplete&&(!wins.trim()||!challenges.trim()||!lessons.trim()||!nextFocus.trim()))return s.status(400).json({error:'Complete all four reflection prompts before closing the day.'});
  const result=db.prepare('INSERT INTO reviews(period_type,period_start,period_end,wins,challenges,lessons,next_focus,intention,priority_task_ids,alignment_complete,shutdown_complete) VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(period_type,period_start) DO UPDATE SET period_end=excluded.period_end,wins=excluded.wins,challenges=excluded.challenges,lessons=excluded.lessons,next_focus=excluded.next_focus,intention=excluded.intention,priority_task_ids=excluded.priority_task_ids,alignment_complete=excluded.alignment_complete,shutdown_complete=excluded.shutdown_complete,updated_at=CURRENT_TIMESTAMP').run(period_type,period_start,period_end,wins,challenges,lessons,nextFocus,intention,JSON.stringify(priorityIds),alignmentComplete,shutdownComplete);
- const row=one('SELECT * FROM reviews WHERE id=?',result.lastInsertRowid)||one('SELECT * FROM reviews WHERE period_type=? AND period_start=?',period_type,period_start);
+ const row=one('SELECT * FROM reviews WHERE period_type=? AND period_start=?',period_type,period_start);
  s.json({...row,priority_task_ids:priorityIds});
 });
 
