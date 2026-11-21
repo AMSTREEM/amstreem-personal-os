@@ -8,6 +8,9 @@ import { ArrowRight, BookOpen, Check, Compass, GraduationCap, Heart, House, LogO
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
 import { EntrancePresetContext, entranceFrame, useCompactMotionViewport, useEntrancePreset } from './EntranceMotion';
+import { playAtlasFeedback } from '../lib/microFeedback';
+
+const MotionNavLink = motion.create(NavLink);
 
 const rooms = [
   { id: 'residence', label: 'Residence', to: '/today', icon: House, paths: ['/today', '/insights'] },
@@ -120,6 +123,7 @@ export function AppShell() {
   const quickDeen = useQuery({ queryKey: ['deen', quickDate], queryFn: () => api<QuickDeen>('/deen/summary?date=' + quickDate), enabled: commandOpen && quickReligion === 'islam' });
   const quickHabits = useQuery({ queryKey: ['habits', quickDate], queryFn: () => api<QuickHabit[]>('/habits?date=' + quickDate), enabled: commandOpen });
   const quickPrayerMutation = useMutation({
+    onMutate: item => { if (!item.completed) playAtlasFeedback('tick'); },
     mutationFn: (item: QuickPrayer) => api('/deen/prayer', json('PATCH', { date: quickDate, prayer: item.prayer, completed: !item.completed })),
     onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ['deen', quickDate] }); void queryClient.invalidateQueries({ queryKey: ['overview'] }); }
   });
@@ -152,6 +156,13 @@ export function AppShell() {
   if (storedFeatures) { try { enabledFeatures = JSON.parse(storedFeatures).map((feature: string) => feature === 'values' ? 'deen' : feature); } catch { enabledFeatures = null; } }
   // The six core pillars are always available; preferences only control secondary views.
   const current = rooms.find(item => item.paths.includes(location.pathname));
+  useEffect(() => {
+    if (focusActive && focusTimer.kind !== 'break') {
+      const activeLabel = focusContext !== 'Focus session' ? focusContext : current?.label || 'Focus Room';
+      document.title = focusClock + ' · ' + activeLabel + ' — Amstreem Atlas';
+    } else document.title = 'Amstreem Atlas';
+    return () => { document.title = 'Amstreem Atlas'; };
+  }, [focusActive, focusTimer.kind, focusClock, focusContext, current?.label]);
   const faithTabLabel = quickReligion === 'islam' ? 'Deen & Reflection' : quickReligion === 'christianity' ? 'Faith & Devotion' : 'Clarity & Reflection';
   const tabsByRoom = {
     residence: [{ label: 'Overview', to: '/today' }, { label: 'Insights', to: '/insights' }],
@@ -197,7 +208,7 @@ export function AppShell() {
           {rooms.map((item,index) => {
             const Icon = item.icon;
             const active = item.paths.includes(location.pathname);
-            return <NavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} className={'nav-link room-nav-link ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>⌘ {index+1}</kbd></NavLink>;
+            return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={'nav-link room-nav-link ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>⌘ {index+1}</kbd></MotionNavLink>;
           })}
         </div>
       </nav>
@@ -218,7 +229,7 @@ export function AppShell() {
       </header>
 
       <div className="page-container">
-        {activeTabs.length > 0 && <nav className="module-subnav" aria-label="Module sections">{activeTabs.map(tab => <NavLink key={tab.to} to={tab.to} onClick={() => setMobileOpen(false)} className={({ isActive }) => 'module-subnav__link ' + (isActive ? 'module-subnav__link--active' : '')}>{({isActive}) => <>{isActive && <motion.span className="module-subnav-indicator" layoutId={'atlas-subnav-' + current?.id} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}{tab.label}</>}</NavLink>)}</nav>}
+        {activeTabs.length > 0 && <nav className="module-subnav" aria-label="Module sections">{activeTabs.map(tab => <MotionNavLink key={tab.to} to={tab.to} onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={({ isActive }) => 'module-subnav__link ' + (isActive ? 'module-subnav__link--active' : '')}>{({isActive}) => <>{isActive && <motion.span className="module-subnav-indicator" layoutId={'atlas-subnav-' + current?.id} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}{tab.label}</>}</MotionNavLink>)}</nav>}
         <EntrancePresetContext.Provider value={entrancePreset}>
           <motion.div
             key={location.pathname}
@@ -242,13 +253,13 @@ export function AppShell() {
         <div className="command-footer"><span>Navigate between rooms</span><span>⌘ 1 — 4</span></div>
       </motion.section></motion.div>}</AnimatePresence>
       <motion.nav className="atlas-command-dock" layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }} aria-label="Atlas command dock">
-        <button type="button" className="atlas-dock-action" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={15}/><span>Command</span><kbd>⌘ K</kbd></button>
-        <button type="button" className="atlas-dock-action" onClick={() => { setCommandOpen(true); setCommandQuery('add a task'); }}><Plus size={15}/><span>Quick Capture</span></button>
+        <motion.button type="button" whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className="atlas-dock-action" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={15}/><span>Command</span><kbd>⌘ K</kbd></motion.button>
+        <motion.button type="button" whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className="atlas-dock-action" onClick={() => { setCommandOpen(true); setCommandQuery('add a task'); }}><Plus size={15}/><span>Quick Capture</span></motion.button>
         <motion.div className={'atlas-dock-focus ' + (focusSessionVisible ? 'is-expanded' : '')} layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }}>
-          <button type="button" className="atlas-dock-action atlas-dock-focus__open" onClick={() => navigate('/focus')}><Timer size={15}/><span>Focus Timer</span>{focusSessionVisible && <strong>{focusClock}</strong>}</button>
-          {focusSessionVisible && <motion.div className="atlas-dock-focus__detail" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.18 }}><span title={focusContext}>{focusContext}</span><button type="button" onClick={toggleTimer} aria-label={focusActive ? 'Pause focus timer' : 'Resume focus timer'}>{focusActive ? <Pause size={13}/> : <Play size={13}/>}<small>{focusActive ? 'Pause' : 'Resume'}</small></button></motion.div>}
+          <motion.button type="button" whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className="atlas-dock-action atlas-dock-focus__open" onClick={() => navigate('/focus')}><Timer size={15}/><span>Focus Timer</span>{focusSessionVisible && <strong>{focusClock}</strong>}</motion.button>
+          {focusSessionVisible && <motion.div className="atlas-dock-focus__detail" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.18 }}><span title={focusContext}>{focusContext}</span><motion.button type="button" whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} onClick={toggleTimer} aria-label={focusActive ? 'Pause focus timer' : 'Resume focus timer'}>{focusActive ? <Pause size={13}/> : <Play size={13}/>}<small>{focusActive ? 'Pause' : 'Resume'}</small></motion.button></motion.div>}
         </motion.div>
-        <button type="button" className="atlas-dock-action" onClick={() => { navigate('/today'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></button>
+        <motion.button type="button" whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className="atlas-dock-action" onClick={() => { navigate('/today'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></motion.button>
       </motion.nav>
       <footer className="app-footer"><span>AMSTREEM ATLAS</span><span>Make room for what matters.</span></footer>
     </main>
