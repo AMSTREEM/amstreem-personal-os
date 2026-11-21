@@ -88,7 +88,7 @@ test('FocusWorkspace uses one shared timer store and owns the focus-session work
   const timerStore = read('client/src/lib/focusTimerStore.ts');
   assert.match(workspace, /useFocusTimer/);
   assert.match(workspace, /updateFocusTimer/);
-  assert.match(workspace, /deadline - now/);
+  assert.match(workspace, /timer.deadline-now/);
   assert.match(workspace, /function pause\(/);
   assert.match(workspace, /function reset\(/);
   assert.match(workspace, /lesson_id:timer.lessonId/);
