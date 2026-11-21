@@ -26,6 +26,10 @@ export function GoalsPage() {
     mutationFn: () => api<Goal>('/goals', json('POST', { title, detail, target_date: targetDate || null, category })),
     onSuccess: () => { setTitle(''); setDetail(''); setTargetDate(''); setCategory('Personal'); void client.invalidateQueries({ queryKey: ['goals'] }); }
   });
+  const toggleMilestone = useMutation({
+    mutationFn: ({id,completed}:{id:number;completed:boolean}) => api('/project-milestones/'+id,json('PATCH',{completed})),
+    onSuccess: () => { void client.invalidateQueries({queryKey:['projects']}); void client.invalidateQueries({queryKey:['goals']}); void client.invalidateQueries({queryKey:['overview']}); }
+  });
   const workByGoal = useMemo(() => {
     return new Map((goals.data || []).map(goal => {
       const linkedProjects = (projects.data || []).filter(project => project.goal_id === goal.id);
@@ -71,7 +75,7 @@ export function GoalsPage() {
           <div className="goal-progress-track"><span style={{width:(work?.progress ?? 0)+'%'}}/></div>
           {work?.projects.length || work?.tasks.length || work?.paths.length ? <div className="goal-linked-list">
             {work.projects.slice(0,2).map(project => <div key={'p'+project.id}><FolderKanban size={13}/><span>{project.title}</span><small>{project.status}</small></div>)}
-            {work.projects.flatMap(project=>project.milestones.map(milestone=><div key={'m'+milestone.id}><CheckCircle2 size={13}/><span>{milestone.title}</span><small>{milestone.completed?'Done':'Milestone'}</small></div>)).slice(0,4)}
+            {work.projects.flatMap(project=>project.milestones.map(milestone=><label className="room4-goal-milestone" key={'m'+milestone.id}><input type="checkbox" checked={!!milestone.completed} disabled={toggleMilestone.isPending} onChange={event=>toggleMilestone.mutate({id:milestone.id,completed:event.target.checked})}/><span>{milestone.title}</span><small>{milestone.completed?'Done':'Milestone'}</small></label>)).slice(0,6)}
             {work.tasks.filter(task => !task.done).slice(0,2).map(task => <div key={'t'+task.id}><ListChecks size={13}/><span>{task.title}</span><small>{task.due_date || 'Open'}</small></div>)}
             {work.paths.slice(0,2).map(path => <div key={'l'+path.id}><BookOpen size={13}/><span>{path.title}</span><small>{path.lessons.filter(lesson=>lesson.status==='Completed').length}/{path.lessons.length} lessons</small></div>)}
           </div> : <p className="goal-no-work">Give this goal a first step by connecting a project or task.</p>}
