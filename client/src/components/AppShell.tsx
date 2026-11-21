@@ -16,8 +16,8 @@ const rooms = [
 
 const commandDestinations = [
   { label: 'Insights', detail: 'Review patterns from your activity', to: '/insights', icon: Zap },
-  { label: 'Faith / Deen / Clarity', detail: 'Open your personal daily practice', to: '/values', icon: MoonStar },
-  { label: 'Self-Control', detail: 'Review commitments and recovery', to: '/self-control', icon: Heart },
+  { label: 'Daily Rhythm', detail: 'Open your tradition-specific daily practice', to: '/values', icon: MoonStar },
+  { label: 'Self-Control & Streaks', detail: 'Review routines, check-ins and recovery', to: '/self-control', icon: Heart },
   { label: 'Habits & Streaks', detail: 'Review your daily habits', to: '/rituals', icon: Heart },
   { label: 'Projects', detail: 'Move a project forward', to: '/projects', icon: Compass },
   { label: 'Tasks', detail: 'Review and complete tasks', to: '/tasks', icon: Zap },
@@ -124,10 +124,10 @@ export function AppShell() {
   if (storedFeatures) { try { enabledFeatures = JSON.parse(storedFeatures).map((feature: string) => feature === 'values' ? 'deen' : feature); } catch { enabledFeatures = null; } }
   // The six core pillars are always available; preferences only control secondary views.
   const current = rooms.find(item => item.paths.includes(location.pathname));
-  const faithTabLabel = quickReligion === 'islam' ? 'Deen & Clarity' : quickReligion === 'christianity' ? 'Faith & Clarity' : 'Daily Clarity';
+  const faithTabLabel = quickReligion === 'islam' ? 'Deen & Reflection' : quickReligion === 'christianity' ? 'Faith & Devotion' : 'Clarity & Reflection';
   const tabsByRoom = {
     residence: [{ label: 'Overview', to: '/today' }, { label: 'Insights', to: '/insights' }],
-    rhythm: [{ label: faithTabLabel, to: '/values' }, { label: 'Self-Control', to: '/self-control' }, { label: 'Habits & Streaks', to: '/rituals' }],
+    rhythm: [{ label: faithTabLabel, to: '/values' }, { label: 'Self-Control & Streaks', to: '/self-control' }, { label: 'Habits & Streaks', to: '/rituals' }],
     execution: [{ label: 'Projects', to: '/projects' }, { label: 'Tasks', to: '/tasks' }, { label: 'Focus Room', to: '/focus' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
     growth: [{ label: 'Learning Studio', to: '/learning' }, { label: 'Private Library', to: '/library', feature: 'library' }, { label: 'Goals', to: '/goals' }, { label: 'Reviews', to: '/reviews' }]
   };
