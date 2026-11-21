@@ -47,7 +47,7 @@ export function CalendarPage() {
   }
   function chooseDate(date: string) { setSelectedDate(date); setStartAt(date + 'T09:00'); }
 
-  return <div className="stack">
+  return <Cascade className="stack">
     <PageHeader eyebrow="PLAN / TIME" title="Calendar" description="See your commitments alongside the activity you record. Select a day to schedule something." />
     <Card>
       <div className="calendar-head"><Button variant="ghost" onClick={() => changeMonth(-1)} aria-label="Previous month"><ChevronLeft size={18} /></Button><h2>{first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</h2><Button variant="ghost" onClick={() => changeMonth(1)} aria-label="Next month"><ChevronRight size={18} /></Button></div>
@@ -77,5 +77,5 @@ export function CalendarPage() {
       </Card>
     </div>
     <div className="stat-grid stat-grid--four">{Object.entries(data.data?.streaks || {}).map(([name, value]) => <div className="stat-card" key={name}><div className="stat-card__top">{name.toUpperCase()}</div><strong>{value.current}</strong><small>Current days · best {value.best}</small></div>)}</div>
-  </div>;
+  </Cascade>;
 }
