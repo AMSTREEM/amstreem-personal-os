@@ -76,7 +76,7 @@ const workspaceTables = [
   'tasks','modules','learning_paths','learning_lessons','learning_resources',
   'learning_study_logs','sessions','notes','settings','goals','habits','habit_logs',
   'prayer_logs','quran_logs','tahajjud_logs','faith_logs','self_control_logs',
-  'self_control_trackers','self_control_entries','email_events','login_events','xp_events','achievement_unlocks','weekly_challenges','feedback_logs'
+  'self_control_trackers','self_control_entries','reviews','email_events','login_events','xp_events','achievement_unlocks','weekly_challenges','feedback_logs'
 ];
 function currentDb() {
   const context = tenantContext.getStore();
@@ -114,7 +114,7 @@ function createWorkspaceDatabase(snapshot) {
     workspaceDb.exec(schemaSql);
   if (snapshot?.format === 'personal-os-sqlite-snapshot-v1' && snapshot.tables && typeof snapshot.tables === 'object') {
     for (const table of workspaceTables) {
-      if (!Array.isArray(snapshot.tables[table]) && !['faith_logs','login_events','xp_events','achievement_unlocks','weekly_challenges','feedback_logs'].includes(table)) {
+      if (!Array.isArray(snapshot.tables[table]) && !['faith_logs','login_events','xp_events','achievement_unlocks','weekly_challenges','feedback_logs','reviews'].includes(table)) {
         throw new Error(`Saved workspace is missing its ${table} section. No data was changed.`);
       }
     }
@@ -265,6 +265,7 @@ CREATE TABLE IF NOT EXISTS learning_resources (id INTEGER PRIMARY KEY AUTOINCREM
 CREATE TABLE IF NOT EXISTS learning_study_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, lesson_id INTEGER NOT NULL, log_date TEXT NOT NULL, minutes INTEGER NOT NULL, reflection TEXT DEFAULT '', created_at TEXT DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(lesson_id) REFERENCES learning_lessons(id) ON DELETE CASCADE);
 CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, session_date TEXT NOT NULL, minutes INTEGER NOT NULL, focus TEXT NOT NULL, reflection TEXT DEFAULT '', created_at TEXT DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, body TEXT DEFAULT '', updated_at TEXT DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS reviews (id INTEGER PRIMARY KEY AUTOINCREMENT, period_type TEXT NOT NULL CHECK(period_type IN ('daily','weekly')), period_start TEXT NOT NULL, period_end TEXT NOT NULL, wins TEXT DEFAULT '', challenges TEXT DEFAULT '', lessons TEXT DEFAULT '', next_focus TEXT DEFAULT '', created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP, UNIQUE(period_type,period_start));
 CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS goals (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, detail TEXT DEFAULT '', target_date TEXT, status TEXT DEFAULT 'active', created_at TEXT DEFAULT CURRENT_TIMESTAMP);
 CREATE TABLE IF NOT EXISTS habits (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, emoji TEXT DEFAULT '✦', sort_order INTEGER DEFAULT 0, active INTEGER DEFAULT 1);
@@ -645,6 +646,8 @@ app.post('/api/self-control/:id/checkin',(q,s)=>{
 });
 app.delete('/api/self-control/:id',(q,s)=>{const r=db.prepare('DELETE FROM self_control_trackers WHERE id=?').run(q.params.id);if(!r.changes)return s.status(404).json({error:'Habit not found.'});s.json({ok:true});});
 app.delete('/api/self-control/entries/:id',(q,s)=>{db.prepare('DELETE FROM self_control_entries WHERE id=?').run(q.params.id);s.json({ok:true});});
+app.get('/api/reviews',(q,s)=>{const period=String(q.query.period||'');if(period&&!['daily','weekly'].includes(period))return s.status(400).json({error:'Choose a daily or weekly review.'});const rows=period?all('SELECT * FROM reviews WHERE period_type=? ORDER BY period_start DESC LIMIT 30',period):all('SELECT * FROM reviews ORDER BY period_start DESC LIMIT 30');s.json(rows);});
+app.post('/api/reviews',(q,s)=>{const {period_type,period_start,period_end,wins='',challenges='',lessons='',next_focus=''}=q.body||{};if(!['daily','weekly'].includes(period_type)||!/^\\d{4}-\\d{2}-\\d{2}$/.test(period_start||'')||!/^\\d{4}-\\d{2}-\\d{2}$/.test(period_end||''))return s.status(400).json({error:'Choose a valid review period.'});const values=[String(wins).slice(0,5000),String(challenges).slice(0,5000),String(lessons).slice(0,5000),String(next_focus).slice(0,5000)];db.prepare('INSERT INTO reviews(period_type,period_start,period_end,wins,challenges,lessons,next_focus) VALUES(?,?,?,?,?,?,?) ON CONFLICT(period_type,period_start) DO UPDATE SET period_end=excluded.period_end,wins=excluded.wins,challenges=excluded.challenges,lessons=excluded.lessons,next_focus=excluded.next_focus,updated_at=CURRENT_TIMESTAMP').run(period_type,period_start,period_end,...values);s.json(one('SELECT * FROM reviews WHERE period_type=? AND period_start=?',period_type,period_start));});
 app.get('/api/settings',(q,s)=>s.json(Object.fromEntries(all('SELECT key,value FROM settings').map(x=>[x.key,x.value]))));
 app.patch('/api/settings',(q,s)=>{
  const allowed=['daily_target','display_name','username','north_star','religion','leaderboard_name','leaderboard_public','theme','features','widgets','sidebar_collapsed'];
