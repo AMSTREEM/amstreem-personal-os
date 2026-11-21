@@ -1002,3 +1002,16 @@ body { letter-spacing: -.006em; }
 .goal-linked-list small { flex:none; font-size:8px; }
 .goal-no-work { margin:0; color:var(--muted); font-size:9px; line-height:1.5; }
 .goal-link-actions { display:flex; gap:15px; padding-top:8px; border-top:1px solid var(--line-soft); }
+
+
+/* Goal links inside the habit tracker */
+.rituals-add--linked { display:grid; grid-template-columns:minmax(0,1fr) minmax(170px,.7fr) auto; align-items:end; gap:10px; }
+.rituals-habit-copy { display:grid; flex:1; gap:2px; min-width:0; }
+.rituals-habit-copy b { font-size:10px; font-weight:600; }
+.rituals-habit-copy small { color:var(--muted); font-size:8px; }
+.rituals-goal-select { width:120px; min-width:0; min-height:29px; padding:4px 7px; font-size:8px; }
+.today-habit-copy { display:grid; flex:1; gap:2px; min-width:0; }
+.today-habit-copy>small { color:var(--muted); font-size:8px; }
+.today-habit-title { flex:none; }
+@media(max-width:760px) { .rituals-add--linked { grid-template-columns:1fr; } }
+@media(max-width:560px) { .rituals-goal-select { width:96px; } }
