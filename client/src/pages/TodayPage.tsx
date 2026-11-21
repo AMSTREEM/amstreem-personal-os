@@ -15,6 +15,7 @@ type Faith = { activity: string; completed: number };
 type Goal = { id: number; title: string; target_date: string | null; status: string };
 type Announcement = { id: number; title: string; body: string; kind: string; created_at: string; published_at: string | null };
 type AnnouncementFeed = { items: Announcement[]; readIds: number[] };
+type CalendarSummary = { streaks: Record<string, { current: number; best: number }> };
 type Insight = { recommendation: { title: string; detail: string; reason: string; action: string; destination: string; priority: string }; pattern: string; rhythm: string | null };
 type StoredTimer = { remaining: number; deadline: number | null; taskId?: string; lessonId?: string; projectId?: string };
 const TIMER_KEY = 'atlas-focus-timer-v1';
@@ -54,6 +55,7 @@ export function TodayPage() {
   const faith = useQuery({ queryKey: ['faith', today], queryFn: () => api<Faith[]>('/faith?date=' + today), enabled: religion === 'christianity' });
   const learning = useQuery({ queryKey: ['learning-paths'], queryFn: () => api<{ id: number; title: string; lessons: { id: number; title: string }[] }[]>('/learning/paths'), enabled: !!timer.lessonId });
   const goals = useQuery({ queryKey: ['goals'], queryFn: () => api<Goal[]>('/goals') });
+  const calendarSummary = useQuery({ queryKey: ['calendar-summary', today.slice(0, 7)], queryFn: () => api<CalendarSummary>('/calendar?month=' + today.slice(0, 7)) });
   const insight = useQuery({ queryKey: ['intelligence'], queryFn: () => api<Insight>('/intelligence') });
   const announcements = useQuery({ queryKey: ['announcements'], queryFn: () => api<AnnouncementFeed>('/announcements') });
 
@@ -81,6 +83,7 @@ export function TodayPage() {
 
   const habitList = habits.data || [];
   const completedHabits = habitList.filter(habit => habit.done).length;
+  const habitStreak = calendarSummary.data?.streaks.habits.current ?? 0;
   const openTasks = (tasks.data || []).filter(task => !task.done).sort((a, b) => {
     if (!a.due_date && !b.due_date) return a.id - b.id;
     if (!a.due_date) return 1;
@@ -146,7 +149,7 @@ export function TodayPage() {
       <Card className="residence-stat"><span className="eyebrow">FOCUS TODAY</span><strong>{formatMinutes(overview.data?.todayMin ?? 0)}</strong><small>{focusPercent}% of your {target}m intention</small></Card>
       <Card className="residence-stat"><span className="eyebrow">OPEN PRIORITIES</span><strong>{openTasks.length}</strong><small>{todayTasks.filter(task => !task.done).length} due today</small></Card>
       <Card className="residence-stat"><span className="eyebrow">HABITS COMPLETED</span><strong>{completedHabits}<small> / {habitList.length}</small></strong><small>Today's chosen habits</small></Card>
-      <Card className="residence-stat"><span className="eyebrow">FOCUS STREAK</span><strong><Flame size={18}/>{overview.data?.streak ?? 0}</strong><small>Days with recorded focus</small></Card>
+      <Card className="residence-stat"><span className="eyebrow">HABIT STREAK</span><strong><Flame size={18}/>{habitStreak}</strong><small>Consecutive days with habit activity</small></Card>
     </div>
 
     <div className="residence-grid">
@@ -192,7 +195,7 @@ export function TodayPage() {
           <div className="residence-section-heading"><div><span className="eyebrow">FOCUS ROOM</span><h2>{focusRunning ? 'Session in progress' : 'Protect your attention'}</h2></div><Timer size={17}/></div>
           {focusRunning ? <div className="residence-active-timer"><strong>{timerText}</strong><span>{activeFocusContext}</span></div> : <p className="residence-focus-copy">You've invested {formatMinutes(overview.data?.todayMin ?? 0)} in focused work today.</p>}
           <Link className="button button--secondary residence-focus-link" to="/focus">{focusRunning ? 'Return to focus room' : 'Start a focus session'} <ArrowRight size={14}/></Link>
-          <div className="residence-week-focus"><span>This week</span><b>{formatMinutes(overview.data?.weekMin ?? 0)}</b></div>
+          <div className="residence-week-focus"><span>Focus streak</span><b>{overview.data?.streak ?? 0} days</b></div><div className="residence-week-focus"><span>This week</span><b>{formatMinutes(overview.data?.weekMin ?? 0)}</b></div>
         </Card>
 
         <Card className="residence-next-card">
