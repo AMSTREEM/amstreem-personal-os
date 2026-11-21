@@ -9,10 +9,11 @@ const server = read('server.js');
 const backup = read('workspace-backup.js');
 const app = read('client/src/App.tsx');
 
-test('existing v1 workspace snapshots remain readable and new writes use v2', () => {
+test('existing v1/v2 workspace snapshots remain readable and new writes use v3', () => {
   assert.match(server, /personal-os-sqlite-snapshot-v1/);
   assert.match(server, /personal-os-sqlite-snapshot-v2/);
-  assert.match(server, /schemaVersion:\s*2/);
+  assert.match(server, /personal-os-sqlite-snapshot-v3/);
+  assert.match(server, /schemaVersion:\s*3/);
 });
 
 test('new workspace tables are created, serialized, and backward-compatible', () => {
@@ -34,7 +35,26 @@ test('project, task, calendar, focus and review records can be linked', () => {
   assert.match(server, /app\.post\('\/api\/projects'/);
   assert.match(server, /app\.post\('\/api\/calendar\/events'/);
   assert.match(server, /app\.post\('\/api\/reviews'/);
-  assert.match(server, /INSERT INTO sessions\(session_date,minutes,focus,reflection,task_id,project_id\)/);
+  assert.match(server, /goal_id INTEGER REFERENCES goals\(id\) ON DELETE SET NULL\);/);
+  assert.match(server, /app\.patch\('\/api\/habits\/:id'/);
+  assert.match(server, /Number\.isInteger\(goalId\)/);
+  assert.match(server, /lesson_id INTEGER REFERENCES learning_lessons\(id\)/);
+  assert.match(server, /INSERT INTO sessions\(session_date,minutes,focus,reflection,task_id,project_id,lesson_id\)/);
+  assert.match(server, /ll\.title AS lesson_title/);
+  assert.match(server, /Link a focus session to either a task or a learning lesson/);
+  assert.match(server, /SUM\(minutes\) FROM sessions WHERE lesson_id=\?/);
+  assert.match(server, /'focus' AS source/);
+  assert.match(server, /study_minutes:studyMinutes/);
+});
+
+test('the six core pillars stay visible while secondary tabs remain optional', () => {
+  const shell = read('client/src/components/AppShell.tsx');
+  const settings = read('client/src/pages/SettingsPage.tsx');
+  assert.match(shell, /const visibleNavigation = navigation/);
+  assert.match(shell, /feature: 'calendar'/);
+  assert.match(shell, /feature: 'library'/);
+  assert.match(settings, /Your six core pillars always stay available/);
+  assert.match(settings, /Optional workspace views/);
 });
 
 test('new frontend routes cover the core personal operating system areas', () => {
@@ -66,8 +86,40 @@ test('Focus timer survives refreshes and does not fabricate completed sessions',
   assert.match(focus, /Timer completion does not create a record automatically/);
   assert.match(focus, /function pauseTimer/);
   assert.match(focus, /function resetTimer/);
+  assert.match(focus, /Choose what this focus block will move forward/);
+  assert.match(focus, /lesson_id: lessonId/);
+  assert.match(focus, /learning-study-logs/);
+  assert.match(read('client/src/pages/LearningPage.tsx'), /\/focus\?lesson=/);
 });
 
+
+
+
+test('Residence derives a daily consistency pulse from active life areas', () => {
+  const residence = read('client/src/pages/TodayPage.tsx');
+  assert.match(residence, /TODAY'S CONSISTENCY PULSE/);
+  assert.match(residence, /api<Deen>\('\/deen\/summary/);
+  assert.match(residence, /api<Faith\[]>\('\/faith/);
+  assert.match(residence, /scoreDimensions/);
+  assert.match(residence, /atlas-focus-timer-v1/);
+  assert.match(residence, /activeFocusContext/);
+  assert.match(residence, /showCalendar/);
+  assert.match(residence, /calendar-summary/);
+  assert.match(residence, /HABIT STREAK/);
+  assert.match(residence, /Focus streak/);
+  assert.match(residence, /api<SelfControlSummary>\('\/self-control\?date=/);
+  assert.match(residence, /Your commitments/);
+  assert.match(residence, /api<AnnouncementFeed>\('\/announcements'/);
+  assert.match(residence, /markAnnouncementRead/);
+});
+
+test('Goals expose linked projects, tasks and daily habits', () => {
+  const goals = read('client/src/pages/GoalsPage.tsx');
+  assert.match(goals, /api<Project\[]>\('\/projects'/);
+  assert.match(goals, /api<Task\[]>\('\/tasks'/);
+  assert.match(goals, /api<Habit\[]>\('\/habits'/);
+  assert.match(goals, /linkedHabits/);
+});
 
 test('Habit tracker exposes a seven-day completion history', () => {
   const rituals = read('client/src/pages/RitualsPage.tsx');

@@ -39,7 +39,7 @@ export function SelfControlPage() {
   const totalTrackers = data.data?.summary.length ?? 0;
   const cleanToday = data.data?.summary.filter(item => item.today?.outcome === 'clean').length ?? 0;
   return <div className="stack self-control-page">
-    <PageHeader eyebrow="PERSONAL DEVELOPMENT / PRIVATE" title="Choose your freedom." description="Build your own private list of habits you want to leave behind. Name each one, track clean days, and record a reset without judgement." action={<Button onClick={() => setShowCreate(true)}><Plus size={15}/> Add a habit</Button>}/>
+    <PageHeader eyebrow="PERSONAL DEVELOPMENT / PRIVATE" title="Self-Control & Streaks" description="A private space for the commitments you choose to keep or leave behind. Track progress honestly, without turning a difficult day into a verdict." action={<Button onClick={() => setShowCreate(true)}><Plus size={15}/> Add a habit</Button>}/>
     <div className="self-control-note surface-card"><span className="self-note-mark"><ShieldCheck size={19}/></span><div><strong>Progress is not perfection.</strong><p>A difficult day does not erase your effort. If you slip, record it honestly, notice what led to it, and begin again without punishing yourself.</p></div><div className="self-note-stats"><span><b>{totalTrackers}</b><small>TRACKERS</small></span><span><b>{cleanToday}</b><small>CLEAN TODAY</small></span></div></div>
     <div className="self-control-section-head"><div><span className="module-kicker">YOUR PERSONAL COMMITMENTS</span><h2>Habits you're leaving behind.</h2></div><span className="module-count">{totalTrackers} TRACKERS</span></div>
     <div className="tracker-grid">

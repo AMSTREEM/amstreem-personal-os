@@ -904,3 +904,124 @@ body { letter-spacing: -.006em; }
   .rituals-row { gap:6px; }
   .rituals-row>b { min-width:48px; }
 }
+
+
+/* Six-pillar module navigation */
+.module-subnav { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin: -12px 0 28px; padding-bottom: 13px; border-bottom: 1px solid var(--line-soft); }
+.module-subnav__link { display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border: 1px solid transparent; border-radius: 8px; color: var(--muted); font-size: 11px; transition: color .15s, background .15s, border-color .15s; }
+.module-subnav__link:hover { color: var(--text); background: rgba(255,255,255,.035); }
+.module-subnav__link--active { color: var(--accent-strong); background: var(--accent-wash); border-color: rgba(197,168,120,.15); }
+
+
+/* Residence — connected daily command centre */
+.residence-pulse { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(280px,1fr); gap:22px; padding:18px; border:1px solid var(--line); border-radius:12px; background:linear-gradient(125deg,var(--surface),var(--surface-raised, var(--surface))); }
+.residence-pulse__main { display:flex; flex-direction:column; min-width:0; }
+.residence-pulse__heading { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.residence-pulse__date { color:var(--muted); font-size:9px; font-variant-numeric:tabular-nums; }
+.residence-pulse__score { display:flex; align-items:baseline; gap:11px; margin:10px 0 9px; font:650 clamp(34px,4vw,48px) Manrope,sans-serif; letter-spacing:-.07em; }
+.residence-pulse__score span { color:var(--muted); font:450 10px Inter,sans-serif; letter-spacing:0; }
+.residence-pulse__track,.residence-dimension i { display:block; height:6px; overflow:hidden; border-radius:99px; background:var(--line); }
+.residence-pulse__track>span,.residence-dimension i>span { display:block; height:100%; border-radius:inherit; background:var(--accent); transition:width .2s ease; }
+.residence-pulse__main>p { max-width:540px; margin:10px 0 0; color:var(--muted); font-size:10px; line-height:1.55; }
+.residence-pulse__dimensions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 16px; align-content:center; }
+.residence-dimension { display:grid; grid-template-columns:1fr auto; align-items:baseline; gap:3px 8px; min-width:0; }
+.residence-dimension>span { color:var(--muted); font-size:9px; text-transform:uppercase; letter-spacing:.08em; }
+.residence-dimension>b { font:600 14px Manrope,sans-serif; font-variant-numeric:tabular-nums; }
+.residence-dimension>small { grid-column:1/-1; color:var(--subtle); font-size:9px; }
+.residence-dimension>i { grid-column:1/-1; height:4px; margin-top:3px; }
+.residence-dimension--empty { grid-column:1/-1; }
+.residence-dimension--empty>b { font-size:18px; }
+.residence-stat-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; }
+.residence-stat { display:grid; gap:5px; padding:12px 14px; }
+.residence-stat>strong { display:flex; align-items:center; gap:6px; font:650 23px Manrope,sans-serif; letter-spacing:-.05em; font-variant-numeric:tabular-nums; }
+.residence-stat>strong small { color:var(--muted); font-size:12px; font-weight:500; }
+.residence-stat>strong svg { color:var(--accent); }
+.residence-stat>small { color:var(--muted); font-size:9px; }
+.residence-grid { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(240px,.8fr); gap:10px; align-items:start; }
+.residence-main-column,.residence-side-column { display:grid; gap:10px; min-width:0; }
+.residence-faith-card,.residence-focus-card,.residence-next-card,.residence-goals-card { padding:14px; }
+.residence-section-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px; }
+.residence-section-heading h2 { margin:4px 0 2px; font:600 15px Manrope,sans-serif; letter-spacing:-.035em; }
+.residence-section-heading p { margin:0; color:var(--muted); font-size:10px; }
+.residence-section-heading>svg { flex:none; color:var(--muted); }
+.residence-prayer-list { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:7px; }
+.residence-prayer { display:grid; gap:6px; min-width:0; padding:9px; border:1px solid var(--line-soft); border-radius:8px; cursor:pointer; }
+.residence-prayer input { width:15px; height:15px; accent-color:var(--accent); }
+.residence-prayer>span { font-size:10px; font-weight:600; }
+.residence-prayer>small { color:var(--muted); font-size:8px; }
+.residence-prayer.is-complete { border-color:var(--line); background:var(--surface-raised,var(--surface)); }
+.residence-prayer.is-complete>small { color:var(--success); }
+.residence-faith-footer { display:flex; align-items:center; gap:7px; margin-top:11px; padding-top:10px; border-top:1px solid var(--line-soft); color:var(--muted); font-size:9px; }
+.residence-faith-footer svg { color:var(--accent); }
+.residence-faith-footer a { margin-left:auto; color:var(--accent-strong); }
+.residence-faith-card--optional { display:flex; flex-direction:column; gap:8px; }
+.residence-focus-card { display:grid; gap:8px; }
+.residence-active-timer { display:grid; gap:2px; }
+.residence-active-timer strong { font:650 32px Manrope,sans-serif; letter-spacing:-.06em; font-variant-numeric:tabular-nums; }
+.residence-active-timer span,.residence-focus-copy { color:var(--muted); font-size:10px; line-height:1.5; }
+.residence-focus-link { justify-content:space-between; width:100%; }
+.residence-week-focus { display:flex; justify-content:space-between; padding-top:9px; border-top:1px solid var(--line-soft); color:var(--muted); font-size:9px; }
+.residence-week-focus b { color:var(--text); font-weight:600; }
+.residence-goal-list { display:grid; }
+.residence-goal { display:flex; align-items:flex-start; gap:9px; padding:9px 0; border-top:1px solid var(--line-soft); }
+.residence-goal>svg { flex:none; margin-top:2px; color:var(--accent); }
+.residence-goal>div { display:grid; gap:3px; min-width:0; }
+.residence-goal b { font-size:10px; font-weight:600; }
+.residence-goal small { color:var(--muted); font-size:9px; }
+@media(max-width:900px) {
+  .residence-pulse { grid-template-columns:1fr; }
+  .residence-stat-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .residence-grid { grid-template-columns:1fr; }
+}
+@media(max-width:560px) {
+  .residence-pulse { padding:13px; gap:15px; }
+  .residence-pulse__dimensions { gap:10px; }
+  .residence-prayer-list { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .residence-stat { padding:10px; }
+  .residence-stat>strong { font-size:20px; }
+  .residence-faith-footer { flex-wrap:wrap; }
+  .residence-faith-footer a { width:100%; margin-left:21px; }
+}
+
+
+/* Goals — show how long-term direction connects to real work */
+.goal-card--connected { display:flex; flex-direction:column; gap:9px; }
+.goal-work-summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:7px; padding:10px 0; border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft); }
+.goal-work-summary>div { display:grid; grid-template-columns:15px auto; align-items:center; gap:2px 5px; min-width:0; }
+.goal-work-summary svg { grid-row:span 2; color:var(--accent); }
+.goal-work-summary b { font:600 13px Manrope,sans-serif; }
+.goal-work-summary small { color:var(--muted); font-size:8px; }
+.goal-progress-copy { display:flex; justify-content:space-between; color:var(--muted); font-size:9px; }
+.goal-progress-copy b { color:var(--text); font-weight:600; }
+.goal-progress-track { height:5px; overflow:hidden; border-radius:99px; background:var(--line); }
+.goal-progress-track>span { display:block; height:100%; border-radius:inherit; background:var(--accent); transition:width .2s ease; }
+.goal-linked-list { display:grid; gap:6px; }
+.goal-linked-list>div { display:flex; align-items:center; gap:7px; min-width:0; color:var(--muted); font-size:9px; }
+.goal-linked-list svg { flex:none; color:var(--accent); }
+.goal-linked-list span { overflow:hidden; flex:1; color:var(--text); text-overflow:ellipsis; white-space:nowrap; }
+.goal-linked-list small { flex:none; font-size:8px; }
+.goal-no-work { margin:0; color:var(--muted); font-size:9px; line-height:1.5; }
+.goal-link-actions { display:flex; gap:15px; padding-top:8px; border-top:1px solid var(--line-soft); }
+
+
+/* Goal links inside the habit tracker */
+.rituals-add--linked { display:grid; grid-template-columns:minmax(0,1fr) minmax(170px,.7fr) auto; align-items:end; gap:10px; }
+.rituals-habit-copy { display:grid; flex:1; gap:2px; min-width:0; }
+.rituals-habit-copy b { font-size:10px; font-weight:600; }
+.rituals-habit-copy small { color:var(--muted); font-size:8px; }
+.rituals-goal-select { width:120px; min-width:0; min-height:29px; padding:4px 7px; font-size:8px; }
+.today-habit-copy { display:grid; flex:1; gap:2px; min-width:0; }
+.today-habit-copy>small { color:var(--muted); font-size:8px; }
+.today-habit-title { flex:none; }
+@media(max-width:760px) { .rituals-add--linked { grid-template-columns:1fr; } }
+@media(max-width:560px) { .rituals-goal-select { width:96px; } }
+
+@media(max-width:560px) { .goal-work-summary { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
+
+/* Focus Room — link intention before the timer starts */
+.focus-link-fields { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:2px 0 14px; }
+.focus-link-fields .field { min-width:0; }
+.focus-link-fields .field-label { font-size:9px; }
+.focus-link-fields .field-input { min-width:0; }
+@media(max-width:760px) { .focus-link-fields { grid-template-columns:1fr; gap:7px; } }

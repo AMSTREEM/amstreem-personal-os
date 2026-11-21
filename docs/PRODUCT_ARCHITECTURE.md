@@ -1,124 +1,109 @@
-# Amstreem Atlas Next — Product and Architecture
+# Amstreem Atlas — Product & Architecture
 
 ## Product definition
 
-Amstreem Atlas is a personal operating system: a private environment that helps a person turn what matters into a direction, translate that direction into commitments, do the work, see what is changing, and adjust deliberately.
+Amstreem Atlas is a **Personal Consistency Operating System**: a private, multi-user environment that helps people organise the important areas of their lives, turn long-term direction into daily action, and understand their progress from real records.
 
-It is not a generic task manager, team project-management suite, habit-streak game, or analytics dashboard.
+Atlas is not a generic to-do list, a team project-management suite, a habit-streak game, or a collection of disconnected mini-apps.
 
-**Core loop:** Direction → Commitments → Action → Evidence → Reflection → Adjustment.
+**Core loop:** Direction → Commitments → Daily execution → Evidence → Reflection → Adjustment.
 
-## Product experience
+## Navigation architecture
 
-### Primary navigation
+The six life pillars are distinct, equally important modules. They remain visible in the primary navigation. Optional secondary views may be enabled or hidden, but core pillars are never removed by a feature toggle.
 
-1. **Today** — the command centre: today's priorities, calendar commitments, a clear next action, rituals, and a concise view of current momentum.
-2. **Plan**
-   - **Goals** — meaningful outcomes and target horizons.
-   - **Projects** — finite bodies of work that move goals forward.
-   - **Tasks** — concrete next actions, with ownership and due dates.
-   - **Calendar** — time commitments and time blocks.
-3. **Practice**
-   - **Focus** — intentional work sessions, optionally linked to a task, project, or learning lesson.
-   - **Rituals** — user-defined recurring practices, without punitive streak mechanics.
-   - **Learning** — learning paths, lessons, resources, study sessions, and checkpoints.
-4. **Reflect**
-   - **Reviews** — daily and weekly reflection grounded in actual activity.
-   - **Insights** — transparent patterns and recommendations derived from workspace records.
-5. **Library** — notes, references, saved resources, and knowledge connected to goals, projects, and learning.
-6. **Values** — optional personal values and faith-related practices. This area is user-controlled and never forced into the default workflow.
-7. **Settings** — profile, preferences, appearance, privacy, export/import, and account controls.
+### Command & Daily Rhythm
 
-Owner administration remains a separate privileged area and must never appear as an ordinary personal workspace feature. Public rankings, XP, and reward mechanics should not drive the core experience; retain only useful, privacy-respecting milestones if they add genuine value.
+- **Residence** — the central command view, not a seventh life pillar. It brings together today's Salah/faith record when enabled, current focus timer, top priorities, daily habits, active goals, streak status, and the consistency pulse.
+- **Deen & Reflection** — daily Salah, Qur'an memorisation and revision, optional night worship, spiritual reflection, and daily/weekly reviews. The module remains visible; faith-specific tracking is user-controlled and optional.
+- **Self-Control & Streaks** — private commitments, self-control check-ins, daily habits, discipline records, and seven-day/monthly consistency history. The experience must never punish, shame, or coerce users.
 
-## Shared data relationships
+### Growth & Execution
 
-- A goal can contain multiple projects.
-- A project can contain tasks and milestones.
-- A task may be scheduled on the calendar and linked to a focus session.
-- A focus session may be linked to a task, project, or learning lesson.
-- A learning path contains ordered lessons; lessons can contain resources, notes, and study activity.
-- Ritual check-ins are recorded once and reused by Today, Reviews, and Insights.
-- Library items may be linked to goals, projects, lessons, or reviews.
-- Daily and weekly reviews summarize existing records; they do not create duplicate copies of activity.
-- Standalone tasks, focus sessions, notes, and goals remain possible when a relationship is not needed.
+- **Projects & Tasks** — projects, milestones, actionable tasks, due dates, and a Calendar view. Projects and tasks are distinct working surfaces within one pillar.
+- **Focus Room** — a focus timer and session history. Before starting, users can link the block to either a task or a Learning Studio lesson, and optionally to a project. Timer context survives navigation and refreshes.
+- **Learning Studio** — learning paths, lessons, study activity, and a Library tab. Library is a secondary view inside Learning Studio, not a separate core pillar.
+- **Goals** — long-term outcomes and direction, connected to projects, tasks, and relevant daily habits.
+
+Residence is the command surface. Administration remains at the bottom of the sidebar for authorised owners; ordinary settings remain available there too. Calendar and Library are optional secondary views, not replacements for core modules.
+
+## Cross-module relationships
+
+- Goals can link to multiple projects, direct tasks, and recurring habits.
+- Projects can belong to a goal and contain milestones; tasks can link to a project and/or a goal.
+- Focus sessions can link to either a task or a learning lesson, and optionally to a project.
+- Saving a lesson-linked focus session contributes its minutes to Learning Studio study totals through the linked session record. Study history combines manual study logs and linked focus sessions without duplicating the focus event.
+- Learning Studio owns paths, lessons, resources, notes, and study records.
+- Deen records remain owned by Deen & Reflection. Residence may display a concise summary, but must not duplicate the source record.
+- Self-Control & Streaks owns habit and discipline records. Residence reads summaries from those records rather than creating a second copy.
+- Each record has one source of truth. Linked modules use references and derived summaries, not duplicate writes.
+
+## Residence consistency pulse
+
+The daily pulse is an explainable summary, not a grade or a judgement. It is the arithmetic mean of the dimensions that are active for the user's workspace on that day:
+
+- **Deen/Faith:** completed daily practices divided by the configured five practices, only when the user has enabled a faith experience.
+- **Habits:** completed active daily habits divided by the active habit count, only when at least one habit exists.
+- **Focus:** today's recorded focus minutes divided by the user's daily focus intention, capped at 100%, only when the user has actually recorded focus activity within the current seven-day window.
+- **Tasks:** completed tasks due today divided by tasks due today, only when at least one task is scheduled for today.
+
+Unavailable or unused dimensions are omitted rather than treated as zero. The pulse never awards progress for missing data, does not use XP, and does not compare users against one another. The user can always inspect the underlying records.
 
 ## Information and interaction principles
 
 - Make the next useful action obvious without making the interface noisy.
-- Show the reason behind recommendations and link them to the source records.
+- Show the reason behind recommendations and link them to source records.
 - Let users capture quickly, then add structure when useful.
 - Prefer clear states and useful empty states over decorative cards.
-- Do not invent progress, streaks, AI insights, or completion percentages.
+- Do not invent progress, streaks, insights, or completion percentages.
 - No visible control may be inert. Destructive actions require clear confirmation and recoverable paths where possible.
-- Preserve user choice: modules can be hidden or configured; Values is optional.
+- Keep the six core pillars available. Only secondary views such as Calendar and Library are optional.
 - Support keyboard, touch, screen readers, reduced motion, narrow mobile screens, and desktop layouts.
+- Avoid guilt-based streak pressure, manipulative engagement loops, and inflated XP.
 
 ## Visual direction
 
-A restrained, premium workspace: clear typography, quiet surfaces, strong spacing rhythm, subtle borders, deliberate contrast, and one restrained accent system. Use motion only to clarify state changes. Avoid excessive gradients, card grids, ornamental icons, fake charts, and gamified visual clutter.
+A restrained, premium workspace: clear typography, quiet surfaces, strong spacing rhythm, subtle borders, deliberate contrast, and one restrained accent system. Use motion only to clarify state changes. Avoid excessive gradients, ornamental iconography, fake charts, and gamified visual clutter.
 
-Provide a coherent light/dark appearance system. Keep the Amstreem brand assets intact and use the symbol and wordmark in their appropriate contexts.
+Provide a coherent light/dark appearance system. Keep Amstreem brand assets intact and use the symbol and wordmark in their appropriate contexts.
 
 ## Frontend architecture
 
 - React + TypeScript + Vite for the application shell and page composition.
-- Tailwind CSS 4 for design tokens and utility styling.
-- shadcn/ui patterns and locally owned components as the primary component foundation.
-- React Hook Form + Zod for validated forms.
-- Use Ant Design as a reference for dense data interaction patterns where useful, not as a second competing global component system.
-- Use a shared API client and query/cache layer; keep server state separate from local interface state.
+- Tailwind CSS 4 and locally owned styles/components for the design system.
+- React Query for server state and cache invalidation; keep it separate from local interface state.
+- Use a shared API client; keep server state separate from local interface state.
 - Build accessible primitives once and reuse them across modules.
-- Keep the existing Express API as the initial backend boundary. Do not rewrite the storage layer merely to support a new frontend.
+- Keep the existing Express API as the backend boundary. Do not rewrite the storage layer merely to support a new frontend.
 
 ## Backend and data safety
 
-- Keep Supabase Auth and the current row-level-security ownership model.
-- Keep the existing workspace snapshot persistence while the new frontend is built and verified.
-- Add explicit snapshot/schema versioning and forward-compatible defaults before introducing new workspace tables.
+- Keep Supabase Auth and the existing per-user workspace ownership model.
+- Keep workspace snapshot persistence in `personal_os_workspaces`.
+- Keep secret/service-role credentials server-side only.
+- Keep the request-scoped in-memory SQLite workspace schema and snapshot serializer compatible.
+- Nullable `habits.goal_id` and `sessions.lesson_id` relationships use backward-compatible defaults. New workspace snapshots are written as v3; readers continue accepting v1 and v2 snapshots, and older snapshots that omit the new fields load with null relationships.
 - Keep backup export/import compatible with every supported table and preserve foreign-key insertion order.
 - Do not silently overwrite malformed or unknown workspace data.
-- The current per-account queue is process-local and assumes one Render instance. Do not scale the service horizontally without replacing that coordination mechanism.
-- Do not expose Supabase secret/service-role credentials to the browser.
-- No destructive production migrations, data rewrites, or deployment-branch changes during the rebuild.
-
-## Proposed data-model additions
-
-The current schema has goals and tasks but no first-class project layer or review records. Add these only with backward-compatible snapshot defaults and tests:
-- `projects`: title, description, status, target date, optional goal relationship.
-- `project_milestones`: optional checkpoints within a project.
-- `task.project_id` and `task.goal_id` (nullable relationships where useful).
-- Optional `calendar_events` / time blocks with links to task, project, or focus session.
-- `daily_reviews` and `weekly_reviews` with prompts, reflections, and references to the period reviewed.
-
-The exact fields and foreign-key strategy will be finalized against the current schema and API before implementation.
-
-## Intelligence model
-
-Start with deterministic, explainable rules using real workspace data:
-- Identify overdue or approaching commitments.
-- Surface a project with no next action.
-- Suggest continuing a learning path that is already in progress.
-- Compare focus patterns across equivalent periods.
-- Prepare review summaries from logged activity.
-- Allow the user to dismiss or rate recommendations.
-
-Every insight must show why it appeared and where its supporting data came from. AI may later assist with summarization or reflection, but it must not invent facts or become a dependency for basic app functionality.
+- The current per-account queue is process-local and assumes one Render instance. Do not scale horizontally without replacing that coordination mechanism.
+- No destructive production migrations, data rewrites, or deployment-branch changes during development.
 
 ## Delivery sequence
 
-1. Finish audit of current UI, API contracts, auth, backup/restore, and snapshot behaviour.
-2. Build the shared design system and responsive application shell.
-3. Build Today and the Plan workflows around goals → projects → tasks → calendar.
-4. Build Practice workflows for focus, rituals, and learning.
-5. Build Library, Values, Reviews, and transparent Insights.
-6. Integrate owner administration and existing platform-level features where still justified.
-7. Add compatibility tests, functional tests, accessibility checks, and mobile QA.
-8. Deploy to an isolated staging service; only plan a production cutover after verification.
+1. **Core daily loop:** Residence, Deen & Reflection, and Self-Control & Streaks.
+2. **Execution loop:** Projects & Tasks and Focus Room.
+3. **Direction and depth:** Learning Studio (including Library) and Goals.
+4. **Integration and quality:** cross-module relationships, account isolation, accessibility, responsive behaviour, backup compatibility, and end-to-end verification.
+5. **Staging verification:** deploy only to an isolated staging service after CI passes; production cutover requires a separate approval.
 
-## Initial implementation constraints
+The build order controls delivery sequence, not the importance of the six pillars.
 
-- Work only on the `atlas-next` branch until a release is approved.
-- The Render production service remains on `audit-and-hardening`.
-- Existing workspace rows are the source of truth. Do not seed, reset, or rewrite production user data.
-- Keep progress and decisions updated in `docs/REBUILD_PROGRESS.md`.
+## Current implementation baseline
+
+- Sidebar grouped into Command & Daily Rhythm and Growth & Execution.
+- Residence calculates an active-area daily consistency pulse and surfaces faith, habits, priorities, focus timer/context, and active goals.
+- Goals can display linked projects, tasks, milestones, and daily habits.
+- Habits can be linked to active goals.
+- Focus Room can be started with a task or learning lesson selected; lesson-linked sessions update Learning Studio study minutes.
+- Learning Studio provides a direct action to open Focus Room for a specific lesson.
+- Calendar and Library remain secondary tabs.

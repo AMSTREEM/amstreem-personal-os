@@ -1,7 +1,15 @@
-# Amstreem Atlas Next — Rebuild Progress
+# Amstreem Atlas — Rebuild Progress
 
-## Current status
-Discovery and baseline protection. No production code, Supabase data, or Render configuration has been changed.
+## Current work status — 2026-11-21
+- Active product work is isolated on `atlas-six-pillar-navigation`, based on `atlas-next`.
+- Draft PR #3 targets `atlas-next`; it is open and unmerged.
+- Production remains on `audit-and-hardening`; no Render deployment, production Supabase schema change, or production workspace write has been performed.
+- The six-pillar navigation, Residence command view, goal-to-project/task/habit links, and Focus-to-Learning links are implemented on the development branch.
+- GitHub Actions passed on the implementation commit (`c6c983f`) and the latest documentation follow-up (`00ebe7e`): production dependency audit, server syntax, TypeScript typecheck, frontend build, and automated tests.
+- Browser-level visual QA and isolated staging verification are still outstanding. Do not mark the work ready for release until those checks pass.
+
+## Historical baseline — 2026-11-20
+Discovery and baseline protection. No production code, Supabase data, or Render configuration had been changed at that point.
 
 ## Source and isolation
 - Repository: `AMSTREEM/amstreem-personal-os`
@@ -135,3 +143,34 @@ No Render deployment or production Supabase data/schema change has been made fro
 - Added the missing React type import in commit `d19e6c7`.
 - Earlier CI steps passed: dependency installation, production dependency audit (zero reported vulnerabilities), and server syntax check.
 - Waiting for CI to execute against the corrected head before considering TypeScript/build/tests validated.
+
+
+## Six-pillar implementation update — 2026-11-21
+
+### Product structure implemented
+- Primary navigation is grouped into **Command & Daily Rhythm** and **Growth & Execution**.
+- The six core pillars remain visible regardless of optional feature settings: Deen & Reflection, Self-Control & Streaks, Projects & Tasks, Focus Room, Learning Studio, and Goals.
+- Residence is the central command surface, not a seventh pillar.
+- Reflection, Habits & Streaks, Tasks/Calendar, Insights, and Library are contextual secondary views. Calendar and Library can be toggled in settings; core pillars cannot be hidden.
+
+### Cross-module behaviour implemented
+- Residence derives a daily consistency pulse from active areas only: enabled Deen/Faith, configured habits, recently used focus, and tasks due today. Missing/unused areas are omitted rather than counted as failures.
+- Residence surfaces Salah/Qur'an activity when Deen is enabled, habits, due/overdue priorities, active focus timer context, focus streak, and active goals.
+- Goals show linked projects, tasks, milestones, and daily habits.
+- Habits can be created and linked to active goals, and existing habits can be linked/unlinked.
+- Focus Room lets a user choose a task or Learning Studio lesson before starting a timer. Timer context persists through refresh/navigation.
+- Saving a focus session linked to a learning lesson contributes its minutes to Learning Studio study totals through the linked session record; no duplicate study record is created.
+- Learning Studio offers a direct Focus Room action for each lesson.
+
+### Backward compatibility
+- `habits.goal_id` and `sessions.lesson_id` are nullable columns in the request-scoped in-memory workspace schema.
+- New snapshots are written as `personal-os-sqlite-snapshot-v3` (`schemaVersion: 3`); the loader retains v1/v2 compatibility.
+- Existing snapshots that do not contain these fields load with null defaults through the existing column-aware snapshot restore path.
+- No new Supabase public table or RLS policy was created; workspace persistence continues through the existing `personal_os_workspaces` JSONB snapshot.
+- Architecture documentation and automated tests were updated for the new relationships.
+
+### Current verification gates
+- GitHub Actions passed on the current PR head (`c6c983f`): dependency audit, server syntax, TypeScript typecheck, frontend build, and automated tests.
+- Browser-level visual QA, existing-account staging login, snapshot restore against staging, and isolated Render staging deployment remain outstanding.
+- Browser-level visual QA, existing-account staging login, snapshot restore against staging, and isolated Render staging deployment remain outstanding.
+- Keep PR #3 in draft and do not merge or deploy to production until those checks are complete.
