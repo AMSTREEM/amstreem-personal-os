@@ -37,6 +37,8 @@ test('production installs dependencies, builds the frontend, and CI audits produ
   assert.match(workflow, /npm audit --omit=dev --audit-level=high/);
   assert.match(render, /buildCommand: npm install --include=dev && npm run build/);
   assert.match(render, /healthCheckPath: \/healthz/);
+  const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
+  assert.ok(pkg.dependencies.vite, 'Vite must be available when Render installs production dependencies');
 });
 
 
