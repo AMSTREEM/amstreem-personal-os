@@ -8,7 +8,7 @@ type Session = { id: number; session_date: string; minutes: number; focus: strin
 type Task = { id: number; title: string };
 type Project = { id: number; title: string };
 type LearningPath = { id: number; title: string; lessons: { id: number; title: string; status: string }[] };
-type StoredTimer = { remaining: number; deadline: number | null; taskId?: string; lessonId?: string; projectId?: string; taskTitle?: string; lessonTitle?: string };
+type StoredTimer = { remaining: number; deadline: number | null; taskId?: string; lessonId?: string; projectId?: string; taskTitle?: string; lessonTitle?: string; focusLabel?: string };
 const TIMER_KEY = 'atlas-focus-timer-v1';
 const DEFAULT_SECONDS = 25 * 60;
 
@@ -68,7 +68,7 @@ export function FocusPage() {
     if (remaining <= 0) return;
     setCompleted(false);
     setNow(Date.now());
-    setTimer({ remaining, deadline: Date.now() + remaining * 1000, taskId, lessonId, projectId, taskTitle: tasks.data?.find(task => String(task.id) === taskId)?.title, lessonTitle: learning.data?.flatMap(path => path.lessons.map(lesson => ({...lesson,pathTitle:path.title}))).find(lesson => String(lesson.id) === lessonId)?.title, focusLabel: focus || undefined } as StoredTimer);
+    setTimer({ remaining, deadline: Date.now() + remaining * 1000, taskId, lessonId, projectId, taskTitle: tasks.data?.find(task => String(task.id) === taskId)?.title, lessonTitle: learning.data?.flatMap(path => path.lessons.map(lesson => ({...lesson,pathTitle:path.title}))).find(lesson => String(lesson.id) === lessonId)?.title, focusLabel: focus || undefined });
   }
   function pauseTimer() {
     setTimer(current => ({ ...current, remaining, deadline: null }));
