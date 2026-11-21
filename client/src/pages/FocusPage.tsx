@@ -17,7 +17,7 @@ function readTimer(): StoredTimer {
   try {
     const value = JSON.parse(localStorage.getItem(TIMER_KEY) || 'null') as StoredTimer | null;
     if (value && Number.isFinite(value.remaining) && (value.deadline === null || Number.isFinite(value.deadline))) {
-      return { remaining: Math.max(0, Math.min(600 * 60, Math.floor(value.remaining))), deadline: value.deadline, taskId: typeof value.taskId === 'string' ? value.taskId : '', lessonId: typeof value.lessonId === 'string' ? value.lessonId : '', projectId: typeof value.projectId === 'string' ? value.projectId : '' };
+      return { remaining: Math.max(0, Math.min(600 * 60, Math.floor(value.remaining))), deadline: value.deadline, taskId: typeof value.taskId === 'string' ? value.taskId : '', lessonId: typeof value.lessonId === 'string' ? value.lessonId : '', projectId: typeof value.projectId === 'string' ? value.projectId : '', startedAt: typeof value.startedAt === 'number' ? value.startedAt : undefined };
     }
   } catch { /* Ignore a malformed local timer and start cleanly. */ }
   return { remaining: DEFAULT_SECONDS, deadline: null };
@@ -56,7 +56,7 @@ export function FocusPage() {
     const syncSharedTimer = (event: Event) => {
       const next = (event as CustomEvent<StoredTimer>).detail;
       if (!next || !Number.isFinite(next.remaining)) return;
-      setTimer({ remaining: Math.max(0, Math.min(600 * 60, Math.floor(next.remaining))), deadline: next.deadline, taskId: next.taskId || '', lessonId: next.lessonId || '', projectId: next.projectId || '', taskTitle: next.taskTitle, lessonTitle: next.lessonTitle, focusLabel: next.focusLabel });
+      setTimer({ remaining: Math.max(0, Math.min(600 * 60, Math.floor(next.remaining))), deadline: next.deadline, taskId: next.taskId || '', lessonId: next.lessonId || '', projectId: next.projectId || '', taskTitle: next.taskTitle, lessonTitle: next.lessonTitle, focusLabel: next.focusLabel, startedAt: next.startedAt });
       setCompleted(next.remaining === 0 && next.deadline === null);
       setNow(Date.now());
     };
