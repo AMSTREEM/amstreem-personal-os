@@ -1,12 +1,13 @@
 import { Children, type ReactNode } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
+import type { Variants } from 'motion/react';
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.035, delayChildren: 0 } }
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 8 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.22, ease: [0.22, 1, 0.36, 1] } }
 };
