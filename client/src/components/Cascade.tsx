@@ -11,7 +11,7 @@ export function Cascade({ className, children }: CascadeProps) {
   const compact = useCompactMotionViewport();
   const containerVariants: Variants = {
     hidden: {},
-    visible: { transition: { staggerChildren: entranceStagger(preset), delayChildren: 0 } }
+    visible: { transition: { staggerChildren: reduceMotion ? 0 : entranceStagger(preset), delayChildren: 0 } }
   };
 
   return <motion.div
