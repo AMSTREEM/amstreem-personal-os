@@ -124,6 +124,7 @@ test('Room 3 records focus completion once and derives linked work metrics from 
   assert.match(execution, /distractions:timer\.distractions/);
   assert.match(execution, /parent_task_id:parentId/);
   assert.match(execution, /Finish & save/);
+  assert.match(execution, /atlas-migrated-/);
   assert.match(learning, /goal_id: goalId \|\| null/);
   assert.match(learning, /Related goal/);
   assert.match(goals, /focusMinutes: goal\.focus_minutes/);
