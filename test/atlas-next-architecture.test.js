@@ -50,7 +50,7 @@ test('project, task, calendar, focus and review records can be linked', () => {
 test('the four primary rooms stay visible while secondary views remain optional', () => {
   const shell = read('client/src/components/AppShell.tsx');
   const settings = read('client/src/pages/SettingsPage.tsx');
-  for (const room of ['Residence', 'Daily Rhythm', 'Execution & Focus', 'Growth & Direction']) {
+  for (const room of ['Residence', 'Daily Rhythm', 'Workspace', 'Growth & Direction', 'Focus Room']) {
     assert.ok(shell.includes("label: '" + room + "'"), 'Missing room ' + room);
   }
   assert.match(shell, /const rooms = \[/);
@@ -97,11 +97,11 @@ test('FocusWorkspace uses one shared timer store and owns the focus-session work
   assert.match(timerStore, /useSyncExternalStore/);
   assert.match(timerStore, /localStorage\.setItem/);
   assert.match(read('client/src/pages/ExecutionFocusPage.tsx'), /FocusWorkspace/);
-  assert.match(read('client/src/App.tsx'), /path="\/focus" element=\{<Navigate to="\/execution" replace \/>\}/);
+  assert.match(read('client/src/App.tsx'), /path="\\/focus" element=\\{<FocusWorkspace \\/>\\}/);
   assert.doesNotMatch(read('client/src/pages/LearningPage.tsx'), /\/focus\?lesson=/);
   assert.doesNotMatch(read('client/src/pages/TodayPage.tsx'), /\/focus\?task=/);
   assert.doesNotMatch(read('client/src/pages/ValuesPage.tsx'), /\/focus\?focus=/);
-  assert.equal(fs.existsSync(path.join(root, 'client/src/pages/FocusPage.tsx')), false);
+  assert.match(read('client/src/pages/ExecutionFocusPage.tsx'), /ROOM 03 \\/ WORKSPACE/);
 });
 
 
