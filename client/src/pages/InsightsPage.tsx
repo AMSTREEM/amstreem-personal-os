@@ -1,3 +1,4 @@
+import { Cascade } from '../components/Cascade';
 import { useQuery } from '@tanstack/react-query';
 import { Lightbulb, TrendingUp } from 'lucide-react';
 import { api } from '../lib/api';
