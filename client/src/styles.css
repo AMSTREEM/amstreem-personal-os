@@ -1477,3 +1477,13 @@ body { letter-spacing: -.006em; }
 .room4-goal-milestone input { width:15px; height:15px; flex:none; accent-color:var(--accent-primary); }
 .room4-goal-milestone span { flex:1; overflow-wrap:anywhere; }
 .room4-goal-milestone small { color:var(--muted); font-size:9px; }
+
+
+/* Restrained shared-layout spring indicators and Motion-powered dialogs. */
+.room-nav-link { position: relative; isolation: isolate; border-color: transparent; background: transparent; }
+.room-nav-link > :not(.room-nav-indicator) { position: relative; z-index: 1; }
+.room-nav-indicator { position: absolute; z-index: 0; inset: 2px; border: 1px solid rgba(197,168,120,.15); border-radius: 10px; background: var(--accent-wash); }
+.module-subnav__link { position: relative; isolation: isolate; border-color: transparent; background: transparent; }
+.module-subnav__link > :not(.module-subnav-indicator) { position: relative; z-index: 1; }
+.module-subnav-indicator { position: absolute; z-index: 0; inset: 0; border: 1px solid rgba(197,168,120,.15); border-radius: 8px; background: var(--accent-wash); }
+.room-nav-link--active,.module-subnav__link--active { border-color: transparent; background: transparent; }
