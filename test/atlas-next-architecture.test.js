@@ -12,7 +12,8 @@ const app = read('client/src/App.tsx');
 test('existing v1 workspace snapshots remain readable and new writes use v2', () => {
   assert.match(server, /personal-os-sqlite-snapshot-v1/);
   assert.match(server, /personal-os-sqlite-snapshot-v2/);
-  assert.match(server, /schemaVersion:\s*2/);
+  assert.match(server, /personal-os-sqlite-snapshot-v3/);
+  assert.match(server, /schemaVersion:\s*3/);
 });
 
 test('new workspace tables are created, serialized, and backward-compatible', () => {
