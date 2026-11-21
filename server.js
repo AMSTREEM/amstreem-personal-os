@@ -134,7 +134,7 @@ function createWorkspaceDatabase(snapshot) {
   try {
     workspaceDb.pragma('foreign_keys = ON');
     workspaceDb.exec(schemaSql);
-  if (['personal-os-sqlite-snapshot-v1','personal-os-sqlite-snapshot-v2'].includes(snapshot?.format) && snapshot.tables && typeof snapshot.tables === 'object') {
+  if (['personal-os-sqlite-snapshot-v1','personal-os-sqlite-snapshot-v2','personal-os-sqlite-snapshot-v3'].includes(snapshot?.format) && snapshot.tables && typeof snapshot.tables === 'object') {
     const optionalTables = ['projects','project_milestones','calendar_events','reviews','faith_logs','login_events','xp_events','achievement_unlocks','weekly_challenges','feedback_logs'];
     for (const table of workspaceTables) {
       if (!Array.isArray(snapshot.tables[table]) && !optionalTables.includes(table)) {
@@ -178,7 +178,7 @@ function createWorkspaceDatabase(snapshot) {
 function serializeWorkspaceDatabase(workspaceDb) {
   const tables = {};
   for (const table of workspaceTables) tables[table] = workspaceDb.prepare(`SELECT * FROM ${table}`).all();
-  return { format: 'personal-os-sqlite-snapshot-v2', schemaVersion: 2, tables };
+  return { format: 'personal-os-sqlite-snapshot-v3', schemaVersion: 3, tables };
 }
 async function writeWorkspaceSnapshot(userId, token, workspaceDb) {
   const response = await fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces`, {
