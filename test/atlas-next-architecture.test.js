@@ -233,7 +233,9 @@ test('first-run walkthrough previews and saves a palette before explaining the u
   assert.match(tour, /Choose the colour of your space/);
   assert.match(tour, /previewPalette\(item\.id\)/);
   assert.match(tour, /theme: selectedTheme/);
-  assert.match(tour, /Workspace, Projects, Tasks, Focus Timer and Calendar/);
+  assert.match(tour, /Workspace gives you the overview/);
+  assert.match(tour, /Focus Timer protects your attention/);
+  assert.match(tour, /Calendar keeps commitments/);
   assert.match(shell, /navigate\('\/focus'\)/);
   assert.match(residence, /Good \$\{rhythm/);
 });
