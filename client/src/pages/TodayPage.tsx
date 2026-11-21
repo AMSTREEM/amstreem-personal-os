@@ -42,6 +42,13 @@ function formatMinutes(minutes: number) {
 export function TodayPage() {
   const client = useQueryClient();
   const today = todayKey();
+  const localHour = Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',hourCycle:'h23'}).format(new Date()));
+  const rhythm = localHour < 11 ? 'morning' : localHour < 17 ? 'day' : 'evening';
+  const rhythmCopy = rhythm === 'morning'
+    ? {eyebrow:'MORNING RHYTHM',title:'Begin with intention.',detail:'Set your direction, tend to your Deen, and choose the few priorities that matter today.'}
+    : rhythm === 'day'
+      ? {eyebrow:'DAY RHYTHM',title:'Give your attention a direction.',detail:'Move important work forward. Protect a focus block and keep learning in motion.'}
+      : {eyebrow:'EVENING RHYTHM',title:'Close the day with clarity.',detail:'Review what was done, complete your check-ins, and leave tomorrow a little easier.'};
   const [quickTask, setQuickTask] = useState('');
   const [timer, setTimer] = useState<StoredTimer>(readTimer);
   const [now, setNow] = useState(() => Date.now());
@@ -135,6 +142,17 @@ export function TodayPage() {
   return <div className="stack today-dashboard">
     <PageHeader eyebrow={new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()).toUpperCase()} title="Residence" description="Your central view of today’s priorities, routines, focus and progress." action={showCalendar ? <Link className="button button--secondary" to="/calendar">View calendar <ArrowRight size={14} /></Link> : undefined} />
 
+    <section className="residence-rhythm"><div><span className="eyebrow">{rhythmCopy.eyebrow}</span><h2>{rhythmCopy.title}</h2><p>{rhythmCopy.detail}</p></div><span className="residence-rhythm-time">{new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',minute:'2-digit'}).format(new Date())} WAT</span></section>
+    <section className="residence-pillar-grid" aria-label="Six life pillars">
+      {[
+        {title:'Deen & Reflection',detail:'Prayer, Qur’an and reflection',to:'/values',symbol:'☾',tone:'deen'},
+        {title:'Self-Control & Streaks',detail:'Habits and commitments',to:'/self-control',symbol:'◇',tone:'self'},
+        {title:'Projects & Tasks',detail:'Turn plans into progress',to:'/projects',symbol:'↗',tone:'projects'},
+        {title:'Focus Room',detail:'Protect your attention',to:'/focus',symbol:'◷',tone:'focus'},
+        {title:'Learning Studio',detail:'Build knowledge deliberately',to:'/learning',symbol:'▤',tone:'learning'},
+        {title:'Goals',detail:'Keep long-term direction visible',to:'/goals',symbol:'◎',tone:'goals'}
+      ].map(pillar=><Link className={'residence-pillar residence-pillar--'+pillar.tone} to={pillar.to} key={pillar.to}><span>{pillar.symbol}</span><div><b>{pillar.title}</b><small>{pillar.detail}</small></div><ArrowRight size={14}/></Link>)}
+    </section>
     <section className="residence-pulse" aria-label="Your daily consistency pulse">
       <div className="residence-pulse__main">
         <div className="residence-pulse__heading"><span className="eyebrow">TODAY'S CONSISTENCY PULSE</span><span className="residence-pulse__date">{today}</span></div>

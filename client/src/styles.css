@@ -1025,3 +1025,49 @@ body { letter-spacing: -.006em; }
 .focus-link-fields .field-label { font-size:9px; }
 .focus-link-fields .field-input { min-width:0; }
 @media(max-width:760px) { .focus-link-fields { grid-template-columns:1fr; gap:7px; } }
+
+/* Persistent OS controls */
+.global-focus-bar{min-height:43px;display:flex;align-items:center;gap:12px;padding:6px clamp(24px,4vw,60px);border-bottom:1px solid var(--line-soft);background:var(--surface)}
+.global-focus-pulse{width:7px;height:7px;flex:none;border-radius:50%;background:var(--success);box-shadow:0 0 0 4px color-mix(in srgb,var(--success) 13%,transparent)}
+.global-focus-copy{display:flex;align-items:baseline;gap:9px;min-width:0}
+.global-focus-copy b{font:650 13px Manrope,sans-serif;font-variant-numeric:tabular-nums}
+.global-focus-copy span{overflow:hidden;color:var(--muted);font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+.global-focus-label{margin-left:auto;color:var(--subtle);font:600 8px Manrope,sans-serif;letter-spacing:.1em}
+.global-focus-bar button,.global-focus-bar>a{min-height:27px;display:inline-flex;align-items:center;gap:5px;padding:0 8px;border:1px solid var(--line);border-radius:7px;background:var(--surface-raised);color:var(--muted);font-size:9px}
+.global-focus-bar>a{color:var(--accent-strong)}
+.global-capture-trigger{min-height:31px;display:inline-flex;align-items:center;gap:7px;padding:0 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--muted);font-size:10px}
+.global-capture-trigger kbd,.command-search kbd,.command-results kbd,.command-footer span:last-child{padding:3px 5px;border:1px solid var(--line);border-radius:5px;color:var(--subtle);font:600 8px Manrope,sans-serif}
+.command-backdrop{position:fixed;inset:0;z-index:100;display:flex;justify-content:center;align-items:flex-start;padding:min(18vh,130px) 18px 24px;background:rgba(0,0,0,.56);backdrop-filter:blur(5px)}
+.command-panel{width:min(100%,560px);overflow:hidden;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:0 25px 90px rgba(0,0,0,.42)}
+.command-search{display:flex;align-items:center;gap:11px;padding:15px;border-bottom:1px solid var(--line-soft);color:var(--muted)}
+.command-search input,.command-task-form input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--text);font-size:12px}
+.command-task-form{display:flex;align-items:center;gap:10px;margin:10px;padding:9px;border:1px solid var(--line);border-radius:9px;color:var(--accent)}
+.command-task-form button{padding:7px 10px;border:0;border-radius:6px;background:var(--accent);color:var(--bg);font-size:9px;font-weight:700}
+.command-task-form button:disabled{opacity:.45}
+.command-error{margin:0 14px 8px;color:var(--danger);font-size:10px}
+.command-results{display:grid;gap:3px;max-height:min(52vh,420px);overflow:auto;padding:8px 10px 12px}
+.command-results>.eyebrow{padding:6px 8px}
+.command-results>button{display:flex;align-items:center;gap:11px;padding:9px;border:0;border-radius:8px;background:transparent;color:var(--muted);text-align:left}
+.command-results>button:hover{background:var(--surface-raised);color:var(--text)}
+.command-results>button>span{display:grid;flex:1;gap:2px}
+.command-results>button b{color:var(--text);font-size:10px;font-weight:600}
+.command-results>button small{color:var(--subtle);font-size:9px}
+.command-results>p{padding:8px;color:var(--muted);font-size:10px}
+.command-footer{display:flex;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--line-soft);color:var(--subtle);font-size:8px}
+@media(max-width:760px){.global-focus-bar{gap:7px;padding:6px 12px}.global-focus-label{display:none}.global-focus-copy{flex:1;min-width:0;display:grid;gap:0}.global-focus-copy b{font-size:12px}.global-focus-copy span{max-width:140px;font-size:8px}.global-focus-bar button,.global-focus-bar>a{padding:0 6px;font-size:8px}.global-focus-bar button span,.global-capture-trigger span,.global-capture-trigger kbd{display:none}}
+/* Residence daily rhythm and six-pillar launcher */
+.residence-rhythm{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px;border:1px solid var(--line);border-radius:12px;background:linear-gradient(110deg,var(--surface),var(--surface-raised))}
+.residence-rhythm h2{margin:5px 0 4px;font:600 18px Manrope,sans-serif;letter-spacing:-.035em}
+.residence-rhythm p{margin:0;color:var(--muted);font-size:10px;line-height:1.5}
+.residence-rhythm-time{flex:none;color:var(--subtle);font:600 9px Manrope,sans-serif;letter-spacing:.1em}
+.residence-pillar-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.residence-pillar{min-width:0;min-height:66px;display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);transition:border-color .15s,transform .15s}
+.residence-pillar:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--pillar-accent) 50%,var(--line));background:var(--surface-raised)}
+.residence-pillar>span{width:30px;height:30px;flex:none;display:grid;place-items:center;border-radius:9px;background:color-mix(in srgb,var(--pillar-accent) 13%,transparent);color:var(--pillar-accent);font-size:17px}
+.residence-pillar>div{display:grid;flex:1;gap:3px;min-width:0}
+.residence-pillar b{font-size:10px;font-weight:650}
+.residence-pillar small{overflow:hidden;color:var(--muted);font-size:8px;text-overflow:ellipsis;white-space:nowrap}
+.residence-pillar>svg{flex:none;color:var(--subtle)}
+.residence-pillar--deen{--pillar-accent:#9dbb8e}.residence-pillar--self{--pillar-accent:#c5a878}.residence-pillar--projects{--pillar-accent:#b2a3cf}.residence-pillar--focus{--pillar-accent:#8d9fda}.residence-pillar--learning{--pillar-accent:#82b8b3}.residence-pillar--goals{--pillar-accent:#d4a66d}
+@media(max-width:900px){.residence-pillar-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.residence-rhythm{padding:12px}.residence-rhythm h2{font-size:15px}.residence-rhythm-time{font-size:8px}.residence-pillar-grid{gap:6px}.residence-pillar{min-height:60px;gap:7px;padding:8px}.residence-pillar>span{width:25px;height:25px}.residence-pillar b{font-size:9px}.residence-pillar small{font-size:7px}}
