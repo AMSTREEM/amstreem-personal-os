@@ -86,6 +86,8 @@ test('Daily Rhythm separates planned from completed records and updates Residenc
 
 test('Self-Control consistency uses dated records and positive habit check-ins, not assumed streak days', () => {
   const selfControl = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'SelfControlPage.tsx'), 'utf8');
+  const rituals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'RitualsPage.tsx'), 'utf8');
+  const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
   assert.match(server, /FROM self_control_entries WHERE log_date>=date\(\?,'-29 days'\)/);
   assert.match(server, /FROM habit_logs WHERE log_date>=date\(\?,'-29 days'\)/);
   assert.match(server, /let best=0,run=0,previous=null/);
@@ -93,4 +95,8 @@ test('Self-Control consistency uses dated records and positive habit check-ins, 
   assert.match(selfControl, /LAST 30 DAYS/);
   assert.match(selfControl, /habits\.data\?\.length/);
   assert.match(selfControl, /verified clean check-ins/);
+  assert.match(rituals, /invalidateQueries\(\{ queryKey: \['self-control'\] \}\)/);
+  assert.match(shell, /Deen & Reflection/);
+  assert.match(shell, /Faith & Devotion/);
+  assert.match(shell, /Clarity & Reflection/);
 });
