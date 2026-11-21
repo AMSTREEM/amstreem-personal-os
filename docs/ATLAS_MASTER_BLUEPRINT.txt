@@ -27,3 +27,13 @@
 - Wire and test six pillars and cross-pillar progress.
 - Verify with syntax checks, tests, staging and runtime logs.
 - Production changes/deployment require explicit authorization.
+
+
+## Design resources
+- Lucide: https://lucide.dev/ and https://github.com/lucide-icons/lucide
+- Ninja Keys: https://github.com/ssleptsov/ninja-keys
+- ApexCharts: https://github.com/apexcharts and https://apexcharts.com/javascript-chart-demos/area-charts/area-github-style/
+- Anime.js: https://github.com/juliangarnier/anime
+- Plus Jakarta Sans: https://fonts.google.com/specimen/Plus+Jakarta+Sans
+- JetBrains Mono: https://fonts.google.com/specimen/JetBrains+Mono
+- Design references: https://www.uiuxatlas.com/ and https://blog.logrocket.com/ux-design/linear-design-ui-libraries-design-kits-layout-grid/
