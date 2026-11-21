@@ -282,8 +282,8 @@ export function TodayPage() {
           <div className="residence-prayer-list">{faithPractices.map(activity => { const item = faith.data?.find(row => row.activity === activity) || { activity, completed: 0 }; return <label className={'residence-prayer ' + (item.completed ? 'is-complete' : '')} key={activity}><input type="checkbox" checked={!!item.completed} onChange={() => toggleFaith.mutate(item)} /><span>{activity[0].toUpperCase() + activity.slice(1)}</span><small>{item.completed ? 'Recorded' : 'Not recorded'}</small></label>; })}</div>
           <div className="residence-faith-footer"><Flame size={14}/><span>{calendarSummary.data?.streaks.faith.current ?? 0}-day faith streak</span></div>
         </Card> : <Card className="residence-faith-card residence-faith-card--optional">
-          <div className="residence-section-heading"><div><span className="eyebrow">DEEN & REFLECTION</span><h2>A private space, when you want it.</h2><p>Faith tracking is optional and controlled by your workspace settings.</p></div><MoonStar size={18}/></div>
-          <Link className="text-link" to="/values">Explore Deen & Reflection <ArrowRight size={13}/></Link>
+          <div className="residence-section-heading"><div><span className="eyebrow">CLARITY & REFLECTION</span><h2>Your daily clarity.</h2><p>{rhythmSummary.data?.completed || 0} activities completed · {rhythmSummary.data?.planned || 0} planned</p></div><MoonStar size={18}/></div>
+          <Link className="text-link" to="/values">Open Clarity & Reflection <ArrowRight size={13}/></Link>
         </Card>}
 
         <Card className="today-habits-card">
