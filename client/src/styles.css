@@ -982,3 +982,23 @@ body { letter-spacing: -.006em; }
   .residence-faith-footer { flex-wrap:wrap; }
   .residence-faith-footer a { width:100%; margin-left:21px; }
 }
+
+
+/* Goals — show how long-term direction connects to real work */
+.goal-card--connected { display:flex; flex-direction:column; gap:9px; }
+.goal-work-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; padding:10px 0; border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft); }
+.goal-work-summary>div { display:grid; grid-template-columns:15px auto; align-items:center; gap:2px 5px; min-width:0; }
+.goal-work-summary svg { grid-row:span 2; color:var(--accent); }
+.goal-work-summary b { font:600 13px Manrope,sans-serif; }
+.goal-work-summary small { color:var(--muted); font-size:8px; }
+.goal-progress-copy { display:flex; justify-content:space-between; color:var(--muted); font-size:9px; }
+.goal-progress-copy b { color:var(--text); font-weight:600; }
+.goal-progress-track { height:5px; overflow:hidden; border-radius:99px; background:var(--line); }
+.goal-progress-track>span { display:block; height:100%; border-radius:inherit; background:var(--accent); transition:width .2s ease; }
+.goal-linked-list { display:grid; gap:6px; }
+.goal-linked-list>div { display:flex; align-items:center; gap:7px; min-width:0; color:var(--muted); font-size:9px; }
+.goal-linked-list svg { flex:none; color:var(--accent); }
+.goal-linked-list span { overflow:hidden; flex:1; color:var(--text); text-overflow:ellipsis; white-space:nowrap; }
+.goal-linked-list small { flex:none; font-size:8px; }
+.goal-no-work { margin:0; color:var(--muted); font-size:9px; line-height:1.5; }
+.goal-link-actions { display:flex; gap:15px; padding-top:8px; border-top:1px solid var(--line-soft); }
