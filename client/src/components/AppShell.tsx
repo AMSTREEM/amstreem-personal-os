@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { FormEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { ArrowRight, Compass, GraduationCap, Heart, House, LogOut, Menu, MoonStar, Pause, Play, Search, Settings, SlidersHorizontal, Target, Timer, X, Zap } from 'lucide-react';
