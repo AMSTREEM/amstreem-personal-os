@@ -14,6 +14,7 @@ type Deen = { date: string; prayers: Prayer[]; quran: { activity: string; pages:
 type Faith = { activity: string; completed: number };
 type Goal = { id: number; title: string; target_date: string | null; status: string };
 type Announcement = { id: number; title: string; body: string; kind: string; created_at: string; published_at: string | null };
+type DailyReview = { id: number; period_type: 'daily' | 'weekly'; period_start: string; period_end: string; wins: string; challenges: string; lessons: string; next_focus: string; intention: string; priority_task_ids: number[]; alignment_complete: number; shutdown_complete: number; updated_at: string };
 type AnnouncementFeed = { items: Announcement[]; readIds: number[] };
 type CalendarSummary = { streaks: Record<string, { current: number; best: number }> };
 type SelfControlSummary = { summary: { id: number; name: string; symbol: string; streak: number; longest_days: number; last_slip: string | null }[] };
@@ -50,12 +51,20 @@ export function TodayPage() {
       ? {eyebrow:'DAY RHYTHM',title:'Give your attention a direction.',detail:'Move important work forward. Protect a focus block and keep learning in motion.'}
       : {eyebrow:'EVENING RHYTHM',title:'Close the day with clarity.',detail:'Review what was done, complete your check-ins, and leave tomorrow a little easier.'};
   const [quickTask, setQuickTask] = useState('');
+  const [dailyIntention, setDailyIntention] = useState('');
+  const [priorityTaskIds, setPriorityTaskIds] = useState<number[]>([]);
+  const [shutdownWins, setShutdownWins] = useState('');
+  const [shutdownChallenges, setShutdownChallenges] = useState('');
+  const [shutdownLessons, setShutdownLessons] = useState('');
+  const [shutdownNextFocus, setShutdownNextFocus] = useState('');
   const [timer, setTimer] = useState<StoredTimer>(readTimer);
   const [now, setNow] = useState(() => Date.now());
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Settings>('/settings') });
   const religion = settings.data?.religion || 'none';
   let showCalendar = true;
   if (settings.data?.features) { try { showCalendar = JSON.parse(settings.data.features).includes('calendar'); } catch { showCalendar = true; } }
+  const dailyReviews = useQuery({ queryKey: ['reviews', 'daily'], queryFn: () => api<DailyReview[]>('/reviews?period=daily') });
+  const dailyReview = dailyReviews.data?.find(item => item.period_start === today);
   const overview = useQuery({ queryKey: ['overview'], queryFn: () => api<Overview>('/overview') });
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => api<Task[]>('/tasks') });
   const habits = useQuery({ queryKey: ['habits', today], queryFn: () => api<Habit[]>('/habits?date=' + today) });
@@ -67,6 +76,13 @@ export function TodayPage() {
   const selfControl = useQuery({ queryKey: ['self-control', today], queryFn: () => api<SelfControlSummary>('/self-control?date=' + today) });
   const insight = useQuery({ queryKey: ['intelligence'], queryFn: () => api<Insight>('/intelligence') });
   const announcements = useQuery({ queryKey: ['announcements'], queryFn: () => api<AnnouncementFeed>('/announcements') });
+
+  const saveDaily = useMutation({
+    mutationFn: (payload: Partial<DailyReview>) => api<DailyReview>('/reviews', json('POST', {
+      period_type: 'daily', period_start: today, period_end: today, ...payload
+    })),
+    onSuccess: () => void client.invalidateQueries({ queryKey: ['reviews', 'daily'] })
+  });
 
   const addTask = useMutation({
     mutationFn: () => api<Task>('/tasks', json('POST', { title: quickTask.trim(), category: 'Personal', due_date: today })),
@@ -121,6 +137,16 @@ export function TodayPage() {
   const activeFocusContext = activeTask ? 'Task · ' + activeTask.title : activeLesson ? 'Learning · ' + activeLesson.pathTitle + ' / ' + activeLesson.title : 'Unlinked focus session';
 
   useEffect(() => {
+    if (!dailyReview) return;
+    setDailyIntention(dailyReview.intention || '');
+    setPriorityTaskIds(Array.isArray(dailyReview.priority_task_ids) ? dailyReview.priority_task_ids : []);
+    setShutdownWins(dailyReview.wins || '');
+    setShutdownChallenges(dailyReview.challenges || '');
+    setShutdownLessons(dailyReview.lessons || '');
+    setShutdownNextFocus(dailyReview.next_focus || '');
+  }, [dailyReview?.id, dailyReview?.updated_at, today]);
+
+  useEffect(() => {
     if (!focusRunning) return;
     const tick = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(tick);
@@ -155,6 +181,31 @@ export function TodayPage() {
       : <><div><span className="eyebrow">CLOSE THE DAY GENTLY</span><b>{pendingHabits} habits remaining{religion === 'islam' ? ' · ' + (5-prayerCount) + ' prayers not yet recorded' : ''}</b><p>{tomorrowTasks.length ? tomorrowTasks.length + ' task' + (tomorrowTasks.length === 1 ? '' : 's') + ' already planned for tomorrow.' : 'Review today honestly, then leave tomorrow one clear next step.'}</p></div><Link to="/reviews">Open daily reflection <ArrowRight size={13}/></Link></>}
     </section>
     </section>
+      <Card className="residence-alignment-card">
+        <div className="residence-section-heading">
+          <div><span className="eyebrow">01 / MORNING ALIGNMENT</span><h2>Give today a direction.</h2><p>{dailyReview?.alignment_complete ? 'Your intention is saved for today.' : 'Decide what deserves your attention before the day gets busy.'}</p></div>
+          <span className={'residence-workflow-state ' + (dailyReview?.alignment_complete ? 'is-complete' : '')}>{dailyReview?.alignment_complete ? 'Aligned' : 'Not set'}</span>
+        </div>
+        <form className="residence-alignment-form" onSubmit={event => { event.preventDefault(); saveDaily.mutate({ intention: dailyIntention, priority_task_ids: priorityTaskIds, alignment_complete: 1 }); }}>
+          <label className="residence-field"><span>Today's intention</span><textarea value={dailyIntention} onChange={event => setDailyIntention(event.target.value)} maxLength={500} rows={2} placeholder="What kind of person do you want to be today? What matters most?" /></label>
+          <div className="residence-priority-picker">
+            <div className="residence-priority-picker__heading"><b>Choose up to three priorities</b><small>{priorityTaskIds.length}/3 selected · selection order sets priority</small></div>
+            {openTasks.length ? <div className="residence-priority-options">{openTasks.slice(0, 12).map(task => {
+              const selected = priorityTaskIds.includes(task.id);
+              const order = priorityTaskIds.indexOf(task.id);
+              return <label className={'residence-priority-option ' + (selected ? 'is-selected' : '')} key={task.id}>
+                <input type="checkbox" checked={selected} onChange={() => setPriorityTaskIds(current => selected ? current.filter(id => id !== task.id) : current.length < 3 ? [...current, task.id] : current)} />
+                <span className="residence-priority-option__rank">{selected ? order + 1 : '·'}</span><span>{task.title}</span>
+                {task.due_date && <small>{task.due_date === today ? 'Today' : task.due_date < today ? 'Overdue' : new Date(task.due_date + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</small>}
+              </label>;
+            })}</div> : <div className="residence-priority-empty">No open tasks yet. Add today's priorities in the task capture below, then return here to select them.</div>}
+          </div>
+          <div className="residence-workflow-footer"><small>{dailyReview?.alignment_complete ? 'You can adjust this plan at any time.' : 'A simple intention is enough to begin. You can choose fewer than three priorities.'}</small><button className="button button--primary" type="submit" disabled={!dailyIntention.trim() || saveDaily.isPending}>{saveDaily.isPending ? 'Saving…' : dailyReview?.alignment_complete ? 'Update alignment' : 'Save morning alignment'}</button></div>
+          {saveDaily.isError && <p className="inline-error">{saveDaily.error.message}</p>}
+        </form>
+      </Card>
+    </section>
+
     <section className="residence-band residence-band--overview" aria-label="Life at a glance">
       <div className="residence-band-heading"><span className="eyebrow">02 / YOUR LIFE AT A GLANCE</span><p>Connected areas of your life, with activity drawn from your existing records.</p></div>
       <section className="residence-pillar-grid" aria-label="Six life pillars">
@@ -255,6 +306,20 @@ export function TodayPage() {
         </Card>
       </aside>
       </div>
+      <Card className="residence-shutdown-card">
+        <div className="residence-section-heading">
+          <div><span className="eyebrow">04 / EVENING SHUTDOWN</span><h2>Close the day with clarity.</h2><p>Notice what happened without judgement. Leave tomorrow a little easier.</p></div>
+          <span className={'residence-workflow-state ' + (dailyReview?.shutdown_complete ? 'is-complete' : '')}>{dailyReview?.shutdown_complete ? 'Closed' : 'Open'}</span>
+        </div>
+        <form className="residence-shutdown-form" onSubmit={event => { event.preventDefault(); saveDaily.mutate({ wins: shutdownWins, challenges: shutdownChallenges, lessons: shutdownLessons, next_focus: shutdownNextFocus, shutdown_complete: [shutdownWins, shutdownChallenges, shutdownLessons, shutdownNextFocus].every(value => value.trim()) ? 1 : 0 }); }}>
+          <label className="residence-field"><span>What moved forward?</span><textarea value={shutdownWins} onChange={event => setShutdownWins(event.target.value)} rows={2} maxLength={5000} placeholder="What did you complete, practise, or make progress on?" /></label>
+          <label className="residence-field"><span>What slipped, and why?</span><textarea value={shutdownChallenges} onChange={event => setShutdownChallenges(event.target.value)} rows={2} maxLength={5000} placeholder="What got in the way? Be honest, not harsh." /></label>
+          <label className="residence-field"><span>What did you learn?</span><textarea value={shutdownLessons} onChange={event => setShutdownLessons(event.target.value)} rows={2} maxLength={5000} placeholder="What will you remember from today?" /></label>
+          <label className="residence-field"><span>One clear next step for tomorrow</span><textarea value={shutdownNextFocus} onChange={event => setShutdownNextFocus(event.target.value)} rows={2} maxLength={5000} placeholder="What is the first meaningful thing to move forward?" /></label>
+          <div className="residence-workflow-footer"><small>{dailyReview?.shutdown_complete ? "Today's shutdown is saved. You can still edit it." : 'Fill all four reflections to mark the day as closed. Partial notes can be saved as a draft.'}</small><button className="button button--secondary" type="submit" disabled={saveDaily.isPending || ![shutdownWins, shutdownChallenges, shutdownLessons, shutdownNextFocus].some(value => value.trim())}>{saveDaily.isPending ? 'Saving…' : [shutdownWins, shutdownChallenges, shutdownLessons, shutdownNextFocus].every(value => value.trim()) ? 'Complete evening shutdown' : 'Save reflection draft'}</button></div>
+          {saveDaily.isError && <p className="inline-error">{saveDaily.error.message}</p>}
+        </form>
+      </Card>
     </section>
   </div>;
 }
