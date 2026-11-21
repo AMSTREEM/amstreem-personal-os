@@ -101,6 +101,7 @@ test('Residence derives a daily consistency pulse from active life areas', () =>
   assert.match(residence, /scoreDimensions/);
   assert.match(residence, /atlas-focus-timer-v1/);
   assert.match(residence, /activeFocusContext/);
+  assert.match(residence, /showCalendar/);
   assert.match(residence, /api<AnnouncementFeed>\('\/announcements'/);
   assert.match(residence, /markAnnouncementRead/);
 });
