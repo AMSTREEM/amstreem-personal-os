@@ -85,7 +85,7 @@ test('Residence derives a daily consistency pulse from active life areas', () =>
   const residence = read('client/src/pages/TodayPage.tsx');
   assert.match(residence, /TODAY'S CONSISTENCY PULSE/);
   assert.match(residence, /api<Deen>\('\/deen\/summary/);
-  assert.match(residence, /api<Faith>\('\/faith/);
+  assert.match(residence, /api<Faith\[]>\('\/faith/);
   assert.match(residence, /scoreDimensions/);
   assert.match(residence, /atlas-focus-timer-v1/);
   assert.match(residence, /activeFocusContext/);
