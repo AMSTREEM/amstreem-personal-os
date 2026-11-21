@@ -88,6 +88,7 @@ const db = new Proxy({}, { get(_target, prop) { const active = currentDb(); cons
 app.use('/api/import', express.json({ limit: '10mb' }));
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.get(['/residence','/admin','/deen','/selfcontrol','/tasks','/focus','/learning','/goals','/reviews','/insights','/calendar','/settings','/library','/announcements'],(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 
 // A short per-account queue prevents overlapping requests from overwriting
 // each other's workspace snapshots on a single application instance.
@@ -212,6 +213,8 @@ app.use('/api', async (req, res, next) => {
     const adminRoute = req.path.startsWith('/admin');
     if (adminRoute && user.id !== ownerUserId) return res.status(403).json({ error: 'Administrator access required.' });
     req.user = user;
+    // Admin APIs use service-role aggregate data; do not load a tenant workspace snapshot for them.
+    if (adminRoute) return next();
     const accountRetryAfter = consumeRateLimit(`account:${user.id}`, 90);
     if (accountRetryAfter) {
       res.setHeader('Retry-After', String(accountRetryAfter));
