@@ -1622,11 +1622,17 @@ body { letter-spacing: -.006em; }
 .residence-section-heading,
 .today-section-heading,
 .execution-panel-heading { margin-bottom: 14px; }
-.card-heading p,
-.module-panel-head p,
-.residence-section-heading p,
-.today-section-heading p,
-.execution-panel-heading p { display: none; }
+.today-dashboard .card-heading p,
+.today-dashboard .module-panel-head p,
+.today-dashboard .residence-section-heading p,
+.today-dashboard .today-section-heading p,
+.rhythm-page .card-heading p,
+.rhythm-page .module-panel-head p,
+.execution-workspace .card-heading p,
+.execution-workspace .module-panel-head p,
+.execution-workspace .execution-panel-heading p,
+.stack:has(.goal-grid) .card-heading p,
+.stack:has(.goal-grid) .module-panel-head p { display: none; }
 .today-dashboard .residence-band-heading .eyebrow,
 .today-dashboard .residence-section-heading .eyebrow,
 .today-dashboard .today-section-heading .eyebrow,
