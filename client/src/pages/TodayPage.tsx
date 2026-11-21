@@ -81,7 +81,7 @@ export function TodayPage() {
     return a.due_date.localeCompare(b.due_date) || a.id - b.id;
   });
   const todayTasks = (tasks.data || []).filter(task => task.due_date === today);
-  const priorityTasks = [...openTasks.filter(task => task.due_date && task.due_date < today), ...openTasks.filter(task => task.due_date === today), ...openTasks.filter(task => !task.due_date)].slice(0, 5);
+  const priorityTasks = [...openTasks.filter(task => task.due_date && task.due_date < today), ...openTasks.filter(task => task.due_date === today), ...openTasks.filter(task => task.due_date && task.due_date > today), ...openTasks.filter(task => !task.due_date)].slice(0, 5);
   const activeGoals = (goals.data || []).filter(goal => goal.status === 'active').sort((a,b) => (a.target_date || '9999').localeCompare(b.target_date || '9999')).slice(0, 3);
   const prayerCount = deen.data?.prayers.filter(item => !!item.completed).length ?? 0;
   const faithCount = faithPractices.filter(activity => !!faith.data?.find(item => item.activity === activity)?.completed).length;
