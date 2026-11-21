@@ -1882,3 +1882,7 @@ body,.app-frame,.main-area { background: var(--bg-canvas); }
 .atlas-skeleton-block--wide { width: min(520px,80vw); height: 70px; margin-top: 28px; border-radius: 13px; }
 @keyframes atlas-skeleton-shimmer { to { transform: translateX(100%); } }
 @media(prefers-reduced-motion:reduce) { .atlas-skeleton-list i::after,.atlas-skeleton-block::after { animation: none; opacity: .35; } }
+
+/* Keep the last rows clear of the floating dock. */
+.page-container { padding-bottom: 100px; }
+@media (max-width:760px) { .page-container { padding-bottom: 88px; } }
