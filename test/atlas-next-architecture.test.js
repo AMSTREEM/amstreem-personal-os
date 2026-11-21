@@ -88,6 +88,7 @@ test('Residence derives a daily consistency pulse from active life areas', () =>
   assert.match(residence, /api<Faith>\('\/faith/);
   assert.match(residence, /scoreDimensions/);
   assert.match(residence, /atlas-focus-timer-v1/);
+  assert.match(residence, /activeFocusContext/);
 });
 
 test('Goals expose linked projects, tasks and daily habits', () => {
