@@ -107,7 +107,7 @@ export function AppShell() {
   const location = useLocation();
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Record<string, string>>('/settings') });
   const quickDate = atlasDate();
-  const quickReligion = settings.data?.religion || 'none';
+  const quickReligion = settings.data?.faith_tradition || settings.data?.religion || 'none';
   const quickDeen = useQuery({ queryKey: ['deen', quickDate], queryFn: () => api<QuickDeen>('/deen/summary?date=' + quickDate), enabled: commandOpen && quickReligion === 'islam' });
   const quickHabits = useQuery({ queryKey: ['habits', quickDate], queryFn: () => api<QuickHabit[]>('/habits?date=' + quickDate), enabled: commandOpen });
   const quickPrayerMutation = useMutation({
