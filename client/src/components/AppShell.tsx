@@ -127,7 +127,7 @@ export function AppShell() {
   const faithTabLabel = quickReligion === 'islam' ? 'Deen & Reflection' : quickReligion === 'christianity' ? 'Faith & Devotion' : 'Clarity & Reflection';
   const tabsByRoom = {
     residence: [{ label: 'Overview', to: '/today' }, { label: 'Insights', to: '/insights' }],
-    rhythm: [{ label: faithTabLabel, to: '/values' }, { label: 'Self-Control & Streaks', to: '/self-control' }, { label: 'Habits & Streaks', to: '/rituals' }],
+    rhythm: [{ label: faithTabLabel, to: '/values' }, { label: 'Self-Control & Streaks', to: '/self-control' }, { label: 'Routine Builder', to: '/rituals' }],
     execution: [{ label: 'Projects', to: '/projects' }, { label: 'Tasks', to: '/tasks' }, { label: 'Focus Room', to: '/focus' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
     growth: [{ label: 'Learning Studio', to: '/learning' }, { label: 'Private Library', to: '/library', feature: 'library' }, { label: 'Goals', to: '/goals' }, { label: 'Reviews', to: '/reviews' }]
   };
