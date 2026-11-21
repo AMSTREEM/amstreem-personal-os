@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, Plus } from 'lucide-react';
+import { BookOpen, Plus, Timer } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextInput } from '../components/ui';
 
@@ -38,7 +39,7 @@ export function LearningPage() {
     <div className="stack">
       {paths.data?.length ? paths.data.map(path => <Card key={path.id}>
         <div className="card-heading"><div><span className="eyebrow">{path.subject || 'LEARNING PATH'}</span><h2>{path.title}</h2><p>{path.description || 'Build this path one lesson at a time.'}</p></div><span className="status-pill">{path.status}</span></div>
-        {path.lessons.length ? <div className="list-stack">{path.lessons.map(lesson => <div className="list-row" key={lesson.id}><span className="session-mark"><BookOpen size={16} /></span><div className="list-row__body"><b>{lesson.title}</b><small>{lesson.study_minutes} minutes studied</small></div><select className="status-select" value={lesson.status} onChange={event => updateLesson.mutate({ lesson, status: event.target.value })}><option>Not started</option><option>In progress</option><option>Completed</option></select></div>)}</div> : <EmptyState title="Add the first lesson." detail="Give this learning path its first clear checkpoint." />}
+        {path.lessons.length ? <div className="list-stack">{path.lessons.map(lesson => <div className="list-row" key={lesson.id}><span className="session-mark"><BookOpen size={16} /></span><div className="list-row__body"><b>{lesson.title}</b><small>{lesson.study_minutes} minutes studied</small><Link className="text-link" to={'/focus?lesson=' + lesson.id}><Timer size={13}/> Focus on lesson</Link></div><select className="status-select" value={lesson.status} onChange={event => updateLesson.mutate({ lesson, status: event.target.value })}><option>Not started</option><option>In progress</option><option>Completed</option></select></div>)}</div> : <EmptyState title="Add the first lesson." detail="Give this learning path its first clear checkpoint." />}
         <form className="form-row milestone-form" onSubmit={event => { event.preventDefault(); const value = lessonDrafts[path.id]?.trim(); if (value) createLesson.mutate({ pathId: path.id, value }); }}><Field label="Add a lesson"><TextInput value={lessonDrafts[path.id] || ''} onChange={event => setLessonDrafts(current => ({ ...current, [path.id]: event.target.value }))} placeholder="Name the next lesson" /></Field><Button type="submit" variant="secondary" disabled={createLesson.isPending || !lessonDrafts[path.id]?.trim()}><Plus size={15} /> Add lesson</Button></form>
       </Card>) : <Card><EmptyState title="Make learning deliberate." detail="Create a path for a subject you want to understand, then build it into lessons and study sessions." /></Card>}
     </div>
