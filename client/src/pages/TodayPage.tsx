@@ -142,7 +142,7 @@ export function TodayPage() {
     if (todayTasks.length) values.push({ label: 'Tasks', score: todayTasks.filter(task => !!task.done).length / todayTasks.length * 100, detail: todayTasks.filter(task => !!task.done).length + '/' + todayTasks.length + ' due today' });
     return values;
   }, [religion, deen.data, prayerCount, faith.data, faithCount, habitList.length, completedHabits, overview.data, focusPercent, target, todayTasks]);
-  const consistency = scoreDimensions.length ? Math.round(scoreDimensions.reduce((sum, item) => sum + item.score, 0) / scoreDimensions.length) : null;
+  const activityPulse = scoreDimensions.length ? Math.round(scoreDimensions.reduce((sum, item) => sum + item.score, 0) / scoreDimensions.length) : null;
   const nextDestination = insight.data?.recommendation.destination === 'habit' ? '/rituals' : '/' + (insight.data?.recommendation.destination || 'tasks');
 
   return <div className="stack today-dashboard">
@@ -169,10 +169,10 @@ export function TodayPage() {
     </section>
     <section className="residence-pulse" aria-label="Your daily consistency pulse">
       <div className="residence-pulse__main">
-        <div className="residence-pulse__heading"><span className="eyebrow">TODAY'S CONSISTENCY PULSE</span><span className="residence-pulse__date">{today}</span></div>
-        <div className="residence-pulse__score">{consistency === null ? '—' : consistency + '%'}<span>{consistency === null ? 'Build your first signal' : 'across ' + scoreDimensions.length + ' active areas'}</span></div>
-        <div className="residence-pulse__track"><span style={{ width: (consistency ?? 0) + '%' }} /></div>
-        <p>{consistency === null ? 'Choose a habit, set a focus intention, or add a priority to begin. Your score only reflects areas you actively use.' : 'A useful snapshot, not a judgement. Your score is calculated from the records below and never fills in missing activity.'}</p>
+        <div className="residence-pulse__heading"><span className="eyebrow">TODAY'S ACTIVITY PULSE</span><span className="residence-pulse__date">{today}</span></div>
+        <div className="residence-pulse__score">{activityPulse === null ? '—' : activityPulse + '%'}<span>{activityPulse === null ? 'Build your first signal' : 'across ' + scoreDimensions.length + ' active areas'}</span></div>
+        <div className="residence-pulse__track"><span style={{ width: (activityPulse ?? 0) + '%' }} /></div>
+        <p>{activityPulse === null ? 'Choose a habit, set a focus intention, or add a priority to begin. This snapshot only reflects areas you actively use.' : 'A snapshot of activity recorded today, not a rolling consistency score or a judgement. It only includes areas you actively use.'}</p>
       </div>
       <div className="residence-pulse__dimensions">
         {scoreDimensions.length ? scoreDimensions.map(item => <div className="residence-dimension" key={item.label}><span>{item.label}</span><b>{Math.round(item.score)}%</b><small>{item.detail}</small><i><span style={{ width: Math.max(0, Math.min(100, item.score)) + '%' }} /></i></div>) : <div className="residence-dimension residence-dimension--empty"><span>YOUR DAILY RHYTHM</span><b>Start small</b><small>Activity appears here as you use Atlas.</small></div>}
