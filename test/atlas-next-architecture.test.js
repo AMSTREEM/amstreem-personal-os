@@ -9,7 +9,7 @@ const server = read('server.js');
 const backup = read('workspace-backup.js');
 const app = read('client/src/App.tsx');
 
-test('existing v1 workspace snapshots remain readable and new writes use v2', () => {
+test('existing v1/v2 workspace snapshots remain readable and new writes use v3', () => {
   assert.match(server, /personal-os-sqlite-snapshot-v1/);
   assert.match(server, /personal-os-sqlite-snapshot-v2/);
   assert.match(server, /personal-os-sqlite-snapshot-v3/);
