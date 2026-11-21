@@ -24,7 +24,7 @@ function readTimer(): StoredTimer {
 
 export function FocusPage() {
   const client = useQueryClient();
-  const [focus, setFocus] = useState('');
+  const [focus, setFocus] = useState(() => (new URLSearchParams(window.location.search).get('focus') || '').slice(0,120));
   const [minutes, setMinutes] = useState('25');
   const [reflection, setReflection] = useState('');
   const [timer, setTimer] = useState<StoredTimer>(() => { const stored = readTimer(); const params = new URLSearchParams(window.location.search); const requestedTask = params.get('task'); const requestedLesson = params.get('lesson'); if (stored.deadline !== null) return stored; if (requestedTask) return { ...stored, taskId: requestedTask, lessonId: '' }; return requestedLesson ? { ...stored, taskId: '', lessonId: requestedLesson } : stored; });
