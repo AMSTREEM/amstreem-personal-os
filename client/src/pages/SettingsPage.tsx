@@ -52,7 +52,8 @@ export function SettingsPage() {
       setName(settings.data.display_name || '');
       setNorthStar(settings.data.north_star || '');
       setTarget(settings.data.daily_target || '80');
-      setTheme(settings.data.theme || 'shadowed-alchemist');\n      applyTheme(settings.data.theme || 'shadowed-alchemist');
+      setTheme(settings.data.theme || 'shadowed-alchemist');
+      applyTheme(settings.data.theme || 'shadowed-alchemist');
       try { setFeatures(settings.data.features ? JSON.parse(settings.data.features).map((feature: string) => feature === 'values' ? 'deen' : feature) : ['calendar','focus','rituals','selfcontrol','learning','library','deen']); } catch { setFeatures(['calendar','focus','rituals','selfcontrol','learning','library','deen']); }
     }
   }, [settings.data]);
