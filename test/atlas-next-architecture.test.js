@@ -96,7 +96,7 @@ test('FocusWorkspace uses one shared timer store and owns the focus-session work
   assert.match(timerStore, /atlas-focus-timer-v1/);
   assert.match(timerStore, /useSyncExternalStore/);
   assert.match(timerStore, /localStorage\.setItem/);
-  assert.match(read('client/src/pages/ExecutionFocusPage.tsx'), /ROOM 03 \\/ WORKSPACE/);
+  assert.ok(read('client/src/pages/ExecutionFocusPage.tsx').includes('ROOM 03 / WORKSPACE'));
     assert.match(read('client/src/App.tsx'), /path="\\/focus"/);
   assert.match(read('client/src/pages/LearningPage.tsx'), /\/focus\?lesson=/);
   assert.match(read('client/src/pages/TodayPage.tsx'), /\/focus\?task=/);
