@@ -7,6 +7,7 @@ import { api, json } from '../lib/api';
 import { ArrowRight, BookOpen, Check, Compass, GraduationCap, Heart, House, LogOut, Menu, MoonStar, Pause, Play, Plus, Search, Settings, SlidersHorizontal, Target, Timer, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
+import { MobileInstallPrompt } from './MobileInstallPrompt';
 import { EntrancePresetContext, entranceFrame, useCompactMotionViewport, useEntrancePreset } from './EntranceMotion';
 import { playAtlasFeedback } from '../lib/microFeedback';
 import { useFocusTimer, updateFocusTimer } from '../lib/focusTimerStore';
@@ -190,6 +191,7 @@ export function AppShell() {
   }, []);
 
   return <div className="app-frame">
+    <MobileInstallPrompt />
     <AnimatePresence initial={false}>{tourOpen && <AtlasWalkthrough onClose={closeTour} />}</AnimatePresence>
     {mobileOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
     <aside className={'sidebar ' + (mobileOpen ? 'sidebar--open' : '')}>
