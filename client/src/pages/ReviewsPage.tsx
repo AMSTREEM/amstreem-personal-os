@@ -16,6 +16,15 @@ function periodRange(type: 'daily' | 'weekly') {
   const today = dateKey(new Date());
   const date = new Date(today + 'T12:00:00');
   if (type === 'daily') return { start: today, end: today };
+  const offset = (date.getDay() + 6) % 7;
+  date.setDate(date.getDate() - offset);
+  const start = dateKey(date);
+  date.setDate(date.getDate() + 6);
+  return { start, end: dateKey(date) };
+}
+function rollingEvidenceRange() {
+  const today = dateKey(new Date());
+  const date = new Date(today + 'T12:00:00');
   date.setDate(date.getDate() - 6);
   return { start: dateKey(date), end: today };
 }
@@ -24,6 +33,7 @@ export function ReviewsPage() {
   const client = useQueryClient();
   const [type, setType] = useState<'daily' | 'weekly'>('weekly');
   const range = useMemo(() => periodRange(type), [type]);
+  const evidenceWindow = useMemo(() => rollingEvidenceRange(), []);
   const [wins, setWins] = useState('');
   const [challenges, setChallenges] = useState('');
   const [lessons, setLessons] = useState('');
@@ -31,7 +41,7 @@ export function ReviewsPage() {
   const [priorityIds,setPriorityIds] = useState<number[]>([]);
   const tasks = useQuery({queryKey:['tasks'],queryFn:()=>api<Task[]>('/tasks')});
   const reviews = useQuery({ queryKey: ['reviews', type], queryFn: () => api<Review[]>('/reviews?period=' + type) });
-  const evidence = useQuery({ queryKey: ['review-evidence', range.start, range.end], queryFn: () => api<Evidence>('/reviews/evidence?start=' + range.start + '&end=' + range.end), enabled: type === 'weekly' });
+  const evidence = useQuery({ queryKey: ['review-evidence', evidenceWindow.start, evidenceWindow.end], queryFn: () => api<Evidence>('/reviews/evidence?start=' + evidenceWindow.start + '&end=' + evidenceWindow.end), enabled: type === 'weekly' });
   const current = reviews.data?.find(item => item.period_start === range.start);
   useEffect(() => {
     setWins(current?.wins || '');
@@ -48,7 +58,7 @@ export function ReviewsPage() {
   return <div className="stack">
     <PageHeader eyebrow="REFLECT / REVIEW" title="Reviews" description="Make sense of what happened, notice what you learned, and choose what deserves attention next." />
     <div className="review-switch"><button className={type === 'daily' ? 'review-switch__active' : ''} onClick={() => setType('daily')}>Daily review</button><button className={type === 'weekly' ? 'review-switch__active' : ''} onClick={() => setType('weekly')}>Weekly review</button></div>
-    {type === 'weekly' && <Card className="room4-card room4-evidence"><div className="card-heading"><div><span className="eyebrow">THE LAST SEVEN DAYS</span><h2>Your evidence, before reflection</h2><p>Workspace records for {range.start} — {range.end}. Missing records are not treated as zero-effort days.</p></div><CalendarCheck size={18}/></div>{evidence.isLoading ? <p>Gathering your workspace evidence…</p> : evidence.data ? <div className="room4-evidence-grid">{[['Focus minutes',evidence.data.focus_minutes+'m'],['Completed tasks',evidence.data.completed_tasks],['Lessons completed',evidence.data.lessons_completed],['Rhythm records',evidence.data.rhythm_completed+'/'+evidence.data.rhythm_total],['Habit check-ins',evidence.data.habit_checkins],['Self-control slips',evidence.data.self_control_slips],['Milestones completed',evidence.data.milestones_completed+'/'+evidence.data.milestones_total]].map(([label,value])=><div key={String(label)}><small>{label}</small><b>{value}</b></div>)}</div> : <p className="inline-error">Evidence is temporarily unavailable.</p>}<p className="room4-evidence-note">Task, lesson and milestone totals reflect currently completed records; older records do not have completion timestamps. Focus, Daily Rhythm and check-in counts use their actual dated logs.</p></Card>}
+    {type === 'weekly' && <Card className="room4-card room4-evidence"><div className="card-heading"><div><span className="eyebrow">THE LAST SEVEN DAYS</span><h2>Your evidence, before reflection</h2><p>Workspace records for {evidenceWindow.start} — {evidenceWindow.end}. Missing records are not treated as zero-effort days.</p></div><CalendarCheck size={18}/></div>{evidence.isLoading ? <p>Gathering your workspace evidence…</p> : evidence.data ? <div className="room4-evidence-grid">{[['Focus minutes',evidence.data.focus_minutes+'m'],['Completed tasks',evidence.data.completed_tasks],['Lessons completed',evidence.data.lessons_completed],['Rhythm records',evidence.data.rhythm_completed+'/'+evidence.data.rhythm_total],['Habit check-ins',evidence.data.habit_checkins],['Self-control slips',evidence.data.self_control_slips],['Milestones completed',evidence.data.milestones_completed+'/'+evidence.data.milestones_total]].map(([label,value])=><div key={String(label)}><small>{label}</small><b>{value}</b></div>)}</div> : <p className="inline-error">Evidence is temporarily unavailable.</p>}<p className="room4-evidence-note">Task, lesson and milestone totals count records created within this window that are currently completed; historical completion timestamps are not available. Focus, Daily Rhythm and check-in counts use their actual dated logs.</p></Card>}
     <Card className="room4-card">
       <div className="card-heading"><div><h2>{type === 'weekly' ? 'Your week, in perspective.' : 'Close the day with intention.'}</h2><p>{range.start} — {range.end} {current ? '· Saved review' : '· New review'}</p></div><CalendarCheck size={18} /></div>
       <form className="form-stack" onSubmit={event => { event.preventDefault(); save.mutate(); }}>
