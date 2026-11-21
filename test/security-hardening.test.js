@@ -57,15 +57,15 @@ test('Residence pins saved priorities, completes them inline, and links focus to
 
 test('Daily Rhythm records persist per workspace and remain compatible with older snapshots and exports', () => {
   const backup = fs.readFileSync(path.join(__dirname, '..', 'workspace-backup.js'), 'utf8');
-  assert.match(server, /'self_control_entries','rhythm_records','email_events'/);
-  assert.match(server, /'faith_logs','rhythm_records','login_events'/);
+  assert.match(server, /'self_control_entries','rhythm_records','reading_items','email_events'/);
+  assert.match(server, /'faith_logs','rhythm_records','reading_items','login_events'/);
   assert.match(server, /CREATE TABLE IF NOT EXISTS rhythm_records/);
   assert.match(server, /values\.faith_tradition=values\.faith_tradition\|\|values\.religion/);
   assert.match(server, /'faith_tradition','leaderboard_name'/);
   assert.match(server, /app\.post\('\/api\/rhythm\/records'/);
   assert.match(server, /app\.get\('\/api\/rhythm\/summary'/);
   assert.match(server, /rhythm_records:all\('SELECT \* FROM rhythm_records'\)/);
-  assert.match(backup, /'self_control_entries','rhythm_records','settings'/);
+  assert.match(backup, /'self_control_entries','rhythm_records','reading_items','settings'/);
   assert.match(backup, /'feedback_logs','rhythm_records'\]\./);
 });
 
