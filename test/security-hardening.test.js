@@ -66,7 +66,7 @@ test('Daily Rhythm records persist per workspace and remain compatible with olde
   assert.match(server, /app\.get\('\/api\/rhythm\/summary'/);
   assert.match(server, /rhythm_records:all\('SELECT \* FROM rhythm_records'\)/);
   assert.match(backup, /'self_control_entries','rhythm_records','reading_items','settings'/);
-  assert.match(backup, /'feedback_logs','rhythm_records'\]\./);
+  assert.match(backup, /'feedback_logs','rhythm_records','reading_items'\]\.includes\(table\)/);
 });
 
 test('Daily Rhythm separates planned from completed records and updates Residence Activity Pulse', () => {
