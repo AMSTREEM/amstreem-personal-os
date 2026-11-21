@@ -33,7 +33,7 @@ export function LibraryPage() {
           <Field label="Link"><TextInput type="url" value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://…"/></Field>
         </div>
         <div><Button type="submit" disabled={createItem.isPending||!resourceTitle.trim()}><Plus size={16}/> Add resource</Button></div>
-      </form></details></details>
+      </form></details>
       {createItem.isError&&<p className="inline-error">{createItem.error.message}</p>}
     </Card>
     <section className="stack">
