@@ -904,3 +904,10 @@ body { letter-spacing: -.006em; }
   .rituals-row { gap:6px; }
   .rituals-row>b { min-width:48px; }
 }
+
+
+/* Six-pillar module navigation */
+.module-subnav { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin: -12px 0 28px; padding-bottom: 13px; border-bottom: 1px solid var(--line-soft); }
+.module-subnav__link { display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border: 1px solid transparent; border-radius: 8px; color: var(--muted); font-size: 11px; transition: color .15s, background .15s, border-color .15s; }
+.module-subnav__link:hover { color: var(--text); background: rgba(255,255,255,.035); }
+.module-subnav__link--active { color: var(--accent-strong); background: var(--accent-wash); border-color: rgba(197,168,120,.15); }
