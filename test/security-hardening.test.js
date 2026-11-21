@@ -53,3 +53,44 @@ test('Residence pins saved priorities, completes them inline, and links focus to
   assert.match(residence, /yesterdayReview\?\.shutdown_complete && yesterdayReview\.next_focus\?\.trim\(\)/);
   assert.match(residence, /showShutdownPrompt \? /);
 });
+
+
+test('Daily Rhythm records persist per workspace and remain compatible with older snapshots and exports', () => {
+  const backup = fs.readFileSync(path.join(__dirname, '..', 'workspace-backup.js'), 'utf8');
+  assert.match(server, /'self_control_entries','rhythm_records','email_events'/);
+  assert.match(server, /'faith_logs','rhythm_records','login_events'/);
+  assert.match(server, /CREATE TABLE IF NOT EXISTS rhythm_records/);
+  assert.match(server, /app\.post\('\/api\/rhythm\/records'/);
+  assert.match(server, /app\.get\('\/api\/rhythm\/summary'/);
+  assert.match(server, /rhythm_records:all\('SELECT \* FROM rhythm_records'\)/);
+  assert.match(backup, /'self_control_entries','rhythm_records','settings'/);
+  assert.match(backup, /'feedback_logs','rhythm_records'\]\./);
+});
+
+test('Daily Rhythm separates planned from completed records and updates Residence Activity Pulse', () => {
+  const rhythm = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ValuesPage.tsx'), 'utf8');
+  const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
+  const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'FocusPage.tsx'), 'utf8');
+  assert.match(rhythm, /status: 'planned'\|'completed'\|'active'\|'answered'/);
+  assert.match(rhythm, /value="qada"/);
+  assert.match(rhythm, /Jumu’ah checklist/);
+  assert.match(rhythm, /P-R-A-Y Reflection|P-R-A-Y REFLECTION/);
+  assert.match(rhythm, /Start Qur’an Focus/);
+  assert.match(rhythm, /Start Devotional Focus/);
+  assert.match(rhythm, /Clarity & Reflection/);
+  assert.match(rhythm, /invalidateQueries\(\{ queryKey: \['rhythm-summary'\] \}\)/);
+  assert.match(residence, /api<RhythmSummary>\('\/rhythm\/summary\?date='/);
+  assert.match(residence, /rhythmSummary\.data\?\.completed/);
+  assert.match(focus, /get\('focus'\)/);
+});
+
+test('Self-Control consistency uses dated records and positive habit check-ins, not assumed streak days', () => {
+  const selfControl = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'SelfControlPage.tsx'), 'utf8');
+  assert.match(server, /FROM self_control_entries WHERE log_date>=date\(\?,'-29 days'\)/);
+  assert.match(server, /FROM habit_logs WHERE log_date>=date\(\?,'-29 days'\)/);
+  assert.match(server, /let best=0,run=0,previous=null/);
+  assert.match(selfControl, /ROLLING CONSISTENCY/);
+  assert.match(selfControl, /LAST 30 DAYS/);
+  assert.match(selfControl, /habits\.data\?\.length/);
+  assert.match(selfControl, /verified clean check-ins/);
+});
