@@ -1512,3 +1512,27 @@ body{background-image:radial-gradient(ellipse at 75% -15%,color-mix(in srgb,var(
 .theme-choice{border-radius:13px}.settings-layout{gap:20px}
 @media(max-width:900px){.content{padding:20px 16px}.sidebar{width:280px}.admin-engagement-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.content{padding:15px 12px}.panel{padding:16px}.clock-zone{display:none}.admin-engagement-grid{grid-template-columns:1fr 1fr}}
+
+
+/* Atlas redesigned authentication experience */
+.auth-gate{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(360px,.9fr);align-items:center;justify-items:center;gap:clamp(32px,6vw,100px);padding:clamp(24px,6vw,100px);background:radial-gradient(ellipse at 15% 20%,#20202d 0,transparent 50%),radial-gradient(ellipse at 80% 90%,#171725 0,transparent 40%),#09090B}
+.auth-gate:before{content:"AMSTREEM  /  ATLAS\\A\\A QUIET CONSISTENCY.\\A UNREASONABLE STANDARDS.\\A\\A A personal operating system\\A for the things that matter.\\A\\A 01 — BUILD YOUR RHYTHM\\A 02 — PROTECT YOUR FOCUS\\A 03 — MAKE PROGRESS VISIBLE";white-space:pre-wrap;display:block;justify-self:start;max-width:600px;color:#a1a1aa;font:500 clamp(13px,1.3vw,16px)/2.1 'JetBrains Mono',monospace;letter-spacing:.07em}
+.auth-card{width:min(100%,480px);margin:0;padding:clamp(28px,4vw,46px);border:1px solid #292930;border-radius:20px;background:linear-gradient(160deg,#15151c,#101014);box-shadow:0 35px 100px #0009}
+.auth-mark{width:56px;height:56px;border:1px solid #44445a;border-radius:16px;margin-bottom:24px;background:#171722}
+.auth-mark img{width:30px;height:30px;object-fit:contain}
+.auth-eyebrow{color:#818cf8;letter-spacing:2px}
+.auth-card h1{font-size:clamp(36px,4vw,48px);letter-spacing:-2px}
+.auth-card>p{font-size:13px;color:#a1a1aa}
+.auth-tabs{display:flex;gap:6px;padding:5px;border:1px solid #292930;border-radius:10px;background:#0c0c10;margin-bottom:18px}
+.auth-tab{flex:1;padding:10px;border:1px solid transparent;border-radius:7px;background:transparent;color:#85858e;font-size:12px}
+.auth-tab.active{background:#1c1c25;border-color:#343440;color:#f4f4f5}
+.auth-card label{color:#b8b8c2;font-size:12px}
+.auth-card input{padding:13px 14px;border:1px solid #30303a;border-radius:9px;background:#0c0c10;color:#f4f4f5;transition:border .2s,box-shadow .2s}
+.auth-card input:focus{border-color:#818cf8;box-shadow:0 0 0 3px #818cf820;outline:none}
+.auth-card .btn-primary{border-radius:9px;background:#818cf8;border-color:#818cf8;color:#0b0b12;font-size:12px;padding:13px 15px}
+.auth-card .btn-primary:hover{background:#a5b4fc}
+.auth-foot{border-color:#292930;text-align:center;letter-spacing:1.5px}
+.auth-inline-link button{color:#a5a5b3}
+.auth-message{color:#fca5a5}
+@media(max-width:900px){.auth-gate{grid-template-columns:1fr;gap:22px;padding:20px}.auth-gate:before{content:"AMSTREEM ATLAS\\A QUIET CONSISTENCY. UNREASONABLE STANDARDS.";white-space:pre-wrap;justify-self:center;text-align:center;font-size:10px;line-height:1.9;letter-spacing:.1em}.auth-card{width:min(100%,480px)}}
+@media(max-width:480px){.auth-gate{padding:14px}.auth-card{padding:26px 22px;border-radius:16px}.auth-card h1{font-size:38px}}
