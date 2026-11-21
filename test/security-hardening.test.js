@@ -38,3 +38,18 @@ test('production installs dependencies, builds the frontend, and CI audits produ
   assert.match(render, /buildCommand: npm install && npm run build/);
   assert.match(render, /healthCheckPath: \/healthz/);
 });
+
+
+test('Residence pins saved priorities, completes them inline, and links focus to the selected task', () => {
+  const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
+  const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'FocusPage.tsx'), 'utf8');
+  assert.match(residence, /YOUR PINNED TOP 3/);
+  assert.match(residence, /priorityTaskIds\.map\(id => tasks\.data\?\.find\(task => task\.id === id\)\)/);
+  assert.match(residence, /toggleTask\.mutate\(task\)/);
+  assert.match(residence, /residence-pinned-focus[^\n]*to=\{'\/focus\?task=' \+ task\.id\}/);
+  assert.match(residence, /onMutate: async task/);
+  assert.match(focus, /params\.get\('task'\)/);
+  assert.match(residence, /dailyReview\?\.alignment_complete && !editingAlignment/);
+  assert.match(residence, /yesterdayReview\?\.shutdown_complete && yesterdayReview\.next_focus\?\.trim\(\)/);
+  assert.match(residence, /showShutdownPrompt \? /);
+});
