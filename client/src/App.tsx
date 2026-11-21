@@ -39,7 +39,7 @@ export function App() {
       <Route path="/projects" element={<ProjectsPage />} />
       <Route path="/calendar" element={<CalendarPage />} />
       <Route path="/execution" element={<ExecutionFocusPage />} />
-      <Route path="/focus" element={<ExecutionFocusPage />} />
+      <Route path="/focus" element={<Navigate to="/execution" replace />} />
       <Route path="/rituals" element={<RitualsPage />} />
       <Route path="/self-control" element={<SelfControlPage />} />
       <Route path="/learning" element={<LearningPage />} />
