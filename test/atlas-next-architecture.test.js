@@ -43,6 +43,16 @@ test('project, task, calendar, focus and review records can be linked', () => {
   assert.match(server, /INSERT INTO learning_study_logs\(lesson_id,log_date,minutes,reflection\)/);
 });
 
+test('the six core pillars stay visible while secondary tabs remain optional', () => {
+  const shell = read('client/src/components/AppShell.tsx');
+  const settings = read('client/src/pages/SettingsPage.tsx');
+  assert.match(shell, /const visibleNavigation = navigation/);
+  assert.match(shell, /feature: 'calendar'/);
+  assert.match(shell, /feature: 'library'/);
+  assert.match(settings, /Your six core pillars always stay available/);
+  assert.match(settings, /Optional workspace views/);
+});
+
 test('new frontend routes cover the core personal operating system areas', () => {
   for (const route of ['/today', '/goals', '/projects', '/tasks', '/calendar', '/focus', '/rituals', '/self-control', '/learning', '/library', '/values', '/reviews', '/insights', '/settings', '/admin']) {
     assert.ok(app.includes('path="' + route + '"'), 'Missing route ' + route);
