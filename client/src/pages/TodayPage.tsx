@@ -146,15 +146,18 @@ export function TodayPage() {
   const nextDestination = insight.data?.recommendation.destination === 'habit' ? '/rituals' : '/' + (insight.data?.recommendation.destination || 'tasks');
 
   return <div className="stack today-dashboard">
-    <PageHeader eyebrow={new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()).toUpperCase()} title="Residence" description="Your central view of today’s priorities, routines, focus and progress." action={showCalendar ? <Link className="button button--secondary" to="/calendar">View calendar <ArrowRight size={14} /></Link> : undefined} />
-
-    <section className="residence-rhythm"><div><span className="eyebrow">{rhythmCopy.eyebrow}</span><h2>{rhythmCopy.title}</h2><p>{rhythmCopy.detail}</p></div><span className="residence-rhythm-time">{new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',minute:'2-digit'}).format(new Date())} WAT</span></section>
+    <section className="residence-band residence-band--orientation" aria-label="Today's orientation">
+      <PageHeader eyebrow={new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()).toUpperCase()} title="Residence" description="Your central view of today’s priorities, routines, focus and progress." action={showCalendar ? <Link className="button button--secondary" to="/calendar">View calendar <ArrowRight size={14} /></Link> : undefined} />
+      <section className="residence-rhythm"><div><span className="eyebrow">{rhythmCopy.eyebrow}</span><h2>{rhythmCopy.title}</h2><p>{rhythmCopy.detail}</p></div><span className="residence-rhythm-time">{new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',minute:'2-digit'}).format(new Date())} WAT</span></section>
     <section className="residence-rhythm-action" aria-live="polite">
       {rhythm === 'morning' ? <><div><span className="eyebrow">SET YOUR DIRECTION</span><b>{religion === 'islam' ? prayerCount + ' of 5 prayers recorded so far' : priorityTasks.length ? 'Your first priorities are ready' : 'Choose your first priority'}</b><p>{priorityTasks.length ? priorityTasks.slice(0,3).map(task => task.title).join(' · ') : 'Keep the start of the day simple: intention, one anchor, and a meaningful next step.'}</p></div><Link to={religion === 'islam' ? '/values' : '/tasks'}>{religion === 'islam' ? 'Open Deen' : 'Set priorities'} <ArrowRight size={13}/></Link></>
       : rhythm === 'day' ? <><div><span className="eyebrow">PROTECT DEEP WORK</span><b>{openTasks.length} open priorities · {totalLessons ? completedLessons + '/' + totalLessons + ' lessons complete' : 'Learning progress when you add a path'}</b><p>{focusRunning ? 'Your focus block is already underway. Keep your attention on the current session.' : 'Choose one important task, then give it a protected block of attention.'}</p></div><Link to={focusRunning ? '/focus' : '/tasks'}>{focusRunning ? 'Return to focus' : 'Choose a task'} <ArrowRight size={13}/></Link></>
       : <><div><span className="eyebrow">CLOSE THE DAY GENTLY</span><b>{pendingHabits} habits remaining{religion === 'islam' ? ' · ' + (5-prayerCount) + ' prayers not yet recorded' : ''}</b><p>{tomorrowTasks.length ? tomorrowTasks.length + ' task' + (tomorrowTasks.length === 1 ? '' : 's') + ' already planned for tomorrow.' : 'Review today honestly, then leave tomorrow one clear next step.'}</p></div><Link to="/reviews">Open daily reflection <ArrowRight size={13}/></Link></>}
     </section>
-    <section className="residence-pillar-grid" aria-label="Six life pillars">
+    </section>
+    <section className="residence-band residence-band--overview" aria-label="Life at a glance">
+      <div className="residence-band-heading"><span className="eyebrow">02 / YOUR LIFE AT A GLANCE</span><p>Connected areas of your life, with activity drawn from your existing records.</p></div>
+      <section className="residence-pillar-grid" aria-label="Six life pillars">
       {[
         {title:'Deen & Reflection',detail:'Prayer, Qur’an and reflection',to:'/values',symbol:'☾',tone:'deen'},
         {title:'Self-Control & Streaks',detail:'Habits and commitments',to:'/self-control',symbol:'◇',tone:'self'},
@@ -182,8 +185,11 @@ export function TodayPage() {
       <Card className="residence-stat"><span className="eyebrow">HABITS COMPLETED</span><strong>{completedHabits}<small> / {habitList.length}</small></strong><small>Today's chosen habits</small></Card>
       <Card className="residence-stat"><span className="eyebrow">HABIT STREAK</span><strong><Flame size={18}/>{habitStreak}</strong><small>Consecutive days with habit activity</small></Card>
     </div>
+    </section>
 
-    <div className="residence-grid">
+    <section className="residence-band residence-band--execution" aria-label="Today's execution">
+      <div className="residence-band-heading"><span className="eyebrow">03 / MOVE TODAY FORWARD</span><p>Turn today's direction into deliberate action.</p></div>
+      <div className="residence-grid">
       <section className="residence-main-column">
         {religion === 'islam' ? <Card className="residence-faith-card">
           <div className="residence-section-heading"><div><span className="eyebrow">DEEN & REFLECTION</span><h2>Today's Salah</h2><p>{prayerCount} of 5 prayers recorded</p></div><Link to="/values" className="text-link">Open Deen <ArrowRight size={13}/></Link></div>
@@ -248,6 +254,7 @@ export function TodayPage() {
           {activeGoals.length ? <div className="residence-goal-list">{activeGoals.map(goal => <div className="residence-goal" key={goal.id}><Target size={15}/><div><b>{goal.title}</b><small>{goal.target_date ? 'Target ' + goal.target_date : 'No target date'}</small></div></div>)}</div> : <p className="muted">Your longer-term direction will appear here when you add a goal.</p>}
         </Card>
       </aside>
-    </div>
+      </div>
+    </section>
   </div>;
 }
