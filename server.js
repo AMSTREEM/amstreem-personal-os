@@ -641,12 +641,14 @@ function dayDiff(from,to){const a=new Date(from+'T12:00:00'),b=new Date(to+'T12:
 function freedomSummary(tracker,today){
  const latestSlip=one("SELECT log_date FROM self_control_entries WHERE tracker_id=? AND outcome='slip' ORDER BY log_date DESC,id DESC LIMIT 1",tracker.id);
  const effectiveSlip=latestSlip&&latestSlip.log_date>=tracker.start_date?latestSlip:null;
- const streak=effectiveSlip?dayDiff(effectiveSlip.log_date,today):dayDiff(tracker.start_date,today)+1;
  const todayEntry=one('SELECT * FROM self_control_entries WHERE tracker_id=? AND log_date=?',tracker.id,today);
- const slips=all("SELECT log_date FROM self_control_entries WHERE tracker_id=? AND outcome='slip' AND log_date>=? ORDER BY log_date ASC,id ASC",tracker.id,tracker.start_date);
- let anchor=tracker.start_date,best=0;
- for(const slip of slips){best=Math.max(best,dayDiff(anchor,slip.log_date));anchor=slip.log_date;}
- return {...tracker,last_slip:effectiveSlip?.log_date||null,streak:Math.max(0,streak),today:todayEntry,longest_days:Math.max(streak,best)};
+ const entries=all('SELECT log_date,outcome FROM self_control_entries WHERE tracker_id=? AND log_date>=? AND log_date<=? ORDER BY log_date ASC,id ASC',tracker.id,tracker.start_date,today);
+ const byDate=new Map(entries.map(entry=>[entry.log_date,entry.outcome]));
+ let cursor=new Date((todayEntry?today:(()=>{const d=new Date(today+'T12:00:00');d.setDate(d.getDate()-1);return dateKey(d)})())+'T12:00:00'),streak=0;
+ while(true){const key=dateKey(cursor);if(byDate.get(key)!=='clean')break;streak++;cursor.setDate(cursor.getDate()-1);}
+ let best=0,run=0,previous=null;
+ for(const entry of entries){const current=new Date(entry.log_date+'T12:00:00');if(entry.outcome!=='clean'){run=0;previous=null;continue;}run=previous&&Math.round((current-previous)/86400000)===1?run+1:1;best=Math.max(best,run);previous=current;}
+ return {...tracker,last_slip:effectiveSlip?.log_date||null,streak,today:todayEntry,longest_days:Math.max(streak,best)};
 }
 app.get('/api/self-control',(q,s)=>{
  const today=q.query.date||dateKey();
