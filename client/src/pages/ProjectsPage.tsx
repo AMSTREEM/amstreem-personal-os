@@ -4,6 +4,7 @@ import { ArrowUpRight, CheckCircle2, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
+import { Cascade } from '../components/Cascade';
 
 type Goal = { id: number; title: string };
 type Milestone = { id: number; title: string; target_date: string | null; completed: number };
@@ -35,7 +36,7 @@ export function ProjectsPage() {
     onSuccess: () => void client.invalidateQueries({ queryKey: ['projects'] })
   });
 
-  return <div className="stack">
+  return <Cascade className="stack">
     <PageHeader eyebrow="PLAN / BUILD" title="Projects" description="Give meaningful goals a body of work. Projects turn direction into milestones and finishable actions." />
     <Card>
       <div className="card-heading"><div><h2>Start a project</h2><p>Keep the outcome clear and the scope manageable.</p></div></div>
@@ -67,5 +68,5 @@ export function ProjectsPage() {
         <div className="project-card__actions"><Button variant="ghost" onClick={() => update.mutate({ project, status: project.status === 'completed' ? 'active' : 'completed' })}>{project.status === 'completed' ? 'Reopen project' : <><CheckCircle2 size={15} /> Mark complete</>}</Button></div>
       </Card>) : <Card><EmptyState title="No projects yet." detail="Create a project to connect a goal to milestones and tasks. Your standalone tasks still work without one." /></Card>}
     </div>
-  </div>;
+  </Cascade>;
 }
