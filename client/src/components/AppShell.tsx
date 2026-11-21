@@ -10,7 +10,7 @@ import { AtlasWalkthrough } from './AtlasWalkthrough';
 const rooms = [
   { id: 'residence', label: 'Residence', to: '/today', icon: House, paths: ['/today', '/insights'] },
   { id: 'rhythm', label: 'Daily Rhythm', to: '/values', icon: MoonStar, paths: ['/values', '/self-control', '/rituals'] },
-  { id: 'execution', label: 'Execution & Focus', to: '/projects', icon: Compass, paths: ['/projects', '/tasks', '/calendar', '/focus'] },
+  { id: 'execution', label: 'Execution & Focus', to: '/execution', icon: Compass, paths: ['/execution', '/projects', '/tasks', '/calendar', '/focus'] },
   { id: 'growth', label: 'Growth & Direction', to: '/learning', icon: GraduationCap, paths: ['/learning', '/library', '/goals', '/reviews'] }
 ];
 
@@ -86,7 +86,7 @@ export function AppShell() {
   const focusRemaining = focusTimer.deadline ? Math.max(0, Math.ceil((focusTimer.deadline - clockNow) / 1000)) : focusTimer.remaining;
   const focusActive = !!focusTimer.deadline && focusRemaining > 0;
   const focusClock = String(Math.floor(focusRemaining / 60)).padStart(2,'0') + ':' + String(focusRemaining % 60).padStart(2,'0');
-  const focusContext = focusTimer.taskTitle || focusTimer.lessonTitle || focusTimer.focusLabel || 'Focus session';
+  const focusContext = focusTimer.taskTitle || focusTimer.lessonTitle || focusTimer.focusLabel || (focusTimer as SharedTimer & { focus?: string }).focus || 'Focus session';
   function writeTimer(value: SharedTimer) { localStorage.setItem('atlas-focus-timer-v1', JSON.stringify(value)); setFocusTimer(value); window.dispatchEvent(new CustomEvent('atlas-focus-timer-change', { detail: value })); }
   function toggleTimer() { if (focusActive) writeTimer({ ...focusTimer, remaining: focusRemaining, deadline: null }); else if (focusRemaining > 0) writeTimer({ ...focusTimer, deadline: Date.now() + focusRemaining * 1000 }); }
   function finishTimer() { writeTimer({ ...focusTimer, remaining: 0, deadline: null }); window.location.assign('/focus'); }
@@ -128,7 +128,7 @@ export function AppShell() {
   const tabsByRoom = {
     residence: [{ label: 'Overview', to: '/today' }, { label: 'Insights', to: '/insights' }],
     rhythm: [{ label: faithTabLabel, to: '/values' }, { label: 'Self-Control & Streaks', to: '/self-control' }, { label: 'Routine Builder', to: '/rituals' }],
-    execution: [{ label: 'Projects', to: '/projects' }, { label: 'Tasks', to: '/tasks' }, { label: 'Focus Room', to: '/focus' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
+    execution: [{ label: 'Workspace', to: '/execution' }, { label: 'Projects', to: '/projects' }, { label: 'Tasks', to: '/tasks' }, { label: 'Focus Room', to: '/focus' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
     growth: [{ label: 'Learning Studio', to: '/learning' }, { label: 'Private Library', to: '/library', feature: 'library' }, { label: 'Goals', to: '/goals' }, { label: 'Reviews', to: '/reviews' }]
   };
   const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
