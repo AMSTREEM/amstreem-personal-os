@@ -9,7 +9,7 @@ import { TasksPage } from './pages/TasksPage';
 import { GoalsPage } from './pages/GoalsPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ReviewsPage } from './pages/ReviewsPage';
-import { FocusPage } from './pages/FocusPage';
+import { ExecutionFocusPage } from './pages/ExecutionFocusPage';
 import { RitualsPage } from './pages/RitualsPage';
 import { SelfControlPage } from './pages/SelfControlPage';
 import { LearningPage } from './pages/LearningPage';
@@ -38,7 +38,8 @@ export function App() {
       <Route path="/goals" element={<GoalsPage />} />
       <Route path="/projects" element={<ProjectsPage />} />
       <Route path="/calendar" element={<CalendarPage />} />
-      <Route path="/focus" element={<FocusPage />} />
+      <Route path="/execution" element={<ExecutionFocusPage />} />
+      <Route path="/focus" element={<ExecutionFocusPage />} />
       <Route path="/rituals" element={<RitualsPage />} />
       <Route path="/self-control" element={<SelfControlPage />} />
       <Route path="/learning" element={<LearningPage />} />
