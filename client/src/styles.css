@@ -1386,3 +1386,6 @@ body { letter-spacing: -.006em; }
 @media(max-width:1050px){.execution-split{grid-template-columns:minmax(0,1fr) minmax(330px,.9fr)}.execution-quick-add{grid-template-columns:minmax(0,1fr) 90px 75px auto}}
 @media(max-width:850px){.execution-split{grid-template-columns:1fr}.execution-focus-panel{grid-template-columns:1fr 1fr;align-items:start}.execution-focus-card{grid-row:span 2}.execution-project-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.execution-heading{align-items:flex-start}.execution-heading-stat{padding-top:12px}.execution-heading-stat b{font-size:22px}.execution-panel-card,.execution-focus-card,.execution-history-card{padding:13px}.execution-focus-panel{grid-template-columns:1fr}.execution-focus-card{grid-row:auto}.execution-quick-add{grid-template-columns:1fr 1fr}.execution-quick-add input{grid-column:1/-1}.execution-quick-add .button{justify-content:center}.execution-focus-links{grid-template-columns:1fr}.execution-timer-actions .button{flex:1;justify-content:center}.execution-project-metrics{grid-template-columns:1fr 1fr}}
+
+.goal-focus-metric{border-left:1px solid var(--line-soft);padding-left:9px}
+.goal-focus-metric b{font-variant-numeric:tabular-nums}
