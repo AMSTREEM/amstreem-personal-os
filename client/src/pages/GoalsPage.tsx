@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, ArrowUpRight, CheckCircle2, FolderKanban, ListChecks, Plus, Target } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, CheckCircle2, FolderKanban, Heart, ListChecks, Plus, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
@@ -8,6 +8,7 @@ import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from
 type Goal = { id: number; title: string; detail: string; target_date: string | null; status: string };
 type Project = { id: number; title: string; goal_id: number | null; status: string; open_tasks: number; milestones: { id: number; title: string; completed: number }[] };
 type Task = { id: number; title: string; goal_id: number | null; project_id: number | null; done: number; due_date: string | null };
+type Habit = { id: number; title: string; goal_id?: number | null; goal_title?: string | null };
 
 export function GoalsPage() {
   const client = useQueryClient();
@@ -17,6 +18,7 @@ export function GoalsPage() {
   const goals = useQuery({ queryKey: ['goals'], queryFn: () => api<Goal[]>('/goals') });
   const projects = useQuery({ queryKey: ['projects'], queryFn: () => api<Project[]>('/projects') });
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => api<Task[]>('/tasks') });
+  const habits = useQuery({ queryKey: ['habits'], queryFn: () => api<Habit[]>('/habits') });
   const create = useMutation({
     mutationFn: () => api<Goal>('/goals', json('POST', { title, detail, target_date: targetDate || null })),
     onSuccess: () => { setTitle(''); setDetail(''); setTargetDate(''); void client.invalidateQueries({ queryKey: ['goals'] }); }
@@ -31,12 +33,13 @@ export function GoalsPage() {
       const linkedProjects = (projects.data || []).filter(project => project.goal_id === goal.id);
       const projectIds = new Set(linkedProjects.map(project => project.id));
       const linkedTasks = (tasks.data || []).filter(task => task.goal_id === goal.id || (task.project_id !== null && projectIds.has(task.project_id)));
+      const linkedHabits = (habits.data || []).filter(habit => habit.goal_id === goal.id);
       const milestones = linkedProjects.flatMap(project => project.milestones || []);
       const completed = linkedTasks.filter(task => !!task.done).length + milestones.filter(item => !!item.completed).length;
       const total = linkedTasks.length + milestones.length;
-      return [goal.id, { projects: linkedProjects, tasks: linkedTasks, completed, total, progress: total ? Math.round(completed / total * 100) : goal.status === 'completed' ? 100 : 0 }];
+      return [goal.id, { projects: linkedProjects, tasks: linkedTasks, habits: linkedHabits, completed, total, progress: total ? Math.round(completed / total * 100) : goal.status === 'completed' ? 100 : 0 }];
     }));
-  }, [goals.data, projects.data, tasks.data]);
+  }, [goals.data, projects.data, tasks.data, habits.data]);
 
   return <div className="stack">
     <PageHeader eyebrow="DIRECTION / LONG GAME" title="Goals" description="Keep your meaningful outcomes visible. Connect each one to projects, milestones and actionable tasks." />
@@ -59,6 +62,7 @@ export function GoalsPage() {
           <div className="goal-work-summary">
             <div><FolderKanban size={14}/><b>{work?.projects.length ?? 0}</b><small>projects</small></div>
             <div><ListChecks size={14}/><b>{work?.tasks.length ?? 0}</b><small>tasks</small></div>
+            <div><Heart size={14}/><b>{work?.habits.length ?? 0}</b><small>habits</small></div>
             <div><CheckCircle2 size={14}/><b>{work?.completed ?? 0}/{work?.total ?? 0}</b><small>actions done</small></div>
           </div>
           <div className="goal-progress-copy"><span>Connected work</span><b>{work?.total ? work.progress + '%' : goal.status === 'completed' ? 'Complete' : 'Not started'}</b></div>
