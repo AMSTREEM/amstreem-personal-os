@@ -83,6 +83,7 @@ test('Daily Rhythm separates planned from completed records and updates Residenc
   assert.match(rhythm, /invalidateQueries\(\{ queryKey: \['rhythm-summary'\] \}\)/);
   assert.match(residence, /api<RhythmSummary>\('\/rhythm\/summary\?date='/);
   assert.match(residence, /rhythmSummary\.data\?\.completed/);
+  assert.match(residence, /CLARITY & REFLECTION/);
   assert.match(focus, /get\('focus'\)/);
 });
 
