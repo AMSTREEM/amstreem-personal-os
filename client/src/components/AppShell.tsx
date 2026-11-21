@@ -50,7 +50,7 @@ export function AppShell() {
   let enabledFeatures: string[] | null = null;
   if (storedFeatures) { try { enabledFeatures = JSON.parse(storedFeatures).map((feature: string) => feature === 'values' ? 'deen' : feature); } catch { enabledFeatures = null; } }
   const visibleNavigation = enabledFeatures === null ? navigation : navigation.filter(item => !('feature' in item) || enabledFeatures!.includes(item.feature as string));
-  const current = visibleNavigation.find(item => item.to === location.pathname);
+  const current = visibleNavigation.find(item => item.to === location.pathname) || visibleNavigation.find(item => item.to === (['/tasks', '/calendar'].includes(location.pathname) ? '/projects' : location.pathname === '/library' ? '/learning' : location.pathname === '/reviews' ? '/values' : location.pathname === '/rituals' ? '/self-control' : location.pathname === '/insights' ? '/today' : ''));
   const groups = [...new Set(visibleNavigation.map(item => item.group))];
   const activeTabs = moduleTabs.find(item => item.match(location.pathname))?.tabs || [];
 
