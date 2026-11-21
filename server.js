@@ -338,15 +338,18 @@ app.get('/api/leaderboard',async(q,s)=>{
 app.get('/api/admin/analytics',async(req,res)=>{
  try {
   const key=process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!key)return res.status(503).json({error:'Admin analytics are not configured.'});
+  if(!key)return res.status(503).json({error:'Admin analytics are not configured. Add the server-side Supabase key.'});
   const response=await fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=user_id,data`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
   if(!response.ok)throw new Error('Could not load aggregate workspace activity.');
   const rows=await response.json(),today=dateKey(),toDate=s=>new Date(s+'T12:00:00');
   const addDays=(date,n)=>{const d=toDate(date);d.setDate(d.getDate()+n);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
-  const loginSets=rows.map(row=>new Set((row.data?.tables?.login_events||[]).map(x=>x.login_date).filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(x))));
-  const active=(n)=>loginSets.filter(set=>[...set].some(date=>date>=addDays(today,-(n-1))&&date<=today)).length;
+  const daySet=row=>new Set([...(row.data?.tables?.login_events||[]).map(x=>x.login_date),...(row.data?.tables?.sessions||[]).map(x=>x.session_date),...(row.data?.tables?.habit_logs||[]).map(x=>x.log_date),...(row.data?.tables?.tasks||[]).filter(x=>x.done).map(x=>String(x.created_at||'').slice(0,10))].filter(x=>/^\\d{4}-\\d{2}-\\d{2}$/.test(x)));
+  const activitySets=rows.map(daySet),active=n=>activitySets.filter(set=>[...set].some(date=>date>=addDays(today,-(n-1))&&date<=today)).length;
+  let tasks=0,completed=0,weeklyCompleted=0,focusMinutes=0,habitsLogged=0,workspaces=0,consistentDays=0;
+  for(const row of rows){const t=row.data?.tables||{};workspaces++;const taskRows=t.tasks||[];tasks+=taskRows.length;completed+=taskRows.filter(x=>!!x.done).length;weeklyCompleted+=taskRows.filter(x=>!!x.done&&String(x.created_at||'').slice(0,10)>=addDays(today,-6)).length;focusMinutes+=(t.sessions||[]).reduce((n,x)=>n+(Number(x.minutes)||0),0);habitsLogged+=(t.habit_logs||[]).length;const settings=Array.isArray(t.settings)?Object.fromEntries(t.settings.map(x=>[x.key,x.value])):{};const target=Number(settings.daily_target)||80;if(activitySets[rows.indexOf(row)].has(today)&&target>0)consistentDays++;}
+  const loginSets=rows.map(row=>new Set((row.data?.tables?.login_events||[]).map(x=>x.login_date).filter(x=>/^\\d{4}-\\d{2}-\\d{2}$/.test(x))));
   const streaks=loginSets.map(set=>{let current=0,cursor=today;if(!set.has(cursor))cursor=addDays(cursor,-1);while(set.has(cursor)&&current<5000){current++;cursor=addDays(cursor,-1);}let best=0,run=0,prev=null;for(const date of [...set].sort()){run=prev&&Math.round((toDate(date)-toDate(prev))/86400000)===1?run+1:1;best=Math.max(best,run);prev=date;}return {current,best};});
-  res.json({activeToday:active(1),activeWeek:active(7),activeMonth:active(30),loginsToday:loginSets.reduce((n,set)=>n+(set.has(today)?1:0),0),topCurrent:Math.max(0,...streaks.map(x=>x.current)),bestStreak:Math.max(0,...streaks.map(x=>x.best))});
+  res.json({workspaces,activeToday:active(1),activeWeek:active(7),activeMonth:active(30),loginsToday:loginSets.reduce((n,set)=>n+(set.has(today)?1:0),0),topCurrent:Math.max(0,...streaks.map(x=>x.current)),bestStreak:Math.max(0,...streaks.map(x=>x.best)),tasks,completed,weeklyCompleted,completionRate:tasks?Math.round(completed/tasks*100):0,focusMinutes,habitsLogged,consistentDays});
  } catch(error){res.status(502).json({error:error.message||'Could not load analytics.'});}
 });
 app.get('/api/admin/users',async(req,res)=>{
