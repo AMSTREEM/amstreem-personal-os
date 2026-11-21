@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, json } from '../lib/api';
-import { ArrowRight, Compass, GraduationCap, Heart, House, LogOut, Menu, MoonStar, Pause, Play, Search, Settings, SlidersHorizontal, Target, Timer, X, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, Compass, GraduationCap, Heart, House, LogOut, Menu, MoonStar, Pause, Play, Search, Settings, SlidersHorizontal, Target, Timer, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
 
@@ -123,7 +123,6 @@ export function AppShell() {
   let enabledFeatures: string[] | null = null;
   if (storedFeatures) { try { enabledFeatures = JSON.parse(storedFeatures).map((feature: string) => feature === 'values' ? 'deen' : feature); } catch { enabledFeatures = null; } }
   // The six core pillars are always available; preferences only control secondary views.
-  const visibleNavigation = navigation;
   const current = rooms.find(item => item.paths.includes(location.pathname));
   const faithTabLabel = quickReligion === 'islam' ? 'Deen & Clarity' : quickReligion === 'christianity' ? 'Faith & Clarity' : 'Daily Clarity';
   const tabsByRoom = {
