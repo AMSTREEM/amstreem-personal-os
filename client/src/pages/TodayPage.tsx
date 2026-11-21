@@ -6,7 +6,7 @@ import { api, json } from '../lib/api';
 import { Card, EmptyState, PageHeader } from '../components/ui';
 
 type Task = { id: number; title: string; detail: string; due_date: string | null; done: number; goal_title?: string | null; project_title?: string | null };
-type Habit = { id: number; title: string; emoji: string; done: number };
+type Habit = { id: number; title: string; emoji: string; done: number; goal_title?: string | null };
 type Overview = { today: string; todayMin: number; weekMin: number; completed: number; moduleTotal: number; streak: number; dailyTarget: number; openTasks: number };
 type Settings = Record<string, string>;
 type Prayer = { prayer: string; completed: number; on_time: number };
@@ -157,7 +157,7 @@ export function TodayPage() {
           <div className="today-section-heading"><div><span className="eyebrow">SELF-CONTROL & STREAKS</span><h2>Your daily habits</h2><p>{completedHabits} of {habitList.length} completed</p></div><Link className="text-link" to="/rituals">Manage habits <ArrowRight size={13}/></Link></div>
           {habitList.length ? <div className="today-habit-list">{habitList.map(habit => <label className={'today-habit-row ' + (habit.done ? 'is-done' : '')} key={habit.id}>
             <input className="today-habit-check" type="checkbox" checked={!!habit.done} onChange={() => toggleHabit.mutate(habit)} />
-            <span className="today-habit-emoji">{habit.emoji || '•'}</span><span className="today-habit-title">{habit.title}</span><span className="today-habit-state">{habit.done ? 'Done' : 'Mark done'}</span>
+            <span className="today-habit-emoji">{habit.emoji || '•'}</span><span className="today-habit-copy"><span className="today-habit-title">{habit.title}</span>{habit.goal_title && <small>Goal · {habit.goal_title}</small>}</span><span className="today-habit-state">{habit.done ? 'Done' : 'Mark done'}</span>
           </label>)}</div> : <EmptyState title="Start with a few daily habits." detail="Add the repeatable actions you want to become consistent with." />}
           <div className="today-card-footer"><span>{completedHabits === habitList.length && habitList.length ? 'All habits completed for today' : (habitList.length - completedHabits) + ' remaining today'}</span><Link to="/self-control" className="text-link">Open Self-Control <ArrowRight size={13}/></Link></div>
         </Card>
