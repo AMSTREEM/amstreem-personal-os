@@ -1491,13 +1491,13 @@ body { letter-spacing: -.006em; }
 /* Atlas optical focus + section cascade */
 .atlas-cascade-item { min-width: 0; }
 .room-view-transition { transform-origin: 50% 0%; will-change: opacity, transform, filter; }
-.atlas-spotlight {
+:is(.atlas-spotlight, .room4-library .room4-card) {
   position: relative;
   isolation: isolate;
   --spotlight-x: 50%;
   --spotlight-y: 50%;
 }
-.atlas-spotlight::after {
+:is(.atlas-spotlight, .room4-library .room4-card)::after {
   content: "";
   position: absolute;
   z-index: 2;
@@ -1513,10 +1513,10 @@ body { letter-spacing: -.006em; }
   transition: opacity 180ms cubic-bezier(.22,1,.36,1);
 }
 @media (hover: hover) and (pointer: fine) {
-  .atlas-spotlight:hover::after { opacity: 1; }
+  :is(.atlas-spotlight, .room4-library .room4-card):hover::after { opacity: 1; }
 }
-.atlas-spotlight:focus-visible::after { opacity: 1; }
+:is(.atlas-spotlight, .room4-library .room4-card):focus-visible::after { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   .room-view-transition { will-change: auto; }
-  .atlas-spotlight::after { transition: none; }
+  :is(.atlas-spotlight, .room4-library .room4-card)::after { transition: none; }
 }
