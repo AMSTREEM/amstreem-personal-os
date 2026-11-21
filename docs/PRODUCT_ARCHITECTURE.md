@@ -32,7 +32,7 @@ Residence is the command surface. Administration remains at the bottom of the si
 - Goals can link to multiple projects, direct tasks, and recurring habits.
 - Projects can belong to a goal and contain milestones; tasks can link to a project and/or a goal.
 - Focus sessions can link to either a task or a learning lesson, and optionally to a project.
-- Saving a lesson-linked focus session also records the same minutes in Learning Studio's study history. It must not create a second focus session or fabricate time.
+- Saving a lesson-linked focus session contributes its minutes to Learning Studio study totals through the linked session record. Study history combines manual study logs and linked focus sessions without duplicating the focus event.
 - Learning Studio owns paths, lessons, resources, notes, and study records.
 - Deen records remain owned by Deen & Reflection. Residence may display a concise summary, but must not duplicate the source record.
 - Self-Control & Streaks owns habit and discipline records. Residence reads summaries from those records rather than creating a second copy.
