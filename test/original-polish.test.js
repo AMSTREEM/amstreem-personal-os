@@ -7,6 +7,8 @@ const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
 const app = fs.readFileSync(path.join(root, 'public/app.js'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'public/style.css'), 'utf8');
+const server = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
+const index = html;
 
 test('original Focus Room supports custom hours, minutes and seconds', () => {
   for (const id of ['timerHours', 'timerMinutes', 'timerSeconds', 'applyCustomTimer']) {
