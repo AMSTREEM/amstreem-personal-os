@@ -96,7 +96,7 @@ test('FocusWorkspace uses one shared timer store and owns the focus-session work
   assert.match(timerStore, /atlas-focus-timer-v1/);
   assert.match(timerStore, /useSyncExternalStore/);
   assert.match(timerStore, /localStorage\.setItem/);
-  assert.ok(read('client/src/pages/ExecutionFocusPage.tsx').includes('ROOM 03 / WORKSPACE'));
+  assert.ok(read('client/src/pages/ExecutionFocusPage.tsx').includes('ROOM 03 / EXECUTION & FOCUS'));
     assert.ok(read('client/src/App.tsx').includes('path="/focus"'));
   assert.match(read('client/src/pages/LearningPage.tsx'), /\/focus\?lesson=/);
   assert.match(read('client/src/pages/TodayPage.tsx'), /\/focus\?task=/);
@@ -224,4 +224,16 @@ test('Web Audio micro-feedback is zero-dependency, opt-in, quiet and tied to che
   assert.match(read('client/src/components/FocusWorkspace.tsx'), /playAtlasFeedback\('complete'\)/);
   assert.match(read('client/src/pages/TodayPage.tsx'), /playAtlasFeedback\('tick'\)/);
   assert.match(read('client/src/pages/ValuesPage.tsx'), /playAtlasFeedback\('tick'\)/);
+});
+
+test('first-run walkthrough previews and saves a palette before explaining the updated room navigation', () => {
+  const tour = read('client/src/components/AtlasWalkthrough.tsx');
+  const shell = read('client/src/components/AppShell.tsx');
+  const residence = read('client/src/pages/TodayPage.tsx');
+  assert.match(tour, /Choose the colour of your space/);
+  assert.match(tour, /previewPalette\(item\.id\)/);
+  assert.match(tour, /theme: selectedTheme/);
+  assert.match(tour, /Workspace, Projects, Tasks, Focus Timer and Calendar/);
+  assert.match(shell, /navigate\('\/focus'\)/);
+  assert.match(residence, /Good \$\{rhythm/);
 });
