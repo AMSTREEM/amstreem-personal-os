@@ -42,7 +42,9 @@ test('project, task, calendar, focus and review records can be linked', () => {
   assert.match(server, /INSERT INTO sessions\(session_date,minutes,focus,reflection,task_id,project_id,lesson_id\)/);
   assert.match(server, /ll\.title AS lesson_title/);
   assert.match(server, /Link a focus session to either a task or a learning lesson/);
-  assert.match(server, /SUM\(minutes\) FROM sessions WHERE lesson_id=\?/);\n  assert.match(server, /'focus' AS source/);\n  assert.match(server, /study_minutes:studyMinutes/);
+  assert.match(server, /SUM\(minutes\) FROM sessions WHERE lesson_id=\?/);
+  assert.match(server, /'focus' AS source/);
+  assert.match(server, /study_minutes:studyMinutes/);
 });
 
 test('the six core pillars stay visible while secondary tabs remain optional', () => {
