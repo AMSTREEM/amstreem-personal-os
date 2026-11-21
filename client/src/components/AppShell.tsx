@@ -16,7 +16,8 @@ const MotionNavLink = motion.create(NavLink);
 const rooms = [
   { id: 'residence', label: 'Residence', to: '/today', icon: House, paths: ['/today', '/insights'] },
   { id: 'rhythm', label: 'Daily Rhythm', to: '/values', icon: MoonStar, paths: ['/values', '/self-control', '/rituals'] },
-  { id: 'execution', label: 'Execution & Focus', to: '/execution', icon: Compass, paths: ['/execution', '/projects', '/tasks', '/calendar'] },
+  { id: 'execution', label: 'Workspace', to: '/execution', icon: Compass, paths: ['/execution', '/projects', '/tasks', '/calendar'] },
+  { id: 'focus', label: 'Focus Room', to: '/focus', icon: Timer, paths: ['/focus'] },
   { id: 'growth', label: 'Growth & Direction', to: '/learning', icon: GraduationCap, paths: ['/learning', '/library', '/goals', '/reviews'] }
 ];
 
@@ -28,7 +29,8 @@ const commandDestinations = [
   { label: 'Projects', detail: 'Move a project forward', to: '/projects', icon: Compass },
   { label: 'Tasks', detail: 'Review and complete tasks', to: '/tasks', icon: Zap },
   { label: 'Calendar', detail: 'Review your schedule', to: '/calendar', icon: Compass },
-  { label: 'Focus Workspace', detail: 'Start or resume focused work', to: '/execution', icon: Timer },
+  { label: 'Focus Room', detail: 'Enter your dedicated deep-work space', to: '/focus', icon: Timer },
+  { label: 'Workspace', detail: 'Manage projects and tasks', to: '/execution', icon: Compass },
   { label: 'Learning Studio', detail: 'Continue a learning path', to: '/learning', icon: GraduationCap },
   { label: 'Private Library', detail: 'Open saved notes and resources', to: '/library', icon: BookOpen },
   { label: 'Goals', detail: 'Review long-term direction', to: '/goals', icon: Target },
@@ -92,7 +94,7 @@ export function AppShell() {
   const focusSessionVisible = focusRemaining > 0 && (focusActive || focusTimer.remaining < 25 * 60 || !!focusTimer.startedAt || !!focusTimer.sessionKey || !!focusTimer.taskId || !!focusTimer.lessonId || !!focusTimer.projectId || (focusTimer.durationSeconds !== undefined && focusTimer.durationSeconds !== 25 * 60));
   function writeTimer(value: Parameters<typeof updateFocusTimer>[0]) { updateFocusTimer(value); }
   function toggleTimer() { if (focusActive) writeTimer({ ...focusTimer, remaining: focusRemaining, deadline: null }); else if (focusRemaining > 0) writeTimer({ ...focusTimer, deadline: Date.now() + focusRemaining * 1000 }); }
-  function finishTimer() { const elapsed = Math.max(0, (focusTimer.durationSeconds || focusTimer.remaining) - focusRemaining); writeTimer({ ...focusTimer, remaining: 0, deadline: null, durationSeconds: elapsed, sessionKey: elapsed >= 60 ? focusTimer.sessionKey : null }); navigate('/execution'); }
+  function finishTimer() { const elapsed = Math.max(0, (focusTimer.durationSeconds || focusTimer.remaining) - focusRemaining); writeTimer({ ...focusTimer, remaining: 0, deadline: null, durationSeconds: elapsed, sessionKey: elapsed >= 60 ? focusTimer.sessionKey : null }); navigate('/focus'); }
   async function captureTask(event: FormEvent) {
     event.preventDefault(); if (!quickTaskTitle.trim() || quickTaskSaving) return;
     setQuickTaskSaving(true); setQuickTaskError('');

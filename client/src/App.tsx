@@ -10,6 +10,7 @@ import { GoalsPage } from './pages/GoalsPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ReviewsPage } from './pages/ReviewsPage';
 import { ExecutionFocusPage } from './pages/ExecutionFocusPage';
+import { FocusWorkspace } from './components/FocusWorkspace';
 import { RitualsPage } from './pages/RitualsPage';
 import { SelfControlPage } from './pages/SelfControlPage';
 import { LearningPage } from './pages/LearningPage';
@@ -39,7 +40,7 @@ export function App() {
       <Route path="/projects" element={<ProjectsPage />} />
       <Route path="/calendar" element={<CalendarPage />} />
       <Route path="/execution" element={<ExecutionFocusPage />} />
-      <Route path="/focus" element={<Navigate to="/execution" replace />} />
+      <Route path="/focus" element={<FocusWorkspace />} />
       <Route path="/rituals" element={<RitualsPage />} />
       <Route path="/self-control" element={<SelfControlPage />} />
       <Route path="/learning" element={<LearningPage />} />

@@ -179,7 +179,7 @@ export function TodayPage() {
     const currentIndex = pinnedPriorityTasks.findIndex(task => task.id === selectedPriorityId);
     if (event.key === 'ArrowDown' || event.key === 'j') setSelectedPriorityId(pinnedPriorityTasks[(currentIndex + 1 + pinnedPriorityTasks.length) % pinnedPriorityTasks.length].id);
     else if (event.key === 'ArrowUp' || event.key === 'k') setSelectedPriorityId(pinnedPriorityTasks[(currentIndex <= 0 ? pinnedPriorityTasks.length : currentIndex) - 1].id);
-    else { const task = pinnedPriorityTasks.find(item => item.id === selectedPriorityId) || pinnedPriorityTasks[0]; setSelectedPriorityId(task.id); if (event.key === ' ' && !toggleTask.isPending) toggleTask.mutate(task); if (event.key.toLowerCase() === 'f') navigate('/execution?task=' + task.id); }
+    else { const task = pinnedPriorityTasks.find(item => item.id === selectedPriorityId) || pinnedPriorityTasks[0]; setSelectedPriorityId(task.id); if (event.key === ' ' && !toggleTask.isPending) toggleTask.mutate(task); if (event.key.toLowerCase() === 'f') navigate('/focus?task=' + task.id); }
   }
 
   useEffect(() => {
@@ -304,7 +304,7 @@ export function TodayPage() {
             <span className="residence-pinned-rank">#{index+1}</span>
             <motion.span whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }}><input type="checkbox" checked={!!task.done} disabled={toggleTask.isPending} onChange={() => toggleTask.mutate(task)} aria-label={(task.done ? 'Reopen ' : 'Complete ') + task.title} /></motion.span>
             <span className="residence-pinned-copy"><b>{task.title}</b>{task.project_title && <small>{task.project_title}</small>}</span>
-            <Link className="residence-pinned-focus" to={'/execution?task=' + task.id} aria-label={'Focus on ' + task.title}><Timer size={13}/> Focus</Link>
+            <Link className="residence-pinned-focus" to={'/focus?task=' + task.id} aria-label={'Focus on ' + task.title}><Timer size={13}/> Focus</Link>
           </motion.div>)}</AnimatePresence></div> : <div className="residence-priority-empty">Your pinned priorities will appear here after you save Morning Alignment. <button type="button" className="text-link" onClick={() => setEditingAlignment(true)}>Set today’s plan</button></div>}
         </Card>
         {religion === 'islam' ? <Card className="residence-faith-card">
