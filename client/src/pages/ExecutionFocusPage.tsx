@@ -63,6 +63,7 @@ export function ExecutionFocusPage() {
   const focusMinutes=timer.kind==='focus'?timer.durationSeconds/60:0;
 
   useEffect(()=>{if(!running)return;const id=window.setInterval(()=>setNow(Date.now()),250);return()=>window.clearInterval(id);},[running]);
+  useEffect(()=>{if(timer.deadline!==null&&remaining===0)setTimer(current=>({...current,remaining:0,deadline:null}));},[timer.deadline,remaining]);
   useEffect(()=>{localStorage.setItem(TIMER_KEY,JSON.stringify(timer));window.dispatchEvent(new CustomEvent('atlas-focus-timer-change',{detail:timer}));},[timer]);
   useEffect(()=>{
     const sync=(event:Event)=>{const next=(event as CustomEvent<TimerState>).detail;if(!next||!Number.isFinite(next.remaining))return;setTimer(current=>({...current,...next}));setNow(Date.now());};
@@ -114,8 +115,8 @@ export function ExecutionFocusPage() {
   }
   function pause(){setTimer(current=>({...current,remaining,deadline:null}));}
   function reset(){const seconds=timer.kind==='break'?Math.max(1,Math.min(60,Number(breakMinutes)||5))*60:Math.max(1,Math.min(600,Number(preset==='custom'?customMinutes:preset)||25))*60;setTimer(current=>({...current,remaining:seconds,durationSeconds:seconds,deadline:null,sessionKey:null,startedAt:null}));}
-  function selectTask(task:Task){if(running)return;setTimer(current=>({...current,taskId:String(task.id),lessonId:'',projectId:task.project_id?String(task.project_id):'',focus:task.title}));}
-  function selectLesson(lessonId:string){if(running)return;const lesson=learning.data?.flatMap(path=>path.lessons).find(item=>String(item.id)===lessonId);setTimer(current=>({...current,lessonId,taskId:'',focus:lesson?.title||current.focus}));}
+  function selectTask(task:Task){if(running)return;setTimer(current=>({...current,taskId:String(task.id),projectId:task.project_id?String(task.project_id):current.projectId,focus:task.title}));}
+  function selectLesson(lessonId:string){if(running)return;const lesson=learning.data?.flatMap(path=>path.lessons).find(item=>String(item.id)===lessonId);setTimer(current=>({...current,lessonId,focus:lesson?.title||current.focus}));}
   function finish(){if(timer.kind==='break'){setTimer(current=>({...current,remaining:0,deadline:null,sessionKey:null}));return;}if(running&&remaining<timer.durationSeconds){const elapsed=timer.durationSeconds-remaining;if(elapsed<60)return;setTimer(current=>({...current,remaining:0,deadline:null,durationSeconds:elapsed}));}else if(running){setTimer(current=>({...current,remaining:0,deadline:null}));}else if(timer.remaining===0)return;}
   function addDistraction(){const value=distractionDraft.trim();if(!value)return;setTimer(current=>({...current,distractions:[...current.distractions,value.slice(0,240)].slice(-50)}));setDistractionDraft('');}
   function focusTask(task:Task){if(running)return;selectTask(task);window.scrollTo({top:0,behavior:'smooth'});}
