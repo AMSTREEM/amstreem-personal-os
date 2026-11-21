@@ -76,13 +76,13 @@ export function AppShell() {
     return () => window.clearInterval(tick);
   }, []);
   useEffect(() => {
-    const paths = ['/today','/values','/projects','/learning'];
+    const paths = ['/today','/values','/projects','/learning','/focus'];
     const onKey = (event: KeyboardEvent) => {
       const el = event.target as HTMLElement | null;
       const typing = !!el && (el.isContentEditable || ['INPUT','TEXTAREA','SELECT'].includes(el.tagName));
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setCommandOpen(v => !v); setCommandQuery(''); return; }
       if (event.key === 'Escape') { setCommandOpen(false); return; }
-      if (!typing && (event.metaKey || event.ctrlKey) && !event.altKey && /^[1-4]$/.test(event.key)) { event.preventDefault(); navigate(paths[Number(event.key)-1]); }
+      if (!typing && (event.metaKey || event.ctrlKey) && !event.altKey && /^[1-5]$/.test(event.key)) { event.preventDefault(); navigate(paths[Number(event.key)-1]); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
