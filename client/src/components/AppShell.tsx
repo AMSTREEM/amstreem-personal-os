@@ -119,7 +119,26 @@ export function AppShell() {
     mutationFn: (id: number) => api('/habits/' + id + '/toggle', json('POST', { date: quickDate })),
     onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ['habits', quickDate] }); void queryClient.invalidateQueries({ queryKey: ['overview'] }); }
   });
-  useEffect(() => { document.documentElement.dataset.theme = settings.data?.theme || 'shadowed-alchemist'; }, [settings.data?.theme]);
+  useEffect(() => {
+    const theme = settings.data?.theme;
+    if (!theme) return;
+    localStorage.setItem('atlas_theme', theme);
+    const root = document.documentElement;
+    root.setAttribute('data-theme', theme);
+    root.style.colorScheme = theme.startsWith('light-') ? 'light' : 'dark';
+    const backgrounds: Record<string, string> = {
+      'shadowed-alchemist': '#07080A', 'nocturnal-amethyst': '#050408',
+      'abyssal-trench': '#03060C', 'whispering-woods': '#030806',
+      'crimson-velvet': '#080304', 'light-porcelain': '#F5F6F3',
+      'light-sandstone': '#F6F0E7', 'light-sage': '#EFF4EF',
+      'light-lavender': '#F4F1F8', 'light-sky': '#EFF5F9'
+    };
+    const background = backgrounds[theme];
+    if (background) {
+      root.style.backgroundColor = background;
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', background);
+    }
+  }, [settings.data?.theme]);
   const storedFeatures = settings.data?.features;
   let enabledFeatures: string[] | null = null;
   if (storedFeatures) { try { enabledFeatures = JSON.parse(storedFeatures).map((feature: string) => feature === 'values' ? 'deen' : feature); } catch { enabledFeatures = null; } }
@@ -168,7 +187,9 @@ export function AppShell() {
       {focusRemaining > 0 && (focusActive || focusTimer.remaining < 25*60) && <div className="global-focus-bar"><span className="global-focus-pulse"/><div className="global-focus-copy"><b>{focusClock}</b><span>{focusContext}</span></div><span className="global-focus-label">{focusActive?'FOCUS IN PROGRESS':'FOCUS PAUSED'}</span><button type="button" onClick={toggleTimer} aria-label={focusActive?'Pause focus timer':'Resume focus timer'}>{focusActive?<Pause size={13}/>:<Play size={13}/>}<span>{focusActive?'Pause':'Resume'}</span></button><button type="button" onClick={finishTimer}>Finish & review</button><NavLink to="/focus">Open room <ArrowRight size={12}/></NavLink></div>}
       <div className="page-container">
         {activeTabs.length > 0 && <nav className="module-subnav" aria-label="Module sections">{activeTabs.map(tab => <NavLink key={tab.to} to={tab.to} onClick={() => setMobileOpen(false)} className={({ isActive }) => 'module-subnav__link ' + (isActive ? 'module-subnav__link--active' : '')}>{({isActive}) => <>{isActive && <motion.span className="module-subnav-indicator" layoutId={'atlas-subnav-' + current?.id} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}{tab.label}</>}</NavLink>)}</nav>}
-        <Outlet />
+        <motion.div key={location.pathname} className="room-view-transition" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}>
+          <Outlet />
+        </motion.div>
       </div>
       <AnimatePresence initial={false}>{commandOpen && <motion.div className="command-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} onMouseDown={event => {if(event.target===event.currentTarget)setCommandOpen(false);}}><motion.section className="command-panel" role="dialog" aria-modal="true" aria-label="Atlas quick capture" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
         <div className="command-search"><Search size={17}/><input autoFocus value={commandQuery} onChange={event=>setCommandQuery(event.target.value)} placeholder="Search pillars, capture a task, or check in…"/><kbd>ESC</kbd></div>
