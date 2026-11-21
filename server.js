@@ -89,7 +89,7 @@ const workspaceTables = [
   'goals','projects','project_milestones','tasks','modules','learning_paths','learning_lessons','learning_resources',
   'learning_study_logs','sessions','calendar_events','notes','reviews','settings','habits','habit_logs',
   'prayer_logs','quran_logs','tahajjud_logs','faith_logs','self_control_logs','self_control_trackers',
-  'self_control_entries','rhythm_records','reading_items','email_events','login_events','xp_events','achievement_unlocks','weekly_challenges','feedback_logs','reading_items'
+  'self_control_entries','rhythm_records','reading_items','email_events','login_events','xp_events','achievement_unlocks','weekly_challenges','feedback_logs'
 ];
 function currentDb() {
   const context = tenantContext.getStore();
