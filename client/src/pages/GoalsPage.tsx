@@ -4,6 +4,7 @@ import { ArrowRight, BookOpen, CheckCircle2, Clock3, FolderKanban, Heart, ListCh
 import { Link } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
+import { Cascade } from '../components/Cascade';
 
 type Goal = { id: number; title: string; detail: string; target_date: string | null; status: string; category?: string; horizon?:'short-term'|'long-term'; focus_minutes: number };
 type Project = { id: number; title: string; goal_id: number | null; status: string; open_tasks: number; milestones: { id: number; title: string; completed: number }[] };
@@ -46,7 +47,7 @@ export function GoalsPage() {
     }));
   }, [goals.data, projects.data, tasks.data, habits.data, paths.data]);
 
-  return <div className="stack">
+  return <Cascade className="stack">
     <PageHeader eyebrow="DIRECTION / LONG GAME" title="Goals" description="Keep your meaningful outcomes visible. Connect each one to projects, milestones and actionable tasks." />
     <Card>
       <div className="card-heading"><div><h2>Set a direction</h2><p>Describe an outcome, not a vague aspiration.</p></div></div>
@@ -63,7 +64,7 @@ export function GoalsPage() {
     <div className="goal-grid">
       {goals.data?.length ? goals.data.map(goal => {
         const work = workByGoal.get(goal.id);
-        return <Card key={goal.id} className="goal-card goal-card--connected">
+        return <Card key={goal.id} className="goal-card goal-card--connected atlas-spotlight">
           <div className="goal-card__top"><span className="status-pill">{goal.category || 'Personal'} · {goal.horizon || 'long-term'}</span><Target size={17}/></div>
           <h2>{goal.title}</h2><p>{goal.detail || 'No additional context yet.'}</p>
           <div className="goal-work-summary">
@@ -86,5 +87,5 @@ export function GoalsPage() {
         </Card>;
       }) : <Card><EmptyState title="Give your effort a direction." detail="Your active goals will live here. Start with one outcome that genuinely matters." /></Card>}
     </div>
-  </div>;
+  </Cascade>;
 }
