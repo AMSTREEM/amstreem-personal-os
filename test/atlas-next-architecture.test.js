@@ -42,7 +42,7 @@ test('project, task, calendar, focus and review records can be linked', () => {
   assert.match(server, /INSERT OR IGNORE INTO sessions\(session_date,minutes,focus,reflection,task_id,project_id,lesson_id,session_key/);
   assert.match(server, /ll\.title AS lesson_title/);
   assert.doesNotMatch(server, /Link a focus session to either a task or a learning lesson, not both/);
-  assert.match(server, /SUM\(minutes\) FROM sessions WHERE lesson_id=\?/);
+  assert.match(server, /COALESCE\(SUM\(minutes\),0\) n FROM sessions WHERE lesson_id=\? AND session_kind='focus'/);
   assert.match(server, /'focus' AS source/);
   assert.match(server, /study_minutes:studyMinutes/);
 });
