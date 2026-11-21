@@ -37,6 +37,7 @@ test('project, task, calendar, focus and review records can be linked', () => {
   assert.match(server, /app\.post\('\/api\/reviews'/);
   assert.match(server, /goal_id INTEGER REFERENCES goals\(id\) ON DELETE SET NULL\);/);
   assert.match(server, /app\.patch\('\/api\/habits\/:id'/);
+  assert.match(server, /Number\.isInteger\(goalId\)/);
   assert.match(server, /lesson_id INTEGER REFERENCES learning_lessons\(id\)/);
   assert.match(server, /INSERT INTO sessions\(session_date,minutes,focus,reflection,task_id,project_id,lesson_id\)/);
   assert.match(server, /ll\.title AS lesson_title/);
