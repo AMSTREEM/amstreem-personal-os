@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Heart, Plus, RotateCcw, ShieldCheck, Trash2 } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
+import { Cascade } from '../components/Cascade';
 
 type CheckIn = { id: number; tracker_id: number; log_date: string; outcome: 'clean' | 'slip'; urge_level: number; trigger: string; response: string; note: string; tracker_name: string; tracker_symbol: string };
 type Tracker = { id: number; name: string; symbol: string; start_date: string; streak: number; longest_days: number; last_slip: string | null; today: CheckIn | null };
@@ -42,7 +43,7 @@ export function SelfControlPage() {
 
   const totalTrackers = data.data?.summary.length ?? 0;
   const cleanToday = data.data?.summary.filter(item => item.today?.outcome === 'clean').length ?? 0;
-  return <div className="stack self-control-page">
+  return <Cascade className="stack self-control-page">
     <PageHeader eyebrow="PERSONAL DEVELOPMENT / PRIVATE" title="Self-Control & Streaks" description="A private space for the commitments you choose to keep or leave behind. Track progress honestly, without turning a difficult day into a verdict." action={<Button onClick={() => setShowCreate(true)}><Plus size={15}/> Add a habit</Button>}/>
     <div className="self-control-note surface-card"><span className="self-note-mark"><ShieldCheck size={19}/></span><div><strong>Progress is not perfection.</strong><p>A difficult day does not erase your effort. If you slip, record it honestly, notice what led to it, and begin again without punishing yourself. A day without a check-in stays unscored; it is never treated as a slip.</p></div><div className="self-note-stats"><span><b>{totalTrackers}</b><small>TRACKERS</small></span><span><b>{cleanToday}</b><small>CLEAN TODAY</small></span></div></div>
     <section className="self-rhythm-consistency">
@@ -85,5 +86,5 @@ export function SelfControlPage() {
         <div className="modal-actions"><Button type="submit" disabled={checkin.isPending}>{checkin.isPending ? 'Saving…' : outcome === 'slip' ? 'Save slip' : 'Mark today as clean'}</Button><Button type="button" variant="ghost" onClick={() => setActiveTracker(null)}>Cancel</Button></div>
       </form>
     </section></div>}
-  </div>;
+  </Cascade>;
 }
