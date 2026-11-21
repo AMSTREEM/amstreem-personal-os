@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, BookOpen, Flame, MoonStar, Plus, Target, Timer, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -266,12 +267,12 @@ export function TodayPage() {
       <section className="residence-main-column">
         <Card className="residence-pinned-priorities">
           <div className="residence-section-heading"><div><span className="eyebrow">YOUR PINNED TOP 3</span><h2>Today’s execution</h2><p>{pinnedPriorityTasks.filter(task => !!task.done).length} of {priorityTaskIds.length} priorities complete</p></div><button type="button" className="text-link" onClick={() => setEditingAlignment(true)}>Edit plan <ArrowRight size={13}/></button></div>
-          {pinnedPriorityTasks.length ? <div className="residence-pinned-list">{pinnedPriorityTasks.map((task,index) => <div className={'residence-pinned-row ' + (task.done ? 'is-complete' : '')} key={task.id}>
+          {pinnedPriorityTasks.length ? <div className="residence-pinned-list"><AnimatePresence initial={false}>{pinnedPriorityTasks.map((task,index) => <motion.div layout initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -5 }} transition={{ layout: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 }, opacity: { duration: 0.14 }, scale: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 } }} whileTap={{ scale: 0.985 }} className={'residence-pinned-row ' + (task.done ? 'is-complete' : '')} key={task.id}>
             <span className="residence-pinned-rank">#{index+1}</span>
-            <input type="checkbox" checked={!!task.done} disabled={toggleTask.isPending} onChange={() => toggleTask.mutate(task)} aria-label={(task.done ? 'Reopen ' : 'Complete ') + task.title} />
+            <motion.span whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }}><input type="checkbox" checked={!!task.done} disabled={toggleTask.isPending} onChange={() => toggleTask.mutate(task)} aria-label={(task.done ? 'Reopen ' : 'Complete ') + task.title} /></motion.span>
             <span className="residence-pinned-copy"><b>{task.title}</b>{task.project_title && <small>{task.project_title}</small>}</span>
             <Link className="residence-pinned-focus" to={'/focus?task=' + task.id} aria-label={'Focus on ' + task.title}><Timer size={13}/> Focus</Link>
-          </div>)}</div> : <div className="residence-priority-empty">Your pinned priorities will appear here after you save Morning Alignment. <button type="button" className="text-link" onClick={() => setEditingAlignment(true)}>Set today’s plan</button></div>}
+          </motion.div>)}</AnimatePresence></div> : <div className="residence-priority-empty">Your pinned priorities will appear here after you save Morning Alignment. <button type="button" className="text-link" onClick={() => setEditingAlignment(true)}>Set today’s plan</button></div>}
         </Card>
         {religion === 'islam' ? <Card className="residence-faith-card">
           <div className="residence-section-heading"><div><span className="eyebrow">DEEN & REFLECTION</span><h2>Today's Salah</h2><p>{prayerCount} of 5 salah recorded · {rhythmSummary.data?.completed || 0} additional practices completed</p></div><Link to="/values" className="text-link">Open Deen <ArrowRight size={13}/></Link></div>
@@ -302,10 +303,10 @@ export function TodayPage() {
             <button type="submit" disabled={!quickTask.trim() || addTask.isPending} aria-label="Add task"><Plus size={15}/> Add</button>
           </form>
           {addTask.isError && <p className="inline-error">{addTask.error.message}</p>}
-          {priorityTasks.length ? <div className="today-task-list">{priorityTasks.map(task => <label className="today-task-row" key={task.id}>
-            <input className="check-control" type="checkbox" checked={!!task.done} onChange={() => toggleTask.mutate(task)} />
+          {priorityTasks.length ? <div className="today-task-list"><AnimatePresence initial={false}>{priorityTasks.map(task => <motion.label layout initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ layout: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 }, opacity: { duration: 0.14 } }} whileTap={{ scale: 0.985 }} className="today-task-row" key={task.id}>
+            <motion.span whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }}><input className="check-control" type="checkbox" checked={!!task.done} onChange={() => toggleTask.mutate(task)} /></motion.span>
             <span><b>{task.title}</b>{task.detail && <small>{task.detail}</small>}</span><time>{task.due_date ? (task.due_date < today ? 'Overdue · ' : task.due_date === today ? 'Today · ' : '') + new Date(task.due_date + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'No date'}</time>
-          </label>)}</div> : <EmptyState title="You're clear for now." detail="Add a priority or open your projects to plan the next step." />}
+          </motion.label>)}</AnimatePresence></div> : <EmptyState title="You're clear for now." detail="Add a priority or open your projects to plan the next step." />}
           <div className="today-card-footer"><span>{openTasks.length} open across your workspace</span><Link to="/tasks" className="text-link">All tasks <ArrowRight size={13}/></Link></div>
         </Card>
       </section>
