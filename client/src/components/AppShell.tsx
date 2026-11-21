@@ -1,40 +1,45 @@
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, json } from '../lib/api';
-import { ArrowRight, Compass, GraduationCap, Heart, House, LogOut, Menu, MoonStar, Pause, Play, Search, Settings, SlidersHorizontal, Target, Timer, X, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, Compass, GraduationCap, Heart, House, LogOut, Menu, MoonStar, Pause, Play, Search, Settings, SlidersHorizontal, Target, Timer, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
 
-const navigation = [
-  { label: 'Residence', to: '/today', icon: House, group: 'COMMAND & DAILY RHYTHM' },
-  { label: 'Deen & Reflection', to: '/values', icon: MoonStar, group: 'COMMAND & DAILY RHYTHM' },
-  { label: 'Self-Control & Streaks', to: '/self-control', icon: Heart, group: 'COMMAND & DAILY RHYTHM' },
-  { label: 'Projects & Tasks', to: '/projects', icon: Compass, group: 'GROWTH & EXECUTION' },
-  { label: 'Focus Room', to: '/focus', icon: Timer, group: 'GROWTH & EXECUTION' },
-  { label: 'Learning Studio', to: '/learning', icon: GraduationCap, group: 'GROWTH & EXECUTION' },
-  { label: 'Goals', to: '/goals', icon: Target, group: 'GROWTH & EXECUTION' }
+const rooms = [
+  { id: 'residence', label: 'Residence', to: '/today', icon: House, paths: ['/today', '/insights'] },
+  { id: 'rhythm', label: 'Daily Rhythm', to: '/values', icon: MoonStar, paths: ['/values', '/self-control', '/rituals'] },
+  { id: 'execution', label: 'Execution & Focus', to: '/execution', icon: Compass, paths: ['/execution', '/projects', '/tasks', '/calendar', '/focus'] },
+  { id: 'growth', label: 'Growth & Direction', to: '/learning', icon: GraduationCap, paths: ['/learning', '/library', '/goals', '/reviews'] }
 ];
 
-const moduleTabs = [
-  { match: (path: string) => path === '/today' || path === '/insights', tabs: [{ label: 'Residence', to: '/today' }, { label: 'Insights', to: '/insights' }] },
-  { match: (path: string) => path === '/values' || path === '/reviews', tabs: [{ label: 'Deen', to: '/values' }, { label: 'Reflection', to: '/reviews' }] },
-  { match: (path: string) => path === '/self-control' || path === '/rituals', tabs: [{ label: 'Self-Control', to: '/self-control' }, { label: 'Habits & Streaks', to: '/rituals' }] },
-  { match: (path: string) => path === '/projects' || path === '/tasks' || path === '/calendar', tabs: [{ label: 'Projects', to: '/projects' }, { label: 'Tasks', to: '/tasks' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }] },
-  { match: (path: string) => path === '/learning' || path === '/library', tabs: [{ label: 'Learning paths', to: '/learning' }, { label: 'Library', to: '/library', feature: 'library' }] }
+const commandDestinations = [
+  { label: 'Insights', detail: 'Review patterns from your activity', to: '/insights', icon: Zap },
+  { label: 'Daily Rhythm', detail: 'Open your tradition-specific daily practice', to: '/values', icon: MoonStar },
+  { label: 'Self-Control & Streaks', detail: 'Review routines, check-ins and recovery', to: '/self-control', icon: Heart },
+  { label: 'Habits & Streaks', detail: 'Review your daily habits', to: '/rituals', icon: Heart },
+  { label: 'Projects', detail: 'Move a project forward', to: '/projects', icon: Compass },
+  { label: 'Tasks', detail: 'Review and complete tasks', to: '/tasks', icon: Zap },
+  { label: 'Calendar', detail: 'Review your schedule', to: '/calendar', icon: Compass },
+  { label: 'Focus Room', detail: 'Start or resume focused work', to: '/focus', icon: Timer },
+  { label: 'Learning Studio', detail: 'Continue a learning path', to: '/learning', icon: GraduationCap },
+  { label: 'Private Library', detail: 'Open saved notes and resources', to: '/library', icon: BookOpen },
+  { label: 'Goals', detail: 'Review long-term direction', to: '/goals', icon: Target },
+  { label: 'Reviews', detail: 'Open daily and weekly reviews', to: '/reviews', icon: Heart }
 ];
 
 type QuickPrayer = { prayer: string; completed: number; on_time: number };
 type QuickDeen = { prayers: QuickPrayer[] };
 type QuickHabit = { id: number; title: string; emoji: string; done: number };
 function atlasDate() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
-type SharedTimer = { remaining: number; deadline: number | null; taskId?: string; lessonId?: string; projectId?: string; taskTitle?: string; lessonTitle?: string; focusLabel?: string };
+type SharedTimer = { remaining: number; deadline: number | null; durationSeconds?: number; sessionKey?: string | null; taskId?: string; lessonId?: string; projectId?: string; taskTitle?: string; lessonTitle?: string; focusLabel?: string; focus?: string };
 function readSharedTimer(): SharedTimer {
   try { const value = JSON.parse(localStorage.getItem('atlas-focus-timer-v1') || 'null'); if (value && Number.isFinite(value.remaining)) return value; } catch { /* Ignore invalid timer state. */ }
   return { remaining: 25 * 60, deadline: null };
 }
 export function AppShell() {
+  const navigate = useNavigate();
   const { user, role, signOut, session, completeOnboarding } = useAuth();
   const queryClient = useQueryClient();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -67,24 +72,24 @@ export function AppShell() {
     return () => { window.clearInterval(tick); window.removeEventListener('storage', sync); };
   }, []);
   useEffect(() => {
-    const paths = ['/today','/values','/self-control','/projects','/focus','/learning','/goals'];
+    const paths = ['/today','/values','/projects','/learning'];
     const onKey = (event: KeyboardEvent) => {
       const el = event.target as HTMLElement | null;
       const typing = !!el && (el.isContentEditable || ['INPUT','TEXTAREA','SELECT'].includes(el.tagName));
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setCommandOpen(v => !v); setCommandQuery(''); return; }
       if (event.key === 'Escape') { setCommandOpen(false); return; }
-      if (!typing && (event.metaKey || event.ctrlKey) && !event.altKey && /^[1-7]$/.test(event.key)) { event.preventDefault(); window.location.assign(paths[Number(event.key)-1]); }
+      if (!typing && (event.metaKey || event.ctrlKey) && !event.altKey && /^[1-4]$/.test(event.key)) { event.preventDefault(); navigate(paths[Number(event.key)-1]); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [navigate]);
   const focusRemaining = focusTimer.deadline ? Math.max(0, Math.ceil((focusTimer.deadline - clockNow) / 1000)) : focusTimer.remaining;
   const focusActive = !!focusTimer.deadline && focusRemaining > 0;
   const focusClock = String(Math.floor(focusRemaining / 60)).padStart(2,'0') + ':' + String(focusRemaining % 60).padStart(2,'0');
-  const focusContext = focusTimer.taskTitle || focusTimer.lessonTitle || focusTimer.focusLabel || 'Focus session';
+  const focusContext = focusTimer.taskTitle || focusTimer.lessonTitle || focusTimer.focusLabel || (focusTimer as SharedTimer & { focus?: string }).focus || 'Focus session';
   function writeTimer(value: SharedTimer) { localStorage.setItem('atlas-focus-timer-v1', JSON.stringify(value)); setFocusTimer(value); window.dispatchEvent(new CustomEvent('atlas-focus-timer-change', { detail: value })); }
   function toggleTimer() { if (focusActive) writeTimer({ ...focusTimer, remaining: focusRemaining, deadline: null }); else if (focusRemaining > 0) writeTimer({ ...focusTimer, deadline: Date.now() + focusRemaining * 1000 }); }
-  function finishTimer() { writeTimer({ ...focusTimer, remaining: 0, deadline: null }); window.location.assign('/focus'); }
+  function finishTimer() { const elapsed = Math.max(0, (focusTimer.durationSeconds || focusTimer.remaining) - focusRemaining); writeTimer({ ...focusTimer, remaining: 0, deadline: null, durationSeconds: elapsed, sessionKey: elapsed >= 60 ? focusTimer.sessionKey : null }); window.location.assign('/focus'); }
   async function captureTask(event: FormEvent) {
     event.preventDefault(); if (!quickTaskTitle.trim() || quickTaskSaving) return;
     setQuickTaskSaving(true); setQuickTaskError('');
@@ -96,15 +101,13 @@ export function AppShell() {
     finally { setQuickTaskSaving(false); }
   }
   const commandItems = useMemo(() => [
-    ...navigation.map((item,index) => ({label:item.label,detail:'Open pillar',to:item.to,shortcut:'⌘ '+(index+1),icon:item.icon})),
-    {label:'Deen check-in',detail:'Open prayers and reflection',to:'/values',shortcut:'',icon:MoonStar},
-    {label:'Habit check-in',detail:'Open habits and streaks',to:'/rituals',shortcut:'',icon:Heart},
-    {label:'Calendar',detail:'Review your schedule',to:'/calendar',shortcut:'',icon:Compass}
+    ...rooms.map((item,index) => ({label:item.label,detail:'Open room',to:item.to,shortcut:'⌘ '+(index+1),icon:item.icon})),
+    ...commandDestinations.map(item => ({...item,shortcut:''}))
   ].filter(item => (item.label+' '+item.detail).toLowerCase().includes(commandQuery.toLowerCase())),[commandQuery]);
   const location = useLocation();
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Record<string, string>>('/settings') });
   const quickDate = atlasDate();
-  const quickReligion = settings.data?.religion || 'none';
+  const quickReligion = settings.data?.faith_tradition || settings.data?.religion || 'none';
   const quickDeen = useQuery({ queryKey: ['deen', quickDate], queryFn: () => api<QuickDeen>('/deen/summary?date=' + quickDate), enabled: commandOpen && quickReligion === 'islam' });
   const quickHabits = useQuery({ queryKey: ['habits', quickDate], queryFn: () => api<QuickHabit[]>('/habits?date=' + quickDate), enabled: commandOpen });
   const quickPrayerMutation = useMutation({
@@ -120,10 +123,15 @@ export function AppShell() {
   let enabledFeatures: string[] | null = null;
   if (storedFeatures) { try { enabledFeatures = JSON.parse(storedFeatures).map((feature: string) => feature === 'values' ? 'deen' : feature); } catch { enabledFeatures = null; } }
   // The six core pillars are always available; preferences only control secondary views.
-  const visibleNavigation = navigation;
-  const current = visibleNavigation.find(item => item.to === location.pathname) || visibleNavigation.find(item => item.to === (['/tasks', '/calendar'].includes(location.pathname) ? '/projects' : location.pathname === '/library' ? '/learning' : location.pathname === '/reviews' ? '/values' : location.pathname === '/rituals' ? '/self-control' : location.pathname === '/insights' ? '/today' : ''));
-  const groups = [...new Set(visibleNavigation.map(item => item.group))];
-  const activeTabs = (moduleTabs.find(item => item.match(location.pathname))?.tabs || []).filter(tab => !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string));
+  const current = rooms.find(item => item.paths.includes(location.pathname));
+  const faithTabLabel = quickReligion === 'islam' ? 'Deen & Reflection' : quickReligion === 'christianity' ? 'Faith & Devotion' : 'Clarity & Reflection';
+  const tabsByRoom = {
+    residence: [{ label: 'Overview', to: '/today' }, { label: 'Insights', to: '/insights' }],
+    rhythm: [{ label: faithTabLabel, to: '/values' }, { label: 'Self-Control & Streaks', to: '/self-control' }, { label: 'Routine Builder', to: '/rituals' }],
+    execution: [{ label: 'Workspace', to: '/execution' }, { label: 'Projects', to: '/projects' }, { label: 'Tasks', to: '/tasks' }, { label: 'Focus Room', to: '/focus' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
+    growth: [{ label: 'Learning Studio', to: '/learning' }, { label: 'Private Library', to: '/library', feature: 'library' }, { label: 'Goals', to: '/goals' }, { label: 'Reviews', to: '/reviews' }]
+  };
+  const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
 
   return <div className="app-frame">
     {tourOpen && <AtlasWalkthrough onClose={closeTour} />}
@@ -131,20 +139,15 @@ export function AppShell() {
     <aside className={'sidebar ' + (mobileOpen ? 'sidebar--open' : '')}>
       <NavLink to="/today" className="sidebar-brand" onClick={() => setMobileOpen(false)}><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><span><b>AMSTREEM</b><small>ATLAS</small></span></NavLink>
       <div className="sidebar-caption">YOUR PRIVATE WORKSPACE</div>
-      <nav className="primary-nav">
-        {groups.map(group => <div className="nav-group" key={group}>
-          <div className="nav-group__label">{group}</div>
-          {visibleNavigation.filter(item => item.group === group).map(item => {
+      <nav className="primary-nav" aria-label="Atlas rooms">
+        <div className="nav-group">
+          <div className="nav-group__label">YOUR FOUR ROOMS</div>
+          {rooms.map((item,index) => {
             const Icon = item.icon;
-            const active = item.to === '/projects' ? ['/projects', '/tasks', '/calendar'].includes(location.pathname)
-              : item.to === '/learning' ? ['/learning', '/library'].includes(location.pathname)
-              : item.to === '/values' ? ['/values', '/reviews'].includes(location.pathname)
-              : item.to === '/self-control' ? ['/self-control', '/rituals'].includes(location.pathname)
-              : item.to === '/today' ? ['/today', '/insights'].includes(location.pathname)
-              : location.pathname === item.to;
-            return <NavLink key={item.to} to={item.to} onClick={() => setMobileOpen(false)} className={'nav-link ' + (active ? 'nav-link--active' : '')}><Icon size={17} strokeWidth={1.8} /><span>{item.label}</span></NavLink>;
+            const active = item.paths.includes(location.pathname);
+            return <NavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} className={'nav-link room-nav-link ' + (active ? 'nav-link--active' : '')}><Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>⌘ {index+1}</kbd></NavLink>;
           })}
-        </div>)}
+        </div>
       </nav>
       <div className="sidebar-bottom">
         <NavLink to="/settings" className={({ isActive }) => 'nav-link nav-link--settings ' + (isActive ? 'nav-link--active' : '')} onClick={() => setMobileOpen(false)}><SlidersHorizontal size={17} /><span>Settings</span></NavLink>
@@ -172,8 +175,8 @@ export function AppShell() {
         {quickTaskError && <p className="command-error">{quickTaskError}</p>}
         {quickReligion === 'islam' && <div className="command-checkins"><span className="eyebrow">TODAY · SALAH</span><div className="command-checkin-list">{(quickDeen.data?.prayers || []).map(item => <button type="button" key={item.prayer} className={item.completed ? 'is-complete' : ''} disabled={quickPrayerMutation.isPending} onClick={() => quickPrayerMutation.mutate(item)}><span>{item.completed ? '✓' : '○'}</span>{item.prayer}<small>{item.completed ? 'Recorded' : 'Mark done'}</small></button>)}</div></div>}
         {!!quickHabits.data?.length && <div className="command-checkins"><span className="eyebrow">TODAY · HABITS</span><div className="command-checkin-list">{quickHabits.data.map(item => <button type="button" key={item.id} className={item.done ? 'is-complete' : ''} disabled={quickHabitMutation.isPending} onClick={() => quickHabitMutation.mutate(item.id)}><span>{item.done ? '✓' : '○'}</span>{item.title}<small>{item.done ? 'Done' : 'Mark done'}</small></button>)}</div></div>}
-        <div className="command-results"><span className="eyebrow">JUMP TO OR CHECK IN</span>{commandItems.map(item=>{const Icon=item.icon;return <button key={item.label} type="button" onClick={()=>{setCommandOpen(false);window.location.assign(item.to);}}><Icon size={16}/><span><b>{item.label}</b><small>{item.detail}</small></span><kbd>{item.shortcut}</kbd></button>;})}{!commandItems.length&&<p>No matching destination.</p>}</div>
-        <div className="command-footer"><span>Sequential navigation shortcuts</span><span>⌘ 1 — 7</span></div>
+        <div className="command-results"><span className="eyebrow">JUMP TO OR CHECK IN</span>{commandItems.map(item=>{const Icon=item.icon;return <button key={item.label} type="button" onClick={()=>{setCommandOpen(false);navigate(item.to);}}><Icon size={16}/><span><b>{item.label}</b><small>{item.detail}</small></span><kbd>{item.shortcut}</kbd></button>;})}{!commandItems.length&&<p>No matching destination.</p>}</div>
+        <div className="command-footer"><span>Navigate between rooms</span><span>⌘ 1 — 4</span></div>
       </section></div>}
       <footer className="app-footer"><span>AMSTREEM ATLAS</span><span>Make room for what matters.</span></footer>
     </main>

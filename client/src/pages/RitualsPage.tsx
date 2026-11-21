@@ -28,7 +28,7 @@ export function RitualsPage() {
   const todayQuery = weekQueries[6];
   const create = useMutation({ mutationFn: () => api('/habits', json('POST', { title, goal_id: goalId || null })), onSuccess: () => { setTitle(''); setGoalId(''); void client.invalidateQueries({ queryKey: ['habits'] }); } });
   const linkGoal = useMutation({ mutationFn: ({ id, goal_id }: { id: number; goal_id: number | null }) => api('/habits/' + id, json('PATCH', { goal_id })), onSuccess: () => void client.invalidateQueries({ queryKey: ['habits'] }) });
-  const toggle = useMutation({ mutationFn: (id: number) => api('/habits/' + id + '/toggle', json('POST', { date })), onSuccess: () => { void client.invalidateQueries({ queryKey: ['habits', date] }); void client.invalidateQueries({ queryKey: ['overview'] }); } });
+  const toggle = useMutation({ mutationFn: (id: number) => api('/habits/' + id + '/toggle', json('POST', { date })), onSuccess: () => { void client.invalidateQueries({ queryKey: ['habits', date] }); void client.invalidateQueries({ queryKey: ['self-control'] }); void client.invalidateQueries({ queryKey: ['overview'] }); } });
   const remove = useMutation({ mutationFn: (id: number) => api('/habits/' + id, { method: 'DELETE' }), onSuccess: () => void client.invalidateQueries({ queryKey: ['habits'] }) });
   const list = todayQuery?.data || [];
   const done = list.filter(item => item.done).length;

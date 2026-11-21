@@ -2,14 +2,14 @@ const importTables = [
   'goals','projects','project_milestones','tasks','modules','learning_paths','learning_lessons','learning_resources',
   'learning_study_logs','sessions','calendar_events','notes','reviews','habits','habit_logs',
   'prayer_logs','quran_logs','tahajjud_logs','faith_logs','self_control_logs','self_control_trackers',
-  'self_control_entries','settings','email_events','login_events','xp_events','achievement_unlocks','weekly_challenges','feedback_logs'
+  'self_control_entries','rhythm_records','reading_items','settings','email_events','login_events','xp_events','achievement_unlocks','weekly_challenges','feedback_logs'
 ];
 
 const insertOrder = [
   'goals','projects','project_milestones','tasks','modules','learning_paths','learning_lessons','learning_resources',
   'learning_study_logs','sessions','calendar_events','notes','reviews','habits','habit_logs',
   'prayer_logs','quran_logs','tahajjud_logs','faith_logs','self_control_logs','self_control_trackers',
-  'self_control_entries','settings','email_events','login_events','xp_events','achievement_unlocks','weekly_challenges','feedback_logs'
+  'self_control_entries','rhythm_records','reading_items','settings','email_events','login_events','xp_events','achievement_unlocks','weekly_challenges','feedback_logs'
 ];
 
 function restoreBackup(db, backup, allowedTables) {
@@ -19,7 +19,7 @@ function restoreBackup(db, backup, allowedTables) {
   const rowsByTable = {};
   for (const table of importTables) {
     if (!allowedTables.includes(table)) continue;
-    if (!['projects','project_milestones','calendar_events','reviews','email_events','faith_logs','login_events','xp_events','achievement_unlocks','weekly_challenges','feedback_logs'].includes(table) && !Array.isArray(backup[table])) {
+    if (!['projects','project_milestones','calendar_events','reviews','email_events','faith_logs','login_events','xp_events','achievement_unlocks','weekly_challenges','feedback_logs','rhythm_records','reading_items'].includes(table) && !Array.isArray(backup[table])) {
       throw new Error(`The backup is missing its ${table} section.`);
     }
     const rows = backup[table] ?? [];

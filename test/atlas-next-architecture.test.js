@@ -39,21 +39,24 @@ test('project, task, calendar, focus and review records can be linked', () => {
   assert.match(server, /app\.patch\('\/api\/habits\/:id'/);
   assert.match(server, /Number\.isInteger\(goalId\)/);
   assert.match(server, /lesson_id INTEGER REFERENCES learning_lessons\(id\)/);
-  assert.match(server, /INSERT INTO sessions\(session_date,minutes,focus,reflection,task_id,project_id,lesson_id\)/);
+  assert.match(server, /INSERT OR IGNORE INTO sessions\(session_date,minutes,focus,reflection,task_id,project_id,lesson_id,session_key/);
   assert.match(server, /ll\.title AS lesson_title/);
-  assert.match(server, /Link a focus session to either a task or a learning lesson/);
-  assert.match(server, /SUM\(minutes\) FROM sessions WHERE lesson_id=\?/);
+  assert.doesNotMatch(server, /Link a focus session to either a task or a learning lesson, not both/);
+  assert.match(server, /COALESCE\(SUM\(minutes\),0\) n FROM sessions WHERE lesson_id=\? AND session_kind='focus'/);
   assert.match(server, /'focus' AS source/);
   assert.match(server, /study_minutes:studyMinutes/);
 });
 
-test('the six core pillars stay visible while secondary tabs remain optional', () => {
+test('the four primary rooms stay visible while secondary views remain optional', () => {
   const shell = read('client/src/components/AppShell.tsx');
   const settings = read('client/src/pages/SettingsPage.tsx');
-  assert.match(shell, /const visibleNavigation = navigation/);
+  for (const room of ['Residence', 'Daily Rhythm', 'Execution & Focus', 'Growth & Direction']) {
+    assert.ok(shell.includes("label: '" + room + "'"), 'Missing room ' + room);
+  }
+  assert.match(shell, /const rooms = \[/);
+  assert.match(shell, /tabsByRoom/);
   assert.match(shell, /feature: 'calendar'/);
   assert.match(shell, /feature: 'library'/);
-  assert.match(settings, /Your six core pillars always stay available/);
   assert.match(settings, /Optional workspace views/);
 });
 
@@ -95,9 +98,25 @@ test('Focus timer survives refreshes and does not fabricate completed sessions',
 
 
 
+test('Morning Alignment and Evening Shutdown persist in the daily review record', () => {
+  const residence = read('client/src/pages/TodayPage.tsx');
+  assert.match(server, /intention TEXT NOT NULL DEFAULT ''/);
+  assert.ok(server.includes("priority_task_ids TEXT NOT NULL DEFAULT '[]'"));
+  assert.match(server, /alignment_complete INTEGER NOT NULL DEFAULT 0/);
+  assert.match(server, /shutdown_complete INTEGER NOT NULL DEFAULT 0/);
+  assert.match(server, /priorityIds\.length>3/);
+  assert.match(server, /One of your selected priorities no longer exists/);
+  assert.match(residence, /MORNING ALIGNMENT/);
+  assert.match(residence, /Choose up to three priorities/);
+  assert.match(residence, /EVENING SHUTDOWN/);
+  assert.match(residence, /Complete evening shutdown/);
+  assert.match(residence, /api<DailyReview\[]>\('\/reviews\?period=daily'\)/);
+});
+
 test('Residence derives a daily consistency pulse from active life areas', () => {
   const residence = read('client/src/pages/TodayPage.tsx');
-  assert.match(residence, /TODAY'S CONSISTENCY PULSE/);
+  assert.match(residence, /TODAY'S ACTIVITY PULSE/);
+  assert.doesNotMatch(residence, /TODAY'S CONSISTENCY PULSE/);
   assert.match(residence, /api<Deen>\('\/deen\/summary/);
   assert.match(residence, /api<Faith\[]>\('\/faith/);
   assert.match(residence, /scoreDimensions/);
@@ -109,6 +128,9 @@ test('Residence derives a daily consistency pulse from active life areas', () =>
   assert.match(residence, /Focus streak/);
   assert.match(residence, /api<SelfControlSummary>\('\/self-control\?date=/);
   assert.match(residence, /Your commitments/);
+  assert.match(residence, /residence-band--orientation/);
+  assert.match(residence, /residence-band--overview/);
+  assert.match(residence, /residence-band--execution/);
   assert.match(residence, /api<AnnouncementFeed>\('\/announcements'/);
   assert.match(residence, /markAnnouncementRead/);
 });
