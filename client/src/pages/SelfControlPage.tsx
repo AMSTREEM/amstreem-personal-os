@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Heart, Plus, RotateCcw, ShieldCheck, Trash2 } from 'lucide-react';
 import { api, json } from '../lib/api';
@@ -6,7 +7,8 @@ import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from
 
 type CheckIn = { id: number; tracker_id: number; log_date: string; outcome: 'clean' | 'slip'; urge_level: number; trigger: string; response: string; note: string; tracker_name: string; tracker_symbol: string };
 type Tracker = { id: number; name: string; symbol: string; start_date: string; streak: number; longest_days: number; last_slip: string | null; today: CheckIn | null };
-type Data = { date: string; summary: Tracker[]; logs: CheckIn[] };
+type Habit = { id: number; title: string; emoji: string; done: number; goal_title?: string | null };
+type Data = { date: string; summary: Tracker[]; logs: CheckIn[]; history: { date: string; checkins: number; clean: number; slips: number; habits: number }[]; consistency: { days7: number; days30: number; percent7: number; percent30: number } };
 function dateKey() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
 
 export function SelfControlPage() {
@@ -23,6 +25,8 @@ export function SelfControlPage() {
   const [response, setResponse] = useState('');
   const [note, setNote] = useState('');
   const data = useQuery({ queryKey: ['self-control', today], queryFn: () => api<Data>('/self-control?date=' + today) });
+  const habits = useQuery({ queryKey: ['habits', today], queryFn: () => api<Habit[]>('/habits?date=' + today) });
+  const toggleHabit = useMutation({ mutationFn: (id: number) => api('/habits/' + id + '/toggle', json('POST', { date: today })), onSuccess: () => { void client.invalidateQueries({ queryKey: ['habits', today] }); void client.invalidateQueries({ queryKey: ['self-control', today] }); void client.invalidateQueries({ queryKey: ['overview'] }); } });
   const create = useMutation({
     mutationFn: () => api('/self-control', json('POST', { name, symbol, start_date: startDate })),
     onSuccess: () => { setName(''); setSymbol('◇'); setShowCreate(false); void client.invalidateQueries({ queryKey: ['self-control'] }); }
@@ -41,13 +45,26 @@ export function SelfControlPage() {
   return <div className="stack self-control-page">
     <PageHeader eyebrow="PERSONAL DEVELOPMENT / PRIVATE" title="Self-Control & Streaks" description="A private space for the commitments you choose to keep or leave behind. Track progress honestly, without turning a difficult day into a verdict." action={<Button onClick={() => setShowCreate(true)}><Plus size={15}/> Add a habit</Button>}/>
     <div className="self-control-note surface-card"><span className="self-note-mark"><ShieldCheck size={19}/></span><div><strong>Progress is not perfection.</strong><p>A difficult day does not erase your effort. If you slip, record it honestly, notice what led to it, and begin again without punishing yourself.</p></div><div className="self-note-stats"><span><b>{totalTrackers}</b><small>TRACKERS</small></span><span><b>{cleanToday}</b><small>CLEAN TODAY</small></span></div></div>
+    <section className="self-rhythm-consistency">
+      <div className="self-rhythm-metrics">
+        <div><span className="module-kicker">ROLLING CONSISTENCY</span><b>{data.data?.consistency.percent7 ?? 0}%</b><small>{data.data?.consistency.days7 ?? 0}/7 days with real check-ins · last 7 days</small></div>
+        <div><span className="module-kicker">30-DAY VIEW</span><b>{data.data?.consistency.percent30 ?? 0}%</b><small>{data.data?.consistency.days30 ?? 0}/30 days with real check-ins</small></div>
+      </div>
+      <div className="self-rhythm-heatmap-wrap"><div className="module-panel-head"><div><span className="module-kicker">LAST 30 DAYS</span><h2>Your check-in rhythm.</h2></div><small>Intensity reflects recorded activity, not a score.</small></div>
+        <div className="self-rhythm-heatmap" aria-label="Thirty-day check-in heatmap">{(data.data?.history || []).map(day => <span key={day.date} className={day.checkins+day.habits===0?'':day.checkins+day.habits>=3?'is-high':day.checkins+day.habits>=2?'is-medium':'is-low'} title={day.date+' · '+(day.habits||0)+' routine check-ins · '+(day.checkins||0)+' self-control records'} />)}</div>
+        <div className="self-rhythm-legend"><span>Less</span><i/><i/><i/><span>More</span></div>
+      </div>
+    </section>
+    <Card className="self-positive-habits"><div className="module-panel-head"><div><span className="module-kicker">POSITIVE ROUTINES</span><h2>Habits worth building.</h2><p>Completed routines are counted from actual daily check-ins.</p></div><Link className="text-link" to="/rituals">Manage routines <span>→</span></Link></div>
+      {habits.data?.length ? <div className="self-positive-list">{habits.data.map(habit=><label key={habit.id} className="self-positive-row"><input type="checkbox" checked={!!habit.done} disabled={toggleHabit.isPending} onChange={()=>toggleHabit.mutate(habit.id)}/><span>{habit.emoji||'✦'}</span><b>{habit.title}</b>{habit.goal_title&&<small>{habit.goal_title}</small>}</label>)}</div> : <EmptyState title="No positive routines yet." detail="Add a small repeatable practice in Habits & Streaks."/>}
+    </Card>
     <div className="self-control-section-head"><div><span className="module-kicker">YOUR PERSONAL COMMITMENTS</span><h2>Habits you're leaving behind.</h2></div><span className="module-count">{totalTrackers} TRACKERS</span></div>
     <div className="tracker-grid">
       {data.data?.summary.length ? data.data.summary.map(tracker => <Card key={tracker.id} className="tracker-card">
         <div className="tracker-card__top"><span className="tracker-symbol">{tracker.symbol}</span><button className="icon-button" onClick={() => { if (window.confirm('Delete this tracker and its history?')) remove.mutate(tracker.id); }} aria-label={'Delete ' + tracker.name}><Trash2 size={15}/></button></div>
         <h2>{tracker.name}</h2>
-        <div className="tracker-count"><strong>{tracker.streak}</strong><span>days since reset</span></div>
-        <div className="tracker-meta"><span>Longest: {tracker.longest_days} days</span><span>Started {tracker.start_date}</span></div>
+        <div className="tracker-count"><strong>{tracker.streak}</strong><span>verified clean check-ins</span></div>
+        <div className="tracker-meta"><span>Longest: {tracker.longest_days} verified days</span><span>Started {tracker.start_date}</span></div>
         <div className={'tracker-status' + (tracker.today?.outcome === 'slip' ? ' tracker-status--slip' : '')}>{tracker.today ? (tracker.today.outcome === 'clean' ? 'Today marked clean' : 'A reset was recorded today') : 'No check-in recorded today'}</div>
         <div className="tracker-actions"><Button size="sm" onClick={() => checkin.mutate({trackerId:tracker.id,outcome:'clean'})} disabled={checkin.isPending}><ShieldCheck size={14}/> Mark today as clean</Button><Button size="sm" variant="secondary" onClick={() => {setActiveTracker(tracker);setOutcome('slip');}} disabled={checkin.isPending}><RotateCcw size={14}/> Record a slip</Button></div>
       </Card>) : <Card className="tracker-empty"><EmptyState title="A fresh place to begin." detail="Add a habit you want to leave behind. Your record is private, honest, and entirely yours."/></Card>}
