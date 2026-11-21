@@ -57,13 +57,6 @@ export function AppShell() {
   const [quickTaskSaving, setQuickTaskSaving] = useState(false);
   const [quickTaskError, setQuickTaskError] = useState('');
   useEffect(() => {
-    const query = window.matchMedia('(max-width: 767px)');
-    const update = () => setMobileViewport(query.matches);
-    update();
-    query.addEventListener('change', update);
-    return () => query.removeEventListener('change', update);
-  }, []);
-  useEffect(() => {
     if (!session?.user || !user) return;
     const key = `atlas-tour-complete:${session.user.id}`;
     const completed = session.user.user_metadata?.onboarding_completed === true || localStorage.getItem(key) === 'true';
