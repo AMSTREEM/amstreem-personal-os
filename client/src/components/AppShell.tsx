@@ -153,6 +153,30 @@ export function AppShell() {
     growth: [{ label: 'Learning Studio', to: '/learning' }, { label: 'Private Library', to: '/library', feature: 'library' }, { label: 'Goals', to: '/goals' }, { label: 'Reviews', to: '/reviews' }]
   };
   const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
+  useEffect(() => {
+    const updateSpotlight = (event: PointerEvent) => {
+      if (event.pointerType !== 'mouse') return;
+      const target = event.target instanceof Element ? event.target.closest<HTMLElement>('.atlas-spotlight') : null;
+      if (!target) return;
+      const rect = target.getBoundingClientRect();
+      target.style.setProperty('--spotlight-x', ((event.clientX - rect.left) / rect.width * 100) + '%');
+      target.style.setProperty('--spotlight-y', ((event.clientY - rect.top) / rect.height * 100) + '%');
+    };
+    const clearSpotlight = (event: PointerEvent) => {
+      const target = event.target instanceof Element ? event.target.closest<HTMLElement>('.atlas-spotlight') : null;
+      const next = event.relatedTarget instanceof Element ? event.relatedTarget.closest('.atlas-spotlight') : null;
+      if (target && target !== next) {
+        target.style.removeProperty('--spotlight-x');
+        target.style.removeProperty('--spotlight-y');
+      }
+    };
+    document.addEventListener('pointermove', updateSpotlight);
+    document.addEventListener('pointerout', clearSpotlight);
+    return () => {
+      document.removeEventListener('pointermove', updateSpotlight);
+      document.removeEventListener('pointerout', clearSpotlight);
+    };
+  }, []);
 
   return <div className="app-frame">
     <AnimatePresence initial={false}>{tourOpen && <AtlasWalkthrough onClose={closeTour} />}</AnimatePresence>
