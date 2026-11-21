@@ -156,7 +156,7 @@ test('Room 4 reading library persists as an optional backward-compatible workspa
   assert.match(server, /app\.delete\('\/api\/reading-items\/:id'/);
   assert.match(server, /'self_control_entries','rhythm_records','reading_items'/);
   assert.match(backup, /'rhythm_records','reading_items','settings'/);
-  assert.match(backup, /'rhythm_records','reading_items'\]\./);
+  assert.match(backup, /'feedback_logs','rhythm_records','reading_items'\]\.includes\(table\)/);
   assert.match(library, /Queued/);
   assert.match(library, /Active/);
   assert.match(library, /Completed/);
