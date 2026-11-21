@@ -1207,3 +1207,74 @@ body { letter-spacing: -.006em; }
 .residence-pinned-focus:hover{background:var(--accent-wash)}
 .residence-shutdown-highlight .residence-shutdown-card.is-highlighted{border-color:color-mix(in srgb,var(--accent-strong) 48%,var(--line));box-shadow:0 0 0 3px var(--accent-wash)}
 @media(max-width:560px){.residence-intention-card{align-items:flex-start;flex-direction:column;padding:14px}.residence-intention-card p{font-size:13px}.residence-pinned-priorities{padding:14px}.residence-pinned-row{gap:7px;padding:9px}.residence-pinned-focus{padding:6px}}
+
+
+/* Room 02 — Daily Rhythm */
+.rhythm-page{gap:16px}
+.rhythm-intro{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px;border:1px solid var(--line);border-radius:13px;background:linear-gradient(110deg,var(--surface),var(--surface-raised))}
+.rhythm-intro h2{margin:6px 0;font:650 clamp(19px,2vw,25px) Manrope,sans-serif;letter-spacing:-.04em}
+.rhythm-intro p{max-width:620px;margin:0;color:var(--muted);font-size:11px;line-height:1.6}
+.rhythm-intro-stat{display:grid;gap:4px;flex:none;text-align:right}
+.rhythm-intro-stat b{font:700 27px Manrope,sans-serif;font-variant-numeric:tabular-nums}
+.rhythm-intro-stat small{color:var(--subtle);font-size:8px;letter-spacing:.12em}
+.rhythm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.rhythm-grid>.surface-card,.rhythm-grid>.card{min-width:0}
+.rhythm-prayer-list{display:grid;gap:6px;margin-top:13px}
+.rhythm-prayer-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 11px;border:1px solid var(--line-soft);border-radius:8px;background:var(--surface)}
+.rhythm-prayer-row>div{display:grid;gap:3px;min-width:0}
+.rhythm-prayer-row b{font-size:11px;font-weight:650}
+.rhythm-prayer-row small{color:var(--muted);font-size:9px}
+.rhythm-prayer-row select,.rhythm-prayer-row>button{max-width:150px;min-height:29px;padding:4px 8px;border:1px solid var(--line);border-radius:7px;background:var(--surface-raised);color:var(--text);font-size:9px}
+.rhythm-prayer-row>button{color:var(--accent-strong)}
+.rhythm-prayer-row>button.is-complete{border-color:color-mix(in srgb,var(--success) 35%,var(--line));color:var(--success)}
+.rhythm-inline-form{display:grid;grid-template-columns:1fr 1fr .7fr .45fr auto;align-items:end;gap:8px;margin-top:12px}
+.rhythm-inline-form .field{min-width:0}
+.rhythm-record-list{display:grid;gap:7px;margin-top:12px}
+.rhythm-record-row{display:flex;align-items:center;gap:9px;min-width:0;padding:9px 10px;border:1px solid var(--line-soft);border-radius:8px;background:var(--surface)}
+.rhythm-record-row>div{display:grid;gap:3px;flex:1;min-width:0}
+.rhythm-record-row b{font-size:10px;font-weight:600;overflow-wrap:anywhere}
+.rhythm-record-row small{color:var(--muted);font-size:9px;line-height:1.45;white-space:pre-wrap}
+.rhythm-record-status{width:23px;height:23px;flex:none;display:grid;place-items:center;border-radius:7px;background:var(--surface-raised);color:var(--muted)}
+.rhythm-record-status--completed{background:var(--accent-wash);color:var(--accent-strong)}
+.rhythm-record-status--answered{background:var(--accent-wash);color:var(--accent-strong)}
+.rhythm-record-label{flex:none;color:var(--subtle);font-size:8px;text-transform:uppercase;letter-spacing:.07em}
+.rhythm-record-row .text-link{flex:none;font-size:9px}
+.rhythm-quick-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.rhythm-quick-actions button,.rhythm-check-row button{padding:6px 9px;border:1px solid var(--line);border-radius:7px;background:var(--surface-raised);color:var(--accent-strong);font-size:9px}
+.rhythm-check-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line-soft);color:var(--text);font-size:10px}
+.rhythm-check-row:last-child{border-bottom:0}
+.rhythm-check-row button.is-complete{color:var(--success)}
+.rhythm-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
+.rhythm-stats>div{display:grid;gap:3px;padding:11px;border:1px solid var(--line-soft);border-radius:8px;background:var(--surface)}
+.rhythm-stats b{font:650 20px Manrope,sans-serif}
+.rhythm-stats small{color:var(--muted);font-size:8px;letter-spacing:.08em}
+.rhythm-quran-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:15px}
+.rhythm-quran-layout>.form-stack{min-width:0}
+.rhythm-focus-link{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line-soft);color:var(--muted);font-size:10px}
+.rhythm-focus-link .button{flex:none}
+.self-rhythm-consistency{display:grid;grid-template-columns:minmax(220px,.65fr) minmax(0,1.35fr);gap:12px}
+.self-rhythm-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.self-rhythm-metrics>div{display:grid;align-content:center;gap:5px;padding:15px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.self-rhythm-metrics b{font:700 27px Manrope,sans-serif;font-variant-numeric:tabular-nums}
+.self-rhythm-metrics small{color:var(--muted);font-size:9px;line-height:1.4}
+.self-rhythm-heatmap-wrap{padding:15px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.self-rhythm-heatmap-wrap .module-panel-head{margin-bottom:13px}
+.self-rhythm-heatmap-wrap .module-panel-head>small{color:var(--muted);font-size:8px}
+.self-rhythm-heatmap{display:grid;grid-template-columns:repeat(15,minmax(0,1fr));gap:5px}
+.self-rhythm-heatmap>span{aspect-ratio:1;border:1px solid var(--line);border-radius:3px;background:var(--surface-raised)}
+.self-rhythm-heatmap>span.is-low{border-color:color-mix(in srgb,var(--accent-strong) 25%,var(--line));background:color-mix(in srgb,var(--accent-strong) 22%,var(--surface))}
+.self-rhythm-heatmap>span.is-medium{border-color:color-mix(in srgb,var(--accent-strong) 45%,var(--line));background:color-mix(in srgb,var(--accent-strong) 48%,var(--surface))}
+.self-rhythm-heatmap>span.is-high{border-color:var(--accent-strong);background:var(--accent-strong)}
+.self-rhythm-legend{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:8px;color:var(--muted);font-size:8px}
+.self-rhythm-legend i{width:9px;height:9px;border:1px solid var(--line);border-radius:2px;background:var(--surface-raised)}
+.self-rhythm-legend i:nth-of-type(2){background:color-mix(in srgb,var(--accent-strong) 48%,var(--surface))}
+.self-rhythm-legend i:nth-of-type(3){background:var(--accent-strong)}
+.self-positive-habits{display:grid;gap:12px}
+.self-positive-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.self-positive-row{display:flex;align-items:center;gap:9px;min-width:0;padding:10px;border:1px solid var(--line-soft);border-radius:8px;background:var(--surface)}
+.self-positive-row input{accent-color:var(--accent-strong)}
+.self-positive-row>b{overflow:hidden;flex:1;font-size:10px;text-overflow:ellipsis}
+.self-positive-row>span{color:var(--accent-strong)}
+.self-positive-row>small{color:var(--muted);font-size:8px}
+@media(max-width:760px){.rhythm-grid,.rhythm-quran-layout,.self-rhythm-consistency{grid-template-columns:1fr}.rhythm-inline-form{grid-template-columns:1fr 1fr}.rhythm-inline-form>button{min-height:38px}.self-rhythm-metrics{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.rhythm-intro{align-items:flex-start;padding:15px}.rhythm-intro-stat b{font-size:22px}.rhythm-intro-stat small{font-size:7px}.rhythm-intro p{font-size:10px}.rhythm-prayer-row{gap:6px;padding:8px}.rhythm-prayer-row select{max-width:125px}.rhythm-stats{gap:5px}.rhythm-stats>div{padding:8px}.rhythm-stats b{font-size:17px}.rhythm-stats small{font-size:7px}.rhythm-focus-link{align-items:flex-start;flex-direction:column}.self-rhythm-metrics>div{padding:11px}.self-rhythm-metrics b{font-size:23px}.self-rhythm-heatmap{gap:4px}.self-positive-list{grid-template-columns:1fr}}
