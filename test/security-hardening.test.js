@@ -108,6 +108,7 @@ test('Self-Control consistency uses dated records and positive habit check-ins, 
 test('Room 3 records focus completion once and derives linked work metrics from sessions', () => {
   const execution = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ExecutionFocusPage.tsx'), 'utf8');
   const learning = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LearningPage.tsx'), 'utf8');
+  const goals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'GoalsPage.tsx'), 'utf8');
   assert.match(server, /session_key TEXT UNIQUE/);
   assert.match(server, /INSERT OR IGNORE INTO sessions/);
   assert.match(server, /if\(insert\.changes\)awardXp\('session:'/);
@@ -125,6 +126,8 @@ test('Room 3 records focus completion once and derives linked work metrics from 
   assert.match(execution, /Finish & save/);
   assert.match(learning, /goal_id: goalId \|\| null/);
   assert.match(learning, /Related goal/);
+  assert.match(goals, /focusMinutes: goal\.focus_minutes/);
+  assert.match(goals, /focus invested/);
 });
 
 test('Room 3 routes the execution workspace through the four-room shell without replacing existing project and task routes', () => {
