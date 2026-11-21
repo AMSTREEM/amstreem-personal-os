@@ -1071,3 +1071,21 @@ body { letter-spacing: -.006em; }
 .residence-pillar--deen{--pillar-accent:#9dbb8e}.residence-pillar--self{--pillar-accent:#c5a878}.residence-pillar--projects{--pillar-accent:#b2a3cf}.residence-pillar--focus{--pillar-accent:#8d9fda}.residence-pillar--learning{--pillar-accent:#82b8b3}.residence-pillar--goals{--pillar-accent:#d4a66d}
 @media(max-width:900px){.residence-pillar-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.residence-rhythm{padding:12px}.residence-rhythm h2{font-size:15px}.residence-rhythm-time{font-size:8px}.residence-pillar-grid{gap:6px}.residence-pillar{min-height:60px;gap:7px;padding:8px}.residence-pillar>span{width:25px;height:25px}.residence-pillar b{font-size:9px}.residence-pillar small{font-size:7px}}
+
+.command-checkins{display:grid;gap:7px;padding:8px 14px 4px;border-top:1px solid var(--line-soft)}
+.command-checkin-list{display:flex;flex-wrap:wrap;gap:6px}
+.command-checkin-list button{display:flex;align-items:center;gap:7px;max-width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--text);font-size:10px}
+.command-checkin-list button>span{color:var(--muted)}
+.command-checkin-list button small{color:var(--subtle);font-size:8px}
+.command-checkin-list button.is-complete{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:var(--surface-raised)}
+.command-checkin-list button.is-complete>span{color:var(--accent)}
+.command-checkin-list button:disabled{opacity:.55}
+.residence-rhythm-action{display:grid;grid-template-columns:1fr auto;align-items:center;gap:14px;padding:13px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.residence-rhythm-action>div{display:grid;gap:4px}
+.residence-rhythm-action b{font-size:11px;font-weight:650}
+.residence-rhythm-action p{margin:0;color:var(--muted);font-size:9px;line-height:1.5}
+.residence-rhythm-action a{display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-size:9px;font-weight:650;white-space:nowrap}
+@media(max-width:560px){.residence-rhythm-action{grid-template-columns:1fr;gap:8px}}
+
+.residence-rhythm-links{display:flex;flex-wrap:wrap;gap:12px}
+.residence-rhythm-links a{display:inline-flex;align-items:center;gap:5px;color:var(--accent);font-size:9px;font-weight:650;white-space:nowrap}

@@ -61,7 +61,7 @@ export function TodayPage() {
   const habits = useQuery({ queryKey: ['habits', today], queryFn: () => api<Habit[]>('/habits?date=' + today) });
   const deen = useQuery({ queryKey: ['deen', today], queryFn: () => api<Deen>('/deen/summary?date=' + today), enabled: religion === 'islam' });
   const faith = useQuery({ queryKey: ['faith', today], queryFn: () => api<Faith[]>('/faith?date=' + today), enabled: religion === 'christianity' });
-  const learning = useQuery({ queryKey: ['learning-paths'], queryFn: () => api<{ id: number; title: string; lessons: { id: number; title: string }[] }[]>('/learning/paths'), enabled: !!timer.lessonId });
+  const learning = useQuery({ queryKey: ['learning-paths'], queryFn: () => api<{ id: number; title: string; lessons: { id: number; title: string; status: string }[] }[]>('/learning/paths'), enabled: !!timer.lessonId || rhythm === 'day' });
   const goals = useQuery({ queryKey: ['goals'], queryFn: () => api<Goal[]>('/goals') });
   const calendarSummary = useQuery({ queryKey: ['calendar-summary', today.slice(0, 7)], queryFn: () => api<CalendarSummary>('/calendar?month=' + today.slice(0, 7)) });
   const selfControl = useQuery({ queryKey: ['self-control', today], queryFn: () => api<SelfControlSummary>('/self-control?date=' + today) });
@@ -102,6 +102,12 @@ export function TodayPage() {
   const todayTasks = (tasks.data || []).filter(task => task.due_date === today);
   const priorityTasks = [...openTasks.filter(task => task.due_date && task.due_date < today), ...openTasks.filter(task => task.due_date === today), ...openTasks.filter(task => task.due_date && task.due_date > today), ...openTasks.filter(task => !task.due_date)].slice(0, 5);
   const activeGoals = (goals.data || []).filter(goal => goal.status === 'active').sort((a,b) => (a.target_date || '9999').localeCompare(b.target_date || '9999')).slice(0, 3);
+  const tomorrowDate = new Date(today + 'T12:00:00'); tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrowKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(tomorrowDate);
+  const tomorrowTasks = (tasks.data || []).filter(task => !task.done && task.due_date === tomorrowKey);
+  const pendingHabits = habitList.length - completedHabits;
+  const completedLessons = learning.data?.reduce((sum, path) => sum + path.lessons.filter(lesson => lesson.status === 'Completed').length, 0) ?? 0;
+  const totalLessons = learning.data?.reduce((sum, path) => sum + path.lessons.length, 0) ?? 0;
   const prayerCount = deen.data?.prayers.filter(item => !!item.completed).length ?? 0;
   const faithCount = faithPractices.filter(activity => !!faith.data?.find(item => item.activity === activity)?.completed).length;
   const quranPages = deen.data?.quran.reduce((sum, item) => sum + item.pages, 0) ?? 0;
@@ -143,6 +149,11 @@ export function TodayPage() {
     <PageHeader eyebrow={new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()).toUpperCase()} title="Residence" description="Your central view of today’s priorities, routines, focus and progress." action={showCalendar ? <Link className="button button--secondary" to="/calendar">View calendar <ArrowRight size={14} /></Link> : undefined} />
 
     <section className="residence-rhythm"><div><span className="eyebrow">{rhythmCopy.eyebrow}</span><h2>{rhythmCopy.title}</h2><p>{rhythmCopy.detail}</p></div><span className="residence-rhythm-time">{new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',minute:'2-digit'}).format(new Date())} WAT</span></section>
+    <section className="residence-rhythm-action" aria-live="polite">
+      {rhythm === 'morning' ? <><div><span className="eyebrow">SET YOUR DIRECTION</span><b>{religion === 'islam' ? prayerCount + ' of 5 prayers recorded so far' : priorityTasks.length ? 'Your first priorities are ready' : 'Choose your first priority'}</b><p>{priorityTasks.length ? priorityTasks.slice(0,3).map(task => task.title).join(' · ') : 'Keep the start of the day simple: intention, one anchor, and a meaningful next step.'}</p></div><Link to={religion === 'islam' ? '/values' : '/tasks'}>{religion === 'islam' ? 'Open Deen' : 'Set priorities'} <ArrowRight size={13}/></Link></>
+      : rhythm === 'day' ? <><div><span className="eyebrow">PROTECT DEEP WORK</span><b>{openTasks.length} open priorities · {totalLessons ? completedLessons + '/' + totalLessons + ' lessons complete' : 'Learning progress when you add a path'}</b><p>{focusRunning ? 'Your focus block is already underway. Keep your attention on the current session.' : 'Choose one important task, then give it a protected block of attention.'}</p></div><Link to={focusRunning ? '/focus' : '/tasks'}>{focusRunning ? 'Return to focus' : 'Choose a task'} <ArrowRight size={13}/></Link></>
+      : <><div><span className="eyebrow">CLOSE THE DAY GENTLY</span><b>{pendingHabits} habits remaining{religion === 'islam' ? ' · ' + (5-prayerCount) + ' prayers not yet recorded' : ''}</b><p>{tomorrowTasks.length ? tomorrowTasks.length + ' task' + (tomorrowTasks.length === 1 ? '' : 's') + ' already planned for tomorrow.' : 'Review today honestly, then leave tomorrow one clear next step.'}</p></div><Link to="/reviews">Open daily reflection <ArrowRight size={13}/></Link></>}
+    </section>
     <section className="residence-pillar-grid" aria-label="Six life pillars">
       {[
         {title:'Deen & Reflection',detail:'Prayer, Qur’an and reflection',to:'/values',symbol:'☾',tone:'deen'},

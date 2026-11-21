@@ -1,7 +1,8 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from '../lib/api';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { FormEvent } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { api, json } from '../lib/api';
 import { ArrowRight, Compass, GraduationCap, Heart, House, LogOut, Menu, MoonStar, Pause, Play, Search, Settings, SlidersHorizontal, Target, Timer, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
@@ -24,6 +25,10 @@ const moduleTabs = [
   { match: (path: string) => path === '/learning' || path === '/library', tabs: [{ label: 'Learning paths', to: '/learning' }, { label: 'Library', to: '/library', feature: 'library' }] }
 ];
 
+type QuickPrayer = { prayer: string; completed: number; on_time: number };
+type QuickDeen = { prayers: QuickPrayer[] };
+type QuickHabit = { id: number; title: string; emoji: string; done: number };
+function atlasDate() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
 type SharedTimer = { remaining: number; deadline: number | null; taskId?: string; lessonId?: string; projectId?: string; taskTitle?: string; lessonTitle?: string; focusLabel?: string };
 function readSharedTimer(): SharedTimer {
   try { const value = JSON.parse(localStorage.getItem('atlas-focus-timer-v1') || 'null'); if (value && Number.isFinite(value.remaining)) return value; } catch { /* Ignore invalid timer state. */ }
@@ -77,7 +82,7 @@ export function AppShell() {
   const focusActive = !!focusTimer.deadline && focusRemaining > 0;
   const focusClock = String(Math.floor(focusRemaining / 60)).padStart(2,'0') + ':' + String(focusRemaining % 60).padStart(2,'0');
   const focusContext = focusTimer.taskTitle || focusTimer.lessonTitle || focusTimer.focusLabel || 'Focus session';
-  function writeTimer(value: SharedTimer) { localStorage.setItem('atlas-focus-timer-v1', JSON.stringify(value)); setFocusTimer(value); }
+  function writeTimer(value: SharedTimer) { localStorage.setItem('atlas-focus-timer-v1', JSON.stringify(value)); setFocusTimer(value); window.dispatchEvent(new CustomEvent('atlas-focus-timer-change', { detail: value })); }
   function toggleTimer() { if (focusActive) writeTimer({ ...focusTimer, remaining: focusRemaining, deadline: null }); else if (focusRemaining > 0) writeTimer({ ...focusTimer, deadline: Date.now() + focusRemaining * 1000 }); }
   function finishTimer() { writeTimer({ ...focusTimer, remaining: 0, deadline: null }); window.location.assign('/focus'); }
   async function captureTask(event: FormEvent) {
@@ -98,6 +103,18 @@ export function AppShell() {
   ].filter(item => (item.label+' '+item.detail).toLowerCase().includes(commandQuery.toLowerCase())),[commandQuery]);
   const location = useLocation();
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Record<string, string>>('/settings') });
+  const quickDate = atlasDate();
+  const quickReligion = settings.data?.religion || 'none';
+  const quickDeen = useQuery({ queryKey: ['deen', quickDate], queryFn: () => api<QuickDeen>('/deen/summary?date=' + quickDate), enabled: commandOpen && quickReligion === 'islam' });
+  const quickHabits = useQuery({ queryKey: ['habits', quickDate], queryFn: () => api<QuickHabit[]>('/habits?date=' + quickDate), enabled: commandOpen });
+  const quickPrayerMutation = useMutation({
+    mutationFn: (item: QuickPrayer) => api('/deen/prayer', json('PATCH', { date: quickDate, prayer: item.prayer, completed: !item.completed })),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ['deen', quickDate] }); void queryClient.invalidateQueries({ queryKey: ['overview'] }); }
+  });
+  const quickHabitMutation = useMutation({
+    mutationFn: (id: number) => api('/habits/' + id + '/toggle', json('POST', { date: quickDate })),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ['habits', quickDate] }); void queryClient.invalidateQueries({ queryKey: ['overview'] }); }
+  });
   useEffect(() => { document.documentElement.dataset.theme = settings.data?.theme || 'shadowed-alchemist'; }, [settings.data?.theme]);
   const storedFeatures = settings.data?.features;
   let enabledFeatures: string[] | null = null;
@@ -144,7 +161,7 @@ export function AppShell() {
         <div className="topbar-context"><span>AMSTREEM ATLAS</span><b>{current?.label || (location.pathname === '/reviews' ? 'Deen & Reflection' : location.pathname === '/library' ? 'Learning Studio' : location.pathname === '/admin' ? 'Administration' : 'Settings')}</b></div>
         <div className="topbar-right"><button className="global-capture-trigger" type="button" onClick={() => {setCommandOpen(true);setCommandQuery('');}}><Search size={14}/><span>Quick capture</span><kbd>⌘ K</kbd></button><button className="tour-launcher" type="button" onClick={() => setTourOpen(true)}><Compass size={14} /> Guided tour</button><span className="privacy-indicator"><span /> PRIVATE BY DESIGN</span><span className="topbar-date">{new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric'}).format(new Date())}</span></div>
       </header>
-      {focusRemaining > 0 && (focusActive || focusTimer.remaining < 25*60) && <div className="global-focus-bar"><span className="global-focus-pulse"/><div className="global-focus-copy"><b>{focusClock}</b><span>{focusContext}</span></div><span className="global-focus-label">{focusActive?'FOCUS IN PROGRESS':'FOCUS PAUSED'}</span><button type="button" onClick={toggleTimer} aria-label={focusActive?'Pause focus timer':'Resume focus timer'}>{focusActive?<Pause size={13}/>:<Play size={13}/>}<span>{focusActive?'Pause':'Resume'}</span></button><button type="button" onClick={finishTimer}>Complete</button><NavLink to="/focus">Open room <ArrowRight size={12}/></NavLink></div>}
+      {focusRemaining > 0 && (focusActive || focusTimer.remaining < 25*60) && <div className="global-focus-bar"><span className="global-focus-pulse"/><div className="global-focus-copy"><b>{focusClock}</b><span>{focusContext}</span></div><span className="global-focus-label">{focusActive?'FOCUS IN PROGRESS':'FOCUS PAUSED'}</span><button type="button" onClick={toggleTimer} aria-label={focusActive?'Pause focus timer':'Resume focus timer'}>{focusActive?<Pause size={13}/>:<Play size={13}/>}<span>{focusActive?'Pause':'Resume'}</span></button><button type="button" onClick={finishTimer}>Finish & review</button><NavLink to="/focus">Open room <ArrowRight size={12}/></NavLink></div>}
       <div className="page-container">
         {activeTabs.length > 0 && <nav className="module-subnav" aria-label="Module sections">{activeTabs.map(tab => <NavLink key={tab.to} to={tab.to} onClick={() => setMobileOpen(false)} className={({ isActive }) => 'module-subnav__link ' + (isActive ? 'module-subnav__link--active' : '')}>{tab.label}</NavLink>)}</nav>}
         <Outlet />
@@ -153,6 +170,8 @@ export function AppShell() {
         <div className="command-search"><Search size={17}/><input autoFocus value={commandQuery} onChange={event=>setCommandQuery(event.target.value)} placeholder="Search pillars, capture a task, or check in…"/><kbd>ESC</kbd></div>
         {(!commandQuery || 'add a task'.includes(commandQuery.toLowerCase())) && <form className="command-task-form" onSubmit={captureTask}><Zap size={15}/><input value={quickTaskTitle} onChange={event=>setQuickTaskTitle(event.target.value)} placeholder="Capture a task…" maxLength={180}/><button disabled={!quickTaskTitle.trim()||quickTaskSaving}>{quickTaskSaving?'Saving…':'Add task'}</button></form>}
         {quickTaskError && <p className="command-error">{quickTaskError}</p>}
+        {quickReligion === 'islam' && <div className="command-checkins"><span className="eyebrow">TODAY · SALAH</span><div className="command-checkin-list">{(quickDeen.data?.prayers || []).map(item => <button type="button" key={item.prayer} className={item.completed ? 'is-complete' : ''} disabled={quickPrayerMutation.isPending} onClick={() => quickPrayerMutation.mutate(item)}><span>{item.completed ? '✓' : '○'}</span>{item.prayer}<small>{item.completed ? 'Recorded' : 'Mark done'}</small></button>)}</div></div>}
+        {!!quickHabits.data?.length && <div className="command-checkins"><span className="eyebrow">TODAY · HABITS</span><div className="command-checkin-list">{quickHabits.data.map(item => <button type="button" key={item.id} className={item.done ? 'is-complete' : ''} disabled={quickHabitMutation.isPending} onClick={() => quickHabitMutation.mutate(item.id)}><span>{item.done ? '✓' : '○'}</span>{item.title}<small>{item.done ? 'Done' : 'Mark done'}</small></button>)}</div></div>}
         <div className="command-results"><span className="eyebrow">JUMP TO OR CHECK IN</span>{commandItems.map(item=>{const Icon=item.icon;return <button key={item.label} type="button" onClick={()=>{setCommandOpen(false);window.location.assign(item.to);}}><Icon size={16}/><span><b>{item.label}</b><small>{item.detail}</small></span><kbd>{item.shortcut}</kbd></button>;})}{!commandItems.length&&<p>No matching destination.</p>}</div>
         <div className="command-footer"><span>Sequential navigation shortcuts</span><span>⌘ 1 — 7</span></div>
       </section></div>}
