@@ -143,3 +143,58 @@ test('Room 3 routes the execution workspace through the four-room shell without 
   assert.match(css, /\.execution-split\{display:grid;grid-template-columns/);
   assert.match(css, /@media\(max-width:850px\)\{\.execution-split\{grid-template-columns:1fr\}/);
 });
+
+
+test('Room 4 reading library persists as an optional backward-compatible workspace table', () => {
+  const backup = fs.readFileSync(path.join(__dirname, '..', 'workspace-backup.js'), 'utf8');
+  const library = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LibraryPage.tsx'), 'utf8');
+  assert.match(server, /CREATE TABLE IF NOT EXISTS reading_items/);
+  assert.match(server, /CHECK\(status IN \('Queued','Active','Completed'\)\)/);
+  assert.match(server, /app\.get\('\/api\/reading-items'/);
+  assert.match(server, /app\.post\('\/api\/reading-items'/);
+  assert.match(server, /app\.patch\('\/api\/reading-items\/:id'/);
+  assert.match(server, /app\.delete\('\/api\/reading-items\/:id'/);
+  assert.match(server, /'self_control_entries','rhythm_records','reading_items'/);
+  assert.match(backup, /'rhythm_records','reading_items','settings'/);
+  assert.match(backup, /'rhythm_records','reading_items'\]\./);
+  assert.match(library, /Queued/);
+  assert.match(library, /Active/);
+  assert.match(library, /Completed/);
+  assert.match(library, /Private library/);
+});
+
+test('Room 4 progress and weekly reviews use linked evidence and preserve existing review records', () => {
+  const goals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'GoalsPage.tsx'), 'utf8');
+  const learning = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LearningPage.tsx'), 'utf8');
+  const reviews = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ReviewsPage.tsx'), 'utf8');
+  assert.match(goals, /linkedLessons\.filter\(lesson => lesson\.status === 'Completed'\)/);
+  assert.match(goals, /milestones\.filter\(item => !!item\.completed\)/);
+  assert.match(goals, /Evidence-based progress/);
+  assert.doesNotMatch(goals, /complete\.mutate/);
+  assert.match(learning, /lesson\.study_minutes/);
+  assert.match(learning, /Start Study Focus/);
+  assert.match(learning, /values:\{notes:/);
+  assert.match(server, /FROM sessions WHERE session_kind='focus' AND session_date>=\? AND session_date<=\?/);
+  assert.match(server, /app\.get\('\/api\/reviews\/evidence'/);
+  assert.match(server, /priority_task_ids:priorityIds/);
+  assert.match(reviews, /review-evidence/);
+  assert.match(reviews, /priority_task_ids: priorityIds/);
+  assert.match(reviews, /Adjust next week/);
+});
+
+test('Room 4 visual craft uses semantic tokens, responsive spacing, motion and reduced-motion safeguards', () => {
+  const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
+  assert.match(css, /--bg-canvas:var\(--bg\)/);
+  assert.match(css, /--bg-surface:var\(--surface\)/);
+  assert.match(css, /--bg-elevated:var\(--surface-raised\)/);
+  assert.match(css, /--border-hairline:var\(--line\)/);
+  assert.match(css, /--text-primary:var\(--text\)/);
+  assert.match(css, /--accent-primary:var\(--accent\)/);
+  assert.match(css, /Plus Jakarta Sans/);
+  assert.match(css, /JetBrains Mono/);
+  assert.match(css, /stroke-width:1\.5px/);
+  assert.match(css, /cubic-bezier\(0\.16,1,0\.3,1\)/);
+  assert.match(css, /translateY\(-2px\)/);
+  assert.match(css, /prefers-reduced-motion:reduce/);
+  assert.match(css, /room4-evidence-grid \{ grid-template-columns:repeat\(2/);
+});
