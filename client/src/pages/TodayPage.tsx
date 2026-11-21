@@ -62,7 +62,7 @@ export function TodayPage() {
   const [timer, setTimer] = useState<StoredTimer>(readTimer);
   const [now, setNow] = useState(() => Date.now());
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Settings>('/settings') });
-  const religion = settings.data?.religion || 'none';
+  const religion = settings.data?.faith_tradition || settings.data?.religion || 'none';
   let showCalendar = true;
   if (settings.data?.features) { try { showCalendar = JSON.parse(settings.data.features).includes('calendar'); } catch { showCalendar = true; } }
   const dailyReviews = useQuery({ queryKey: ['reviews', 'daily'], queryFn: () => api<DailyReview[]>('/reviews?period=daily') });
