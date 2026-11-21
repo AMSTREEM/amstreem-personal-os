@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Clock3, Pause, Play, RotateCcw } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
 import { Cascade } from '../components/Cascade';
+import { playAtlasFeedback, primeAtlasAudio } from '../lib/microFeedback';
 
 type Session = { id: number; session_date: string; minutes: number; focus: string; reflection: string; task_title?: string | null; project_title?: string | null; lesson_title?: string | null; path_title?: string | null };
 type Task = { id: number; title: string };
@@ -34,6 +35,7 @@ export function FocusPage() {
   const [lessonId, setLessonId] = useState(() => timer.lessonId || '');
   const [now, setNow] = useState(() => Date.now());
   const [completed, setCompleted] = useState(() => timer.remaining === 0 && timer.deadline === null);
+  const completionSoundPlayed = useRef(!(timer.deadline !== null && timer.remaining > 0));
   const sessions = useQuery({ queryKey: ['sessions'], queryFn: () => api<Session[]>('/sessions') });
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => api<Task[]>('/tasks') });
   const projects = useQuery({ queryKey: ['projects'], queryFn: () => api<Project[]>('/projects') });
@@ -53,9 +55,16 @@ export function FocusPage() {
     }
   }, [timer.deadline, remaining]);
   useEffect(() => {
+    if (timer.deadline === null && timer.remaining === 0 && completed && timer.startedAt && !completionSoundPlayed.current) {
+      completionSoundPlayed.current = true;
+      playAtlasFeedback('complete');
+    }
+  }, [timer.deadline, timer.remaining, timer.startedAt, completed]);
+  useEffect(() => {
     const syncSharedTimer = (event: Event) => {
       const next = (event as CustomEvent<StoredTimer>).detail;
       if (!next || !Number.isFinite(next.remaining)) return;
+      if (next.deadline !== null && next.remaining > 0) completionSoundPlayed.current = false;
       setTimer({ remaining: Math.max(0, Math.min(600 * 60, Math.floor(next.remaining))), deadline: next.deadline, taskId: next.taskId || '', lessonId: next.lessonId || '', projectId: next.projectId || '', taskTitle: next.taskTitle, lessonTitle: next.lessonTitle, focusLabel: next.focusLabel, startedAt: next.startedAt });
       setCompleted(next.remaining === 0 && next.deadline === null);
       setNow(Date.now());
@@ -78,6 +87,8 @@ export function FocusPage() {
 
   function startTimer() {
     if (remaining <= 0) return;
+    primeAtlasAudio();
+    completionSoundPlayed.current = false;
     setCompleted(false);
     setNow(Date.now());
     setTimer({ remaining, deadline: Date.now() + remaining * 1000, startedAt: Date.now(), taskId, lessonId, projectId, taskTitle: tasks.data?.find(task => String(task.id) === taskId)?.title, lessonTitle: learning.data?.flatMap(path => path.lessons.map(lesson => ({...lesson,pathTitle:path.title}))).find(lesson => String(lesson.id) === lessonId)?.title, focusLabel: focus || undefined });
@@ -87,6 +98,7 @@ export function FocusPage() {
     setNow(Date.now());
   }
   function resetTimer() {
+    completionSoundPlayed.current = true;
     const seconds = Math.max(1, Math.min(600, Number(minutes) || 25)) * 60;
     setTimer({ remaining: seconds, deadline: null, taskId, lessonId, projectId });
     setCompleted(false);
