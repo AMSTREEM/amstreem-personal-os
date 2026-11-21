@@ -135,7 +135,7 @@ function createWorkspaceDatabase(snapshot) {
     workspaceDb.pragma('foreign_keys = ON');
     workspaceDb.exec(schemaSql);
   if (['personal-os-sqlite-snapshot-v1','personal-os-sqlite-snapshot-v2','personal-os-sqlite-snapshot-v3'].includes(snapshot?.format) && snapshot.tables && typeof snapshot.tables === 'object') {
-    const optionalTables = ['projects','project_milestones','calendar_events','reviews','faith_logs','rhythm_records','login_events','xp_events','achievement_unlocks','weekly_challenges','feedback_logs'];
+    const optionalTables = ['projects','project_milestones','calendar_events','reviews','faith_logs','rhythm_records','reading_items','login_events','xp_events','achievement_unlocks','weekly_challenges','feedback_logs'];
     for (const table of workspaceTables) {
       if (!Array.isArray(snapshot.tables[table]) && !optionalTables.includes(table)) {
         throw new Error(`Saved workspace is missing its ${table} section. No data was changed.`);
