@@ -105,6 +105,8 @@ test('Residence derives a daily consistency pulse from active life areas', () =>
   assert.match(residence, /calendar-summary/);
   assert.match(residence, /HABIT STREAK/);
   assert.match(residence, /Focus streak/);
+  assert.match(residence, /api<SelfControlSummary>\('\/self-control\?date=/);
+  assert.match(residence, /Your commitments/);
   assert.match(residence, /api<AnnouncementFeed>\('\/announcements'/);
   assert.match(residence, /markAnnouncementRead/);
 });
