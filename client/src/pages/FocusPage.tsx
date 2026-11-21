@@ -32,7 +32,7 @@ export function FocusPage() {
   const [projectId, setProjectId] = useState(() => timer.projectId || '');
   const [lessonId, setLessonId] = useState(() => timer.lessonId || '');
   const [now, setNow] = useState(() => Date.now());
-  const [completed, setCompleted] = useState(false);
+  const [completed, setCompleted] = useState(() => timer.remaining === 0 && timer.deadline === null);
   const sessions = useQuery({ queryKey: ['sessions'], queryFn: () => api<Session[]>('/sessions') });
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => api<Task[]>('/tasks') });
   const projects = useQuery({ queryKey: ['projects'], queryFn: () => api<Project[]>('/projects') });
