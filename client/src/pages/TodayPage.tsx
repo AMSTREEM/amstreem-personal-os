@@ -12,6 +12,7 @@ type Settings = Record<string, string>;
 type Prayer = { prayer: string; completed: number; on_time: number };
 type Deen = { date: string; prayers: Prayer[]; quran: { activity: string; pages: number; entries: number }[]; tahajjud: { woke_up: number; prayed: number } };
 type Faith = { activity: string; completed: number };
+type RhythmSummary = { date: string; tradition: string; completed: number; planned: number; total: number; records: { id: number; record_type: string; title: string; status: string }[] };
 type Goal = { id: number; title: string; target_date: string | null; status: string };
 type Announcement = { id: number; title: string; body: string; kind: string; created_at: string; published_at: string | null };
 type DailyReview = { id: number; period_type: 'daily' | 'weekly'; period_start: string; period_end: string; wins: string; challenges: string; lessons: string; next_focus: string; intention: string; priority_task_ids: number[]; alignment_complete: number; shutdown_complete: number; updated_at: string };
@@ -74,6 +75,7 @@ export function TodayPage() {
   const habits = useQuery({ queryKey: ['habits', today], queryFn: () => api<Habit[]>('/habits?date=' + today) });
   const deen = useQuery({ queryKey: ['deen', today], queryFn: () => api<Deen>('/deen/summary?date=' + today), enabled: religion === 'islam' });
   const faith = useQuery({ queryKey: ['faith', today], queryFn: () => api<Faith[]>('/faith?date=' + today), enabled: religion === 'christianity' });
+  const rhythmSummary = useQuery({ queryKey: ['rhythm-summary', today], queryFn: () => api<RhythmSummary>('/rhythm/summary?date=' + today) });
   const learning = useQuery({ queryKey: ['learning-paths'], queryFn: () => api<{ id: number; title: string; lessons: { id: number; title: string; status: string }[] }[]>('/learning/paths'), enabled: !!timer.lessonId || rhythm === 'day' });
   const goals = useQuery({ queryKey: ['goals'], queryFn: () => api<Goal[]>('/goals') });
   const calendarSummary = useQuery({ queryKey: ['calendar-summary', today.slice(0, 7)], queryFn: () => api<CalendarSummary>('/calendar?month=' + today.slice(0, 7)) });
@@ -176,13 +178,14 @@ export function TodayPage() {
 
   const scoreDimensions = useMemo(() => {
     const values: { label: string; score: number; detail: string }[] = [];
-    if (religion === 'islam' && deen.data) values.push({ label: 'Deen', score: prayerCount / 5 * 100, detail: prayerCount + '/5 prayers' });
-    if (religion === 'christianity' && faith.data) values.push({ label: 'Faith', score: faith.data.length ? faithCount / faith.data.length * 100 : 0, detail: faithCount + '/' + faith.data.length + ' practices' });
+    if (religion === 'islam' && deen.data) { const quranSessions = deen.data.quran.reduce((sum,item)=>sum+item.entries,0); const total = 5 + (rhythmSummary.data?.total || 0) + quranSessions; values.push({ label: 'Deen', score: total ? (prayerCount + (rhythmSummary.data?.completed || 0) + quranSessions) / total * 100 : 0, detail: prayerCount + '/5 salah · ' + quranSessions + ' Qur’an sessions · ' + (rhythmSummary.data?.completed || 0) + ' practices' }); }
+    if (religion === 'christianity' && faith.data) { const total = faithPractices.length + 3 + (rhythmSummary.data?.total || 0); values.push({ label: 'Faith', score: total ? (faithCount + (rhythmSummary.data?.completed || 0)) / total * 100 : 0, detail: faithCount + ' legacy practices · ' + (rhythmSummary.data?.completed || 0) + ' completed activities' }); }
+    if (religion !== 'islam' && religion !== 'christianity') { const total = Math.max(3, rhythmSummary.data?.total || 0); values.push({ label: 'Clarity', score: (rhythmSummary.data?.completed || 0) / total * 100, detail: (rhythmSummary.data?.completed || 0) + ' completed · ' + (rhythmSummary.data?.planned || 0) + ' planned' }); }
     if (habitList.length) values.push({ label: 'Habits', score: completedHabits / habitList.length * 100, detail: completedHabits + '/' + habitList.length + ' today' });
     if (overview.data && ((overview.data.todayMin || 0) > 0 || (overview.data.weekMin || 0) > 0)) values.push({ label: 'Focus', score: focusPercent, detail: formatMinutes(overview.data.todayMin) + ' / ' + formatMinutes(target) });
     if (todayTasks.length) values.push({ label: 'Tasks', score: todayTasks.filter(task => !!task.done).length / todayTasks.length * 100, detail: todayTasks.filter(task => !!task.done).length + '/' + todayTasks.length + ' due today' });
     return values;
-  }, [religion, deen.data, prayerCount, faith.data, faithCount, habitList.length, completedHabits, overview.data, focusPercent, target, todayTasks]);
+  }, [religion, deen.data, prayerCount, faith.data, faithCount, rhythmSummary.data, habitList.length, completedHabits, overview.data, focusPercent, target, todayTasks]);
   const activityPulse = scoreDimensions.length ? Math.round(scoreDimensions.reduce((sum, item) => sum + item.score, 0) / scoreDimensions.length) : null;
   const nextDestination = insight.data?.recommendation.destination === 'habit' ? '/rituals' : '/' + (insight.data?.recommendation.destination || 'tasks');
 
@@ -229,7 +232,7 @@ export function TodayPage() {
       <div className="residence-band-heading"><span className="eyebrow">02 / YOUR LIFE AT A GLANCE</span><p>Connected areas of your life, with activity drawn from your existing records.</p></div>
       <section className="residence-pillar-grid" aria-label="Six life pillars">
       {[
-        {title:religion === 'islam' ? 'Deen & Reflection' : religion === 'christianity' ? 'Faith & Reflection' : 'Daily Clarity',detail:religion === 'islam' ? 'Prayer, Qur’an and reflection' : religion === 'christianity' ? 'Prayer, scripture and reflection' : 'Intention and reflection',to:'/values',symbol:'☾',tone:'deen'},
+        {title:religion === 'islam' ? 'Deen & Reflection' : religion === 'christianity' ? 'Faith & Reflection' : 'Daily Clarity',detail:religion === 'islam' ? prayerCount + '/5 salah · ' + (rhythmSummary.data?.completed || 0) + ' practices completed' : religion === 'christianity' ? (rhythmSummary.data?.completed || 0) + ' faith activities completed' : (rhythmSummary.data?.completed || 0) + ' clarity activities completed',to:'/values',symbol:'☾',tone:'deen'},
         {title:'Self-Control & Streaks',detail:'Habits and commitments',to:'/self-control',symbol:'◇',tone:'self'},
         {title:'Projects & Tasks',detail:'Turn plans into progress',to:'/projects',symbol:'↗',tone:'projects'},
         {title:'Focus Room',detail:'Protect your attention',to:'/focus',symbol:'◷',tone:'focus'},
