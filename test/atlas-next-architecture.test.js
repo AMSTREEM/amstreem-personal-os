@@ -67,11 +67,11 @@ test('new frontend routes cover the core personal operating system areas', () =>
 });
 
 test('Express serves the built app while retaining legacy public assets', () => {
-  assert.match(server, /express\\.static\\(frontendDist\\)/);
-  assert.match(server, /express\\.static\\(path\\.join\\(__dirname, 'public'\\), \\{ index: false \\}\\)/);
-  assert.match(server, /res\\.sendFile\\(frontendEntry/);
+  assert.match(server, /express\.static\(frontendDist\)/);
+  assert.match(server, /express\.static\(path\.join\(__dirname, 'public'\), \{ index: false \}\)/);
+  assert.match(server, /res\.sendFile\(frontendEntry/);
   assert.match(server, /Refusing to serve the legacy public HTML shell/);
-  assert.match(server, /app\\.get\\('\\/service-worker\\.js'/);
+  assert.match(server, /app\.get\('\/service-worker\.js'/);
 });
 
 
