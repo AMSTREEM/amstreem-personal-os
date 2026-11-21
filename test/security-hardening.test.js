@@ -103,3 +103,39 @@ test('Self-Control consistency uses dated records and positive habit check-ins, 
   assert.match(shell, /Faith & Devotion/);
   assert.match(shell, /Clarity & Reflection/);
 });
+
+
+test('Room 3 records focus completion once and derives linked work metrics from sessions', () => {
+  const execution = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ExecutionFocusPage.tsx'), 'utf8');
+  const learning = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LearningPage.tsx'), 'utf8');
+  assert.match(server, /session_key TEXT UNIQUE/);
+  assert.match(server, /INSERT OR IGNORE INTO sessions/);
+  assert.match(server, /if\(insert\.changes\)awardXp\('session:'/);
+  assert.doesNotMatch(server, /Link a focus session to either a task or a learning lesson, not both/);
+  assert.match(server, /AS focus_minutes/);
+  assert.match(server, /AS progress_pct/);
+  assert.match(server, /parent_task_id INTEGER REFERENCES tasks\(id\) ON DELETE CASCADE/);
+  assert.match(server, /goal_id INTEGER REFERENCES goals\(id\) ON DELETE SET NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP\);/);
+  assert.match(execution, /ROOM 03 \/ EXECUTION & FOCUS/);
+  assert.match(execution, /\['25','25m'\],\['50','50m'\],\['80','80m'\]/);
+  assert.match(execution, /session_key:timer\.sessionKey/);
+  assert.match(execution, /savedKeys\.current\.has\(timer\.sessionKey\)/);
+  assert.match(execution, /distractions:timer\.distractions/);
+  assert.match(execution, /parent_task_id:parentId/);
+  assert.match(execution, /Finish & save/);
+  assert.match(learning, /goal_id: goalId \|\| null/);
+  assert.match(learning, /Related goal/);
+});
+
+test('Room 3 routes the execution workspace through the four-room shell without replacing existing project and task routes', () => {
+  const app = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'App.tsx'), 'utf8');
+  const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
+  const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
+  assert.match(app, /path="\/execution" element={<ExecutionFocusPage \/>}/);
+  assert.match(app, /path="\/projects" element={<ProjectsPage \/>}/);
+  assert.match(app, /path="\/tasks" element={<TasksPage \/>}/);
+  assert.match(shell, /to: '\/execution'/);
+  assert.match(shell, /label: 'Workspace', to: '\/execution'/);
+  assert.match(css, /\.execution-split\{display:grid;grid-template-columns/);
+  assert.match(css, /@media\(max-width:850px\)\{\.execution-split\{grid-template-columns:1fr\}/);
+});
