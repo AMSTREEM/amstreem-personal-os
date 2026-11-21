@@ -20,7 +20,7 @@ const buttonVariants = cva('button', {
   defaultVariants: { variant: 'primary', size: 'default' }
 });
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof buttonVariants> & { loading?: boolean };
+type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof MotionProps> & MotionProps & VariantProps<typeof buttonVariants> & { loading?: boolean };
 export function Button({ children, className, variant, size, loading = false, disabled, ...props }: ButtonProps) {
   return <button className={buttonVariants({ variant, size, className })} disabled={disabled || loading} aria-busy={loading || undefined} {...props}>
     {loading && <span className="button__spinner" aria-hidden="true" />}
