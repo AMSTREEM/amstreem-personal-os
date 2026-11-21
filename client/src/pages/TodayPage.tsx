@@ -51,7 +51,7 @@ export function TodayPage() {
   const nextDestination = insight.data?.recommendation.destination === 'habit' ? '/rituals' : '/' + (insight.data?.recommendation.destination || 'tasks');
 
   return <div className="stack today-dashboard">
-    <PageHeader eyebrow={new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date()).toUpperCase()} title="Today" description="Show up for the things that matter. One day at a time." action={<Link className="button button--secondary" to="/calendar"><CalendarDays size={15} /> Calendar</Link>} />
+    <PageHeader eyebrow={new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date()).toUpperCase()} title="Residence" description="Your central view of today’s priorities, routines, focus and progress." action={<Link className="button button--secondary" to="/calendar"><CalendarDays size={15} /> Calendar</Link>} />
 
     <section className="consistency-strip" aria-label="Consistency summary">
       <div className="consistency-main">
