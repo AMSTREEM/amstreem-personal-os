@@ -1463,3 +1463,15 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
 .admin-bottom-nav{margin-bottom:10px;border:1px solid var(--line);background:var(--surface2)}
 .learning-title-actions{display:flex;align-items:center;gap:10px}
 @media(max-width:780px){.nav{overflow-y:auto}.learning-title-actions{flex-wrap:wrap}}
+
+/* Residence life command centre */
+.life-command{margin:18px 0 24px;padding:23px 25px;background:linear-gradient(135deg,var(--surface),var(--surface2));border:1px solid var(--line)}
+.life-command-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px}
+.life-command-head h2{font:600 20px/1.3 var(--display);margin:5px 0 0}
+.life-score{min-width:82px;text-align:right;display:grid;gap:2px}.life-score strong{font:600 27px/1 var(--display);color:var(--accent)}.life-score span{font:600 8px var(--mono);letter-spacing:.13em;color:var(--muted)}
+.life-command-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.life-metric{min-width:0;padding:15px;background:var(--bg);border:1px solid var(--line);border-radius:12px;display:grid;grid-template-columns:30px minmax(0,1fr);gap:8px 10px;align-items:start}
+.life-metric-icon{color:var(--accent);font-size:18px}.life-metric small{display:block;color:var(--muted);font:600 9px var(--mono);letter-spacing:.12em}.life-metric strong{display:block;font:600 22px/1.3 var(--display);margin:5px 0}.life-metric p{font-size:11px;color:var(--muted);margin:0;line-height:1.45}.life-metric button,.life-goals-row button{grid-column:2;border:0;background:none;color:var(--accent);padding:7px 0 0;text-align:left;font-size:11px}
+.life-goals-row{margin-top:12px;padding:15px 17px;border:1px solid var(--line);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:15px}.life-goals-row strong{display:block;font:600 15px var(--display);margin:4px 0}.life-goals-row p{margin:0;color:var(--muted);font-size:11px}
+@media(max-width:1050px){.life-command-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.life-command{padding:17px}.life-command-grid{grid-template-columns:1fr 1fr}.life-metric{padding:11px;grid-template-columns:22px minmax(0,1fr)}.life-metric strong{font-size:18px}.life-goals-row{align-items:flex-start;flex-direction:column}}
