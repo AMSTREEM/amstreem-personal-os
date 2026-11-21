@@ -2011,3 +2011,20 @@ time,
 @media(prefers-reduced-motion:reduce) {
  .workspace-task-focus,.workspace-shortcut,.workspace-progress>span { transition:none; }
 }
+
+
+/* First-run palette chooser: compact cards with an immediate selection state. */
+.atlas-onboarding-palettes { display:grid; gap:18px; margin-top:18px; }
+.atlas-onboarding-palette-group { display:grid; gap:9px; }
+.atlas-onboarding-palette-group>span { color:var(--subtle); font:650 9px Manrope,sans-serif; letter-spacing:.12em; text-transform:uppercase; }
+.atlas-onboarding-palette-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
+.atlas-onboarding-palette { display:grid; align-content:start; gap:6px; min-width:0; padding:9px; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--text); text-align:left; cursor:pointer; transition:border-color 140ms ease,background 140ms ease,transform 140ms ease; }
+.atlas-onboarding-palette:hover { border-color:var(--accent-strong); transform:translateY(-1px); }
+.atlas-onboarding-palette.is-selected { border-color:var(--accent-strong); background:var(--accent-wash); box-shadow:inset 0 0 0 1px var(--accent-strong); }
+.atlas-onboarding-palette__swatches { display:grid; grid-template-columns:repeat(4,1fr); overflow:hidden; height:28px; border:1px solid color-mix(in srgb,var(--text) 12%,transparent); border-radius:6px; }
+.atlas-onboarding-palette__swatches i { display:block; }
+.atlas-onboarding-palette>b { overflow:hidden; font-size:9px; text-overflow:ellipsis; white-space:nowrap; }
+.atlas-onboarding-palette>small { overflow:hidden; color:var(--muted); font-size:8px; text-overflow:ellipsis; white-space:nowrap; }
+.atlas-onboarding-palette>em { color:var(--accent-strong); font-size:8px; font-style:normal; font-weight:700; }
+@media(max-width:760px) { .atlas-onboarding-palette-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .atlas-onboarding-palette { padding:10px; } }
+@media(prefers-reduced-motion:reduce) { .atlas-onboarding-palette { transition:none; } }

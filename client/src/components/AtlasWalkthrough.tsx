@@ -3,11 +3,36 @@ import { motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { api, json } from '../lib/api';
 
+const palettes = [
+  { group: 'Dark', items: [
+    { id: 'shadowed-alchemist', name: 'Shadowed Alchemist', note: 'Quiet charcoal and gold', colors: ['#07080A','#0E1014','#CA8A04','#E4E4E7'] },
+    { id: 'nocturnal-amethyst', name: 'Nocturnal Amethyst', note: 'Deep violet', colors: ['#050408','#0C0914','#C084FC','#EAE6F5'] },
+    { id: 'abyssal-trench', name: 'Abyssal Trench', note: 'Midnight blue', colors: ['#03060C','#080E1A','#38BDF8','#E2E8F0'] },
+    { id: 'whispering-woods', name: 'Whispering Woods', note: 'Forest green', colors: ['#030806','#08120E','#6EE7B7','#E2F1EC'] },
+    { id: 'crimson-velvet', name: 'Crimson Velvet', note: 'Deep red and rose', colors: ['#080304','#120709','#FB7185','#F5E6E8'] }
+  ]},
+  { group: 'Light', items: [
+    { id: 'light-porcelain', name: 'Porcelain', note: 'Clean neutral', colors: ['#F5F6F3','#FFFFFF','#527A62','#202720'] },
+    { id: 'light-sandstone', name: 'Sandstone', note: 'Warm and grounded', colors: ['#F6F0E7','#FFFCF7','#9A7046','#30271F'] },
+    { id: 'light-sage', name: 'Sage', note: 'Soft green', colors: ['#EFF4EF','#FBFEFB','#43836B','#203128'] },
+    { id: 'light-lavender', name: 'Lavender Mist', note: 'Muted violet', colors: ['#F4F1F8','#FFFDFF','#8062A6','#2B2535'] },
+    { id: 'light-sky', name: 'Sky Glass', note: 'Cool blue', colors: ['#EFF5F9','#FFFFFF','#477DA5','#202D39'] }
+  ]}
+];
+const paletteBackgrounds: Record<string, string> = Object.fromEntries(palettes.flatMap(group => group.items.map(item => [item.id, item.colors[0]])));
+function previewPalette(id: string) {
+  const background = paletteBackgrounds[id];
+  if (!background) return;
+  localStorage.setItem('atlas_theme', id);
+  document.documentElement.setAttribute('data-theme', id);
+  document.documentElement.style.colorScheme = id.startsWith('light-') ? 'light' : 'dark';
+  document.documentElement.style.backgroundColor = background;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', background);
+}
+
 type Props = { onClose: () => void };
 
 const optionalModules = [
-  { id: 'calendar', name: 'Calendar', description: 'Time-block commitments and see what is coming up.' },
-  { id: 'focus', name: 'Focus', description: 'Protect focused work and record sessions.' },
   { id: 'rituals', name: 'Rituals', description: 'Build repeatable routines and daily practices.' },
   { id: 'selfcontrol', name: 'Self-control', description: 'Privately notice triggers and track responses.' },
   { id: 'learning', name: 'Learning', description: 'Organise skills, subjects and lessons.' },
@@ -15,6 +40,13 @@ const optionalModules = [
   { id: 'deen', name: 'Deen', description: 'Optional salah, Qur’an and Tahajjud tracking.' }
 ];
 const steps = [
+  {
+    eyebrow: 'MAKE ATLAS YOURS FIRST',
+    title: 'Choose the colour of your space.',
+    description: 'Pick the palette that feels right. Select any option to preview it across Atlas instantly. You can change it later in Settings.',
+    rows: ['Your choice changes the interface as you select it.', 'Dark and light palettes are both available.', 'Your selection is saved when you continue.'],
+    label: 'LIVE APPEARANCE PREVIEW'
+  },
   {
     eyebrow: 'WELCOME TO YOUR SPACE',
     title: 'A system for what matters.',
@@ -38,17 +70,17 @@ const steps = [
   },
   {
     eyebrow: 'MAKE THE NEXT MOVE CLEAR',
-    title: 'Tasks and calendar work together.',
-    description: 'Tasks capture actions. Calendar events give commitments a place in time. Keep them connected when it helps, while allowing standalone tasks and events when it does not.',
-    rows: ['Capture a task without over-planning it.', 'Link work to a project or goal where relevant.', 'Give important commitments a time and date.'],
-    label: 'EXECUTION / COMMITMENTS'
+    title: 'Execution & Focus keeps work in one place.',
+    description: 'Workspace gives you the overview. Projects and Tasks organise the work, Focus Timer protects your attention, and Calendar keeps commitments in time.',
+    rows: ['Start from Workspace to see what needs attention.', 'Move between Projects, Tasks, Focus Timer and Calendar.', 'Start a timer from a task or run a standalone deep-work session.'],
+    label: 'EXECUTION & FOCUS'
   },
   {
     eyebrow: 'BUILD A STEADY RHYTHM',
-    title: 'Focus and rituals support consistency.',
-    description: 'Focus sessions protect attention. Rituals make repeatable behaviours easier to maintain. Self-control tracking helps you notice patterns and choose a better response without turning the system into a source of shame.',
-    rows: ['Record focused work and what it moved forward.', 'Keep recurring practices visible.', 'Reflect on triggers, responses and patterns privately.'],
-    label: 'PRACTICE / CONSISTENCY'
+    title: 'Build a rhythm you can sustain.',
+    description: 'Focus Timer lives inside Execution & Focus. Daily Rhythm brings together repeatable practices, reflection and self-control without adding noise to your day.',
+    rows: ['Protect attention with focused sessions.', 'Keep recurring practices visible.', 'Reflect on patterns and choose a better response.'],
+    label: 'DAILY RHYTHM / CONSISTENCY'
   },
   {
     eyebrow: 'KEEP GETTING BETTER',
@@ -66,9 +98,9 @@ const steps = [
   },
   {
     eyebrow: 'MAKE ATLAS YOURS',
-    title: 'Your space should reflect your values.',
-    description: 'Choose the appearance that feels right, manage your data and decide which personal practices belong in your workspace. Deen is optional; Atlas should respect the way you choose to use it.',
-    rows: ['Choose from distinct dark and light palettes.', 'Export a backup of your workspace at any time.', 'Add Deen when it supports your practice, or leave it out.'],
+    title: 'Your space stays yours.',
+    description: 'Manage your personal preferences, keep control of your data and decide which optional practices belong in Atlas. Deen is optional; your workspace should respect the way you choose to use it.',
+    rows: ['Change your appearance whenever you want.', 'Export a backup of your workspace at any time.', 'Add optional spaces when they support your life.'],
     label: 'PERSONAL / OWNERSHIP'
   },
   { eyebrow: 'BUILT AROUND YOUR CHOICES', title: 'Choose what belongs in your Atlas.', description: 'The essentials stay available. Add only the extra spaces you want; you can change these choices any time in Settings.', rows: ['Optional spaces can be added or skipped.', 'Your choices shape the navigation.', 'Nothing here is permanent—you stay in control.'], label: 'YOUR OPTIONAL MODULES' }
@@ -77,10 +109,11 @@ const steps = [
 export function AtlasWalkthrough({ onClose }: Props) {
   const [index, setIndex] = useState(0);
   const [selectedModules, setSelectedModules] = useState<string[]>(optionalModules.map(item => item.id));
+  const [selectedTheme, setSelectedTheme] = useState(() => { try { return localStorage.getItem('atlas_theme') || 'shadowed-alchemist'; } catch { return 'shadowed-alchemist'; } });
   const selectedModulesRef = useRef(selectedModules);
   selectedModulesRef.current = selectedModules;
-  useEffect(() => { void api<Record<string, string>>('/settings').then(settings => { if (settings.features) { try { setSelectedModules(JSON.parse(settings.features).map((feature: string) => feature === 'values' ? 'deen' : feature)); } catch { /* Keep the available defaults. */ } } }).catch(() => undefined); }, []);
-  const finish = async () => { try { await api('/settings', json('PATCH', { features: selectedModulesRef.current })); } catch (error) { console.error('Could not save Atlas module choices:', error); } onClose(); };
+  useEffect(() => { void api<Record<string, string>>('/settings').then(settings => { if (settings.features) { try { setSelectedModules(JSON.parse(settings.features).map((feature: string) => feature === 'values' ? 'deen' : feature)); } catch { /* Keep the available defaults. */ } } if (settings.theme) { setSelectedTheme(settings.theme); previewPalette(settings.theme); } }).catch(() => undefined); }, []);
+  const finish = async () => { try { await api('/settings', json('PATCH', { features: selectedModulesRef.current, theme: selectedTheme })); } catch (error) { console.error('Could not save Atlas preferences:', error); } onClose(); };
   const dialogRef = useRef<HTMLElement>(null);
   const step = steps[index];
 
@@ -134,6 +167,7 @@ export function AtlasWalkthrough({ onClose }: Props) {
           <div className="atlas-tour__preview">
             <div className="atlas-tour__preview-head"><span>{step.label}</span><span>AT A GLANCE</span></div>
             {step.rows.map(row => <div className="atlas-tour__preview-row" key={row}><i />{row}</div>)}
+            {index === 0 && <div className="atlas-onboarding-palettes">{palettes.map(group => <section className="atlas-onboarding-palette-group" key={group.group}><span>{group.group} palettes</span><div className="atlas-onboarding-palette-grid">{group.items.map(item => <button type="button" key={item.id} className={'atlas-onboarding-palette ' + (selectedTheme === item.id ? 'is-selected' : '')} aria-pressed={selectedTheme === item.id} onClick={() => { setSelectedTheme(item.id); previewPalette(item.id); }}><span className="atlas-onboarding-palette__swatches" aria-hidden="true">{item.colors.map((color, i) => <i key={i} style={{ background: color }} />)}</span><b>{item.name}</b><small>{item.note}</small>{selectedTheme === item.id && <em>Selected</em>}</button>)}</div></section>)}</div>}
             {index === steps.length - 1 && <div className="atlas-module-choices">{optionalModules.map(module => <label className="atlas-module-choice" key={module.id}><input type="checkbox" checked={selectedModules.includes(module.id)} onChange={event => setSelectedModules(current => event.target.checked ? [...current, module.id] : current.filter(id => id !== module.id))} /><span><b>{module.name}</b><small>{module.description}</small></span></label>)}</div>}
           </div>
         </main>
