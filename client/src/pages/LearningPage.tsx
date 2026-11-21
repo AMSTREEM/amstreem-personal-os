@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, Plus, Timer } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { api, json } from '../lib/api';
-import { Button, Card, EmptyState, Field, PageHeader, TextInput } from '../components/ui';
+import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
 
 type Goal = { id: number; title: string };
 type Lesson = { id: number; title: string; status: string; study_minutes: number; notes?: string };
