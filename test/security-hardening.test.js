@@ -48,7 +48,7 @@ test('Residence pins saved priorities, completes them inline, and links focus to
   assert.match(residence, /YOUR PINNED TOP 3/);
   assert.match(residence, /priorityTaskIds\.map\(id => tasks\.data\?\.find\(task => task\.id === id\)\)/);
   assert.match(residence, /toggleTask\.mutate\(task\)/);
-  assert.match(residence, /residence-pinned-focus[^\n]*to=\{'\/focus\?task=' \+ task\.id\}/);
+  assert.match(residence, /residence-pinned-focus[^\n]*to=\{'\/execution\?task=' \+ task\.id\}/);
   assert.match(residence, /onMutate: async task/);
   assert.match(focus, /params\.get\('task'\)/);
   assert.match(residence, /dailyReview\?\.alignment_complete && !editingAlignment/);
