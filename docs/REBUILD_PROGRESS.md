@@ -158,7 +158,7 @@ No Render deployment or production Supabase data/schema change has been made fro
 - Goals show linked projects, tasks, milestones, and daily habits.
 - Habits can be created and linked to active goals, and existing habits can be linked/unlinked.
 - Focus Room lets a user choose a task or Learning Studio lesson before starting a timer. Timer context persists through refresh/navigation.
-- Saving a focus session linked to a learning lesson also writes the same minutes into Learning Studio study history; the focus session itself remains a single record.
+- Saving a focus session linked to a learning lesson contributes its minutes to Learning Studio study totals through the linked session record; no duplicate study record is created.
 - Learning Studio offers a direct Focus Room action for each lesson.
 
 ### Backward compatibility
