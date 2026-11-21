@@ -335,13 +335,12 @@ app.get('/api/leaderboard',async(q,s)=>{
   s.json({month,top,mine:{rank:myRank,xp:mine?.xp||0,totalXp:mine?.totalXp||0,public:mine?.public!==false},champions});
  }catch(error){console.error('Leaderboard:',error.message);s.status(502).json({error:'The leaderboard is temporarily unavailable.'});}
 });
+async function fetchAdminJson(url,key,timeoutMs=12000){const controller=new AbortController(),deadline=setTimeout(()=>controller.abort(),timeoutMs);try{const response=await fetch(url,{headers:{apikey:key,Authorization:'Bearer '+key},signal:controller.signal});if(!response.ok)throw new Error('Supabase admin request failed (HTTP '+response.status+').');return await response.json();}catch(error){if(error.name==='AbortError')throw new Error('Supabase admin request timed out after '+Math.round(timeoutMs/1000)+' seconds.');throw error;}finally{clearTimeout(deadline);}}
 app.get('/api/admin/analytics',async(req,res)=>{
  try {
   const key=process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if(!key)return res.status(503).json({error:'Admin analytics are not configured. Add the server-side Supabase key.'});
-  const controller=new AbortController(),deadline=setTimeout(()=>controller.abort(),12000);let response;try{response=await fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=user_id,data`,{headers:{apikey:key,Authorization:`Bearer ${key}`},signal:controller.signal});}finally{clearTimeout(deadline)}
-  if(!response.ok)throw new Error('Could not load aggregate workspace activity (HTTP '+response.status+').');
-  const rows=await response.json(),today=dateKey(),toDate=s=>new Date(s+'T12:00:00');
+  const rows=await fetchAdminJson(`${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=user_id,data`,key),today=dateKey(),toDate=s=>new Date(s+'T12:00:00');
   const addDays=(date,n)=>{const d=toDate(date);d.setDate(d.getDate()+n);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
   const daySet=row=>new Set([...(row.data?.tables?.login_events||[]).map(x=>x.login_date),...(row.data?.tables?.sessions||[]).map(x=>x.session_date),...(row.data?.tables?.habit_logs||[]).map(x=>x.log_date),...(row.data?.tables?.tasks||[]).filter(x=>x.done).map(x=>String(x.created_at||'').slice(0,10))].filter(x=>/^\\d{4}-\\d{2}-\\d{2}$/.test(x)));
   const activitySets=rows.map(daySet),active=n=>activitySets.filter(set=>[...set].some(date=>date>=addDays(today,-(n-1))&&date<=today)).length;
@@ -357,7 +356,7 @@ app.get('/api/admin/users',async(req,res)=>{
   const key=process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if(!key)return res.status(503).json({error:'Admin directory is not configured. Add SUPABASE_SECRET_KEY to the server environment.'});
   let page=1,users=[],more=true;
-  while(more&&page<=100){const controller=new AbortController(),deadline=setTimeout(()=>controller.abort(),12000);let r;try{r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:{apikey:key,Authorization:`Bearer ${key}`},signal:controller.signal});}finally{clearTimeout(deadline)}if(!r.ok)throw new Error('Could not retrieve the account directory (HTTP '+r.status+').');const payload=await r.json();const batch=payload.users||[];users.push(...batch);more=batch.length===100;page++;}
+  while(more&&page<=100){const payload=await fetchAdminJson(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,key);const batch=payload.users||[];users.push(...batch);more=batch.length===100;page++;}
   res.json({email_configured:!!(process.env.RESEND_API_KEY&&process.env.EMAIL_FROM),users:users.map(u=>({id:u.id,name:String(u.user_metadata?.full_name||u.user_metadata?.name||'—').slice(0,80),username:String(u.user_metadata?.username||'').slice(0,30),email:u.email||'',created_at:u.created_at||null,email_confirmed:!!u.email_confirmed_at,thank_you_sent_at:u.app_metadata?.personal_os_thank_you?.status==='sent'?u.app_metadata.personal_os_thank_you.sent_at:null,thank_you_status:u.app_metadata?.personal_os_thank_you?.status||'not_sent'})).sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''))});
  } catch(e){res.status(502).json({error:e.message||'Could not load users.'})}
 });
