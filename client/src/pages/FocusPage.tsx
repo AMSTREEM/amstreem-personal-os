@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Clock3, Pause, Play, RotateCcw } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
+import { Cascade } from '../components/Cascade';
 
 type Session = { id: number; session_date: string; minutes: number; focus: string; reflection: string; task_title?: string | null; project_title?: string | null; lesson_title?: string | null; path_title?: string | null };
 type Task = { id: number; title: string };
@@ -91,7 +92,7 @@ export function FocusPage() {
     setCompleted(false);
   }
 
-  return <div className="stack">
+  return <Cascade className="stack">
     <PageHeader eyebrow="PRACTICE / ATTENTION" title="Focus room" description="Protect a block of attention, connect it to meaningful work, and keep an honest record." />
     <div className="stat-grid stat-grid--three">
       <div className="stat-card"><div className="stat-card__top">RECENT SESSIONS</div><strong>{sessions.data?.length ?? '—'}</strong><small>Recorded focus blocks</small></div>
@@ -125,5 +126,5 @@ export function FocusPage() {
       <div className="card-heading"><div><h2>Recent sessions</h2><p>Your focus history.</p></div></div>
       {sessions.data?.length ? <div className="list-stack">{sessions.data.map(item => <div className="list-row" key={item.id}><span className="session-mark"><Clock3 size={16} /></span><div className="list-row__body"><b>{item.focus}</b><small>{item.session_date}{item.task_title ? ' · Task: ' + item.task_title : ''}{item.lesson_title ? ' · Learning: ' + (item.path_title ? item.path_title + ' / ' : '') + item.lesson_title : ''}{item.project_title ? ' · ' + item.project_title : ''}{item.reflection ? ' · ' + item.reflection : ''}</small></div><span className="list-row__meta">{item.minutes} min</span></div>)}</div> : <EmptyState title="Your focus history starts here." detail="Record a completed session to build a useful picture of your attention over time." />}
     </Card>
-  </div>;
+  </Cascade>;
 }
