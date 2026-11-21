@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const completeOnboarding = useCallback(async () => {
-    const { error } = await supabase.auth.updateUser({ data: { onboarding_completed: true, onboarding_version: 1 } });
+    const { error } = await supabase.auth.updateUser({ data: { onboarding_completed: true, onboarding_version: 2 } });
     if (error) throw error;
   }, []);
 

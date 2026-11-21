@@ -33,11 +33,8 @@ function previewPalette(id: string) {
 type Props = { onClose: () => void };
 
 const optionalModules = [
-  { id: 'rituals', name: 'Rituals', description: 'Build repeatable routines and daily practices.' },
-  { id: 'selfcontrol', name: 'Self-control', description: 'Privately notice triggers and track responses.' },
-  { id: 'learning', name: 'Learning', description: 'Organise skills, subjects and lessons.' },
-  { id: 'library', name: 'Personal Library', description: 'Keep notes, references and useful material.' },
-  { id: 'deen', name: 'Deen', description: 'Optional salah, Qur’an and Tahajjud tracking.' }
+  { id: 'calendar', name: 'Calendar', description: 'Time-block commitments and see what is coming up.' },
+  { id: 'library', name: 'Personal Library', description: 'Keep notes, references and useful material.' }
 ];
 const steps = [
   {
@@ -103,16 +100,17 @@ const steps = [
     rows: ['Change your appearance whenever you want.', 'Export a backup of your workspace at any time.', 'Add optional spaces when they support your life.'],
     label: 'PERSONAL / OWNERSHIP'
   },
-  { eyebrow: 'BUILT AROUND YOUR CHOICES', title: 'Choose what belongs in your Atlas.', description: 'The essentials stay available. Add only the extra spaces you want; you can change these choices any time in Settings.', rows: ['Optional spaces can be added or skipped.', 'Your choices shape the navigation.', 'Nothing here is permanent—you stay in control.'], label: 'YOUR OPTIONAL MODULES' }
+  { eyebrow: 'BUILT AROUND YOUR CHOICES', title: 'Choose what belongs in your Atlas.', description: 'The essentials stay available. Add only the extra spaces you want; you can change these choices any time in Settings.', rows: ['Calendar and Personal Library are optional.', 'Your four main rooms stay available.', 'You can change these choices later in Settings.'], label: 'YOUR OPTIONAL MODULES' }
 ];
 
 export function AtlasWalkthrough({ onClose }: Props) {
   const [index, setIndex] = useState(0);
   const [selectedModules, setSelectedModules] = useState<string[]>(optionalModules.map(item => item.id));
   const [selectedTheme, setSelectedTheme] = useState(() => { try { return localStorage.getItem('atlas_theme') || 'shadowed-alchemist'; } catch { return 'shadowed-alchemist'; } });
+  const themeTouched = useRef(false);
   const selectedModulesRef = useRef(selectedModules);
   selectedModulesRef.current = selectedModules;
-  useEffect(() => { void api<Record<string, string>>('/settings').then(settings => { if (settings.features) { try { setSelectedModules(JSON.parse(settings.features).map((feature: string) => feature === 'values' ? 'deen' : feature)); } catch { /* Keep the available defaults. */ } } if (settings.theme) { setSelectedTheme(settings.theme); previewPalette(settings.theme); } }).catch(() => undefined); }, []);
+  useEffect(() => { void api<Record<string, string>>('/settings').then(settings => { if (settings.features) { try { setSelectedModules(JSON.parse(settings.features).map((feature: string) => feature === 'values' ? 'deen' : feature)); } catch { /* Keep the available defaults. */ } } if (settings.theme && !themeTouched.current) { setSelectedTheme(settings.theme); previewPalette(settings.theme); } }).catch(() => undefined); }, []);
   const finish = async () => { try { await api('/settings', json('PATCH', { features: selectedModulesRef.current, theme: selectedTheme })); } catch (error) { console.error('Could not save Atlas preferences:', error); } onClose(); };
   const dialogRef = useRef<HTMLElement>(null);
   const step = steps[index];
@@ -167,7 +165,7 @@ export function AtlasWalkthrough({ onClose }: Props) {
           <div className="atlas-tour__preview">
             <div className="atlas-tour__preview-head"><span>{step.label}</span><span>AT A GLANCE</span></div>
             {step.rows.map(row => <div className="atlas-tour__preview-row" key={row}><i />{row}</div>)}
-            {index === 0 && <div className="atlas-onboarding-palettes">{palettes.map(group => <section className="atlas-onboarding-palette-group" key={group.group}><span>{group.group} palettes</span><div className="atlas-onboarding-palette-grid">{group.items.map(item => <button type="button" key={item.id} className={'atlas-onboarding-palette ' + (selectedTheme === item.id ? 'is-selected' : '')} aria-pressed={selectedTheme === item.id} onClick={() => { setSelectedTheme(item.id); previewPalette(item.id); }}><span className="atlas-onboarding-palette__swatches" aria-hidden="true">{item.colors.map((color, i) => <i key={i} style={{ background: color }} />)}</span><b>{item.name}</b><small>{item.note}</small>{selectedTheme === item.id && <em>Selected</em>}</button>)}</div></section>)}</div>}
+            {index === 0 && <div className="atlas-onboarding-palettes">{palettes.map(group => <section className="atlas-onboarding-palette-group" key={group.group}><span>{group.group} palettes</span><div className="atlas-onboarding-palette-grid">{group.items.map(item => <button type="button" key={item.id} className={'atlas-onboarding-palette ' + (selectedTheme === item.id ? 'is-selected' : '')} aria-pressed={selectedTheme === item.id} onClick={() => { themeTouched.current = true; setSelectedTheme(item.id); previewPalette(item.id); }}><span className="atlas-onboarding-palette__swatches" aria-hidden="true">{item.colors.map((color, i) => <i key={i} style={{ background: color }} />)}</span><b>{item.name}</b><small>{item.note}</small>{selectedTheme === item.id && <em>Selected</em>}</button>)}</div></section>)}</div>}
             {index === steps.length - 1 && <div className="atlas-module-choices">{optionalModules.map(module => <label className="atlas-module-choice" key={module.id}><input type="checkbox" checked={selectedModules.includes(module.id)} onChange={event => setSelectedModules(current => event.target.checked ? [...current, module.id] : current.filter(id => id !== module.id))} /><span><b>{module.name}</b><small>{module.description}</small></span></label>)}</div>}
           </div>
         </main>
