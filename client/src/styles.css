@@ -1910,3 +1910,10 @@ time,
 .goal-focus-metric b {
   font-variant-numeric: tabular-nums;
 }
+
+
+/* Focus Room is intentionally separate from the Workspace task-management surface. */
+.focus-room .execution-split{grid-template-columns:minmax(0,1fr)!important;}
+.focus-room .execution-projects-panel{display:none!important;}
+.focus-room .execution-focus-panel{width:100%;max-width:920px;margin-inline:auto;}
+.focus-room .execution-heading-stat{display:none;}
