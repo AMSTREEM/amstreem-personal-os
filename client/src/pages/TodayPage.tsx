@@ -107,7 +107,7 @@ export function TodayPage() {
   });
   const toggleHabit = useMutation({
     mutationFn: (habit: Habit) => api('/habits/' + habit.id + '/toggle', json('POST', { date: today })),
-    onSuccess: () => { void client.invalidateQueries({ queryKey: ['habits', today] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
+    onSuccess: () => { void client.invalidateQueries({ queryKey: ['habits', today] }); void client.invalidateQueries({ queryKey: ['self-control'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });
   const togglePrayer = useMutation({
     mutationFn: (item: Prayer) => api('/deen/prayer', json('PATCH', { date: today, prayer: item.prayer, completed: !item.completed })),
@@ -274,11 +274,11 @@ export function TodayPage() {
           </div>)}</div> : <div className="residence-priority-empty">Your pinned priorities will appear here after you save Morning Alignment. <button type="button" className="text-link" onClick={() => setEditingAlignment(true)}>Set today’s plan</button></div>}
         </Card>
         {religion === 'islam' ? <Card className="residence-faith-card">
-          <div className="residence-section-heading"><div><span className="eyebrow">DEEN & REFLECTION</span><h2>Today's Salah</h2><p>{prayerCount} of 5 prayers recorded</p></div><Link to="/values" className="text-link">Open Deen <ArrowRight size={13}/></Link></div>
+          <div className="residence-section-heading"><div><span className="eyebrow">DEEN & REFLECTION</span><h2>Today's Salah</h2><p>{prayerCount} of 5 salah recorded · {rhythmSummary.data?.completed || 0} additional practices completed</p></div><Link to="/values" className="text-link">Open Deen <ArrowRight size={13}/></Link></div>
           <div className="residence-prayer-list">{(deen.data?.prayers || []).map(item => <label className={'residence-prayer ' + (item.completed ? 'is-complete' : '')} key={item.prayer}><input type="checkbox" checked={!!item.completed} onChange={() => togglePrayer.mutate(item)} /><span>{item.prayer}</span><small>{item.completed ? 'Recorded' : 'Not recorded'}</small></label>)}</div>
           <div className="residence-faith-footer"><BookOpen size={14}/><span>{quranPages} Qur’an pages · {calendarSummary.data?.streaks.faith.current ?? 0}-day faith streak</span><Link to="/values">Open Qur’an journey</Link></div>
         </Card> : religion === 'christianity' ? <Card className="residence-faith-card">
-          <div className="residence-section-heading"><div><span className="eyebrow">FAITH & REFLECTION</span><h2>Today's practices</h2><p>{faithCount} of 5 recorded</p></div><Link to="/values" className="text-link">Open reflection <ArrowRight size={13}/></Link></div>
+          <div className="residence-section-heading"><div><span className="eyebrow">FAITH & REFLECTION</span><h2>Today's practices</h2><p>{faithCount} legacy practices · {rhythmSummary.data?.completed || 0} faith activities completed</p></div><Link to="/values" className="text-link">Open reflection <ArrowRight size={13}/></Link></div>
           <div className="residence-prayer-list">{faithPractices.map(activity => { const item = faith.data?.find(row => row.activity === activity) || { activity, completed: 0 }; return <label className={'residence-prayer ' + (item.completed ? 'is-complete' : '')} key={activity}><input type="checkbox" checked={!!item.completed} onChange={() => toggleFaith.mutate(item)} /><span>{activity[0].toUpperCase() + activity.slice(1)}</span><small>{item.completed ? 'Recorded' : 'Not recorded'}</small></label>; })}</div>
           <div className="residence-faith-footer"><Flame size={14}/><span>{calendarSummary.data?.streaks.faith.current ?? 0}-day faith streak</span></div>
         </Card> : <Card className="residence-faith-card residence-faith-card--optional">
