@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { Cascade } from '../components/Cascade';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, BookOpen, Flame, MoonStar, Plus, Target, Timer, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -190,7 +191,7 @@ export function TodayPage() {
   const activityPulse = scoreDimensions.length ? Math.round(scoreDimensions.reduce((sum, item) => sum + item.score, 0) / scoreDimensions.length) : null;
   const nextDestination = insight.data?.recommendation.destination === 'habit' ? '/rituals' : '/' + (insight.data?.recommendation.destination || 'tasks');
 
-  return <div className="stack today-dashboard">
+  return <Cascade className="stack today-dashboard">
     <section className="residence-band residence-band--orientation" aria-label="Today's orientation">
       <PageHeader eyebrow={new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()).toUpperCase()} title="Residence" description="Your central view of today’s priorities, routines, focus and progress." action={showCalendar ? <Link className="button button--secondary" to="/calendar">View calendar <ArrowRight size={14} /></Link> : undefined} />
       <section className="residence-rhythm"><div><span className="eyebrow">{rhythmCopy.eyebrow}</span><h2>{rhythmCopy.title}</h2><p>{rhythmCopy.detail}</p></div><span className="residence-rhythm-time">{new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',minute:'2-digit'}).format(new Date())} WAT</span></section>
@@ -239,7 +240,7 @@ export function TodayPage() {
         {title:'Focus Room',detail:'Protect your attention',to:'/focus',symbol:'◷',tone:'focus'},
         {title:'Learning Studio',detail:'Build knowledge deliberately',to:'/learning',symbol:'▤',tone:'learning'},
         {title:'Goals',detail:'Keep long-term direction visible',to:'/goals',symbol:'◎',tone:'goals'}
-      ].map(pillar=><Link className={'residence-pillar residence-pillar--'+pillar.tone} to={pillar.to} key={pillar.to}><span>{pillar.symbol}</span><div><b>{pillar.title}</b><small>{pillar.detail}</small></div><ArrowRight size={14}/></Link>)}
+      ].map(pillar=><Link className={'residence-pillar atlas-spotlight residence-pillar--'+pillar.tone} to={pillar.to} key={pillar.to}><span>{pillar.symbol}</span><div><b>{pillar.title}</b><small>{pillar.detail}</small></div><ArrowRight size={14}/></Link>)}
     </section>
     <section className="residence-pulse" aria-label="Your daily activity pulse">
       <div className="residence-pulse__main">
@@ -254,7 +255,7 @@ export function TodayPage() {
     </section>
 
     <div className="residence-stat-grid">
-      <Card className="residence-stat"><span className="eyebrow">FOCUS TODAY</span><strong>{formatMinutes(overview.data?.todayMin ?? 0)}</strong><small>{focusPercent}% of your {target}m intention</small></Card>
+      <Card className="residence-stat atlas-spotlight"><span className="eyebrow">FOCUS TODAY</span><strong>{formatMinutes(overview.data?.todayMin ?? 0)}</strong><small>{focusPercent}% of your {target}m intention</small></Card>
       <Card className="residence-stat"><span className="eyebrow">OPEN PRIORITIES</span><strong>{openTasks.length}</strong><small>{todayTasks.filter(task => !task.done).length} due today</small></Card>
       <Card className="residence-stat"><span className="eyebrow">HABITS COMPLETED</span><strong>{completedHabits}<small> / {habitList.length}</small></strong><small>Today's chosen habits</small></Card>
       <Card className="residence-stat"><span className="eyebrow">HABIT STREAK</span><strong><Flame size={18}/>{habitStreak}</strong><small>Consecutive days with habit activity</small></Card>
@@ -353,5 +354,5 @@ export function TodayPage() {
         </form>
       </Card></div>
     </section>
-  </div>;
+  </Cascade>;
 }
