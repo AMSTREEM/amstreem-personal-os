@@ -6,7 +6,7 @@ import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextInput } from '../components/ui';
 
 type Goal = { id: number; title: string };
-type Lesson = { id: number; title: string; status: string; study_minutes: number };
+type Lesson = { id: number; title: string; status: string; study_minutes: number; notes?: string };
 type Path = { id: number; title: string; subject: string; description: string; status: string; goal_id: number | null; lessons: Lesson[] };
 
 export function LearningPage() {
@@ -16,6 +16,7 @@ export function LearningPage() {
   const [goalId, setGoalId] = useState('');
   const goals = useQuery({ queryKey: ['goals'], queryFn: () => api<Goal[]>('/goals') });
   const [lessonDrafts, setLessonDrafts] = useState<Record<number, string>>({});
+  const [lessonNotes, setLessonNotes] = useState<Record<number, string>>({});
   const paths = useQuery({ queryKey: ['learning-paths'], queryFn: () => api<Path[]>('/learning/paths') });
   const create = useMutation({
     mutationFn: () => api('/learning/paths', json('POST', { title, subject, goal_id: goalId || null })),
@@ -26,7 +27,7 @@ export function LearningPage() {
     onSuccess: (_data, variables) => { setLessonDrafts(current => ({ ...current, [variables.pathId]: '' })); void client.invalidateQueries({ queryKey: ['learning-paths'] }); }
   });
   const updateLesson = useMutation({
-    mutationFn: ({ lesson, status }: { lesson: Lesson; status: string }) => api('/learning/lessons/' + lesson.id, json('PATCH', { status })),
+    mutationFn: ({ lesson, values }: { lesson: Lesson; values: {status?:string;notes?:string} }) => api('/learning/lessons/' + lesson.id, json('PATCH', values)),
     onSuccess: () => void client.invalidateQueries({ queryKey: ['learning-paths'] })
   });
   return <div className="stack">
@@ -41,11 +42,12 @@ export function LearningPage() {
       </form>
     </Card>
     <div className="stack">
-      {paths.data?.length ? paths.data.map(path => <Card key={path.id}>
+      {paths.data?.length ? paths.data.map(path => { const done=path.lessons.filter(lesson=>lesson.status==='Completed').length; const progress=path.lessons.length?Math.round(done/path.lessons.length*100):0; return <Card key={path.id} className="room4-card room4-path-card">
         <div className="card-heading"><div><span className="eyebrow">{path.subject || 'LEARNING PATH'}</span><h2>{path.title}</h2><p>{path.description || 'Build this path one lesson at a time.'}{path.goal_id ? ' · Linked to a goal' : ''}</p></div><span className="status-pill">{path.status}</span></div>
-        {path.lessons.length ? <div className="list-stack">{path.lessons.map(lesson => <div className="list-row" key={lesson.id}><span className="session-mark"><BookOpen size={16} /></span><div className="list-row__body"><b>{lesson.title}</b><small>{lesson.study_minutes} minutes studied</small><Link className="text-link" to={'/focus?lesson=' + lesson.id}><Timer size={13}/> Focus on lesson</Link></div><select className="status-select" value={lesson.status} onChange={event => updateLesson.mutate({ lesson, status: event.target.value })}><option>Not started</option><option>In progress</option><option>Completed</option></select></div>)}</div> : <EmptyState title="Add the first lesson." detail="Give this learning path its first clear checkpoint." />}
+        <div className="room4-progress"><div><small>PATH PROGRESS</small><b>{done}/{path.lessons.length} lessons · {progress}%</b></div><span><i style={{width:progress+'%'}}/></span></div>
+        {path.lessons.length ? <div className="list-stack">{path.lessons.map(lesson => <div className="list-row room4-lesson-row" key={lesson.id}><span className="session-mark"><BookOpen size={16} /></span><div className="list-row__body"><b>{lesson.title}</b><small>{lesson.study_minutes} minutes from linked focus sessions</small><Link className="text-link" to={'/focus?lesson=' + lesson.id}><Timer size={13}/> Start Study Focus</Link><TextArea value={lessonNotes[lesson.id] ?? lesson.notes ?? ''} onChange={event=>setLessonNotes(current=>({...current,[lesson.id]:event.target.value}))} placeholder="Study notes…"/><Button variant="secondary" onClick={()=>updateLesson.mutate({lesson,values:{notes:lessonNotes[lesson.id]??lesson.notes??''}})}>Save notes</Button></div><select className="status-select" value={lesson.status} onChange={event => updateLesson.mutate({ lesson, values:{status:event.target.value} })}><option>Not started</option><option>In progress</option><option>Completed</option></select></div>)}</div> : <EmptyState title="Add the first lesson." detail="Give this learning path its first clear checkpoint." />}
         <form className="form-row milestone-form" onSubmit={event => { event.preventDefault(); const value = lessonDrafts[path.id]?.trim(); if (value) createLesson.mutate({ pathId: path.id, value }); }}><Field label="Add a lesson"><TextInput value={lessonDrafts[path.id] || ''} onChange={event => setLessonDrafts(current => ({ ...current, [path.id]: event.target.value }))} placeholder="Name the next lesson" /></Field><Button type="submit" variant="secondary" disabled={createLesson.isPending || !lessonDrafts[path.id]?.trim()}><Plus size={15} /> Add lesson</Button></form>
-      </Card>) : <Card><EmptyState title="Make learning deliberate." detail="Create a path for a subject you want to understand, then build it into lessons and study sessions." /></Card>}
+      </Card>;}) : <Card><EmptyState title="Make learning deliberate." detail="Create a path for a subject you want to understand, then build it into lessons and study sessions." /></Card>}
     </div>
   </div>;
 }
