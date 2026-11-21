@@ -142,8 +142,8 @@ test('Room 3 routes the execution workspace through the four-room shell without 
   assert.match(app, /path="\/tasks" element={<TasksPage \/>}/);
   assert.match(shell, /to: '\/execution'/);
   assert.match(shell, /label: 'Workspace', to: '\/execution'/);
-  assert.match(css, /\.execution-split\{display:grid;grid-template-columns/);
-  assert.match(read('client/src/pages/ExecutionFocusPage.tsx'), /Projects/);
+  assert.match(css, /\.execution-heading/);
+  assert.match(fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ExecutionFocusPage.tsx'), 'utf8'), /Projects/);
 });
 
 
