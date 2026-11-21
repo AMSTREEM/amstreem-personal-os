@@ -2,7 +2,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from '../lib/api';
+import { api, json } from '../lib/api';
 import { ArrowRight, Compass, GraduationCap, Heart, House, LogOut, Menu, MoonStar, Pause, Play, Search, Settings, SlidersHorizontal, Target, Timer, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
@@ -25,6 +25,10 @@ const moduleTabs = [
   { match: (path: string) => path === '/learning' || path === '/library', tabs: [{ label: 'Learning paths', to: '/learning' }, { label: 'Library', to: '/library', feature: 'library' }] }
 ];
 
+type QuickPrayer = { prayer: string; completed: number; on_time: number };
+type QuickDeen = { prayers: QuickPrayer[] };
+type QuickHabit = { id: number; title: string; emoji: string; done: number };
+function atlasDate() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
 type SharedTimer = { remaining: number; deadline: number | null; taskId?: string; lessonId?: string; projectId?: string; taskTitle?: string; lessonTitle?: string; focusLabel?: string };
 function readSharedTimer(): SharedTimer {
   try { const value = JSON.parse(localStorage.getItem('atlas-focus-timer-v1') || 'null'); if (value && Number.isFinite(value.remaining)) return value; } catch { /* Ignore invalid timer state. */ }
@@ -99,6 +103,18 @@ export function AppShell() {
   ].filter(item => (item.label+' '+item.detail).toLowerCase().includes(commandQuery.toLowerCase())),[commandQuery]);
   const location = useLocation();
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Record<string, string>>('/settings') });
+  const quickDate = atlasDate();
+  const quickReligion = settings.data?.religion || 'none';
+  const quickDeen = useQuery({ queryKey: ['deen', quickDate], queryFn: () => api<QuickDeen>('/deen/summary?date=' + quickDate), enabled: commandOpen && quickReligion === 'islam' });
+  const quickHabits = useQuery({ queryKey: ['habits', quickDate], queryFn: () => api<QuickHabit[]>('/habits?date=' + quickDate), enabled: commandOpen });
+  const quickPrayerMutation = useMutation({
+    mutationFn: (item: QuickPrayer) => api('/deen/prayer', json('PATCH', { date: quickDate, prayer: item.prayer, completed: !item.completed })),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ['deen', quickDate] }); void queryClient.invalidateQueries({ queryKey: ['overview'] }); }
+  });
+  const quickHabitMutation = useMutation({
+    mutationFn: (id: number) => api('/habits/' + id + '/toggle', json('POST', { date: quickDate })),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ['habits', quickDate] }); void queryClient.invalidateQueries({ queryKey: ['overview'] }); }
+  });
   useEffect(() => { document.documentElement.dataset.theme = settings.data?.theme || 'shadowed-alchemist'; }, [settings.data?.theme]);
   const storedFeatures = settings.data?.features;
   let enabledFeatures: string[] | null = null;
@@ -154,6 +170,8 @@ export function AppShell() {
         <div className="command-search"><Search size={17}/><input autoFocus value={commandQuery} onChange={event=>setCommandQuery(event.target.value)} placeholder="Search pillars, capture a task, or check in…"/><kbd>ESC</kbd></div>
         {(!commandQuery || 'add a task'.includes(commandQuery.toLowerCase())) && <form className="command-task-form" onSubmit={captureTask}><Zap size={15}/><input value={quickTaskTitle} onChange={event=>setQuickTaskTitle(event.target.value)} placeholder="Capture a task…" maxLength={180}/><button disabled={!quickTaskTitle.trim()||quickTaskSaving}>{quickTaskSaving?'Saving…':'Add task'}</button></form>}
         {quickTaskError && <p className="command-error">{quickTaskError}</p>}
+        {quickReligion === 'islam' && <div className="command-checkins"><span className="eyebrow">TODAY · SALAH</span><div className="command-checkin-list">{(quickDeen.data?.prayers || []).map(item => <button type="button" key={item.prayer} className={item.completed ? 'is-complete' : ''} disabled={quickPrayerMutation.isPending} onClick={() => quickPrayerMutation.mutate(item)}><span>{item.completed ? '✓' : '○'}</span>{item.prayer}<small>{item.completed ? 'Recorded' : 'Mark done'}</small></button>)}</div></div>}
+        {!!quickHabits.data?.length && <div className="command-checkins"><span className="eyebrow">TODAY · HABITS</span><div className="command-checkin-list">{quickHabits.data.map(item => <button type="button" key={item.id} className={item.done ? 'is-complete' : ''} disabled={quickHabitMutation.isPending} onClick={() => quickHabitMutation.mutate(item.id)}><span>{item.done ? '✓' : '○'}</span>{item.title}<small>{item.done ? 'Done' : 'Mark done'}</small></button>)}</div></div>}
         <div className="command-results"><span className="eyebrow">JUMP TO OR CHECK IN</span>{commandItems.map(item=>{const Icon=item.icon;return <button key={item.label} type="button" onClick={()=>{setCommandOpen(false);window.location.assign(item.to);}}><Icon size={16}/><span><b>{item.label}</b><small>{item.detail}</small></span><kbd>{item.shortcut}</kbd></button>;})}{!commandItems.length&&<p>No matching destination.</p>}</div>
         <div className="command-footer"><span>Sequential navigation shortcuts</span><span>⌘ 1 — 7</span></div>
       </section></div>}
