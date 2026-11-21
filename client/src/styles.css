@@ -43,7 +43,9 @@ a { color: inherit; text-decoration: none; }
 .auth-message-block h1 { margin: 24px 0 18px; font: 600 clamp(48px,6vw,82px)/1.04 Manrope,sans-serif; letter-spacing: -.065em; }
 .auth-message-block h1 em { color: var(--accent-strong); font-style: normal; }
 .auth-message-block p { max-width: 430px; color: var(--muted); font-size: 16px; line-height: 1.8; }
-.auth-principle { display: flex; align-items: center; gap: 10px; margin-top: 38px; color: var(--accent-strong); font-size: 13px; }
+.auth-principle { display: flex; align-items: center; gap: 11px; margin-top: 38px; color: var(--accent-strong); font-size: 13px; }
+.auth-principle__icon { display: grid; place-items: center; width: 34px; height: 34px; flex: none; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-raised); color: var(--accent-strong); }
+.auth-principle__icon svg { display: block; }
 .auth-footnote { color: var(--subtle); font: 600 9px Manrope,sans-serif; letter-spacing: .18em; }
 .auth-panel { display: grid; place-items: center; padding: 44px 28px; }
 .auth-panel__inner { width: min(100%,420px); }
@@ -144,8 +146,9 @@ a { color: inherit; text-decoration: none; }
 .stat-card__icon { color: var(--accent); }
 .stat-card strong { display: block; margin-top: 16px; font: 600 28px Manrope,sans-serif; letter-spacing: -.04em; }
 .stat-card small { display: block; margin-top: 4px; color: var(--subtle); font-size: 10px; }
-.empty-state { display: grid; justify-items: center; padding: 28px 12px; text-align: center; }
-.empty-state__mark { color: var(--accent); font-size: 21px; }
+.empty-state { display: grid; justify-items: center; padding: 32px 14px; text-align: center; }
+.empty-state__mark { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 14px; background: var(--accent-wash); color: var(--accent-strong); }
+.empty-state__mark svg { display: block; }
 .empty-state h3 { margin: 12px 0 5px; font: 600 13px Manrope,sans-serif; }
 .empty-state p { max-width: 310px; margin: 0; color: var(--subtle); font-size: 11px; line-height: 1.7; }
 .inline-error { color: var(--danger); font-size: 11px; }
