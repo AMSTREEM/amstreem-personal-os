@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 :root {
@@ -1392,3 +1393,68 @@ body { letter-spacing: -.006em; }
 
 .goal-work-summary{grid-template-columns:repeat(5,minmax(0,1fr))}
 @media(max-width:480px){.goal-work-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.goal-focus-metric{border-left:0;padding-left:0}}
+
+
+/* Room 4 — Growth & Direction: semantic layer shared by every Atlas theme. */
+:root {
+  --bg-canvas:var(--bg);
+  --bg-surface:var(--surface);
+  --bg-elevated:var(--surface-raised);
+  --border-hairline:var(--line);
+  --text-primary:var(--text);
+  --accent-primary:var(--accent);
+}
+.room4-library,.room4-path-card,.room4-evidence,.goal-card--connected {
+  color:var(--text-primary);
+  font-family:"Plus Jakarta Sans","DM Sans",sans-serif;
+}
+.room4-library .room4-card,.room4-path-card,.room4-evidence,.goal-card--connected {
+  padding:24px;
+  border:1px solid var(--border-hairline);
+  background:var(--bg-surface);
+}
+.room4-library svg,.room4-path-card svg,.room4-evidence svg,.goal-card--connected svg { stroke-width:1.5px; }
+.room4-library .room4-resource-list { display:grid; gap:12px; }
+.room4-library .room4-resource { display:flex; align-items:center; gap:16px; min-width:0; }
+.room4-resource__body { display:grid; min-width:0; flex:1; gap:5px; }
+.room4-resource__body b { overflow-wrap:anywhere; font-size:13px; font-weight:650; }
+.room4-resource__body small,.room4-resource__body a { color:var(--muted); font-size:11px; }
+.room4-resource__body a { color:var(--accent-primary); width:fit-content; }
+.room4-library .status-select { min-height:40px; max-width:150px; }
+.room4-path-card { gap:20px; }
+.room4-progress { display:grid; gap:9px; }
+.room4-progress>div { display:flex; justify-content:space-between; gap:12px; color:var(--muted); font-size:11px; }
+.room4-progress>div small { font:600 9px "JetBrains Mono",monospace; letter-spacing:.08em; }
+.room4-progress>div b { color:var(--text-primary); font:600 11px "JetBrains Mono",monospace; }
+.room4-progress>span { display:block; height:5px; overflow:hidden; border-radius:99px; background:var(--border-hairline); }
+.room4-progress>span i { display:block; height:100%; border-radius:inherit; background:var(--accent-primary); transition:width 180ms cubic-bezier(0.16,1,0.3,1); }
+.room4-lesson-row { align-items:flex-start; padding:18px 0; }
+.room4-lesson-row .list-row__body { display:grid; gap:10px; }
+.room4-lesson-row textarea { min-height:76px; }
+.room4-evidence-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+.room4-evidence-grid>div { display:grid; gap:8px; padding:16px; border:1px solid var(--border-hairline); border-radius:12px; background:var(--bg-elevated); }
+.room4-evidence-grid small { color:var(--muted); font-size:10px; }
+.room4-evidence-grid b { color:var(--text-primary); font:600 22px "JetBrains Mono",monospace; }
+.room4-evidence-note { margin:16px 0 0; color:var(--muted); font-size:10px; line-height:1.65; }
+.goal-card--connected { gap:16px; }
+.goal-card--connected .goal-progress-track>span { transition:width 180ms cubic-bezier(0.16,1,0.3,1); }
+.room4-library .room4-card,.room4-path-card,.room4-evidence,.goal-card--connected { transition:transform 180ms cubic-bezier(0.16,1,0.3,1),border-color 180ms cubic-bezier(0.16,1,0.3,1),box-shadow 180ms cubic-bezier(0.16,1,0.3,1); }
+.room4-library .room4-card:hover,.room4-path-card:hover,.room4-evidence:hover,.goal-card--connected:hover { transform:translateY(-2px); border-color:color-mix(in srgb,var(--accent-primary) 38%,var(--border-hairline)); }
+.module-subnav__link { transition:color 180ms cubic-bezier(0.16,1,0.3,1),background 180ms cubic-bezier(0.16,1,0.3,1),border-color 180ms cubic-bezier(0.16,1,0.3,1); }
+.page-container:has(.room4-library),.page-container:has(.room4-path-card),.page-container:has(.room4-evidence) { min-width:0; max-width:100%; }
+.page-container:has(.room4-library) *, .page-container:has(.room4-path-card) *, .page-container:has(.room4-evidence) * { min-width:0; }
+@media(max-width:760px) {
+  .room4-evidence-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .room4-library .room4-resource { align-items:flex-start; flex-wrap:wrap; }
+  .room4-library .room4-resource .status-select { width:100%; max-width:none; }
+}
+@media(max-width:420px) {
+  .room4-library .room4-card,.room4-path-card,.room4-evidence,.goal-card--connected { padding:18px; }
+  .room4-evidence-grid>div { padding:12px; }
+  .room4-evidence-grid b { font-size:18px; }
+  .room4-lesson-row { flex-wrap:wrap; }
+  .room4-lesson-row .status-select { width:100%; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .room4-library .room4-card,.room4-path-card,.room4-evidence,.goal-card--connected,.room4-progress>span i,.module-subnav__link { transition:none!important; animation:none!important; }
+}
