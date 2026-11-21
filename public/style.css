@@ -1439,3 +1439,14 @@ input[type="radio"]{accent-color:var(--accent);width:17px;height:17px;cursor:poi
 .timer-custom-fields>button:hover{border-color:var(--accent);color:var(--accent)}
 @media(max-width:600px){.content{padding:26px 17px 24px}.timer-custom-fields{gap:5px}.timer-custom-fields input{width:48px}.timer-custom-fields>button{padding:0 9px}}
 @media(prefers-reduced-motion:reduce){.page,.nav-item{animation:none!important;transition:none!important}}
+
+
+/* Residence ambient motion: subtle, slow and optional. */
+.residence-art .orbit-a{animation:atlasOrbitA 24s linear infinite}
+.residence-art .orbit-b{animation:atlasOrbitB 32s linear infinite reverse}
+.residence-art .art-core{animation:atlasCoreGlow 7s ease-in-out infinite}
+@keyframes atlasOrbitA{from{transform:rotate(-28deg)}to{transform:rotate(332deg)}}
+@keyframes atlasOrbitB{from{transform:rotate(38deg)}to{transform:rotate(398deg)}}
+@keyframes atlasCoreGlow{0%,100%{box-shadow:0 0 48px color-mix(in srgb,var(--accent) 10%,transparent),inset 0 0 25px color-mix(in srgb,var(--accent) 5%,transparent)}50%{box-shadow:0 0 72px color-mix(in srgb,var(--accent) 19%,transparent),inset 0 0 34px color-mix(in srgb,var(--accent) 9%,transparent)}}
+.atlas-guide-nav{margin-top:8px;border-top:1px solid var(--line);padding-top:13px}
+@media(prefers-reduced-motion:reduce){.residence-art .orbit-a,.residence-art .orbit-b,.residence-art .art-core{animation:none!important}}
