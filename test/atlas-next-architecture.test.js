@@ -72,8 +72,31 @@ test('Focus timer survives refreshes and does not fabricate completed sessions',
   assert.match(focus, /Timer completion does not create a record automatically/);
   assert.match(focus, /function pauseTimer/);
   assert.match(focus, /function resetTimer/);
+  assert.match(focus, /Choose what this focus block will move forward/);
+  assert.match(focus, /lesson_id: lessonId/);
+  assert.match(focus, /learning-study-logs/);
+  assert.match(read('client/src/pages/LearningPage.tsx'), /\/focus\?lesson=/);
 });
 
+
+
+
+test('Residence derives a daily consistency pulse from active life areas', () => {
+  const residence = read('client/src/pages/TodayPage.tsx');
+  assert.match(residence, /TODAY'S CONSISTENCY PULSE/);
+  assert.match(residence, /api<Deen>\('\/deen\/summary/);
+  assert.match(residence, /api<Faith>\('\/faith/);
+  assert.match(residence, /scoreDimensions/);
+  assert.match(residence, /atlas-focus-timer-v1/);
+});
+
+test('Goals expose linked projects, tasks and daily habits', () => {
+  const goals = read('client/src/pages/GoalsPage.tsx');
+  assert.match(goals, /api<Project\[]>\('\/projects'/);
+  assert.match(goals, /api<Task\[]>\('\/tasks'/);
+  assert.match(goals, /api<Habit\[]>\('\/habits'/);
+  assert.match(goals, /linkedHabits/);
+});
 
 test('Habit tracker exposes a seven-day completion history', () => {
   const rituals = read('client/src/pages/RitualsPage.tsx');
