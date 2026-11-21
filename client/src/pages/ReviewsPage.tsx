@@ -16,11 +16,8 @@ function periodRange(type: 'daily' | 'weekly') {
   const today = dateKey(new Date());
   const date = new Date(today + 'T12:00:00');
   if (type === 'daily') return { start: today, end: today };
-  const offset = (date.getDay() + 6) % 7;
-  date.setDate(date.getDate() - offset);
-  const start = dateKey(date);
-  date.setDate(date.getDate() + 6);
-  return { start, end: dateKey(date) };
+  date.setDate(date.getDate() - 6);
+  return { start: dateKey(date), end: today };
 }
 
 export function ReviewsPage() {
