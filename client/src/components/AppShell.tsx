@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -42,6 +42,7 @@ function readSharedTimer(): SharedTimer {
 export function AppShell() {
   const navigate = useNavigate();
   const reduceMotion = useReducedMotion();
+  const roomTransitionRef = useRef<HTMLDivElement>(null);
   const { user, role, signOut, session, completeOnboarding } = useAuth();
   const queryClient = useQueryClient();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -156,7 +157,7 @@ export function AppShell() {
   useEffect(() => {
     const updateSpotlight = (event: PointerEvent) => {
       if (event.pointerType !== 'mouse') return;
-      const target = event.target instanceof Element ? event.target.closest<HTMLElement>('.atlas-spotlight') : null;
+      const target = event.target instanceof Element ? event.target.closest<HTMLElement>('.atlas-spotlight, .room4-library .room4-card') : null;
       if (!target) return;
       const rect = target.getBoundingClientRect();
       target.style.setProperty('--spotlight-x', ((event.clientX - rect.left) / rect.width * 100) + '%');
@@ -164,7 +165,7 @@ export function AppShell() {
     };
     const clearSpotlight = (event: PointerEvent) => {
       const target = event.target instanceof Element ? event.target.closest<HTMLElement>('.atlas-spotlight') : null;
-      const next = event.relatedTarget instanceof Element ? event.relatedTarget.closest('.atlas-spotlight') : null;
+      const next = event.relatedTarget instanceof Element ? event.relatedTarget.closest('.atlas-spotlight, .room4-library .room4-card') : null;
       if (target && target !== next) {
         target.style.removeProperty('--spotlight-x');
         target.style.removeProperty('--spotlight-y');
@@ -212,7 +213,7 @@ export function AppShell() {
       {focusRemaining > 0 && (focusActive || focusTimer.remaining < 25*60) && <div className="global-focus-bar"><span className="global-focus-pulse"/><div className="global-focus-copy"><b>{focusClock}</b><span>{focusContext}</span></div><span className="global-focus-label">{focusActive?'FOCUS IN PROGRESS':'FOCUS PAUSED'}</span><button type="button" onClick={toggleTimer} aria-label={focusActive?'Pause focus timer':'Resume focus timer'}>{focusActive?<Pause size={13}/>:<Play size={13}/>}<span>{focusActive?'Pause':'Resume'}</span></button><button type="button" onClick={finishTimer}>Finish & review</button><NavLink to="/focus">Open room <ArrowRight size={12}/></NavLink></div>}
       <div className="page-container">
         {activeTabs.length > 0 && <nav className="module-subnav" aria-label="Module sections">{activeTabs.map(tab => <NavLink key={tab.to} to={tab.to} onClick={() => setMobileOpen(false)} className={({ isActive }) => 'module-subnav__link ' + (isActive ? 'module-subnav__link--active' : '')}>{({isActive}) => <>{isActive && <motion.span className="module-subnav-indicator" layoutId={'atlas-subnav-' + current?.id} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}{tab.label}</>}</NavLink>)}</nav>}
-        <motion.div key={location.pathname} className="room-view-transition" initial={reduceMotion ? false : { opacity: 0, scale: 0.985, filter: "blur(4px)" }} animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }} transition={reduceMotion ? { duration: 0 } : { duration: 0.24, ease: [0.22, 1, 0.36, 1] }}>
+        <motion.div key={location.pathname} className="room-view-transition" initial={reduceMotion ? false : { opacity: 0, scale: 0.985, filter: "blur(4px)" }} animate={{ opacity: 1, scale: 1, filter: reduceMotion ? "none" : "blur(0px)" }} transition={reduceMotion ? { duration: 0 } : { duration: 0.24, ease: [0.22, 1, 0.36, 1] }} ref={roomTransitionRef} onAnimationComplete={() => { if (roomTransitionRef.current) roomTransitionRef.current.style.filter = "none"; }}>
           <Outlet />
         </motion.div>
       </div>
