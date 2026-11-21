@@ -107,8 +107,9 @@ export function FocusWorkspace() {
   function focusTask(task:Task){if(running)return;selectTask(task);window.scrollTo({top:0,behavior:'smooth'});}
   const selectedDuration=timer.durationSeconds/60;
 
-  return <Cascade className={location.pathname === '/focus' ? "stack execution-workspace focus-room focus-room-only" : "stack execution-workspace focus-room"}>
-    <div className="execution-heading"><div><span className="eyebrow">ROOM 03 / EXECUTION & FOCUS</span><h1>Protect your attention.</h1><p>Choose the work. Protect your attention. Let each completed session strengthen the same record.</p></div><div className="execution-heading-stat"><b>{sessions.data?.length||0}</b><span>RECORDED SESSIONS</span></div></div>
+  const isFocusRoute=location.pathname==='/focus';
+  return <Cascade className={isFocusRoute ? "stack execution-workspace focus-room-only" : "stack execution-workspace"}>
+    <div className="execution-heading"><div><span className="eyebrow">ROOM 03 / EXECUTION & FOCUS</span><h1>{isFocusRoute?'Settle into deep work.':'Protect your attention.'}</h1><p>{isFocusRoute?'One clear intention. One protected block. Your progress is recorded alongside the work it supports.':'Choose the work. Protect your attention. Let each completed session strengthen the same record.'}</p></div><div className="execution-heading-stat"><b>{sessions.data?.length||0}</b><span>RECORDED SESSIONS</span></div></div>
     <div className="execution-split">
       <section className="execution-projects-panel">
         <Card className="execution-panel-card">
@@ -138,7 +139,7 @@ export function FocusWorkspace() {
       </section>
       <section className="execution-focus-panel">
         <Card className="execution-focus-card">
-          <div className="execution-panel-heading"><div><span className="eyebrow">02 / FOCUS ROOM</span><h2>Stay with one thing.</h2><p>{running?'Your timer is protected while you move around Atlas.':'Choose a duration and begin when you are ready.'}</p></div><Timer size={19}/></div>
+          <div className="execution-panel-heading"><div><span className="eyebrow">02 / FOCUS TIMER</span><h2>One thing at a time.</h2><p>{running?'Your timer is protected while you move around Atlas.':'Choose a duration and begin when you are ready.'}</p></div><Timer size={19}/></div>
           <div className="execution-focus-context"><span>THIS SESSION</span><b>{contextLabel}</b><small>{taskSelected?.project_title||lessonSelected?.pathTitle||'Unlinked focus is fine too'}</small></div>
           <div className="execution-timer" role="timer" aria-live="off"><span>{timerText}</span><small>{timer.kind==='break'?'BREAK':'DEEP WORK'}</small></div>
           <div className="execution-presets">{[['25','25m'],['50','50m'],['80','80m'],['custom','Custom']].map(([value,label])=><button key={value} className={preset===value?'is-active':''} disabled={running} onClick={()=>{setPreset(value);if(value!=='custom'){const seconds=Number(value)*60;setTimer(current=>({...current,remaining:seconds,durationSeconds:seconds,deadline:null,sessionKey:null}));}}}>{label}</button>)}</div>
