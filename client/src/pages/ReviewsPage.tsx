@@ -55,7 +55,7 @@ export function ReviewsPage() {
     onSuccess: () => void client.invalidateQueries({ queryKey: ['reviews', type] })
   });
 
-  return <div className="stack">
+  return <Cascade className="stack">
     <PageHeader eyebrow="REFLECT / REVIEW" title="Reviews" description="Make sense of what happened, notice what you learned, and choose what deserves attention next." />
     <div className="review-switch"><button className={type === 'daily' ? 'review-switch__active' : ''} onClick={() => setType('daily')}>Daily review</button><button className={type === 'weekly' ? 'review-switch__active' : ''} onClick={() => setType('weekly')}>Weekly review</button></div>
     {type === 'weekly' && <Card className="room4-card room4-evidence"><div className="card-heading"><div><span className="eyebrow">THE LAST SEVEN DAYS</span><h2>Your evidence, before reflection</h2><p>Workspace records for {evidenceWindow.start} — {evidenceWindow.end}. Missing records are not treated as zero-effort days.</p></div><CalendarCheck size={18}/></div>{evidence.isLoading ? <p>Gathering your workspace evidence…</p> : evidence.data ? <div className="room4-evidence-grid">{[['Focus minutes',evidence.data.focus_minutes+'m'],['Completed tasks',evidence.data.completed_tasks],['Lessons completed',evidence.data.lessons_completed],['Rhythm records',evidence.data.rhythm_completed+'/'+evidence.data.rhythm_total],['Habit check-ins',evidence.data.habit_checkins],['Self-control check-ins',evidence.data.self_control_checkins],['Self-control slips',evidence.data.self_control_slips],['Milestones completed',evidence.data.milestones_completed+'/'+evidence.data.milestones_total]].map(([label,value])=><div key={String(label)}><small>{label}</small><b>{value}</b></div>)}</div> : <p className="inline-error">Evidence is temporarily unavailable.</p>}<p className="room4-evidence-note">Task, lesson and milestone totals count records created within this window that are currently completed; historical completion timestamps are not available. Focus, Daily Rhythm and check-in counts use their actual dated logs.</p></Card>}
@@ -75,5 +75,5 @@ export function ReviewsPage() {
       <div className="card-heading"><div><h2>Previous reviews</h2><p>Return to what you noticed before.</p></div></div>
       {reviews.data?.length ? <div className="list-stack">{reviews.data.filter(item => item.period_start !== range.start).map(item => <div className="review-history-row" key={item.id}><div><b>{item.period_start} — {item.period_end}</b><small>{item.next_focus || item.wins || 'Reflection saved'}</small></div><span className="list-row__meta">{new Date(item.updated_at).toLocaleDateString()}</span></div>)}</div> : <EmptyState title="Your review history will grow here." detail="Save your first reflection to start building a record of what you learn about yourself." />}
     </Card>
-  </div>;
+  </Cascade>;
 }
