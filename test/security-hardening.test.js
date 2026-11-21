@@ -172,6 +172,7 @@ test('Room 4 progress and weekly reviews use linked evidence and preserve existi
   assert.match(goals, /Evidence-based progress/);
   assert.doesNotMatch(goals, /complete\.mutate/);
   assert.match(learning, /lesson\.study_minutes/);
+  assert.match(server, /SELECT COALESCE\(SUM\(minutes\),0\) n FROM sessions WHERE lesson_id=\? AND session_kind='focus'/);
   assert.match(learning, /Start Study Focus/);
   assert.match(learning, /values:\{notes:/);
   assert.match(server, /FROM sessions WHERE session_kind='focus' AND session_date>=\? AND session_date<=\?/);
