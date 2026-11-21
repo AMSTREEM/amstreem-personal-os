@@ -44,7 +44,7 @@ test('production installs dependencies, builds the frontend, and CI audits produ
 
 test('Residence pins saved priorities, completes them inline, and links focus to the selected task', () => {
   const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
-  const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'FocusPage.tsx'), 'utf8');
+  const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
   assert.match(residence, /YOUR PINNED TOP 3/);
   assert.match(residence, /priorityTaskIds\.map\(id => tasks\.data\?\.find\(task => task\.id === id\)\)/);
   assert.match(residence, /toggleTask\.mutate\(task\)/);
@@ -74,7 +74,7 @@ test('Daily Rhythm records persist per workspace and remain compatible with olde
 test('Daily Rhythm separates planned from completed records and updates Residence Activity Pulse', () => {
   const rhythm = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ValuesPage.tsx'), 'utf8');
   const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
-  const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'FocusPage.tsx'), 'utf8');
+  const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
   assert.match(rhythm, /status: 'planned'\|'completed'\|'active'\|'answered'/);
   assert.match(rhythm, /value="qada"/);
   assert.match(rhythm, /Jumu’ah checklist/);
@@ -108,7 +108,7 @@ test('Self-Control consistency uses dated records and positive habit check-ins, 
 
 
 test('Room 3 records focus completion once and derives linked work metrics from sessions', () => {
-  const execution = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ExecutionFocusPage.tsx'), 'utf8');
+  const execution = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
   const learning = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LearningPage.tsx'), 'utf8');
   const goals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'GoalsPage.tsx'), 'utf8');
   assert.match(server, /session_key TEXT UNIQUE/);
@@ -126,7 +126,7 @@ test('Room 3 records focus completion once and derives linked work metrics from 
   assert.match(execution, /distractions:timer\.distractions/);
   assert.match(execution, /parent_task_id:parentId/);
   assert.match(execution, /Finish & save/);
-  assert.match(execution, /atlas-migrated-/);
+  assert.match(fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'lib', 'focusTimerStore.ts'), 'utf8'), /atlas-migrated-/);
   assert.match(learning, /goal_id: goalId \|\| null/);
   assert.match(learning, /Related goal/);
   assert.match(goals, /focusMinutes: goal\.focus_minutes/);
@@ -142,8 +142,8 @@ test('Room 3 routes the execution workspace through the four-room shell without 
   assert.match(app, /path="\/tasks" element={<TasksPage \/>}/);
   assert.match(shell, /to: '\/execution'/);
   assert.match(shell, /label: 'Workspace', to: '\/execution'/);
-  assert.match(css, /\.execution-split\{display:grid;grid-template-columns/);
-  assert.match(css, /@media\(max-width:850px\)\{\.execution-split\{grid-template-columns:1fr\}/);
+  assert.match(css, /\.execution-heading/);
+  assert.match(fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ExecutionFocusPage.tsx'), 'utf8'), /Projects/);
 });
 
 

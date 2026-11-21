@@ -83,18 +83,24 @@ test('Today supports fast task capture and deadline-aware priorities', () => {
   assert.match(today, /Overdue/);
 });
 
-test('Focus timer survives refreshes and does not fabricate completed sessions', () => {
-  const focus = read('client/src/pages/FocusPage.tsx');
-  assert.match(focus, /atlas-focus-timer-v1/);
-  assert.match(focus, /deadline - now/);
-  assert.match(focus, /localStorage\.setItem/);
-  assert.match(focus, /Timer completion does not create a record automatically/);
-  assert.match(focus, /function pauseTimer/);
-  assert.match(focus, /function resetTimer/);
-  assert.match(focus, /Choose what this focus block will move forward/);
-  assert.match(focus, /lesson_id: lessonId/);
-  assert.match(focus, /learning-study-logs/);
+test('FocusWorkspace uses one shared timer store and owns the focus-session workflow', () => {
+  const workspace = read('client/src/components/FocusWorkspace.tsx');
+  const timerStore = read('client/src/lib/focusTimerStore.ts');
+  assert.match(workspace, /useFocusTimer/);
+  assert.match(workspace, /updateFocusTimer/);
+  assert.match(workspace, /timer.deadline-now/);
+  assert.match(workspace, /function pause\(/);
+  assert.match(workspace, /function reset\(/);
+  assert.match(workspace, /lesson_id:timer.lessonId/);
+  assert.match(workspace, /learning-study-logs/);
+  assert.match(timerStore, /atlas-focus-timer-v1/);
+  assert.match(timerStore, /useSyncExternalStore/);
+  assert.match(timerStore, /localStorage\.setItem/);
+  assert.ok(read('client/src/pages/ExecutionFocusPage.tsx').includes('ROOM 03 / EXECUTION & FOCUS'));
+    assert.ok(read('client/src/App.tsx').includes('path="/focus"'));
   assert.match(read('client/src/pages/LearningPage.tsx'), /\/focus\?lesson=/);
+  assert.match(read('client/src/pages/TodayPage.tsx'), /\/focus\?task=/);
+  assert.match(read('client/src/pages/ValuesPage.tsx'), /\/focus\?focus=/);
 });
 
 
@@ -160,8 +166,9 @@ test('signature OS dock and cross-room focus controls remain present', () => {
   assert.match(shell, /Quick Capture/);
   assert.match(shell, /Daily Check-In/);
   assert.match(shell, /focusSessionVisible/);
-  assert.match(shell, /atlas-focus-timer-change/);
-  assert.match(read('client/src/pages/FocusPage.tsx'), /startedAt/);
+  assert.match(shell, /useFocusTimer/);
+  assert.match(shell, /updateFocusTimer/);
+  assert.match(read('client/src/components/FocusWorkspace.tsx'), /startedAt/);
 });
 
 test('Residence day ribbon reflects local time and completed focus and rhythm records', () => {
@@ -214,7 +221,21 @@ test('Web Audio micro-feedback is zero-dependency, opt-in, quiet and tied to che
   assert.match(audio, /tone\(660/);
   assert.match(audio, /tone\(880/);
   assert.match(read('client/src/pages/SettingsPage.tsx'), /Subtle sound cues/);
-  assert.match(read('client/src/pages/ExecutionFocusPage.tsx'), /playAtlasFeedback\('complete'\)/);
+  assert.match(read('client/src/components/FocusWorkspace.tsx'), /playAtlasFeedback\('complete'\)/);
   assert.match(read('client/src/pages/TodayPage.tsx'), /playAtlasFeedback\('tick'\)/);
   assert.match(read('client/src/pages/ValuesPage.tsx'), /playAtlasFeedback\('tick'\)/);
+});
+
+test('first-run walkthrough previews and saves a palette before explaining the updated room navigation', () => {
+  const tour = read('client/src/components/AtlasWalkthrough.tsx');
+  const shell = read('client/src/components/AppShell.tsx');
+  const residence = read('client/src/pages/TodayPage.tsx');
+  assert.match(tour, /Choose the colour of your space/);
+  assert.match(tour, /previewPalette\(item\.id\)/);
+  assert.match(tour, /theme: selectedTheme/);
+  assert.match(tour, /Workspace gives you the overview/);
+  assert.match(tour, /Focus Timer protects your attention/);
+  assert.match(tour, /Calendar keeps commitments/);
+  assert.match(shell, /navigate\('\/focus'\)/);
+  assert.match(residence, /Good \$\{rhythm/);
 });

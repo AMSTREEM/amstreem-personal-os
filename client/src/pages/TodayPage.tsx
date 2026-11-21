@@ -9,6 +9,7 @@ import { ArrowRight, BookOpen, Flame, MoonStar, Plus, Target, Timer, Zap } from 
 import { Link, useNavigate } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Card, EmptyState, PageHeader } from '../components/ui';
+import { useAuth } from '../auth/AuthProvider';
 
 type Task = { id: number; title: string; detail: string; due_date: string | null; done: number; goal_title?: string | null; project_title?: string | null };
 type Habit = { id: number; title: string; emoji: string; done: number; goal_title?: string | null };
@@ -50,6 +51,7 @@ function formatMinutes(minutes: number) {
 export function TodayPage() {
   const client = useQueryClient();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedPriorityId, setSelectedPriorityId] = useState<number | null>(null);
   const [wallClock, setWallClock] = useState(() => Date.now());
   const today = todayKey();
@@ -220,7 +222,7 @@ export function TodayPage() {
 
   return <Cascade className="stack today-dashboard">
     <section className="residence-band residence-band--orientation" aria-label="Today's orientation">
-      <PageHeader eyebrow={new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()).toUpperCase()} title="Residence" description="Your central view of today’s priorities, routines, focus and progress." action={showCalendar ? <Link className="button button--secondary" to="/calendar">View calendar <ArrowRight size={14} /></Link> : undefined} />
+      <PageHeader eyebrow={new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()).toUpperCase()} title={`Good ${rhythm === 'day' ? 'afternoon' : rhythm}, ${settings.data?.display_name?.trim() || user?.name || user?.username || 'there'}`} description="Your Residence: a clear view of today’s priorities, routines, focus and progress." action={showCalendar ? <Link className="button button--secondary" to="/calendar">View calendar <ArrowRight size={14} /></Link> : undefined} />
       <section className="residence-rhythm"><div><span className="eyebrow">{rhythmCopy.eyebrow}</span><h2>{rhythmCopy.title}</h2><p>{rhythmCopy.detail}</p></div><span className="residence-rhythm-time">{new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',minute:'2-digit'}).format(new Date())} WAT</span></section>
       {yesterdayReview?.shutdown_complete && yesterdayReview.next_focus?.trim() && <div className="residence-carryforward"><span className="eyebrow">YOUR FIRST MEANINGFUL STEP</span><p>{yesterdayReview.next_focus}</p><small>Carried forward from yesterday’s shutdown</small></div>}
     <section className="residence-rhythm-action" aria-live="polite">
@@ -348,7 +350,7 @@ export function TodayPage() {
         <Card className="residence-focus-card">
           <div className="residence-section-heading"><div><span className="eyebrow">FOCUS ROOM</span><h2>{focusRunning ? 'Session in progress' : 'Protect your attention'}</h2></div><Timer size={17}/></div>
           {focusRunning ? <div className="residence-active-timer"><strong>{timerText}</strong><span>{activeFocusContext}</span></div> : <p className="residence-focus-copy">You've invested {formatMinutes(overview.data?.todayMin ?? 0)} in focused work today.</p>}
-          <Link className="button button--secondary residence-focus-link" to="/focus">{focusRunning ? 'Return to focus room' : 'Start a focus session'} <ArrowRight size={14}/></Link>
+          <Link className="button button--secondary residence-focus-link" to="/execution">{focusRunning ? 'Return to focus room' : 'Start a focus session'} <ArrowRight size={14}/></Link>
           <div className="residence-week-focus"><span>Focus streak</span><b>{overview.data?.streak ?? 0} days</b></div><div className="residence-week-focus"><span>This week</span><b>{formatMinutes(overview.data?.weekMin ?? 0)}</b></div>
         </Card>
 
