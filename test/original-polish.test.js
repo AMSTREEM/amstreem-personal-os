@@ -30,3 +30,14 @@ test('original visual system receives restrained compact spacing and reduced-mot
   assert.match(css, /@keyframes atlasPageEnter/);
   assert.match(css, /prefers-reduced-motion:reduce/);
 });
+
+test('original sidebar exposes the guided walkthrough after first-run onboarding', () => {
+  assert.match(html, /id="atlasGuideNav"/);
+  assert.match(app, /atlasGuideNav.*openOnboardingTour/);
+});
+
+test('Residence motion respects reduced-motion preferences', () => {
+  assert.match(css, /Residence ambient motion/);
+  assert.match(css, /atlasOrbitA/);
+  assert.match(css, /prefers-reduced-motion:reduce[^}]*\.residence-art/s);
+});
