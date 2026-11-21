@@ -1736,3 +1736,18 @@ body { letter-spacing: -.006em; }
   .room4-note-actions,
   .goal-link-actions { transition: none !important; }
 }
+
+/* Curated room entrance compositor hints: transform + opacity only. */
+.room-view-transition,
+.atlas-cascade-item {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+@media (max-width: 767px) {
+  .room-view-transition,
+  .atlas-cascade-item { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .room-view-transition,
+  .atlas-cascade-item { will-change: auto !important; }
+}
