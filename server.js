@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const fs = require('node:fs');
 const Database = require('better-sqlite3');
 const { restoreBackup } = require('./workspace-backup');
 const { AsyncLocalStorage } = require('node:async_hooks');
@@ -108,8 +109,26 @@ app.get('/supabase-config.js', (req, res) => {
     }) + ';'
   );
 });
-app.use(express.static(path.join(__dirname, 'dist')));
-app.use(express.static(path.join(__dirname, 'public')));
+const frontendDist = path.join(__dirname, 'dist');
+const frontendEntry = path.join(frontendDist, 'index.html');
+
+// Public assets remain available for shared brand files, but the legacy public
+// HTML shell must never become the application's root document.
+app.get('/service-worker.js', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, max-age=0');
+  res.type('application/javascript').send(`
+    self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));
+    self.addEventListener('activate', event => event.waitUntil((async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(key => caches.delete(key)));
+      await self.registration.unregister();
+      const clients = await self.clients.matchAll({ type: 'window' });
+      clients.forEach(client => client.navigate(client.url));
+    })()));
+  `);
+});
+app.use(express.static(frontendDist));
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
 // A short per-account queue prevents overlapping requests from overwriting
 // each other's workspace snapshots on a single application instance.
@@ -758,7 +777,13 @@ app.post('/api/import',(q,s)=>{
 });
 app.get('*',(req,res,next)=>{
   if(req.path.startsWith('/api/')) return next();
-  res.sendFile(path.join(__dirname,'dist','index.html'),error=>{if(error)next(error);});
+  if (!fs.existsSync(frontendEntry)) {
+    return res.status(503).type('text/plain').send('Atlas frontend build is missing. Please retry the deployment.');
+  }
+  res.sendFile(frontendEntry, error => { if(error) next(error); });
 });
 
+if (!fs.existsSync(frontendEntry)) {
+  throw new Error('Atlas frontend build is missing: expected dist/index.html. Refusing to serve the legacy public HTML shell.');
+}
 app.listen(PORT,()=>console.log(`Amstreem Atlas running at http://localhost:${PORT}`));
