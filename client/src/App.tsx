@@ -25,7 +25,7 @@ export function App() {
   const { session, role, loading } = useAuth();
   const queryClient = useQueryClient();
   useEffect(() => { queryClient.clear(); }, [session?.user.id, queryClient]);
-  if (loading) return <div className="app-loading"><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><p>Preparing your space…</p></div>;
+  if (loading) return <div className="app-loading app-loading--skeleton"><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><div className="atlas-skeleton-block"/><div className="atlas-skeleton-block atlas-skeleton-block--short"/><div className="atlas-skeleton-block atlas-skeleton-block--wide"/></div>;
   const hashType = new URLSearchParams(window.location.hash.slice(1)).get('type');
   const queryType = new URLSearchParams(window.location.search).get('type');
   if (hashType === 'recovery' || queryType === 'recovery') return <PasswordRecoveryPage />;

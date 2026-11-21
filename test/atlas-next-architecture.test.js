@@ -152,3 +152,44 @@ test('Habit tracker exposes a seven-day completion history', () => {
   assert.match(rituals, /rituals-week-dots/);
   assert.match(rituals, /historyCount \+ '\/7'/);
 });
+
+
+test('signature OS dock and cross-room focus controls remain present', () => {
+  const shell = read('client/src/components/AppShell.tsx');
+  assert.match(shell, /atlas-command-dock/);
+  assert.match(shell, /Quick Capture/);
+  assert.match(shell, /Daily Check-In/);
+  assert.match(shell, /focusSessionVisible/);
+  assert.match(shell, /atlas-focus-timer-change/);
+  assert.match(read('client/src/pages/FocusPage.tsx'), /startedAt/);
+});
+
+test('Residence day ribbon reflects local time and completed focus and rhythm records', () => {
+  const residence = read('client/src/pages/TodayPage.tsx');
+  assert.match(residence, /residence-day-ribbon/);
+  assert.match(residence, /PRIVATE TIME/);
+  assert.match(residence, /completedFocusBlocks/);
+  assert.match(residence, /completedRhythmAnchors/);
+  assert.match(residence, /Africa\/Lagos/);
+});
+
+test('keyboard task navigation exposes select, complete and focus shortcuts', () => {
+  const tasks = read('client/src/pages/TasksPage.tsx');
+  const residence = read('client/src/pages/TodayPage.tsx');
+  for (const source of [tasks, residence]) {
+    assert.match(source, /ArrowDown/);
+    assert.match(source, /ArrowUp/);
+    assert.match(source, /event\.key === ' '/);
+    assert.match(source, /event\.key\.toLowerCase\(\) === 'f'/);
+  }
+});
+
+test('all ten themes inherit specular card surfaces and structural skeletons', () => {
+  const css = read('client/src/styles.css');
+  assert.match(css, /--bg-canvas: var\(--bg\)/);
+  assert.match(css, /--bg-surface: var\(--surface\)/);
+  assert.match(css, /--bg-elevated: var\(--surface-raised\)/);
+  assert.match(css, /inset 0 1px 0 0 rgba\(255,255,255,\.07\)/);
+  assert.match(css, /inset 0 1px 0 0 rgba\(255,255,255,\.85\)/);
+  assert.match(css, /atlas-skeleton-shimmer/);
+});

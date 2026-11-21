@@ -1490,7 +1490,7 @@ body { letter-spacing: -.006em; }
 
 /* Atlas optical focus + section cascade */
 .atlas-cascade-item { min-width: 0; }
-.room-view-transition { transform-origin: 50% 0%; will-change: opacity, transform, filter; }
+.room-view-transition { transform-origin: 50% 0%; will-change: transform, opacity; }
 :is(.atlas-spotlight, .room4-library .room4-card) {
   position: relative;
   isolation: isolate;
@@ -1520,3 +1520,369 @@ body { letter-spacing: -.006em; }
   .room-view-transition { will-change: auto; }
   :is(.atlas-spotlight, .room4-library .room4-card)::after { transition: none; }
 }
+
+
+
+/* Instant room handoff + GPU-only arrival motion */
+.room-view-transition {
+  position: relative;
+  min-width: 0;
+  overflow: clip;
+  transform-origin: 50% 0%;
+  will-change: transform, opacity;
+  background: var(--bg-canvas, var(--bg));
+}
+.atlas-cascade-item {
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+  transform-origin: 50% 0%;
+  will-change: transform, opacity;
+}
+.atlas-cascade-item::after {
+  content: "";
+  position: absolute;
+  z-index: 6;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  pointer-events: none;
+  opacity: 0;
+  background: color-mix(in srgb, var(--accent-primary) 46%, transparent);
+  animation: atlas-luminescent-lock-in 520ms ease-out 40ms both;
+}
+@keyframes atlas-luminescent-lock-in {
+  0% { opacity: 0; }
+  35% { opacity: .85; }
+  100% { opacity: 0; }
+}
+@media (max-width: 767px) {
+  .room-view-transition { overflow-x: clip; }
+  .atlas-cascade-item { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .room-view-transition,.atlas-cascade-item { will-change: auto; }
+  .atlas-cascade-item::after { animation: none; opacity: 0; }
+}
+
+
+/* Atlas visual declutter — crisp surfaces, quiet hierarchy, progressive disclosure */
+:root { --border-hairline: var(--line); }
+.surface-card,
+.stat-card,
+.room4-card,
+.room4-path-card,
+.room4-evidence,
+.goal-card--connected,
+.execution-panel-card,
+.execution-focus-card,
+.execution-history-card {
+  box-shadow: none !important;
+  border: 1px solid var(--border-hairline) !important;
+  transition: border-color 160ms ease !important;
+}
+.surface-card:hover,
+.stat-card:hover,
+.room4-card:hover,
+.room4-path-card:hover,
+.room4-evidence:hover,
+.goal-card--connected:hover,
+.execution-panel-card:hover,
+.execution-focus-card:hover,
+.execution-history-card:hover {
+  border-color: color-mix(in srgb, var(--text) 18%, var(--border-hairline)) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.atlas-spotlight::before,
+.atlas-spotlight::after,
+.room4-library .room4-card::before,
+.room4-library .room4-card::after,
+.atlas-cascade-item::before,
+.atlas-cascade-item::after {
+  content: none !important;
+  display: none !important;
+  animation: none !important;
+  box-shadow: none !important;
+}
+.atlas-cascade-item { will-change: transform, opacity; }
+.page-container .stack,
+.today-dashboard,
+.rhythm-page,
+.execution-workspace { gap: 24px; }
+.surface-card,
+.room4-library .room4-card,
+.goal-card--connected,
+.execution-panel-card,
+.execution-focus-card,
+.execution-history-card { padding: 22px; }
+.card-heading,
+.module-panel-head,
+.residence-section-heading,
+.today-section-heading,
+.execution-panel-heading { margin-bottom: 14px; }
+.today-dashboard .card-heading p,
+.today-dashboard .module-panel-head p,
+.today-dashboard .residence-section-heading p,
+.today-dashboard .today-section-heading p,
+.rhythm-page .card-heading p,
+.rhythm-page .module-panel-head p,
+.execution-workspace .card-heading p,
+.execution-workspace .module-panel-head p,
+.execution-workspace .execution-panel-heading p,
+.stack:has(.goal-grid) .card-heading p,
+.stack:has(.goal-grid) .module-panel-head p { display: none; }
+.today-dashboard .residence-band-heading .eyebrow,
+.today-dashboard .residence-section-heading .eyebrow,
+.today-dashboard .today-section-heading .eyebrow,
+.today-dashboard .residence-pulse__heading .eyebrow,
+.today-dashboard .residence-stat .eyebrow,
+.rhythm-page .module-kicker,
+.rhythm-page .eyebrow:not(.page-header .eyebrow),
+.execution-workspace .eyebrow:not(.page-header .eyebrow),
+.execution-heading .eyebrow,
+.goal-grid .status-pill,
+.goal-card__top > svg {
+  display: none !important;
+}
+.residence-band-heading { margin-bottom: 10px; }
+.residence-band-heading > p { margin: 0; }
+.residence-stat-grid,
+.residence-grid,
+.rhythm-grid,
+.execution-split { gap: 24px !important; }
+.card-heading h2,
+.module-panel-head h2,
+.residence-section-heading h2,
+.today-section-heading h2,
+.execution-panel-heading h2 { font-size: 15px; letter-spacing: -.025em; }
+.list-row,
+.today-task-row,
+.today-habit-row,
+.rituals-row,
+.execution-task,
+.room4-resource,
+.note-card { transition: background-color 140ms ease, border-color 140ms ease; }
+.list-row .icon-button,
+.rituals-remove,
+.room4-note-actions,
+.goal-link-actions,
+.execution-subtask-form {
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+.list-row:hover .icon-button,
+.list-row:focus-within .icon-button,
+.rituals-row:hover .rituals-remove,
+.rituals-row:focus-within .rituals-remove,
+.note-card:hover .room4-note-actions,
+.note-card:focus-within .room4-note-actions,
+.goal-card:hover .goal-link-actions,
+.goal-card:focus-within .goal-link-actions,
+.execution-task:hover .execution-subtask-form,
+.execution-task:focus-within .execution-subtask-form { opacity: 1; }
+.atlas-add-disclosure {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.atlas-add-disclosure > summary {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border-hairline);
+  border-radius: 8px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+.atlas-add-disclosure > summary::-webkit-details-marker { display: none; }
+.atlas-add-disclosure > summary:hover,
+.atlas-add-disclosure[open] > summary {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--text) 20%, var(--border-hairline));
+  background: var(--surface-raised);
+}
+.atlas-add-disclosure > form { margin-top: 14px; }
+.atlas-add-disclosure--compact { margin-left: 34px; }
+.atlas-add-disclosure--compact > summary { min-height: 27px; padding: 0 8px; font-size: 9px; }
+@media (hover: none) {
+  .list-row .icon-button,
+  .rituals-remove,
+  .room4-note-actions,
+  .goal-link-actions,
+  .execution-subtask-form { opacity: 1; }
+}
+@media (max-width: 760px) {
+  .surface-card,
+  .room4-library .room4-card,
+  .goal-card--connected,
+  .execution-panel-card,
+  .execution-focus-card,
+  .execution-history-card { padding: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .atlas-add-disclosure > summary,
+  .list-row .icon-button,
+  .rituals-remove,
+  .room4-note-actions,
+  .goal-link-actions { transition: none !important; }
+}
+
+/* Curated room entrance compositor hints: transform + opacity only. */
+.room-view-transition,
+.atlas-cascade-item {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+@media (max-width: 767px) {
+  .room-view-transition,
+  .atlas-cascade-item { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .room-view-transition,
+  .atlas-cascade-item { will-change: auto !important; }
+}
+
+
+/* Signature layer — precision surfaces across every Atlas theme. */
+:root {
+  --bg-canvas: var(--bg);
+  --bg-surface: var(--surface);
+  --bg-elevated: var(--surface-raised);
+  --surface-specular: inset 0 1px 0 0 rgba(255,255,255,.07);
+}
+:root[data-theme^="light-"] { --surface-specular: inset 0 1px 0 0 rgba(255,255,255,.85); }
+body,.app-frame,.main-area { background: var(--bg-canvas); }
+.surface-card,.stat-card,.room4-card,.room4-path-card,.room4-evidence,.goal-card--connected,
+.execution-panel-card,.execution-focus-card,.execution-history-card,.residence-day-ribbon {
+  background-color: var(--bg-surface);
+  box-shadow: var(--surface-specular) !important;
+}
+.execution-panel-card .execution-focus-context,.execution-history-list article,
+.residence-alignment-card,.residence-intention-card,.residence-pinned-priorities {
+  background-color: var(--bg-elevated);
+}
+
+/* Floating command dock — persistent, compact, and shared across all rooms. */
+.atlas-command-dock {
+  position: fixed;
+  z-index: 45;
+  left: calc(50% + var(--sidebar-width, 0px) / 2);
+  bottom: max(18px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: calc(100vw - 28px);
+  padding: 6px;
+  border: 1px solid color-mix(in srgb,var(--line) 82%,var(--text));
+  border-radius: 17px;
+  background: color-mix(in srgb,var(--bg-elevated) 92%,transparent);
+  box-shadow: 0 12px 36px rgba(0,0,0,.18), var(--surface-specular);
+  backdrop-filter: blur(22px) saturate(1.25);
+}
+.atlas-dock-action {
+  min-height: 39px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 140ms ease,background 140ms ease,border-color 140ms ease;
+}
+.atlas-dock-action:hover { color: var(--text); background: var(--accent-wash); border-color: var(--line); }
+.atlas-dock-action kbd { padding: 3px 5px; border: 1px solid var(--line); border-radius: 5px; color: var(--subtle); font: 500 9px "JetBrains Mono",monospace; }
+.atlas-dock-focus { display: flex; align-items: center; min-width: 0; border-radius: 11px; }
+.atlas-dock-focus.is-expanded { padding-left: 2px; background: var(--accent-wash); }
+.atlas-dock-focus__open strong { color: var(--accent-strong); font: 600 10px "JetBrains Mono",monospace; font-variant-numeric: tabular-nums; }
+.atlas-dock-focus__detail { min-width: 0; max-width: 250px; display: flex; align-items: center; gap: 9px; padding: 0 8px 0 2px; }
+.atlas-dock-focus__detail>span { overflow: hidden; max-width: 150px; color: var(--muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.atlas-dock-focus__detail>button { min-height: 29px; display: inline-flex; align-items: center; gap: 5px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-surface); color: var(--text); font-size: 9px; white-space: nowrap; }
+@media (min-width: 761px) { .atlas-command-dock { left: calc(50% + 125px); } }
+@media (max-width: 760px) {
+  .atlas-command-dock { left: 50%; bottom: max(10px,env(safe-area-inset-bottom)); width: max-content; gap: 1px; padding: 5px; border-radius: 14px; }
+  .atlas-dock-action { min-height: 38px; gap: 5px; padding: 0 8px; font-size: 0; }
+  .atlas-dock-action svg { width: 16px; height: 16px; }
+  .atlas-dock-action kbd { display: none; }
+  .atlas-dock-focus__open strong { font-size: 9px; }
+  .atlas-dock-focus__detail { max-width: 120px; gap: 4px; padding-right: 4px; }
+  .atlas-dock-focus__detail>span { max-width: 54px; }
+  .atlas-dock-focus__detail>button { padding: 0 5px; font-size: 0; }
+  .atlas-dock-focus__detail>button small { font-size: 9px; }
+}
+@media (prefers-reduced-motion:reduce) { .atlas-dock-action { transition: none; } }
+
+/* Residence day progress ribbon: the marker is private local time; ticks are completed records. */
+.residence-day-ribbon { display: grid; gap: 12px; padding: 17px 20px; border: 1px solid var(--line); border-radius: 13px; }
+.residence-day-ribbon__head,.residence-day-ribbon__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.residence-day-ribbon__head>span { color: var(--subtle); font: 600 8px Manrope,sans-serif; letter-spacing: .14em; }
+.residence-day-ribbon__head>b { color: var(--text); font: 600 11px "JetBrains Mono",monospace; font-variant-numeric: tabular-nums; }
+.residence-day-ribbon__head>b small { color: var(--subtle); font-size: 8px; }
+.residence-day-ribbon__track { position: relative; height: 5px; margin: 10px 0 6px; border-radius: 9px; background: var(--bg-elevated); }
+.residence-day-ribbon__elapsed { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: color-mix(in srgb,var(--accent) 62%,var(--line)); }
+.residence-day-ribbon__now { position: absolute; top: 50%; width: 1px; height: 19px; background: var(--accent-strong); transform: translate(-50%,-50%); }
+.residence-day-ribbon__now b { position: absolute; bottom: 21px; left: 50%; color: var(--accent-strong); font: 600 7px Manrope,sans-serif; letter-spacing: .12em; white-space: nowrap; transform: translateX(-50%); }
+.residence-day-ribbon__foot { color: var(--muted); font-size: 9px; }
+.residence-day-ribbon__foot em { padding: 0 4px; color: var(--subtle); font-style: normal; }
+.residence-day-ribbon__marks { display: inline-flex; align-items: center; gap: 3px; }
+.residence-day-ribbon__marks i { width: 3px; height: 11px; border-radius: 2px; background: var(--line); }
+.residence-day-ribbon__marks i.is-focus { background: var(--accent-strong); }
+.residence-day-ribbon__marks i.is-anchor { height: 8px; background: var(--success); }
+@media(max-width:600px) { .residence-day-ribbon { padding: 14px; } .residence-day-ribbon__foot { align-items: flex-start; flex-direction: column; gap: 6px; } }
+
+/* Keyboard-first task selection. */
+.atlas-keyboard-list { outline: none; }
+.atlas-keyboard-list:focus-visible { outline: 1px solid color-mix(in srgb,var(--accent) 55%,transparent); outline-offset: 5px; border-radius: 10px; }
+.is-keyboard-selected { background: color-mix(in srgb,var(--accent) 8%,var(--bg-surface)) !important; box-shadow: inset 2px 0 0 var(--accent-strong); }
+.residence-pinned-row.is-keyboard-selected { border-radius: 9px; }
+@media (prefers-reduced-motion:no-preference) {
+  .is-keyboard-selected { transition: background 140ms ease,box-shadow 140ms ease; }
+}
+
+/* Structural skeletons and quiet editorial loading states. */
+.atlas-skeleton-list { display: grid; gap: 10px; padding: 4px 0; }
+.atlas-skeleton-list i,.atlas-skeleton-block {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  height: 52px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+}
+.atlas-skeleton-list i::after,.atlas-skeleton-block::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg,transparent,color-mix(in srgb,var(--text) 7%,transparent),transparent);
+  animation: atlas-skeleton-shimmer 1.35s ease-in-out infinite;
+}
+.atlas-skeleton-list i:nth-child(2) { width: 91%; }
+.atlas-skeleton-list i:nth-child(3) { width: 76%; }
+.atlas-skeleton-block { width: 220px; height: 12px; margin-top: 14px; border: 0; border-radius: 6px; }
+.atlas-skeleton-block--short { width: 145px; }
+.atlas-skeleton-block--wide { width: min(520px,80vw); height: 70px; margin-top: 28px; border-radius: 13px; }
+@keyframes atlas-skeleton-shimmer { to { transform: translateX(100%); } }
+@media(prefers-reduced-motion:reduce) { .atlas-skeleton-list i::after,.atlas-skeleton-block::after { animation: none; opacity: .35; } }
+
+/* Keep the last rows clear of the floating dock. */
+.page-container { padding-bottom: 100px; }
+@media (max-width:760px) { .page-container { padding-bottom: 88px; } }

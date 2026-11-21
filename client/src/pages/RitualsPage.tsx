@@ -44,11 +44,11 @@ export function RitualsPage() {
       <div className="rituals-progress"><span style={{ width: percent + '%' }} /></div>
       <span className="rituals-date">{new Intl.DateTimeFormat(undefined, { weekday:'long', month:'short', day:'numeric' }).format(new Date())}</span>
     </section>
-    <form className="rituals-add rituals-add--linked" onSubmit={event => { event.preventDefault(); if (title.trim()) create.mutate(); }}>
+    <details className="atlas-add-disclosure"><summary>+ Add habit</summary><form className="rituals-add rituals-add--linked" onSubmit={event => { event.preventDefault(); if (title.trim()) create.mutate(); }}>
       <Field label="ADD A HABIT"><TextInput value={title} onChange={event => setTitle(event.target.value)} placeholder="e.g. Read 10 pages, walk, revise Qur'an…" required maxLength={100} /></Field>
       <Field label="LINK TO GOAL (OPTIONAL)"><select className="field-input" value={goalId} onChange={event => setGoalId(event.target.value)}><option value="">No linked goal</option>{goals.data?.filter(goal => goal.status === 'active').map(goal => <option key={goal.id} value={goal.id}>{goal.title}</option>)}</select></Field>
       <Button type="submit" disabled={create.isPending || !title.trim()}><Plus size={15} /> Add habit</Button>
-    </form>
+    </form></details>
     {create.isError && <p className="inline-error">{create.error.message}</p>}
     <section className="rituals-list">
       <div className="rituals-list-head"><div><span className="eyebrow">DAILY TRACKER</span><h2>Your habits</h2></div><span>{done} completed · {list.length - done} remaining</span></div>
