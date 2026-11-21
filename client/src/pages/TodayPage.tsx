@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, BookOpen, Check, CheckCircle2, Clock3, Flame, MoonStar, Plus, Target, Timer, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, Flame, MoonStar, Plus, Target, Timer, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Card, EmptyState, PageHeader } from '../components/ui';
@@ -16,6 +16,7 @@ type Goal = { id: number; title: string; target_date: string | null; status: str
 type Insight = { recommendation: { title: string; detail: string; reason: string; action: string; destination: string; priority: string }; pattern: string; rhythm: string | null };
 type StoredTimer = { remaining: number; deadline: number | null };
 const TIMER_KEY = 'atlas-focus-timer-v1';
+const faithPractices = ['bible', 'prayer', 'reflection', 'worship', 'service'];
 
 function todayKey() {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
@@ -83,7 +84,7 @@ export function TodayPage() {
   const priorityTasks = [...openTasks.filter(task => task.due_date && task.due_date < today), ...openTasks.filter(task => task.due_date === today), ...openTasks.filter(task => !task.due_date)].slice(0, 5);
   const activeGoals = (goals.data || []).filter(goal => goal.status === 'active').sort((a,b) => (a.target_date || '9999').localeCompare(b.target_date || '9999')).slice(0, 3);
   const prayerCount = deen.data?.prayers.filter(item => !!item.completed).length ?? 0;
-  const faithCount = faith.data?.filter(item => !!item.completed).length ?? 0;
+  const faithCount = faithPractices.filter(activity => !!faith.data?.find(item => item.activity === activity)?.completed).length;
   const quranPages = deen.data?.quran.reduce((sum, item) => sum + item.pages, 0) ?? 0;
   const target = Math.max(1, overview.data?.dailyTarget || 80);
   const focusPercent = Math.min(100, Math.round((overview.data?.todayMin || 0) / target * 100));
@@ -145,8 +146,8 @@ export function TodayPage() {
           <div className="residence-prayer-list">{(deen.data?.prayers || []).map(item => <label className={'residence-prayer ' + (item.completed ? 'is-complete' : '')} key={item.prayer}><input type="checkbox" checked={!!item.completed} onChange={() => togglePrayer.mutate(item)} /><span>{item.prayer}</span><small>{item.completed ? 'Recorded' : 'Not recorded'}</small></label>)}</div>
           <div className="residence-faith-footer"><BookOpen size={14}/><span>{quranPages} Qur’an pages recorded today</span><Link to="/values">Open Qur’an journey</Link></div>
         </Card> : religion === 'christianity' ? <Card className="residence-faith-card">
-          <div className="residence-section-heading"><div><span className="eyebrow">FAITH & REFLECTION</span><h2>Today's practices</h2><p>{faithCount} of {faith.data?.length ?? 0} recorded</p></div><Link to="/values" className="text-link">Open reflection <ArrowRight size={13}/></Link></div>
-          <div className="residence-prayer-list">{(faith.data || []).map(item => <label className={'residence-prayer ' + (item.completed ? 'is-complete' : '')} key={item.activity}><input type="checkbox" checked={!!item.completed} onChange={() => toggleFaith.mutate(item)} /><span>{item.activity[0].toUpperCase() + item.activity.slice(1)}</span><small>{item.completed ? 'Recorded' : 'Not recorded'}</small></label>)}</div>
+          <div className="residence-section-heading"><div><span className="eyebrow">FAITH & REFLECTION</span><h2>Today's practices</h2><p>{faithCount} of 5 recorded</p></div><Link to="/values" className="text-link">Open reflection <ArrowRight size={13}/></Link></div>
+          <div className="residence-prayer-list">{faithPractices.map(activity => { const item = faith.data?.find(row => row.activity === activity) || { activity, completed: 0 }; return <label className={'residence-prayer ' + (item.completed ? 'is-complete' : '')} key={activity}><input type="checkbox" checked={!!item.completed} onChange={() => toggleFaith.mutate(item)} /><span>{activity[0].toUpperCase() + activity.slice(1)}</span><small>{item.completed ? 'Recorded' : 'Not recorded'}</small></label>; })}</div>
         </Card> : <Card className="residence-faith-card residence-faith-card--optional">
           <div className="residence-section-heading"><div><span className="eyebrow">DEEN & REFLECTION</span><h2>A private space, when you want it.</h2><p>Faith tracking is optional and controlled by your workspace settings.</p></div><MoonStar size={18}/></div>
           <Link className="text-link" to="/values">Explore Deen & Reflection <ArrowRight size={13}/></Link>
