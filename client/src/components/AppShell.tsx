@@ -33,7 +33,7 @@ type QuickPrayer = { prayer: string; completed: number; on_time: number };
 type QuickDeen = { prayers: QuickPrayer[] };
 type QuickHabit = { id: number; title: string; emoji: string; done: number };
 function atlasDate() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
-type SharedTimer = { remaining: number; deadline: number | null; taskId?: string; lessonId?: string; projectId?: string; taskTitle?: string; lessonTitle?: string; focusLabel?: string };
+type SharedTimer = { remaining: number; deadline: number | null; durationSeconds?: number; sessionKey?: string | null; taskId?: string; lessonId?: string; projectId?: string; taskTitle?: string; lessonTitle?: string; focusLabel?: string; focus?: string };
 function readSharedTimer(): SharedTimer {
   try { const value = JSON.parse(localStorage.getItem('atlas-focus-timer-v1') || 'null'); if (value && Number.isFinite(value.remaining)) return value; } catch { /* Ignore invalid timer state. */ }
   return { remaining: 25 * 60, deadline: null };
@@ -89,7 +89,7 @@ export function AppShell() {
   const focusContext = focusTimer.taskTitle || focusTimer.lessonTitle || focusTimer.focusLabel || (focusTimer as SharedTimer & { focus?: string }).focus || 'Focus session';
   function writeTimer(value: SharedTimer) { localStorage.setItem('atlas-focus-timer-v1', JSON.stringify(value)); setFocusTimer(value); window.dispatchEvent(new CustomEvent('atlas-focus-timer-change', { detail: value })); }
   function toggleTimer() { if (focusActive) writeTimer({ ...focusTimer, remaining: focusRemaining, deadline: null }); else if (focusRemaining > 0) writeTimer({ ...focusTimer, deadline: Date.now() + focusRemaining * 1000 }); }
-  function finishTimer() { writeTimer({ ...focusTimer, remaining: 0, deadline: null }); window.location.assign('/focus'); }
+  function finishTimer() { const elapsed = Math.max(0, (focusTimer.durationSeconds || focusTimer.remaining) - focusRemaining); writeTimer({ ...focusTimer, remaining: 0, deadline: null, durationSeconds: elapsed, sessionKey: elapsed >= 60 ? focusTimer.sessionKey : null }); window.location.assign('/focus'); }
   async function captureTask(event: FormEvent) {
     event.preventDefault(); if (!quickTaskTitle.trim() || quickTaskSaving) return;
     setQuickTaskSaving(true); setQuickTaskError('');
