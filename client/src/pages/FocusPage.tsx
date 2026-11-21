@@ -27,7 +27,7 @@ export function FocusPage() {
   const [focus, setFocus] = useState('');
   const [minutes, setMinutes] = useState('25');
   const [reflection, setReflection] = useState('');
-  const [timer, setTimer] = useState<StoredTimer>(() => { const stored = readTimer(); const requestedLesson = new URLSearchParams(window.location.search).get('lesson'); return requestedLesson ? { ...stored, taskId: '', lessonId: requestedLesson } : stored; });
+  const [timer, setTimer] = useState<StoredTimer>(() => { const stored = readTimer(); const requestedLesson = new URLSearchParams(window.location.search).get('lesson'); return requestedLesson && stored.deadline === null ? { ...stored, taskId: '', lessonId: requestedLesson } : stored; });
   const [taskId, setTaskId] = useState(() => timer.taskId || '');
   const [projectId, setProjectId] = useState(() => timer.projectId || '');
   const [lessonId, setLessonId] = useState(() => timer.lessonId || '');
@@ -103,7 +103,7 @@ export function FocusPage() {
       <form className="form-stack" onSubmit={event => { event.preventDefault(); if (focus.trim() && Number(minutes) > 0 && Number(minutes) <= 600) create.mutate(); }}>
         <Field label="What did you focus on?"><TextInput value={focus} onChange={event => setFocus(event.target.value)} placeholder="The work you gave your attention to" required /></Field>
         <div className="field-row">
-          <Field label="Duration in minutes"><TextInput type="number" min="1" max="600" value={minutes} onChange={event => { setMinutes(event.target.value); if (!running) { const seconds = Math.max(1, Math.min(600, Number(event.target.value) || 25)) * 60; setTimer({ remaining: seconds, deadline: null }); setCompleted(false); } }} required /></Field>
+          <Field label="Duration in minutes"><TextInput type="number" min="1" max="600" value={minutes} onChange={event => { setMinutes(event.target.value); if (!running) { const seconds = Math.max(1, Math.min(600, Number(event.target.value) || 25)) * 60; setTimer({ remaining: seconds, deadline: null, taskId, lessonId, projectId }); setCompleted(false); } }} required /></Field>
         </div>
         <Field label="Reflection (optional)"><TextArea value={reflection} onChange={event => setReflection(event.target.value)} placeholder="What moved forward? What did you learn?" /></Field>
         <div><Button type="submit" disabled={create.isPending || !focus.trim() || !(Number(minutes) > 0 && Number(minutes) <= 600)}>{create.isPending ? 'Saving…' : 'Save session'}</Button></div>
