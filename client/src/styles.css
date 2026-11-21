@@ -1472,3 +1472,8 @@ body { letter-spacing: -.006em; }
 .room4-note-actions { display:flex; gap:4px; opacity:0; transition:opacity 180ms cubic-bezier(0.16,1,0.3,1); }
 .note-card:hover .room4-note-actions,.note-card:focus-within .room4-note-actions { opacity:1; }
 @media(hover:none) { .room4-note-actions { opacity:1; } }
+
+.room4-goal-milestone { display:flex; align-items:center; gap:9px; min-height:34px; color:var(--text-primary); font-size:10px; }
+.room4-goal-milestone input { width:15px; height:15px; flex:none; accent-color:var(--accent-primary); }
+.room4-goal-milestone span { flex:1; overflow-wrap:anywhere; }
+.room4-goal-milestone small { color:var(--muted); font-size:9px; }
