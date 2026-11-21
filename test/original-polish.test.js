@@ -41,3 +41,6 @@ test('Residence motion respects reduced-motion preferences', () => {
   assert.match(css, /atlasOrbitA/);
   assert.match(css, /prefers-reduced-motion:reduce[^}]*\.residence-art/s);
 });
+
+test('reviews are persisted in each private workspace snapshot',()=>{assert.match(server,/CREATE TABLE IF NOT EXISTS reviews/);assert.match(server,/app.get\('\/api\/reviews'/);assert.match(server,/app.post\('\/api\/reviews'/);assert.match(server,/'reviews'/);});
+test('Reviews and Insights are reachable from the original navigation',()=>{assert.match(index,/data-page="reviews"/);assert.match(index,/data-page="insights"/);assert.match(index,/id="page-reviews"/);assert.match(index,/id="page-insights"/);assert.match(app,/function renderReviews/);assert.match(app,/function renderInsights/);});
