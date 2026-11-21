@@ -1,0 +1,32 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const root = path.join(__dirname, '..');
+const html = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
+const app = fs.readFileSync(path.join(root, 'public/app.js'), 'utf8');
+const css = fs.readFileSync(path.join(root, 'public/style.css'), 'utf8');
+
+test('original Focus Room supports custom hours, minutes and seconds', () => {
+  for (const id of ['timerHours', 'timerMinutes', 'timerSeconds', 'applyCustomTimer']) {
+    assert.match(html, new RegExp('id="' + id + '"'));
+  }
+  assert.match(app, /function setCustomTimer\(\)/);
+  assert.match(app, /h\*3600\+m\*60\+s/);
+  assert.match(app, /function formatTimer\(seconds\)/);
+  assert.match(app, /timer\.duration\/60/);
+});
+
+test('custom timer validates duration and keeps reset bound to the selected duration', () => {
+  assert.match(app, /if\(total<1\)/);
+  assert.match(app, /timer\.left=timer\.duration;drawTimer\(\)/);
+  assert.match(app, /pauseTimer\(\);timer\.left=timer\.duration;drawTimer\(\)/);
+});
+
+test('original visual system receives restrained compact spacing and reduced-motion support', () => {
+  assert.match(css, /Atlas original polish/);
+  assert.match(css, /\.nav-item\{[^}]*border-radius:10px/s);
+  assert.match(css, /@keyframes atlasPageEnter/);
+  assert.match(css, /prefers-reduced-motion:reduce/);
+});
