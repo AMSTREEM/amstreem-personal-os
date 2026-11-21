@@ -159,7 +159,7 @@ export function TodayPage() {
       <div className="residence-band-heading"><span className="eyebrow">02 / YOUR LIFE AT A GLANCE</span><p>Connected areas of your life, with activity drawn from your existing records.</p></div>
       <section className="residence-pillar-grid" aria-label="Six life pillars">
       {[
-        {title:'Deen & Reflection',detail:'Prayer, Qur’an and reflection',to:'/values',symbol:'☾',tone:'deen'},
+        {title:religion === 'islam' ? 'Deen & Reflection' : religion === 'christianity' ? 'Faith & Reflection' : 'Daily Clarity',detail:religion === 'islam' ? 'Prayer, Qur’an and reflection' : religion === 'christianity' ? 'Prayer, scripture and reflection' : 'Intention and reflection',to:'/values',symbol:'☾',tone:'deen'},
         {title:'Self-Control & Streaks',detail:'Habits and commitments',to:'/self-control',symbol:'◇',tone:'self'},
         {title:'Projects & Tasks',detail:'Turn plans into progress',to:'/projects',symbol:'↗',tone:'projects'},
         {title:'Focus Room',detail:'Protect your attention',to:'/focus',symbol:'◷',tone:'focus'},
@@ -167,7 +167,7 @@ export function TodayPage() {
         {title:'Goals',detail:'Keep long-term direction visible',to:'/goals',symbol:'◎',tone:'goals'}
       ].map(pillar=><Link className={'residence-pillar residence-pillar--'+pillar.tone} to={pillar.to} key={pillar.to}><span>{pillar.symbol}</span><div><b>{pillar.title}</b><small>{pillar.detail}</small></div><ArrowRight size={14}/></Link>)}
     </section>
-    <section className="residence-pulse" aria-label="Your daily consistency pulse">
+    <section className="residence-pulse" aria-label="Your daily activity pulse">
       <div className="residence-pulse__main">
         <div className="residence-pulse__heading"><span className="eyebrow">TODAY'S ACTIVITY PULSE</span><span className="residence-pulse__date">{today}</span></div>
         <div className="residence-pulse__score">{activityPulse === null ? '—' : activityPulse + '%'}<span>{activityPulse === null ? 'Build your first signal' : 'across ' + scoreDimensions.length + ' active areas'}</span></div>
