@@ -163,6 +163,7 @@ No Render deployment or production Supabase data/schema change has been made fro
 
 ### Backward compatibility
 - `habits.goal_id` and `sessions.lesson_id` are nullable columns in the request-scoped in-memory workspace schema.
+- New snapshots are written as `personal-os-sqlite-snapshot-v3` (`schemaVersion: 3`); the loader retains v1/v2 compatibility.
 - Existing snapshots that do not contain these fields load with null defaults through the existing column-aware snapshot restore path.
 - No new Supabase public table or RLS policy was created; workspace persistence continues through the existing `personal_os_workspaces` JSONB snapshot.
 - Architecture documentation and automated tests were updated for the new relationships.
