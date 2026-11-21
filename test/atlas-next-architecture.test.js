@@ -35,6 +35,7 @@ test('project, task, calendar, focus and review records can be linked', () => {
   assert.match(server, /app\.post\('\/api\/calendar\/events'/);
   assert.match(server, /app\.post\('\/api\/reviews'/);
   assert.match(server, /lesson_id INTEGER REFERENCES learning_lessons\(id\)/);\n  assert.match(server, /INSERT INTO sessions\(session_date,minutes,focus,reflection,task_id,project_id,lesson_id\)/);\n  assert.match(server, /ll\.title AS lesson_title/);\n  assert.match(server, /Link a focus session to either a task or a learning lesson/);
+  assert.match(server, /INSERT INTO learning_study_logs\(lesson_id,log_date,minutes,reflection\)/);
 });
 
 test('new frontend routes cover the core personal operating system areas', () => {
