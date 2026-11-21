@@ -36,7 +36,7 @@ export function RitualsPage() {
   const weekLoading = weekQueries.some(query => query.isLoading);
   const weekDays = weekDates.map(day => ({ date: day, label: new Date(day + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'narrow' }) }));
 
-  return <div className="stack rituals-page">
+  return <Cascade className="stack rituals-page">
     <PageHeader eyebrow="PRACTICE / CONSISTENCY" title="Habits" description="A simple record of the actions you choose to repeat." />
     <section className="rituals-summary">
       <div><span className="eyebrow">TODAY'S COMPLETION</span><strong>{done}<small>/{list.length}</small></strong><p>{percent}% of your habits completed</p></div>
@@ -66,5 +66,5 @@ export function RitualsPage() {
       }) : <EmptyState title="Start with one habit." detail="Add a small action you want to repeat consistently." />}
     </section>
     <p className="rituals-footnote">Consistency is built through repetition, not perfect streaks. Your seven-day history makes patterns visible without turning missed days into failure.</p>
-  </div>;
+  </Cascade>;
 }
