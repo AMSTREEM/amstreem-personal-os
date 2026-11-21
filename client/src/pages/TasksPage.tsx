@@ -31,7 +31,7 @@ export function TasksPage() {
     onSuccess: () => void client.invalidateQueries({ queryKey: ['tasks'] })
   });
 
-  return <div className="stack">
+  return <Cascade className="stack">
     <PageHeader eyebrow="PLAN / EXECUTION" title="Tasks" description="Turn intentions into clear, finishable next actions." />
     <Card>
       <div className="card-heading"><div><h2>Capture a task</h2><p>Keep it specific enough to act on.</p></div></div>
@@ -49,5 +49,5 @@ export function TasksPage() {
       <div className="card-heading"><div><h2>Your task list</h2><p>{tasks.data?.filter(task => !task.done).length || 0} still open</p></div></div>
       {tasks.isLoading ? <p className="muted">Loading tasks…</p> : tasks.data?.length ? <div className="list-stack">{tasks.data.map(task => <div className="list-row" key={task.id}><input className="check-control" type="checkbox" checked={!!task.done} onChange={event => update.mutate({ task, done: event.target.checked })} aria-label={'Complete ' + task.title} /><div className="list-row__body"><b className={task.done ? 'is-complete' : ''}>{task.title}</b>{(task.detail || task.project_title || task.goal_title) && <small>{[task.detail, task.project_title, task.goal_title].filter(Boolean).join(' · ')}</small>}</div><span className="list-row__meta">{task.due_date || 'No date'}</span><button className="icon-button" onClick={() => { if (window.confirm('Delete this task?')) remove.mutate(task.id); }} aria-label={'Delete ' + task.title}><Trash2 size={15} /></button></div>)}</div> : <EmptyState title="A clean slate." detail="Capture the next action that would make a meaningful difference." />}
     </Card>
-  </div>;
+  </Cascade>;
 }
