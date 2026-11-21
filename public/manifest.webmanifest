@@ -15,6 +15,12 @@
   "theme_color": "#08060D",
   "icons": [
     {
+      "src": "/assets/brand/atlas-app-icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/assets/brand/amstreem-apple-touch-icon.png",
       "sizes": "180x180",
       "type": "image/png",
