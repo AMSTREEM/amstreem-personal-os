@@ -1520,3 +1520,38 @@ body { letter-spacing: -.006em; }
   .room-view-transition { will-change: auto; }
   :is(.atlas-spotlight, .room4-library .room4-card)::after { transition: none; }
 }
+
+
+/* Magnetic Grid Assembly: directional spring arrival + one-pass accent trace. */
+.room-view-transition {
+  position: relative;
+  min-width: 0;
+  transform-origin: 50% 0%;
+  overflow: clip;
+}
+.room-view-transition::before {
+  content: "";
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent-primary) 10%, transparent) 28%, color-mix(in srgb, var(--accent-primary) 42%, transparent) 50%, color-mix(in srgb, var(--accent-primary) 10%, transparent) 72%, transparent 100%);
+  background-size: 200% 100%;
+  background-position: 100% 0;
+  animation: atlas-border-trace 620ms cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes atlas-border-trace {
+  from { background-position: 100% 0; opacity: .25; }
+  45% { opacity: .8; }
+  to { background-position: 0 0; opacity: 0; }
+}
+@media (max-width: 767px) {
+  .room-view-transition { overflow-x: clip; }
+  .atlas-cascade-item { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .room-view-transition::before { animation: none; opacity: 0; }
+}
