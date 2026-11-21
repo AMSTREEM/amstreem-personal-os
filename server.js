@@ -711,17 +711,18 @@ app.post('/api/reviews',(q,s)=>{
  s.json({...row,priority_task_ids:priorityIds});
 });
 
-app.get('/api/settings',(q,s)=>s.json(Object.fromEntries(all('SELECT key,value FROM settings').map(x=>[x.key,x.value]))));
+app.get('/api/settings',(q,s)=>{const values=Object.fromEntries(all('SELECT key,value FROM settings').map(x=>[x.key,x.value]));values.faith_tradition=values.faith_tradition||values.religion||'general';s.json(values);});
 app.patch('/api/settings',(q,s)=>{
- const allowed=['daily_target','display_name','username','north_star','religion','leaderboard_name','leaderboard_public','theme','features','widgets','sidebar_collapsed'];
+ const allowed=['daily_target','display_name','username','north_star','religion','faith_tradition','leaderboard_name','leaderboard_public','theme','features','widgets','sidebar_collapsed'];
  const themes=['shadowed-alchemist','nocturnal-amethyst','abyssal-trench','whispering-woods','crimson-velvet','light-porcelain','light-sandstone','light-sage','light-lavender','light-sky'];
  const features=['calendar','deen','faith','selfcontrol','learning','tasks','focus','library','goals','rankings','rituals','values'];
  if(q.body.religion!==undefined&&!['islam','christianity','none','prefer_not_to_say'].includes(q.body.religion))return s.status(400).json({error:'Choose a valid religious experience.'});
+ if(q.body.faith_tradition!==undefined&&!['islam','christianity','none','prefer_not_to_say','general'].includes(q.body.faith_tradition))return s.status(400).json({error:'Choose a valid faith tradition.'});
  if(q.body.theme!==undefined&&!themes.includes(q.body.theme))return s.status(400).json({error:'Choose a valid colour theme.'});
  if(q.body.features!==undefined&&(!Array.isArray(q.body.features)||q.body.features.some(x=>!features.includes(x))))return s.status(400).json({error:'Choose valid workspace sections.'});
  if(q.body.widgets!==undefined&&(!q.body.widgets||typeof q.body.widgets!=='object'||Array.isArray(q.body.widgets)))return s.status(400).json({error:'Choose valid dashboard widgets.'});
  const tx=db.transaction(()=>{for(const k of allowed)if(q.body[k]!==undefined){let v=String(q.body[k]).trim();if(k==='features'||k==='widgets')v=JSON.stringify(q.body[k]);if(k==='daily_target')v=String(Math.max(10,Math.min(600,Number(v)||80)));if(k==='leaderboard_public')v=v==='1'?'1':'0';if(k==='sidebar_collapsed')v=v==='1'?'1':'0';if(k==='leaderboard_name')v=v.slice(0,24);db.prepare('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').run(k,v)}});
- tx();s.json(Object.fromEntries(all('SELECT key,value FROM settings').map(x=>[x.key,x.value])));
+ tx();if(q.body.faith_tradition!==undefined){const v=q.body.faith_tradition==='general'?'none':q.body.faith_tradition;db.prepare('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').run('religion',v);db.prepare('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').run('faith_tradition',q.body.faith_tradition);}else if(q.body.religion!==undefined){db.prepare('INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').run('faith_tradition',q.body.religion==='none'?'general':q.body.religion);}const values=Object.fromEntries(all('SELECT key,value FROM settings').map(x=>[x.key,x.value]));values.faith_tradition=values.faith_tradition||values.religion||'general';s.json(values);
 });
 app.use('/api/faith',(q,s,next)=>{if(q.user?.id!==ownerUserId&&one("SELECT value FROM settings WHERE key='religion'")?.value!=='christianity')return s.status(403).json({error:'This faith space is not enabled for this account.'});next();});
 app.get('/api/faith',(q,s)=>{const date=q.query.date||dateKey();s.json(all('SELECT * FROM faith_logs WHERE log_date=? ORDER BY activity',date));});
