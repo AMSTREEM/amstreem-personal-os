@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Cascade } from '../components/Cascade';
+import { playAtlasFeedback } from '../lib/microFeedback';
 import { AnimatedMetric } from '../components/AnimatedMetric';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, BookOpen, Flame, MoonStar, Plus, Target, Timer, Zap } from 'lucide-react';
@@ -107,6 +108,7 @@ export function TodayPage() {
   const toggleTask = useMutation({
     mutationFn: (task: Task) => api<Task>('/tasks/' + task.id, json('PATCH', { done: !task.done })),
     onMutate: async task => {
+      if (!task.done) playAtlasFeedback('tick');
       await client.cancelQueries({ queryKey: ['tasks'] });
       const previous = client.getQueryData<Task[]>(['tasks']);
       client.setQueryData<Task[]>(['tasks'], current => current?.map(item => item.id === task.id ? { ...item, done: task.done ? 0 : 1 } : item));
@@ -120,6 +122,7 @@ export function TodayPage() {
     onSuccess: () => { void client.invalidateQueries({ queryKey: ['habits', today] }); void client.invalidateQueries({ queryKey: ['self-control'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });
   const togglePrayer = useMutation({
+    onMutate: item => { if (!item.completed) playAtlasFeedback('tick'); },
     mutationFn: (item: Prayer) => api('/deen/prayer', json('PATCH', { date: today, prayer: item.prayer, completed: !item.completed })),
     onSuccess: () => void client.invalidateQueries({ queryKey: ['deen', today] })
   });
