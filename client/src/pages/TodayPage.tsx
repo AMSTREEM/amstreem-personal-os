@@ -110,7 +110,7 @@ export function TodayPage() {
     if (religion === 'islam' && deen.data) values.push({ label: 'Deen', score: prayerCount / 5 * 100, detail: prayerCount + '/5 prayers' });
     if (religion === 'christianity' && faith.data) values.push({ label: 'Faith', score: faith.data.length ? faithCount / faith.data.length * 100 : 0, detail: faithCount + '/' + faith.data.length + ' practices' });
     if (habitList.length) values.push({ label: 'Habits', score: completedHabits / habitList.length * 100, detail: completedHabits + '/' + habitList.length + ' today' });
-    if (overview.data) values.push({ label: 'Focus', score: focusPercent, detail: formatMinutes(overview.data.todayMin) + ' / ' + formatMinutes(target) });
+    if (overview.data && ((overview.data.todayMin || 0) > 0 || (overview.data.weekMin || 0) > 0)) values.push({ label: 'Focus', score: focusPercent, detail: formatMinutes(overview.data.todayMin) + ' / ' + formatMinutes(target) });
     if (todayTasks.length) values.push({ label: 'Tasks', score: todayTasks.filter(task => !!task.done).length / todayTasks.length * 100, detail: todayTasks.filter(task => !!task.done).length + '/' + todayTasks.length + ' due today' });
     return values;
   }, [religion, deen.data, prayerCount, faith.data, faithCount, habitList.length, completedHabits, overview.data, focusPercent, target, todayTasks]);
