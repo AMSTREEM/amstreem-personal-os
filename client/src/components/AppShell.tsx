@@ -8,11 +8,11 @@ import { AtlasWalkthrough } from './AtlasWalkthrough';
 
 const navigation = [
   { label: 'Residence', to: '/today', icon: House, group: 'COMMAND & DAILY RHYTHM' },
-  { label: 'Deen & Reflection', to: '/values', icon: MoonStar, group: 'COMMAND & DAILY RHYTHM', feature: 'deen' },
-  { label: 'Self-Control & Streaks', to: '/self-control', icon: Heart, group: 'COMMAND & DAILY RHYTHM', feature: 'selfcontrol' },
+  { label: 'Deen & Reflection', to: '/values', icon: MoonStar, group: 'COMMAND & DAILY RHYTHM' },
+  { label: 'Self-Control & Streaks', to: '/self-control', icon: Heart, group: 'COMMAND & DAILY RHYTHM' },
   { label: 'Projects & Tasks', to: '/projects', icon: Compass, group: 'GROWTH & EXECUTION' },
-  { label: 'Focus Room', to: '/focus', icon: Timer, group: 'GROWTH & EXECUTION', feature: 'focus' },
-  { label: 'Learning Studio', to: '/learning', icon: GraduationCap, group: 'GROWTH & EXECUTION', feature: 'learning' },
+  { label: 'Focus Room', to: '/focus', icon: Timer, group: 'GROWTH & EXECUTION' },
+  { label: 'Learning Studio', to: '/learning', icon: GraduationCap, group: 'GROWTH & EXECUTION' },
   { label: 'Goals', to: '/goals', icon: Target, group: 'GROWTH & EXECUTION' }
 ];
 
@@ -20,8 +20,8 @@ const moduleTabs = [
   { match: (path: string) => path === '/today' || path === '/insights', tabs: [{ label: 'Residence', to: '/today' }, { label: 'Insights', to: '/insights' }] },
   { match: (path: string) => path === '/values' || path === '/reviews', tabs: [{ label: 'Deen', to: '/values' }, { label: 'Reflection', to: '/reviews' }] },
   { match: (path: string) => path === '/self-control' || path === '/rituals', tabs: [{ label: 'Self-Control', to: '/self-control' }, { label: 'Habits & Streaks', to: '/rituals' }] },
-  { match: (path: string) => path === '/projects' || path === '/tasks' || path === '/calendar', tabs: [{ label: 'Projects', to: '/projects' }, { label: 'Tasks', to: '/tasks' }, { label: 'Calendar', to: '/calendar' }] },
-  { match: (path: string) => path === '/learning' || path === '/library', tabs: [{ label: 'Learning paths', to: '/learning' }, { label: 'Library', to: '/library' }] }
+  { match: (path: string) => path === '/projects' || path === '/tasks' || path === '/calendar', tabs: [{ label: 'Projects', to: '/projects' }, { label: 'Tasks', to: '/tasks' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }] },
+  { match: (path: string) => path === '/learning' || path === '/library', tabs: [{ label: 'Learning paths', to: '/learning' }, { label: 'Library', to: '/library', feature: 'library' }] }
 ];
 
 export function AppShell() {
@@ -49,10 +49,11 @@ export function AppShell() {
   const storedFeatures = settings.data?.features;
   let enabledFeatures: string[] | null = null;
   if (storedFeatures) { try { enabledFeatures = JSON.parse(storedFeatures).map((feature: string) => feature === 'values' ? 'deen' : feature); } catch { enabledFeatures = null; } }
-  const visibleNavigation = enabledFeatures === null ? navigation : navigation.filter(item => !('feature' in item) || enabledFeatures!.includes(item.feature as string));
+  // The six core pillars are always available; preferences only control secondary views.
+  const visibleNavigation = navigation;
   const current = visibleNavigation.find(item => item.to === location.pathname) || visibleNavigation.find(item => item.to === (['/tasks', '/calendar'].includes(location.pathname) ? '/projects' : location.pathname === '/library' ? '/learning' : location.pathname === '/reviews' ? '/values' : location.pathname === '/rituals' ? '/self-control' : location.pathname === '/insights' ? '/today' : ''));
   const groups = [...new Set(visibleNavigation.map(item => item.group))];
-  const activeTabs = moduleTabs.find(item => item.match(location.pathname))?.tabs || [];
+  const activeTabs = (moduleTabs.find(item => item.match(location.pathname))?.tabs || []).filter(tab => !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string));
 
   return <div className="app-frame">
     {tourOpen && <AtlasWalkthrough onClose={closeTour} />}
