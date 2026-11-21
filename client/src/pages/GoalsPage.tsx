@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
 
-type Goal = { id: number; title: string; detail: string; target_date: string | null; status: string; category?: string; focus_minutes: number };
+type Goal = { id: number; title: string; detail: string; target_date: string | null; status: string; category?: string; horizon?:'short-term'|'long-term'; focus_minutes: number };
 type Project = { id: number; title: string; goal_id: number | null; status: string; open_tasks: number; milestones: { id: number; title: string; completed: number }[] };
 type Task = { id: number; title: string; goal_id: number | null; project_id: number | null; done: number; due_date: string | null };
 type Habit = { id: number; title: string; goal_id?: number | null; goal_title?: string | null };
@@ -17,14 +17,15 @@ export function GoalsPage() {
   const [detail, setDetail] = useState('');
   const [targetDate, setTargetDate] = useState('');
   const [category, setCategory] = useState('Personal');
+  const [horizon,setHorizon]=useState<'short-term'|'long-term'>('long-term');
   const goals = useQuery({ queryKey: ['goals'], queryFn: () => api<Goal[]>('/goals') });
   const projects = useQuery({ queryKey: ['projects'], queryFn: () => api<Project[]>('/projects') });
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => api<Task[]>('/tasks') });
   const habits = useQuery({ queryKey: ['habits'], queryFn: () => api<Habit[]>('/habits') });
   const paths = useQuery({ queryKey: ['learning-paths'], queryFn: () => api<Path[]>('/learning/paths') });
   const create = useMutation({
-    mutationFn: () => api<Goal>('/goals', json('POST', { title, detail, target_date: targetDate || null, category })),
-    onSuccess: () => { setTitle(''); setDetail(''); setTargetDate(''); setCategory('Personal'); void client.invalidateQueries({ queryKey: ['goals'] }); }
+    mutationFn: () => api<Goal>('/goals', json('POST', { title, detail, target_date: targetDate || null, category, horizon })),
+    onSuccess: () => { setTitle(''); setDetail(''); setTargetDate(''); setCategory('Personal'); setHorizon('long-term'); void client.invalidateQueries({ queryKey: ['goals'] }); }
   });
   const toggleMilestone = useMutation({
     mutationFn: ({id,completed}:{id:number;completed:boolean}) => api('/project-milestones/'+id,json('PATCH',{completed})),
@@ -53,6 +54,7 @@ export function GoalsPage() {
         <Field label="Goal"><TextInput value={title} onChange={event => setTitle(event.target.value)} placeholder="What do you want to make real?" required /></Field>
         <Field label="Why it matters"><TextArea value={detail} onChange={event => setDetail(event.target.value)} placeholder="Add the context that will help you stay oriented." /></Field>
         <Field label="Category"><select className="field-input" value={category} onChange={event => setCategory(event.target.value)}><option>Personal</option><option>Faith</option><option>Health</option><option>Learning</option><option>Career</option><option>Business</option><option>Finance</option></select></Field>
+        <Field label="Horizon"><select className="field-input" value={horizon} onChange={event=>setHorizon(event.target.value as 'short-term'|'long-term')}><option value="short-term">Short-term</option><option value="long-term">Long-term</option></select></Field>
         <Field label="Target date"><TextInput type="date" value={targetDate} onChange={event => setTargetDate(event.target.value)} /></Field>
         <div><Button type="submit" disabled={create.isPending || !title.trim()}><Plus size={16} /> Add goal</Button></div>
       </form>
@@ -62,7 +64,7 @@ export function GoalsPage() {
       {goals.data?.length ? goals.data.map(goal => {
         const work = workByGoal.get(goal.id);
         return <Card key={goal.id} className="goal-card goal-card--connected">
-          <div className="goal-card__top"><span className="status-pill">{goal.category || 'Personal'}</span><Target size={17}/></div>
+          <div className="goal-card__top"><span className="status-pill">{goal.category || 'Personal'} · {goal.horizon || 'long-term'}</span><Target size={17}/></div>
           <h2>{goal.title}</h2><p>{goal.detail || 'No additional context yet.'}</p>
           <div className="goal-work-summary">
             <div><FolderKanban size={14}/><b>{work?.projects.length ?? 0}</b><small>projects</small></div>
