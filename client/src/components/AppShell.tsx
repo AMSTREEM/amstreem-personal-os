@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, json } from '../lib/api';
 import { ArrowRight, BookOpen, Compass, GraduationCap, Heart, House, LogOut, Menu, MoonStar, Pause, Play, Search, Settings, SlidersHorizontal, Target, Timer, X, Zap } from 'lucide-react';
@@ -134,7 +135,7 @@ export function AppShell() {
   const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
 
   return <div className="app-frame">
-    {tourOpen && <AtlasWalkthrough onClose={closeTour} />}
+    <AnimatePresence initial={false}>{tourOpen && <AtlasWalkthrough onClose={closeTour} />}</AnimatePresence>
     {mobileOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
     <aside className={'sidebar ' + (mobileOpen ? 'sidebar--open' : '')}>
       <NavLink to="/today" className="sidebar-brand" onClick={() => setMobileOpen(false)}><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><span><b>AMSTREEM</b><small>ATLAS</small></span></NavLink>
@@ -145,7 +146,7 @@ export function AppShell() {
           {rooms.map((item,index) => {
             const Icon = item.icon;
             const active = item.paths.includes(location.pathname);
-            return <NavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} className={'nav-link room-nav-link ' + (active ? 'nav-link--active' : '')}><Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>⌘ {index+1}</kbd></NavLink>;
+            return <NavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} className={'nav-link room-nav-link ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>⌘ {index+1}</kbd></NavLink>;
           })}
         </div>
       </nav>
@@ -166,10 +167,10 @@ export function AppShell() {
       </header>
       {focusRemaining > 0 && (focusActive || focusTimer.remaining < 25*60) && <div className="global-focus-bar"><span className="global-focus-pulse"/><div className="global-focus-copy"><b>{focusClock}</b><span>{focusContext}</span></div><span className="global-focus-label">{focusActive?'FOCUS IN PROGRESS':'FOCUS PAUSED'}</span><button type="button" onClick={toggleTimer} aria-label={focusActive?'Pause focus timer':'Resume focus timer'}>{focusActive?<Pause size={13}/>:<Play size={13}/>}<span>{focusActive?'Pause':'Resume'}</span></button><button type="button" onClick={finishTimer}>Finish & review</button><NavLink to="/focus">Open room <ArrowRight size={12}/></NavLink></div>}
       <div className="page-container">
-        {activeTabs.length > 0 && <nav className="module-subnav" aria-label="Module sections">{activeTabs.map(tab => <NavLink key={tab.to} to={tab.to} onClick={() => setMobileOpen(false)} className={({ isActive }) => 'module-subnav__link ' + (isActive ? 'module-subnav__link--active' : '')}>{tab.label}</NavLink>)}</nav>}
+        {activeTabs.length > 0 && <nav className="module-subnav" aria-label="Module sections">{activeTabs.map(tab => <NavLink key={tab.to} to={tab.to} onClick={() => setMobileOpen(false)} className={({ isActive }) => 'module-subnav__link ' + (isActive ? 'module-subnav__link--active' : '')}>{({isActive}) => <>{isActive && <motion.span className="module-subnav-indicator" layoutId={'atlas-subnav-' + current?.id} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}{tab.label}</>}</NavLink>)}</nav>}
         <Outlet />
       </div>
-      {commandOpen && <div className="command-backdrop" onMouseDown={event => {if(event.target===event.currentTarget)setCommandOpen(false);}}><section className="command-panel" role="dialog" aria-modal="true" aria-label="Atlas quick capture">
+      <AnimatePresence initial={false}>{commandOpen && <motion.div className="command-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} onMouseDown={event => {if(event.target===event.currentTarget)setCommandOpen(false);}}><motion.section className="command-panel" role="dialog" aria-modal="true" aria-label="Atlas quick capture" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
         <div className="command-search"><Search size={17}/><input autoFocus value={commandQuery} onChange={event=>setCommandQuery(event.target.value)} placeholder="Search pillars, capture a task, or check in…"/><kbd>ESC</kbd></div>
         {(!commandQuery || 'add a task'.includes(commandQuery.toLowerCase())) && <form className="command-task-form" onSubmit={captureTask}><Zap size={15}/><input value={quickTaskTitle} onChange={event=>setQuickTaskTitle(event.target.value)} placeholder="Capture a task…" maxLength={180}/><button disabled={!quickTaskTitle.trim()||quickTaskSaving}>{quickTaskSaving?'Saving…':'Add task'}</button></form>}
         {quickTaskError && <p className="command-error">{quickTaskError}</p>}
@@ -177,7 +178,7 @@ export function AppShell() {
         {!!quickHabits.data?.length && <div className="command-checkins"><span className="eyebrow">TODAY · HABITS</span><div className="command-checkin-list">{quickHabits.data.map(item => <button type="button" key={item.id} className={item.done ? 'is-complete' : ''} disabled={quickHabitMutation.isPending} onClick={() => quickHabitMutation.mutate(item.id)}><span>{item.done ? '✓' : '○'}</span>{item.title}<small>{item.done ? 'Done' : 'Mark done'}</small></button>)}</div></div>}
         <div className="command-results"><span className="eyebrow">JUMP TO OR CHECK IN</span>{commandItems.map(item=>{const Icon=item.icon;return <button key={item.label} type="button" onClick={()=>{setCommandOpen(false);navigate(item.to);}}><Icon size={16}/><span><b>{item.label}</b><small>{item.detail}</small></span><kbd>{item.shortcut}</kbd></button>;})}{!commandItems.length&&<p>No matching destination.</p>}</div>
         <div className="command-footer"><span>Navigate between rooms</span><span>⌘ 1 — 4</span></div>
-      </section></div>}
+      </motion.section></motion.div>}</AnimatePresence>
       <footer className="app-footer"><span>AMSTREEM ATLAS</span><span>Make room for what matters.</span></footer>
     </main>
   </div>;
