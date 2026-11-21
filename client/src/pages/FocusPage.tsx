@@ -29,7 +29,7 @@ export function FocusPage() {
   const [reflection, setReflection] = useState('');
   const [taskId, setTaskId] = useState('');
   const [projectId, setProjectId] = useState('');
-  const [lessonId, setLessonId] = useState('');
+  const [lessonId, setLessonId] = useState(() => new URLSearchParams(window.location.search).get('lesson') || '');
   const [timer, setTimer] = useState<StoredTimer>(readTimer);
   const [now, setNow] = useState(() => Date.now());
   const [completed, setCompleted] = useState(false);
