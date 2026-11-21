@@ -1389,3 +1389,6 @@ body { letter-spacing: -.006em; }
 
 .goal-focus-metric{border-left:1px solid var(--line-soft);padding-left:9px}
 .goal-focus-metric b{font-variant-numeric:tabular-nums}
+
+.goal-work-summary{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media(max-width:480px){.goal-work-summary{grid-template-columns:repeat(3,minmax(0,1fr))}.goal-focus-metric{border-left:0;padding-left:0}}
