@@ -16,6 +16,7 @@ type Goal = { id: number; title: string; target_date: string | null; status: str
 type Announcement = { id: number; title: string; body: string; kind: string; created_at: string; published_at: string | null };
 type AnnouncementFeed = { items: Announcement[]; readIds: number[] };
 type CalendarSummary = { streaks: Record<string, { current: number; best: number }> };
+type SelfControlSummary = { summary: { id: number; name: string; symbol: string; streak: number; longest_days: number; last_slip: string | null }[] };
 type Insight = { recommendation: { title: string; detail: string; reason: string; action: string; destination: string; priority: string }; pattern: string; rhythm: string | null };
 type StoredTimer = { remaining: number; deadline: number | null; taskId?: string; lessonId?: string; projectId?: string };
 const TIMER_KEY = 'atlas-focus-timer-v1';
@@ -56,6 +57,7 @@ export function TodayPage() {
   const learning = useQuery({ queryKey: ['learning-paths'], queryFn: () => api<{ id: number; title: string; lessons: { id: number; title: string }[] }[]>('/learning/paths'), enabled: !!timer.lessonId });
   const goals = useQuery({ queryKey: ['goals'], queryFn: () => api<Goal[]>('/goals') });
   const calendarSummary = useQuery({ queryKey: ['calendar-summary', today.slice(0, 7)], queryFn: () => api<CalendarSummary>('/calendar?month=' + today.slice(0, 7)) });
+  const selfControl = useQuery({ queryKey: ['self-control', today], queryFn: () => api<SelfControlSummary>('/self-control?date=' + today) });
   const insight = useQuery({ queryKey: ['intelligence'], queryFn: () => api<Insight>('/intelligence') });
   const announcements = useQuery({ queryKey: ['announcements'], queryFn: () => api<AnnouncementFeed>('/announcements') });
 
@@ -207,6 +209,10 @@ export function TodayPage() {
         {announcements.data?.items?.filter(item => !announcements.data?.readIds.includes(item.id)).length ? <Card className="today-announcements">
           <div className="residence-section-heading"><div><span className="eyebrow">UPDATES</span><h2>From Atlas</h2></div></div>
           {announcements.data.items.filter(item => !announcements.data?.readIds.includes(item.id)).slice(0,2).map(item => <div className="today-announcement" key={item.id}><b>{item.title}</b><p>{item.body}</p><button className="text-link" onClick={() => markAnnouncementRead.mutate(item.id)}>Mark as read</button></div>)}
+        </Card> : null}
+        {selfControl.data?.summary?.length ? <Card className="residence-goals-card">
+          <div className="residence-section-heading"><div><span className="eyebrow">SELF-CONTROL & STREAKS</span><h2>Your commitments</h2><p>{selfControl.data.summary.length} active tracker{selfControl.data.summary.length === 1 ? '' : 's'}</p></div><Link to="/self-control" className="text-link">View all <ArrowRight size={13}/></Link></div>
+          <div className="residence-goal-list">{selfControl.data.summary.slice(0,3).map(item => <div className="residence-goal" key={item.id}><Flame size={15}/><div><b>{item.name}</b><small>{item.streak} consecutive day{item.streak === 1 ? '' : 's'} · best {item.longest_days}</small></div></div>)}</div>
         </Card> : null}
         <Card className="residence-goals-card">
           <div className="residence-section-heading"><div><span className="eyebrow">LONG-TERM DIRECTION</span><h2>Active goals</h2></div><Link to="/goals" className="text-link">All goals <ArrowRight size={13}/></Link></div>
