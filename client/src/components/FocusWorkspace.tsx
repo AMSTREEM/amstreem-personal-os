@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Cascade } from './Cascade';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, Check, ChevronDown, Circle, Clock3, Pause, Play, Plus, RotateCcw, Timer, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, TextArea, TextInput } from './ui';
 import { playAtlasFeedback, primeAtlasAudio } from '../lib/microFeedback';
@@ -19,6 +19,7 @@ const priorityLabels:Record<number,string>={1:'Urgent',2:'High',3:'Normal',4:'Lo
 const priorityClass=(value:number)=>'execution-priority execution-priority--'+(priorityLabels[value]||'Normal').toLowerCase();
 
 export function FocusWorkspace() {
+  const location = useLocation();
   const client=useQueryClient();
   const timer=useFocusTimer();
   const setTimer=updateFocusTimer;
@@ -106,8 +107,8 @@ export function FocusWorkspace() {
   function focusTask(task:Task){if(running)return;selectTask(task);window.scrollTo({top:0,behavior:'smooth'});}
   const selectedDuration=timer.durationSeconds/60;
 
-  return <Cascade className="stack execution-workspace focus-room">
-    <div className="execution-heading"><div><span className="eyebrow">FOCUS ROOM / DEEP WORK</span><h1>Protect your attention.</h1><p>Choose the work. Protect your attention. Let each completed session strengthen the same record.</p></div><div className="execution-heading-stat"><b>{sessions.data?.length||0}</b><span>RECORDED SESSIONS</span></div></div>
+  return <Cascade className={"stack execution-workspace focus-room focus-room-only"}>
+    <div className="execution-heading"><div><span className="eyebrow">FOCUS ROOM / DEEP WORK</span><h1>Stay with one thing.</h1><p>Choose the work. Protect your attention. Let each completed session strengthen the same record.</p></div><div className="execution-heading-stat"><b>{sessions.data?.length||0}</b><span>RECORDED SESSIONS</span></div></div>
     <div className="execution-split">
       <section className="execution-projects-panel">
         <Card className="execution-panel-card">

@@ -16,8 +16,7 @@ const MotionNavLink = motion.create(NavLink);
 const rooms = [
   { id: 'residence', label: 'Residence', to: '/today', icon: House, paths: ['/today', '/insights'] },
   { id: 'rhythm', label: 'Daily Rhythm', to: '/values', icon: MoonStar, paths: ['/values', '/self-control', '/rituals'] },
-  { id: 'execution', label: 'Workspace', to: '/execution', icon: Compass, paths: ['/execution', '/projects', '/tasks', '/calendar'] },
-  { id: 'focus', label: 'Focus Room', to: '/focus', icon: Timer, paths: ['/focus'] },
+  { id: 'execution', label: 'Execution & Focus', to: '/execution', icon: Compass, paths: ['/execution', '/projects', '/tasks', '/calendar', '/focus'] },
   { id: 'growth', label: 'Growth & Direction', to: '/learning', icon: GraduationCap, paths: ['/learning', '/library', '/goals', '/reviews'] }
 ];
 
@@ -29,8 +28,7 @@ const commandDestinations = [
   { label: 'Projects', detail: 'Move a project forward', to: '/projects', icon: Compass },
   { label: 'Tasks', detail: 'Review and complete tasks', to: '/tasks', icon: Zap },
   { label: 'Calendar', detail: 'Review your schedule', to: '/calendar', icon: Compass },
-  { label: 'Focus Room', detail: 'Enter your dedicated deep-work space', to: '/focus', icon: Timer },
-  { label: 'Workspace', detail: 'Manage projects and tasks', to: '/execution', icon: Compass },
+  { label: 'Focus Timer', detail: 'Start or resume a deep-work session', to: '/focus', icon: Timer },
   { label: 'Learning Studio', detail: 'Continue a learning path', to: '/learning', icon: GraduationCap },
   { label: 'Private Library', detail: 'Open saved notes and resources', to: '/library', icon: BookOpen },
   { label: 'Goals', detail: 'Review long-term direction', to: '/goals', icon: Target },
@@ -76,13 +74,13 @@ export function AppShell() {
     return () => window.clearInterval(tick);
   }, []);
   useEffect(() => {
-    const paths = ['/today','/values','/projects','/learning','/focus'];
+    const paths = ['/today','/values','/projects','/learning'];
     const onKey = (event: KeyboardEvent) => {
       const el = event.target as HTMLElement | null;
       const typing = !!el && (el.isContentEditable || ['INPUT','TEXTAREA','SELECT'].includes(el.tagName));
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setCommandOpen(v => !v); setCommandQuery(''); return; }
       if (event.key === 'Escape') { setCommandOpen(false); return; }
-      if (!typing && (event.metaKey || event.ctrlKey) && !event.altKey && /^[1-5]$/.test(event.key)) { event.preventDefault(); navigate(paths[Number(event.key)-1]); }
+      if (!typing && (event.metaKey || event.ctrlKey) && !event.altKey && /^[1-4]$/.test(event.key)) { event.preventDefault(); navigate(paths[Number(event.key)-1]); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -162,7 +160,7 @@ export function AppShell() {
   const tabsByRoom = {
     residence: [{ label: 'Overview', to: '/today' }, { label: 'Insights', to: '/insights' }],
     rhythm: [{ label: faithTabLabel, to: '/values' }, { label: 'Self-Control & Streaks', to: '/self-control' }, { label: 'Routine Builder', to: '/rituals' }],
-    execution: [{ label: 'Workspace', to: '/execution' }, { label: 'Projects', to: '/projects' }, { label: 'Tasks', to: '/tasks' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
+    execution: [{ label: 'Workspace', to: '/execution' }, { label: 'Projects', to: '/projects' }, { label: 'Tasks', to: '/tasks' }, { label: 'Focus Timer', to: '/focus' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
     growth: [{ label: 'Learning Studio', to: '/learning' }, { label: 'Private Library', to: '/library', feature: 'library' }, { label: 'Goals', to: '/goals' }, { label: 'Reviews', to: '/reviews' }]
   };
   const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];

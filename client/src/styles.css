@@ -1917,3 +1917,10 @@ time,
 .focus-room .execution-projects-panel{display:none!important;}
 .focus-room .execution-focus-panel{width:100%;max-width:920px;margin-inline:auto;}
 .focus-room .execution-heading-stat{display:none;}
+
+
+/* The Focus Timer is a focused destination within the Execution & Focus room. */
+.focus-room-only .execution-projects-panel{display:none!important;}
+.focus-room-only .execution-focus-panel{width:100%;max-width:900px;margin-inline:auto;}
+.focus-room-only .execution-heading-stat{display:none!important;}
+.focus-room-only .execution-heading{margin-bottom:1.25rem;}
