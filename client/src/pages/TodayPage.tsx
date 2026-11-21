@@ -53,6 +53,7 @@ export function TodayPage() {
   const [quickTask, setQuickTask] = useState('');
   const [dailyIntention, setDailyIntention] = useState('');
   const [priorityTaskIds, setPriorityTaskIds] = useState<number[]>([]);
+  const [editingAlignment, setEditingAlignment] = useState(false);
   const [shutdownWins, setShutdownWins] = useState('');
   const [shutdownChallenges, setShutdownChallenges] = useState('');
   const [shutdownLessons, setShutdownLessons] = useState('');
@@ -65,6 +66,9 @@ export function TodayPage() {
   if (settings.data?.features) { try { showCalendar = JSON.parse(settings.data.features).includes('calendar'); } catch { showCalendar = true; } }
   const dailyReviews = useQuery({ queryKey: ['reviews', 'daily'], queryFn: () => api<DailyReview[]>('/reviews?period=daily') });
   const dailyReview = dailyReviews.data?.find(item => item.period_start === today);
+  const yesterdayDate = new Date(today + 'T12:00:00'); yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterdayKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(yesterdayDate);
+  const yesterdayReview = dailyReviews.data?.find(item => item.period_start === yesterdayKey);
   const overview = useQuery({ queryKey: ['overview'], queryFn: () => api<Overview>('/overview') });
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => api<Task[]>('/tasks') });
   const habits = useQuery({ queryKey: ['habits', today], queryFn: () => api<Habit[]>('/habits?date=' + today) });
@@ -81,7 +85,7 @@ export function TodayPage() {
     mutationFn: (payload: Partial<DailyReview>) => api<DailyReview>('/reviews', json('POST', {
       period_type: 'daily', period_start: today, period_end: today, ...payload
     })),
-    onSuccess: () => void client.invalidateQueries({ queryKey: ['reviews', 'daily'] })
+    onSuccess: (_data, variables) => { void client.invalidateQueries({ queryKey: ['reviews', 'daily'] }); if (variables.alignment_complete === 1) setEditingAlignment(false); }
   });
 
   const addTask = useMutation({
@@ -90,7 +94,14 @@ export function TodayPage() {
   });
   const toggleTask = useMutation({
     mutationFn: (task: Task) => api<Task>('/tasks/' + task.id, json('PATCH', { done: !task.done })),
-    onSuccess: () => { void client.invalidateQueries({ queryKey: ['tasks'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
+    onMutate: async task => {
+      await client.cancelQueries({ queryKey: ['tasks'] });
+      const previous = client.getQueryData<Task[]>(['tasks']);
+      client.setQueryData<Task[]>(['tasks'], current => current?.map(item => item.id === task.id ? { ...item, done: task.done ? 0 : 1 } : item));
+      return { previous };
+    },
+    onError: (_error, _task, context) => { if (context?.previous) client.setQueryData(['tasks'], context.previous); },
+    onSettled: () => { void client.invalidateQueries({ queryKey: ['tasks'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });
   const toggleHabit = useMutation({
     mutationFn: (habit: Habit) => api('/habits/' + habit.id + '/toggle', json('POST', { date: today })),
@@ -116,6 +127,9 @@ export function TodayPage() {
     return a.due_date.localeCompare(b.due_date) || a.id - b.id;
   });
   const todayTasks = (tasks.data || []).filter(task => task.due_date === today);
+  const pinnedPriorityTasks = priorityTaskIds.map(id => tasks.data?.find(task => task.id === id)).filter((task): task is Task => !!task);
+  const prioritiesCompleted = pinnedPriorityTasks.length === 3 && pinnedPriorityTasks.every(task => !!task.done);
+  const showShutdownPrompt = rhythm === 'evening' || prioritiesCompleted;
   const priorityCandidates = [...(tasks.data || []).filter(task => priorityTaskIds.includes(task.id)), ...openTasks].filter((task,index,items) => items.findIndex(item => item.id === task.id) === index).slice(0,12);
   const priorityTasks = [...openTasks.filter(task => task.due_date && task.due_date < today), ...openTasks.filter(task => task.due_date === today), ...openTasks.filter(task => task.due_date && task.due_date > today), ...openTasks.filter(task => !task.due_date)].slice(0, 5);
   const activeGoals = (goals.data || []).filter(goal => goal.status === 'active').sort((a,b) => (a.target_date || '9999').localeCompare(b.target_date || '9999')).slice(0, 3);
@@ -176,12 +190,17 @@ export function TodayPage() {
     <section className="residence-band residence-band--orientation" aria-label="Today's orientation">
       <PageHeader eyebrow={new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()).toUpperCase()} title="Residence" description="Your central view of today’s priorities, routines, focus and progress." action={showCalendar ? <Link className="button button--secondary" to="/calendar">View calendar <ArrowRight size={14} /></Link> : undefined} />
       <section className="residence-rhythm"><div><span className="eyebrow">{rhythmCopy.eyebrow}</span><h2>{rhythmCopy.title}</h2><p>{rhythmCopy.detail}</p></div><span className="residence-rhythm-time">{new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',minute:'2-digit'}).format(new Date())} WAT</span></section>
+      {yesterdayReview?.shutdown_complete && yesterdayReview.next_focus?.trim() && <div className="residence-carryforward"><span className="eyebrow">YOUR FIRST MEANINGFUL STEP</span><p>{yesterdayReview.next_focus}</p><small>Carried forward from yesterday’s shutdown</small></div>}
     <section className="residence-rhythm-action" aria-live="polite">
-      {rhythm === 'morning' ? <><div><span className="eyebrow">SET YOUR DIRECTION</span><b>{religion === 'islam' ? prayerCount + ' of 5 prayers recorded so far' : priorityTasks.length ? 'Your first priorities are ready' : 'Choose your first priority'}</b><p>{priorityTasks.length ? priorityTasks.slice(0,3).map(task => task.title).join(' · ') : 'Keep the start of the day simple: intention, one anchor, and a meaningful next step.'}</p></div><Link to={religion === 'islam' ? '/values' : '/tasks'}>{religion === 'islam' ? 'Open Deen' : 'Set priorities'} <ArrowRight size={13}/></Link></>
+      {showShutdownPrompt ? <><div><span className="eyebrow">EVENING SHUTDOWN</span><b>{prioritiesCompleted ? 'Your three priorities are complete. Close the loop.' : 'Make space to close the day.'}</b><p>Capture what moved forward and choose tomorrow’s first meaningful step.</p></div><Link to="#evening-shutdown">Begin shutdown <ArrowRight size={13}/></Link></>
+      : rhythm === 'morning' ? <><div><span className="eyebrow">SET YOUR DIRECTION</span><b>{religion === 'islam' ? prayerCount + ' of 5 prayers recorded so far' : priorityTasks.length ? 'Your first priorities are ready' : 'Choose your first priority'}</b><p>{priorityTasks.length ? priorityTasks.slice(0,3).map(task => task.title).join(' · ') : 'Keep the start of the day simple: intention, one anchor, and a meaningful next step.'}</p></div><Link to={religion === 'islam' ? '/values' : '/tasks'}>{religion === 'islam' ? 'Open Deen' : 'Set priorities'} <ArrowRight size={13}/></Link></>
       : rhythm === 'day' ? <><div><span className="eyebrow">PROTECT DEEP WORK</span><b>{openTasks.length} open priorities · {totalLessons ? completedLessons + '/' + totalLessons + ' lessons complete' : 'Learning progress when you add a path'}</b><p>{focusRunning ? 'Your focus block is already underway. Keep your attention on the current session.' : 'Choose one important task, then give it a protected block of attention.'}</p></div><Link to={focusRunning ? '/focus' : '/tasks'}>{focusRunning ? 'Return to focus' : 'Choose a task'} <ArrowRight size={13}/></Link></>
       : <><div><span className="eyebrow">CLOSE THE DAY GENTLY</span><b>{pendingHabits} habits remaining{religion === 'islam' ? ' · ' + (5-prayerCount) + ' prayers not yet recorded' : ''}</b><p>{tomorrowTasks.length ? tomorrowTasks.length + ' task' + (tomorrowTasks.length === 1 ? '' : 's') + ' already planned for tomorrow.' : 'Review today honestly, then leave tomorrow one clear next step.'}</p></div><Link to="/reviews">Open daily reflection <ArrowRight size={13}/></Link></>}
     </section>
-      <Card className="residence-alignment-card">
+      {dailyReview?.alignment_complete && !editingAlignment ? <Card className="residence-intention-card">
+        <div><span className="eyebrow">TODAY’S DAILY INTENTION</span><p>{dailyReview.intention}</p></div>
+        <button type="button" className="text-link" onClick={() => setEditingAlignment(true)}>Edit plan <ArrowRight size={13}/></button>
+      </Card> : <Card className="residence-alignment-card">
         <div className="residence-section-heading">
           <div><span className="eyebrow">01 / MORNING ALIGNMENT</span><h2>Give today a direction.</h2><p>{dailyReview?.alignment_complete ? 'Your intention is saved for today.' : 'Decide what deserves your attention before the day gets busy.'}</p></div>
           <span className={'residence-workflow-state ' + (dailyReview?.alignment_complete ? 'is-complete' : '')}>{dailyReview?.alignment_complete ? 'Aligned' : 'Not set'}</span>
@@ -203,7 +222,7 @@ export function TodayPage() {
           <div className="residence-workflow-footer"><small>{dailyReview?.alignment_complete ? 'You can adjust this plan at any time.' : 'A simple intention is enough to begin. You can choose fewer than three priorities.'}</small><button className="button button--primary" type="submit" disabled={!dailyIntention.trim() || saveDaily.isPending}>{saveDaily.isPending ? 'Saving…' : dailyReview?.alignment_complete ? 'Update alignment' : 'Save morning alignment'}</button></div>
           {saveDaily.isError && <p className="inline-error">{saveDaily.error.message}</p>}
         </form>
-      </Card>
+      </Card>}
     </section>
 
     <section className="residence-band residence-band--overview" aria-label="Life at a glance">
@@ -242,6 +261,15 @@ export function TodayPage() {
       <div className="residence-band-heading"><span className="eyebrow">03 / MOVE TODAY FORWARD</span><p>Turn today's direction into deliberate action.</p></div>
       <div className="residence-grid">
       <section className="residence-main-column">
+        <Card className="residence-pinned-priorities">
+          <div className="residence-section-heading"><div><span className="eyebrow">YOUR PINNED TOP 3</span><h2>Today’s execution</h2><p>{pinnedPriorityTasks.filter(task => !!task.done).length} of {priorityTaskIds.length} priorities complete</p></div><button type="button" className="text-link" onClick={() => setEditingAlignment(true)}>Edit plan <ArrowRight size={13}/></button></div>
+          {pinnedPriorityTasks.length ? <div className="residence-pinned-list">{pinnedPriorityTasks.map((task,index) => <div className={'residence-pinned-row ' + (task.done ? 'is-complete' : '')} key={task.id}>
+            <span className="residence-pinned-rank">#{index+1}</span>
+            <input type="checkbox" checked={!!task.done} disabled={toggleTask.isPending} onChange={() => toggleTask.mutate(task)} aria-label={(task.done ? 'Reopen ' : 'Complete ') + task.title} />
+            <span className="residence-pinned-copy"><b>{task.title}</b>{task.project_title && <small>{task.project_title}</small>}</span>
+            <Link className="residence-pinned-focus" to={'/focus?task=' + task.id} aria-label={'Focus on ' + task.title}><Timer size={13}/> Focus</Link>
+          </div>)}</div> : <div className="residence-priority-empty">Your pinned priorities will appear here after you save Morning Alignment. <button type="button" className="text-link" onClick={() => setEditingAlignment(true)}>Set today’s plan</button></div>}
+        </Card>
         {religion === 'islam' ? <Card className="residence-faith-card">
           <div className="residence-section-heading"><div><span className="eyebrow">DEEN & REFLECTION</span><h2>Today's Salah</h2><p>{prayerCount} of 5 prayers recorded</p></div><Link to="/values" className="text-link">Open Deen <ArrowRight size={13}/></Link></div>
           <div className="residence-prayer-list">{(deen.data?.prayers || []).map(item => <label className={'residence-prayer ' + (item.completed ? 'is-complete' : '')} key={item.prayer}><input type="checkbox" checked={!!item.completed} onChange={() => togglePrayer.mutate(item)} /><span>{item.prayer}</span><small>{item.completed ? 'Recorded' : 'Not recorded'}</small></label>)}</div>
@@ -306,7 +334,7 @@ export function TodayPage() {
         </Card>
       </aside>
       </div>
-      <Card className="residence-shutdown-card">
+      <div id="evening-shutdown" className={showShutdownPrompt ? 'residence-shutdown-highlight' : ''}><Card className={'residence-shutdown-card ' + (showShutdownPrompt ? 'is-highlighted' : '')}>
         <div className="residence-section-heading">
           <div><span className="eyebrow">04 / EVENING SHUTDOWN</span><h2>Close the day with clarity.</h2><p>Notice what happened without judgement. Leave tomorrow a little easier.</p></div>
           <span className={'residence-workflow-state ' + (dailyReview?.shutdown_complete ? 'is-complete' : '')}>{dailyReview?.shutdown_complete ? 'Closed' : 'Open'}</span>
@@ -319,7 +347,7 @@ export function TodayPage() {
           <div className="residence-workflow-footer"><small>{dailyReview?.shutdown_complete ? "Today's shutdown is saved. You can still edit it." : 'Fill all four reflections to mark the day as closed. Partial notes can be saved as a draft.'}</small><button className="button button--secondary" type="submit" disabled={saveDaily.isPending || ![shutdownWins, shutdownChallenges, shutdownLessons, shutdownNextFocus].some(value => value.trim())}>{saveDaily.isPending ? 'Saving…' : [shutdownWins, shutdownChallenges, shutdownLessons, shutdownNextFocus].every(value => value.trim()) ? 'Complete evening shutdown' : 'Save reflection draft'}</button></div>
           {saveDaily.isError && <p className="inline-error">{saveDaily.error.message}</p>}
         </form>
-      </Card>
+      </Card></div>
     </section>
   </div>;
 }
