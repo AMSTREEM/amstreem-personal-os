@@ -14,7 +14,7 @@ type Deen = { date: string; prayers: Prayer[]; quran: { activity: string; pages:
 type Faith = { activity: string; completed: number };
 type Goal = { id: number; title: string; target_date: string | null; status: string };
 type Insight = { recommendation: { title: string; detail: string; reason: string; action: string; destination: string; priority: string }; pattern: string; rhythm: string | null };
-type StoredTimer = { remaining: number; deadline: number | null };
+type StoredTimer = { remaining: number; deadline: number | null; taskId?: string; lessonId?: string; projectId?: string };
 const TIMER_KEY = 'atlas-focus-timer-v1';
 const faithPractices = ['bible', 'prayer', 'reflection', 'worship', 'service'];
 
@@ -48,6 +48,7 @@ export function TodayPage() {
   const habits = useQuery({ queryKey: ['habits', today], queryFn: () => api<Habit[]>('/habits?date=' + today) });
   const deen = useQuery({ queryKey: ['deen', today], queryFn: () => api<Deen>('/deen/summary?date=' + today), enabled: religion === 'islam' });
   const faith = useQuery({ queryKey: ['faith', today], queryFn: () => api<Faith[]>('/faith?date=' + today), enabled: religion === 'christianity' });
+  const learning = useQuery({ queryKey: ['learning-paths'], queryFn: () => api<{ id: number; title: string; lessons: { id: number; title: string }[] }[]>('/learning/paths'), enabled: !!timer.lessonId });
   const goals = useQuery({ queryKey: ['goals'], queryFn: () => api<Goal[]>('/goals') });
   const insight = useQuery({ queryKey: ['intelligence'], queryFn: () => api<Insight>('/intelligence') });
 
@@ -91,6 +92,9 @@ export function TodayPage() {
   const remaining = timer.deadline === null ? timer.remaining : Math.max(0, Math.ceil((timer.deadline - now) / 1000));
   const focusRunning = timer.deadline !== null && remaining > 0;
   const timerText = String(Math.floor(remaining / 60)).padStart(2, '0') + ':' + String(remaining % 60).padStart(2, '0');
+  const activeTask = timer.taskId ? tasks.data?.find(task => String(task.id) === timer.taskId) : null;
+  const activeLesson = timer.lessonId ? learning.data?.flatMap(path => path.lessons.map(lesson => ({ ...lesson, pathTitle: path.title }))).find(lesson => String(lesson.id) === timer.lessonId) : null;
+  const activeFocusContext = activeTask ? 'Task · ' + activeTask.title : activeLesson ? 'Learning · ' + activeLesson.pathTitle + ' / ' + activeLesson.title : 'Unlinked focus session';
 
   useEffect(() => {
     if (!focusRunning) return;
@@ -99,7 +103,7 @@ export function TodayPage() {
   }, [focusRunning]);
   useEffect(() => {
     if (timer.deadline !== null && remaining === 0) {
-      const completed = { remaining: 0, deadline: null };
+      const completed = { ...timer, remaining: 0, deadline: null };
       setTimer(completed);
       localStorage.setItem(TIMER_KEY, JSON.stringify(completed));
     }
@@ -180,7 +184,7 @@ export function TodayPage() {
       <aside className="residence-side-column">
         <Card className="residence-focus-card">
           <div className="residence-section-heading"><div><span className="eyebrow">FOCUS ROOM</span><h2>{focusRunning ? 'Session in progress' : 'Protect your attention'}</h2></div><Timer size={17}/></div>
-          {focusRunning ? <div className="residence-active-timer"><strong>{timerText}</strong><span>Timer running on this device</span></div> : <p className="residence-focus-copy">You've invested {formatMinutes(overview.data?.todayMin ?? 0)} in focused work today.</p>}
+          {focusRunning ? <div className="residence-active-timer"><strong>{timerText}</strong><span>{activeFocusContext}</span></div> : <p className="residence-focus-copy">You've invested {formatMinutes(overview.data?.todayMin ?? 0)} in focused work today.</p>}
           <Link className="button button--secondary residence-focus-link" to="/focus">{focusRunning ? 'Return to focus room' : 'Start a focus session'} <ArrowRight size={14}/></Link>
           <div className="residence-week-focus"><span>This week</span><b>{formatMinutes(overview.data?.weekMin ?? 0)}</b></div>
         </Card>
