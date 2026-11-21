@@ -1184,3 +1184,26 @@ body { letter-spacing: -.006em; }
   .residence-workflow-footer .button { width:100%; justify-content:center; }
   .residence-priority-picker__heading { align-items:flex-start; flex-direction:column; gap:3px; }
 }
+
+/* Residence execution loop: intention, pinned tasks and shutdown hand-off */
+.residence-carryforward{display:grid;gap:4px;padding:12px 16px;border-left:2px solid var(--accent-strong);border-radius:0 9px 9px 0;background:var(--accent-wash)}
+.residence-carryforward p{margin:0;color:var(--text);font-size:12px;font-weight:600;line-height:1.55}
+.residence-carryforward small{color:var(--muted);font-size:9px}
+.residence-intention-card{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 19px;border:1px solid var(--line);background:var(--surface-raised)}
+.residence-intention-card>div{display:grid;gap:5px;min-width:0}
+.residence-intention-card p{margin:0;color:var(--text);font:600 15px/1.5 Manrope,sans-serif;letter-spacing:-.02em;overflow-wrap:anywhere}
+.residence-intention-card>button{flex:none}
+.residence-pinned-priorities{display:grid;gap:14px;padding:18px}
+.residence-pinned-list{display:grid;gap:7px}
+.residence-pinned-row{display:flex;align-items:center;gap:10px;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface);transition:background .18s ease,border-color .18s ease}
+.residence-pinned-row.is-complete{background:var(--surface-raised);opacity:.78}
+.residence-pinned-rank{display:grid;place-items:center;width:27px;height:27px;flex:none;border-radius:7px;background:var(--accent-wash);color:var(--accent-strong);font:700 10px Manrope,sans-serif}
+.residence-pinned-row>input{width:15px;height:15px;flex:none;accent-color:var(--accent-strong)}
+.residence-pinned-copy{display:grid;gap:3px;flex:1;min-width:0}
+.residence-pinned-copy b{overflow:hidden;color:var(--text);font-size:11px;font-weight:600;text-overflow:ellipsis}
+.residence-pinned-row.is-complete .residence-pinned-copy b{text-decoration:line-through;color:var(--muted)}
+.residence-pinned-copy small{color:var(--muted);font-size:9px}
+.residence-pinned-focus{display:inline-flex;align-items:center;gap:5px;flex:none;padding:6px 8px;border:1px solid var(--line);border-radius:7px;color:var(--accent-strong);font-size:9px;font-weight:650}
+.residence-pinned-focus:hover{background:var(--accent-wash)}
+.residence-shutdown-highlight .residence-shutdown-card.is-highlighted{border-color:color-mix(in srgb,var(--accent-strong) 48%,var(--line));box-shadow:0 0 0 3px var(--accent-wash)}
+@media(max-width:560px){.residence-intention-card{align-items:flex-start;flex-direction:column;padding:14px}.residence-intention-card p{font-size:13px}.residence-pinned-priorities{padding:14px}.residence-pinned-row{gap:7px;padding:9px}.residence-pinned-focus{padding:6px}}
