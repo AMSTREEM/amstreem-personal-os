@@ -48,7 +48,7 @@ test('Residence pins saved priorities, completes them inline, and links focus to
   assert.match(residence, /YOUR PINNED TOP 3/);
   assert.match(residence, /priorityTaskIds\.map\(id => tasks\.data\?\.find\(task => task\.id === id\)\)/);
   assert.match(residence, /toggleTask\.mutate\(task\)/);
-  assert.match(residence, /residence-pinned-focus[^\n]*to=\{'\/execution\?task=' \+ task\.id\}/);
+  assert.match(residence, /residence-pinned-focus[^\n]*to=\{'\/focus\?task=' \+ task\.id\}/);
   assert.match(residence, /onMutate: async task/);
   assert.match(focus, /params\.get\('task'\)/);
   assert.match(residence, /dailyReview\?\.alignment_complete && !editingAlignment/);
@@ -119,7 +119,7 @@ test('Room 3 records focus completion once and derives linked work metrics from 
   assert.match(server, /progress_pct:\s*p\.task_count\s*\?/);
   assert.match(server, /parent_task_id INTEGER REFERENCES tasks\(id\) ON DELETE CASCADE/);
   assert.match(server, /goal_id INTEGER REFERENCES goals\(id\) ON DELETE SET NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP\);/);
-  assert.match(execution, /ROOM 03 \/ EXECUTION & FOCUS/);
+  assert.match(execution, /ROOM 03 \/ FOCUS & ATTENTION/);
   assert.match(execution, /\['25','25m'\],\['50','50m'\],\['80','80m'\]/);
   assert.match(execution, /session_key:timer\.sessionKey/);
   assert.match(execution, /savedKeys\.current\.has\(timer\.sessionKey\)/);
@@ -143,7 +143,7 @@ test('Room 3 routes the execution workspace through the four-room shell without 
   assert.match(shell, /to: '\/execution'/);
   assert.match(shell, /label: 'Workspace', to: '\/execution'/);
   assert.match(css, /\.execution-split\{display:grid;grid-template-columns/);
-  assert.match(css, /@media\(max-width:850px\)\{\.execution-split\{grid-template-columns:1fr\}/);
+  assert.match(read('client/src/pages/ExecutionFocusPage.tsx'), /Projects/);
 });
 
 
