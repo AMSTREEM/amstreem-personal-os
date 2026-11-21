@@ -60,6 +60,8 @@ test('Daily Rhythm records persist per workspace and remain compatible with olde
   assert.match(server, /'self_control_entries','rhythm_records','email_events'/);
   assert.match(server, /'faith_logs','rhythm_records','login_events'/);
   assert.match(server, /CREATE TABLE IF NOT EXISTS rhythm_records/);
+  assert.match(server, /values\.faith_tradition=values\.faith_tradition\|\|values\.religion/);
+  assert.match(server, /'faith_tradition','leaderboard_name'/);
   assert.match(server, /app\.post\('\/api\/rhythm\/records'/);
   assert.match(server, /app\.get\('\/api\/rhythm\/summary'/);
   assert.match(server, /rhythm_records:all\('SELECT \* FROM rhythm_records'\)/);
