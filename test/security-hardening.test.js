@@ -119,7 +119,7 @@ test('Room 3 records focus completion once and derives linked work metrics from 
   assert.match(server, /progress_pct:\s*p\.task_count\s*\?/);
   assert.match(server, /parent_task_id INTEGER REFERENCES tasks\(id\) ON DELETE CASCADE/);
   assert.match(server, /goal_id INTEGER REFERENCES goals\(id\) ON DELETE SET NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP\);/);
-  assert.match(execution, /FOCUS ROOM \/ DEEP WORK/);
+  assert.match(execution, /ROOM 03 \/ EXECUTION & FOCUS/);
   assert.match(execution, /\['25','25m'\],\['50','50m'\],\['80','80m'\]/);
   assert.match(execution, /session_key:timer\.sessionKey/);
   assert.match(execution, /savedKeys\.current\.has\(timer\.sessionKey\)/);

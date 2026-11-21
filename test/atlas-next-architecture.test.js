@@ -50,7 +50,7 @@ test('project, task, calendar, focus and review records can be linked', () => {
 test('the four primary rooms stay visible while secondary views remain optional', () => {
   const shell = read('client/src/components/AppShell.tsx');
   const settings = read('client/src/pages/SettingsPage.tsx');
-  for (const room of ['Residence', 'Daily Rhythm', 'Workspace', 'Growth & Direction', 'Focus Room']) {
+  for (const room of ['Residence', 'Daily Rhythm', 'Execution & Focus', 'Growth & Direction']) {
     assert.ok(shell.includes("label: '" + room + "'"), 'Missing room ' + room);
   }
   assert.match(shell, /const rooms = \[/);
