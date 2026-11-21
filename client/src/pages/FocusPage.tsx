@@ -58,7 +58,7 @@ export function FocusPage() {
 
   const create = useMutation({
     mutationFn: () => api<Session>('/sessions', json('POST', { focus, minutes: Number(minutes), reflection, task_id: taskId || null, project_id: projectId || null, lesson_id: lessonId || null })),
-    onSuccess: () => { setFocus(''); setReflection(''); setTaskId(''); setProjectId(''); setLessonId(''); void client.invalidateQueries({ queryKey: ['sessions'] }); void client.invalidateQueries({ queryKey: ['overview'] }); void client.invalidateQueries({ queryKey: ['intelligence'] }); }
+    onSuccess: () => { setFocus(''); setReflection(''); setTaskId(''); setProjectId(''); setLessonId(''); void client.invalidateQueries({ queryKey: ['sessions'] }); void client.invalidateQueries({ queryKey: ['overview'] }); void client.invalidateQueries({ queryKey: ['intelligence'] }); void client.invalidateQueries({ queryKey: ['learning-paths'] }); void client.invalidateQueries({ queryKey: ['learning-study-logs'] }); }
   });
   const total = sessions.data?.reduce((sum, item) => sum + item.minutes, 0) || 0;
   const timerText = String(Math.floor(remaining / 60)).padStart(2, '0') + ':' + String(remaining % 60).padStart(2, '0');
