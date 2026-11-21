@@ -116,6 +116,7 @@ export function TodayPage() {
     return a.due_date.localeCompare(b.due_date) || a.id - b.id;
   });
   const todayTasks = (tasks.data || []).filter(task => task.due_date === today);
+  const priorityCandidates = [...(tasks.data || []).filter(task => priorityTaskIds.includes(task.id)), ...openTasks].filter((task,index,items) => items.findIndex(item => item.id === task.id) === index).slice(0,12);
   const priorityTasks = [...openTasks.filter(task => task.due_date && task.due_date < today), ...openTasks.filter(task => task.due_date === today), ...openTasks.filter(task => task.due_date && task.due_date > today), ...openTasks.filter(task => !task.due_date)].slice(0, 5);
   const activeGoals = (goals.data || []).filter(goal => goal.status === 'active').sort((a,b) => (a.target_date || '9999').localeCompare(b.target_date || '9999')).slice(0, 3);
   const tomorrowDate = new Date(today + 'T12:00:00'); tomorrowDate.setDate(tomorrowDate.getDate() + 1);
@@ -189,7 +190,7 @@ export function TodayPage() {
           <label className="residence-field"><span>Today's intention</span><textarea value={dailyIntention} onChange={event => setDailyIntention(event.target.value)} maxLength={500} rows={2} placeholder="What kind of person do you want to be today? What matters most?" /></label>
           <div className="residence-priority-picker">
             <div className="residence-priority-picker__heading"><b>Choose up to three priorities</b><small>{priorityTaskIds.length}/3 selected · selection order sets priority</small></div>
-            {openTasks.length ? <div className="residence-priority-options">{openTasks.slice(0, 12).map(task => {
+            {priorityCandidates.length ? <div className="residence-priority-options">{priorityCandidates.map(task => {
               const selected = priorityTaskIds.includes(task.id);
               const order = priorityTaskIds.indexOf(task.id);
               return <label className={'residence-priority-option ' + (selected ? 'is-selected' : '')} key={task.id}>
