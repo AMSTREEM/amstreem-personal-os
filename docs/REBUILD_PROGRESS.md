@@ -5,7 +5,7 @@
 - Draft PR #3 targets `atlas-next`; it is open and unmerged.
 - Production remains on `audit-and-hardening`; no Render deployment, production Supabase schema change, or production workspace write has been performed.
 - The six-pillar navigation, Residence command view, goal-to-project/task/habit links, and Focus-to-Learning links are implemented on the development branch.
-- GitHub Actions passed on the current PR head (`c6c983f`): production dependency audit, server syntax, TypeScript typecheck, frontend build, and automated tests.
+- GitHub Actions passed on the implementation commit (`c6c983f`) and the latest documentation follow-up (`00ebe7e`): production dependency audit, server syntax, TypeScript typecheck, frontend build, and automated tests.
 - Browser-level visual QA and isolated staging verification are still outstanding. Do not mark the work ready for release until those checks pass.
 
 ## Historical baseline — 2026-11-20
