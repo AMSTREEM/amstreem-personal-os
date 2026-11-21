@@ -25,7 +25,7 @@ export function LibraryPage() {
     <PageHeader eyebrow="KNOWLEDGE / PERSONAL LIBRARY" title="Private library" description="A considered collection of books, articles, references and notes worth returning to." />
     <Card className="room4-card">
       <div className="card-heading"><div><h2>Add to your reading list</h2><p>Capture a resource and decide its place in your reading queue.</p></div><BookMarked size={18}/></div>
-      <form className="form-stack" onSubmit={e=>{e.preventDefault();if(resourceTitle.trim())createItem.mutate();}}>
+      <details className="atlas-add-disclosure"><summary>+ Add resource</summary><details className="atlas-add-disclosure"><summary>+ Capture a note</summary><form className="form-stack" onSubmit={e=>{e.preventDefault();if(resourceTitle.trim())createItem.mutate();}}>
         <Field label="Resource title"><TextInput value={resourceTitle} onChange={e=>setResourceTitle(e.target.value)} placeholder="Book, article or reference" required/></Field>
         <div className="form-row">
           <Field label="Type"><select className="field-input" value={resourceType} onChange={e=>setResourceType(e.target.value as ReadingItem['item_type'])}><option value="book">Book</option><option value="article">Article</option><option value="reference">Reference</option></select></Field>
@@ -33,7 +33,7 @@ export function LibraryPage() {
           <Field label="Link"><TextInput type="url" value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://…"/></Field>
         </div>
         <div><Button type="submit" disabled={createItem.isPending||!resourceTitle.trim()}><Plus size={16}/> Add resource</Button></div>
-      </form>
+      </form></details></details>
       {createItem.isError&&<p className="inline-error">{createItem.error.message}</p>}
     </Card>
     <section className="stack">

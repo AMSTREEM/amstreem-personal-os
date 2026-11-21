@@ -1565,3 +1565,168 @@ body { letter-spacing: -.006em; }
   .room-view-transition,.atlas-cascade-item { will-change: auto; }
   .atlas-cascade-item::after { animation: none; opacity: 0; }
 }
+
+
+/* Atlas visual declutter — crisp surfaces, quiet hierarchy, progressive disclosure */
+:root { --border-hairline: var(--line); }
+.surface-card,
+.stat-card,
+.room4-card,
+.room4-path-card,
+.room4-evidence,
+.goal-card--connected,
+.execution-panel-card,
+.execution-focus-card,
+.execution-history-card {
+  box-shadow: none !important;
+  border: 1px solid var(--border-hairline) !important;
+  transition: border-color 160ms ease !important;
+}
+.surface-card:hover,
+.stat-card:hover,
+.room4-card:hover,
+.room4-path-card:hover,
+.room4-evidence:hover,
+.goal-card--connected:hover,
+.execution-panel-card:hover,
+.execution-focus-card:hover,
+.execution-history-card:hover {
+  border-color: color-mix(in srgb, var(--text) 18%, var(--border-hairline)) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.atlas-spotlight::before,
+.atlas-spotlight::after,
+.room4-library .room4-card::before,
+.room4-library .room4-card::after,
+.atlas-cascade-item::before,
+.atlas-cascade-item::after {
+  content: none !important;
+  display: none !important;
+  animation: none !important;
+  box-shadow: none !important;
+}
+.atlas-cascade-item { will-change: transform, opacity; }
+.page-container .stack,
+.today-dashboard,
+.rhythm-page,
+.execution-workspace { gap: 24px; }
+.surface-card,
+.room4-library .room4-card,
+.goal-card--connected,
+.execution-panel-card,
+.execution-focus-card,
+.execution-history-card { padding: 22px; }
+.card-heading,
+.module-panel-head,
+.residence-section-heading,
+.today-section-heading,
+.execution-panel-heading { margin-bottom: 14px; }
+.card-heading p,
+.module-panel-head p,
+.residence-section-heading p,
+.today-section-heading p,
+.execution-panel-heading p { display: none; }
+.today-dashboard .residence-band-heading .eyebrow,
+.today-dashboard .residence-section-heading .eyebrow,
+.today-dashboard .today-section-heading .eyebrow,
+.today-dashboard .residence-pulse__heading .eyebrow,
+.today-dashboard .residence-stat .eyebrow,
+.rhythm-page .module-kicker,
+.rhythm-page .eyebrow:not(.page-header .eyebrow),
+.execution-workspace .eyebrow:not(.page-header .eyebrow),
+.execution-heading .eyebrow,
+.goal-grid .status-pill,
+.goal-card__top > svg {
+  display: none !important;
+}
+.residence-band-heading { margin-bottom: 10px; }
+.residence-band-heading > p { margin: 0; }
+.residence-stat-grid,
+.residence-grid,
+.rhythm-grid,
+.execution-split { gap: 24px !important; }
+.card-heading h2,
+.module-panel-head h2,
+.residence-section-heading h2,
+.today-section-heading h2,
+.execution-panel-heading h2 { font-size: 15px; letter-spacing: -.025em; }
+.list-row,
+.today-task-row,
+.today-habit-row,
+.rituals-row,
+.execution-task,
+.room4-resource,
+.note-card { transition: background-color 140ms ease, border-color 140ms ease; }
+.list-row .icon-button,
+.rituals-remove,
+.room4-note-actions,
+.goal-link-actions,
+.execution-subtask-form {
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+.list-row:hover .icon-button,
+.list-row:focus-within .icon-button,
+.rituals-row:hover .rituals-remove,
+.rituals-row:focus-within .rituals-remove,
+.note-card:hover .room4-note-actions,
+.note-card:focus-within .room4-note-actions,
+.goal-card:hover .goal-link-actions,
+.goal-card:focus-within .goal-link-actions,
+.execution-task:hover .execution-subtask-form,
+.execution-task:focus-within .execution-subtask-form { opacity: 1; }
+.atlas-add-disclosure {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.atlas-add-disclosure > summary {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border-hairline);
+  border-radius: 8px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+.atlas-add-disclosure > summary::-webkit-details-marker { display: none; }
+.atlas-add-disclosure > summary:hover,
+.atlas-add-disclosure[open] > summary {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--text) 20%, var(--border-hairline));
+  background: var(--surface-raised);
+}
+.atlas-add-disclosure > form { margin-top: 14px; }
+.atlas-add-disclosure--compact { margin-left: 34px; }
+.atlas-add-disclosure--compact > summary { min-height: 27px; padding: 0 8px; font-size: 9px; }
+@media (hover: none) {
+  .list-row .icon-button,
+  .rituals-remove,
+  .room4-note-actions,
+  .goal-link-actions,
+  .execution-subtask-form { opacity: 1; }
+}
+@media (max-width: 760px) {
+  .surface-card,
+  .room4-library .room4-card,
+  .goal-card--connected,
+  .execution-panel-card,
+  .execution-focus-card,
+  .execution-history-card { padding: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .atlas-add-disclosure > summary,
+  .list-row .icon-button,
+  .rituals-remove,
+  .room4-note-actions,
+  .goal-link-actions { transition: none !important; }
+}

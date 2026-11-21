@@ -36,14 +36,14 @@ export function TasksPage() {
     <PageHeader eyebrow="PLAN / EXECUTION" title="Tasks" description="Turn intentions into clear, finishable next actions." />
     <Card>
       <div className="card-heading"><div><h2>Capture a task</h2><p>Keep it specific enough to act on.</p></div></div>
-      <form className="capture-form" onSubmit={event => { event.preventDefault(); if (title.trim()) create.mutate(); }}>
+      <details className="atlas-add-disclosure"><summary>+ Add task</summary><form className="capture-form" onSubmit={event => { event.preventDefault(); if (title.trim()) create.mutate(); }}>
         <Field label="Task"><TextInput value={title} onChange={event => setTitle(event.target.value)} placeholder="What needs to move forward?" required /></Field>
         <Field label="A little context"><TextInput value={detail} onChange={event => setDetail(event.target.value)} placeholder="Optional details" /></Field>
         <Field label="Due date"><TextInput type="date" value={dueDate} onChange={event => setDueDate(event.target.value)} /></Field>
         <Field label="Project (optional)"><select className="field-input" value={projectId} onChange={event => setProjectId(event.target.value)}><option value="">No project</option>{projects.data?.map(project => <option value={project.id} key={project.id}>{project.title}</option>)}</select></Field>
         <Field label="Goal (optional)"><select className="field-input" value={goalId} onChange={event => setGoalId(event.target.value)}><option value="">No goal</option>{goals.data?.map(goal => <option value={goal.id} key={goal.id}>{goal.title}</option>)}</select></Field>
         <Button type="submit" disabled={create.isPending || !title.trim()}><Plus size={16} /> Add task</Button>
-      </form>
+      </form></details>
       {create.isError && <p className="inline-error">{create.error.message}</p>}
     </Card>
     <Card>

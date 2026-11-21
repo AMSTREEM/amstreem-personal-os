@@ -51,14 +51,14 @@ export function GoalsPage() {
     <PageHeader eyebrow="DIRECTION / LONG GAME" title="Goals" description="Keep your meaningful outcomes visible. Connect each one to projects, milestones and actionable tasks." />
     <Card>
       <div className="card-heading"><div><h2>Set a direction</h2><p>Describe an outcome, not a vague aspiration.</p></div></div>
-      <form className="form-stack" onSubmit={event => { event.preventDefault(); if (title.trim()) create.mutate(); }}>
+      <details className="atlas-add-disclosure"><summary>+ Add goal</summary><form className="form-stack" onSubmit={event => { event.preventDefault(); if (title.trim()) create.mutate(); }}>
         <Field label="Goal"><TextInput value={title} onChange={event => setTitle(event.target.value)} placeholder="What do you want to make real?" required /></Field>
         <Field label="Why it matters"><TextArea value={detail} onChange={event => setDetail(event.target.value)} placeholder="Add the context that will help you stay oriented." /></Field>
         <Field label="Category"><select className="field-input" value={category} onChange={event => setCategory(event.target.value)}><option>Personal</option><option>Faith</option><option>Health</option><option>Learning</option><option>Career</option><option>Business</option><option>Finance</option></select></Field>
         <Field label="Horizon"><select className="field-input" value={horizon} onChange={event=>setHorizon(event.target.value as 'short-term'|'long-term')}><option value="short-term">Short-term</option><option value="long-term">Long-term</option></select></Field>
         <Field label="Target date"><TextInput type="date" value={targetDate} onChange={event => setTargetDate(event.target.value)} /></Field>
         <div><Button type="submit" disabled={create.isPending || !title.trim()}><Plus size={16} /> Add goal</Button></div>
-      </form>
+      </form></details>
       {create.isError && <p className="inline-error">{create.error.message}</p>}
     </Card>
     <div className="goal-grid">
