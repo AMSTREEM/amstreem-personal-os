@@ -27,7 +27,7 @@ function readTimer():TimerState {
       focus:typeof raw.focus==='string'?raw.focus:'',
       notes:typeof raw.notes==='string'?raw.notes:'',
       distractions:Array.isArray(raw.distractions)?raw.distractions.filter((x:unknown)=>typeof x==='string').slice(0,50):[],
-      sessionKey:typeof raw.sessionKey==='string'?raw.sessionKey:null
+      sessionKey:typeof raw.sessionKey==='string'?raw.sessionKey:(raw.deadline!==null?('atlas-migrated-'+Date.now()+'-'+Math.random().toString(36).slice(2)):null)
     };
   } catch { /* Recover from an invalid local timer. */ }
   return freshTimer();
