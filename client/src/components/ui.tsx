@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, TextareaHTMLAttributes, ReactNode } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../lib/utils';
-import { motion, type MotionProps } from 'motion/react';
+import { motion } from 'motion/react';
 
 const buttonVariants = cva('button', {
   variants: {
@@ -21,9 +21,9 @@ const buttonVariants = cva('button', {
   defaultVariants: { variant: 'primary', size: 'default' }
 });
 
-type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof MotionProps> & Omit<MotionProps, 'children'> & VariantProps<typeof buttonVariants> & { children?: ReactNode; loading?: boolean };
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof buttonVariants> & { loading?: boolean };
 export function Button({ children, className, variant, size, loading = false, disabled, ...props }: ButtonProps) {
-  return <motion.button whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={buttonVariants({ variant, size, className })} disabled={disabled || loading} aria-busy={loading || undefined} {...props}>
+  return <motion.button whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={buttonVariants({ variant, size, className })} disabled={disabled || loading} aria-busy={loading || undefined} {...(props as any)}>
     {loading && <span className="button__spinner" aria-hidden="true" />}
     {children}
   </motion.button>;
