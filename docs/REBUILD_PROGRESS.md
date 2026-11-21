@@ -5,7 +5,8 @@
 - Draft PR #3 targets `atlas-next`; it is open and unmerged.
 - Production remains on `audit-and-hardening`; no Render deployment, production Supabase schema change, or production workspace write has been performed.
 - The six-pillar navigation, Residence command view, goal-to-project/task/habit links, and Focus-to-Learning links are implemented on the development branch.
-- Latest automated validation is running against the current branch head. Do not mark the work ready for release until the current CI run and staging checks pass.
+- GitHub Actions passed on the current PR head (`c6c983f`): production dependency audit, server syntax, TypeScript typecheck, frontend build, and automated tests.
+- Browser-level visual QA and isolated staging verification are still outstanding. Do not mark the work ready for release until those checks pass.
 
 ## Historical baseline — 2026-11-20
 Discovery and baseline protection. No production code, Supabase data, or Render configuration had been changed at that point.
@@ -169,7 +170,7 @@ No Render deployment or production Supabase data/schema change has been made fro
 - Architecture documentation and automated tests were updated for the new relationships.
 
 ### Current verification gates
-- GitHub Actions has previously passed dependency audit, server syntax check, TypeScript typecheck, frontend build, and tests on intermediate commits.
-- The latest branch head is undergoing the same full CI workflow; check the current run before claiming final validation.
+- GitHub Actions passed on the current PR head (`c6c983f`): dependency audit, server syntax, TypeScript typecheck, frontend build, and automated tests.
+- Browser-level visual QA, existing-account staging login, snapshot restore against staging, and isolated Render staging deployment remain outstanding.
 - Browser-level visual QA, existing-account staging login, snapshot restore against staging, and isolated Render staging deployment remain outstanding.
 - Keep PR #3 in draft and do not merge or deploy to production until those checks are complete.
