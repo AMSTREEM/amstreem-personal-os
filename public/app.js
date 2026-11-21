@@ -196,7 +196,7 @@ async function renderLifeCommandCentre(overview){
  $('#lifeFocusValue').textContent=focusMinutes+' min';$('#lifeFocusNote').textContent=(timer.running?'Session in progress · ':'')+focusPct+'% of your daily intention';
  $('#lifePriorityValue').textContent=due.length+' open';$('#lifePriorityNote').textContent=dueAll.length?completedDue+' of '+dueAll.length+' due items complete':'No dated priorities due today';
  $('#lifeHabitValue').textContent=habitDone+'/'+habitTotal;$('#lifeHabitNote').textContent=habitTotal?habitPct+'% of daily habits complete':'Add a few habits to begin tracking';
- const scores=[focusPct,taskPct,habitPct];if(prayerPct!==null)scores.push(prayerPct);
+ const scores=[focusPct];if(dueAll.length)scores.push(taskPct);if(habitTotal)scores.push(habitPct);if(prayerPct!==null)scores.push(prayerPct);
  const score=Math.round(scores.reduce((sum,n)=>sum+n,0)/scores.length);
  $('#lifeDailyScore').textContent=score+'%';
  const activeGoals=goals.filter(g=>g.status!=='completed'&&g.status!=='Completed');
