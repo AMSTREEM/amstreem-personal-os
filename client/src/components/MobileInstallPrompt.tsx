@@ -6,6 +6,14 @@ type InstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 };
 
+let deferredInstallPrompt: InstallPromptEvent | null = null;
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', event => {
+    event.preventDefault();
+    deferredInstallPrompt = event as InstallPromptEvent;
+  });
+}
+
 function isStandalone() {
   return window.matchMedia('(display-mode: standalone)').matches ||
     (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
@@ -22,18 +30,19 @@ export function MobileInstallPrompt() {
   const [guideOpen, setGuideOpen] = useState(false);
   const [installed, setInstalled] = useState(false);
   const apple = isAppleMobile();
+  const mobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+    (navigator.maxTouchPoints > 1 && window.innerWidth <= 1024);
 
   useEffect(() => {
+    if (!mobileDevice) return;
     if (isStandalone()) { setInstalled(true); return; }
+    if (deferredInstallPrompt) setPromptEvent(deferredInstallPrompt);
     let dismissedAt = 0;
     try { dismissedAt = Number(localStorage.getItem('atlas-install-dismissed-at') || 0); } catch {}
     const dismissedRecently = dismissedAt && Date.now() - dismissedAt < 14 * 24 * 60 * 60 * 1000;
     if (dismissedRecently) return;
 
-    const onBeforeInstall = (event: Event) => {
-      event.preventDefault();
-      setPromptEvent(event as InstallPromptEvent);
-    };
+    const onBeforeInstall = (event: Event) => setPromptEvent(event as InstallPromptEvent);
     const onInstalled = () => { setInstalled(true); setVisible(false); setGuideOpen(false); };
     window.addEventListener('beforeinstallprompt', onBeforeInstall);
     window.addEventListener('appinstalled', onInstalled);
@@ -43,7 +52,7 @@ export function MobileInstallPrompt() {
       window.removeEventListener('beforeinstallprompt', onBeforeInstall);
       window.removeEventListener('appinstalled', onInstalled);
     };
-  }, []);
+  }, [mobileDevice]);
 
   if (installed || !visible) return null;
 
