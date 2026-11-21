@@ -4,9 +4,10 @@ import { Clock3, Pause, Play, RotateCcw } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
 
-type Session = { id: number; session_date: string; minutes: number; focus: string; reflection: string; task_title?: string | null; project_title?: string | null };
+type Session = { id: number; session_date: string; minutes: number; focus: string; reflection: string; task_title?: string | null; project_title?: string | null; lesson_title?: string | null; path_title?: string | null };
 type Task = { id: number; title: string };
 type Project = { id: number; title: string };
+type LearningPath = { id: number; title: string; lessons: { id: number; title: string; status: string }[] };
 type StoredTimer = { remaining: number; deadline: number | null };
 const TIMER_KEY = 'atlas-focus-timer-v1';
 const DEFAULT_SECONDS = 25 * 60;
@@ -28,12 +29,14 @@ export function FocusPage() {
   const [reflection, setReflection] = useState('');
   const [taskId, setTaskId] = useState('');
   const [projectId, setProjectId] = useState('');
+  const [lessonId, setLessonId] = useState('');
   const [timer, setTimer] = useState<StoredTimer>(readTimer);
   const [now, setNow] = useState(() => Date.now());
   const [completed, setCompleted] = useState(false);
   const sessions = useQuery({ queryKey: ['sessions'], queryFn: () => api<Session[]>('/sessions') });
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => api<Task[]>('/tasks') });
   const projects = useQuery({ queryKey: ['projects'], queryFn: () => api<Project[]>('/projects') });
+  const learning = useQuery({ queryKey: ['learning-paths'], queryFn: () => api<LearningPath[]>('/learning/paths') });
 
   const remaining = timer.deadline === null ? timer.remaining : Math.max(0, Math.ceil((timer.deadline - now) / 1000));
   const running = timer.deadline !== null && remaining > 0;
@@ -54,8 +57,8 @@ export function FocusPage() {
   }, [timer]);
 
   const create = useMutation({
-    mutationFn: () => api<Session>('/sessions', json('POST', { focus, minutes: Number(minutes), reflection, task_id: taskId || null, project_id: projectId || null })),
-    onSuccess: () => { setFocus(''); setReflection(''); setTaskId(''); setProjectId(''); void client.invalidateQueries({ queryKey: ['sessions'] }); void client.invalidateQueries({ queryKey: ['overview'] }); void client.invalidateQueries({ queryKey: ['intelligence'] }); }
+    mutationFn: () => api<Session>('/sessions', json('POST', { focus, minutes: Number(minutes), reflection, task_id: taskId || null, project_id: projectId || null, lesson_id: lessonId || null })),
+    onSuccess: () => { setFocus(''); setReflection(''); setTaskId(''); setProjectId(''); setLessonId(''); void client.invalidateQueries({ queryKey: ['sessions'] }); void client.invalidateQueries({ queryKey: ['overview'] }); void client.invalidateQueries({ queryKey: ['intelligence'] }); }
   });
   const total = sessions.data?.reduce((sum, item) => sum + item.minutes, 0) || 0;
   const timerText = String(Math.floor(remaining / 60)).padStart(2, '0') + ':' + String(remaining % 60).padStart(2, '0');
@@ -96,8 +99,9 @@ export function FocusPage() {
         <Field label="What did you focus on?"><TextInput value={focus} onChange={event => setFocus(event.target.value)} placeholder="The work you gave your attention to" required /></Field>
         <div className="field-row">
           <Field label="Duration in minutes"><TextInput type="number" min="1" max="600" value={minutes} onChange={event => { setMinutes(event.target.value); if (!running) { const seconds = Math.max(1, Math.min(600, Number(event.target.value) || 25)) * 60; setTimer({ remaining: seconds, deadline: null }); setCompleted(false); } }} required /></Field>
-          <Field label="Related task"><select className="field-input" value={taskId} onChange={event => setTaskId(event.target.value)}><option value="">No linked task</option>{tasks.data?.map(task => <option key={task.id} value={task.id}>{task.title}</option>)}</select></Field>
+          <Field label="Related task"><select className="field-input" value={taskId} disabled={!!lessonId} onChange={event => { setTaskId(event.target.value); if (event.target.value) setLessonId(''); }}><option value="">No linked task</option>{tasks.data?.map(task => <option key={task.id} value={task.id}>{task.title}</option>)}</select></Field>
         </div>
+        <Field label="Related learning lesson"><select className="field-input" value={lessonId} disabled={!!taskId} onChange={event => { setLessonId(event.target.value); if (event.target.value) setTaskId(''); }}><option value="">No linked lesson</option>{learning.data?.flatMap(path => path.lessons.map(lesson => ({ ...lesson, pathTitle: path.title }))).map(lesson => <option key={lesson.id} value={lesson.id}>{lesson.pathTitle} · {lesson.title}</option>)}</select></Field>
         <Field label="Related project"><select className="field-input" value={projectId} onChange={event => setProjectId(event.target.value)}><option value="">No linked project</option>{projects.data?.map(project => <option key={project.id} value={project.id}>{project.title}</option>)}</select></Field>
         <Field label="Reflection (optional)"><TextArea value={reflection} onChange={event => setReflection(event.target.value)} placeholder="What moved forward? What did you learn?" /></Field>
         <div><Button type="submit" disabled={create.isPending || !focus.trim() || !(Number(minutes) > 0 && Number(minutes) <= 600)}>{create.isPending ? 'Saving…' : 'Save session'}</Button></div>
@@ -106,7 +110,7 @@ export function FocusPage() {
     </Card>
     <Card>
       <div className="card-heading"><div><h2>Recent sessions</h2><p>Your focus history.</p></div></div>
-      {sessions.data?.length ? <div className="list-stack">{sessions.data.map(item => <div className="list-row" key={item.id}><span className="session-mark"><Clock3 size={16} /></span><div className="list-row__body"><b>{item.focus}</b><small>{item.session_date}{item.task_title ? ' · ' + item.task_title : ''}{item.project_title ? ' · ' + item.project_title : ''}{item.reflection ? ' · ' + item.reflection : ''}</small></div><span className="list-row__meta">{item.minutes} min</span></div>)}</div> : <EmptyState title="Your focus history starts here." detail="Record a completed session to build a useful picture of your attention over time." />}
+      {sessions.data?.length ? <div className="list-stack">{sessions.data.map(item => <div className="list-row" key={item.id}><span className="session-mark"><Clock3 size={16} /></span><div className="list-row__body"><b>{item.focus}</b><small>{item.session_date}{item.task_title ? ' · Task: ' + item.task_title : ''}{item.lesson_title ? ' · Learning: ' + (item.path_title ? item.path_title + ' / ' : '') + item.lesson_title : ''}{item.project_title ? ' · ' + item.project_title : ''}{item.reflection ? ' · ' + item.reflection : ''}</small></div><span className="list-row__meta">{item.minutes} min</span></div>)}</div> : <EmptyState title="Your focus history starts here." detail="Record a completed session to build a useful picture of your attention over time." />}
     </Card>
   </div>;
 }
