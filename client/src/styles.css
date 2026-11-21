@@ -1086,3 +1086,6 @@ body { letter-spacing: -.006em; }
 .residence-rhythm-action p{margin:0;color:var(--muted);font-size:9px;line-height:1.5}
 .residence-rhythm-action a{display:inline-flex;align-items:center;gap:6px;color:var(--accent);font-size:9px;font-weight:650;white-space:nowrap}
 @media(max-width:560px){.residence-rhythm-action{grid-template-columns:1fr;gap:8px}}
+
+.residence-rhythm-links{display:flex;flex-wrap:wrap;gap:12px}
+.residence-rhythm-links a{display:inline-flex;align-items:center;gap:5px;color:var(--accent);font-size:9px;font-weight:650;white-space:nowrap}
