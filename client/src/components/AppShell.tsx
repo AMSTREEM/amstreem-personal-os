@@ -44,6 +44,7 @@ export function AppShell() {
   const { user, role, signOut, session, completeOnboarding } = useAuth();
   const queryClient = useQueryClient();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileViewport, setMobileViewport] = useState(() => window.matchMedia('(max-width: 767px)').matches);
   const [profileOpen, setProfileOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
@@ -53,6 +54,13 @@ export function AppShell() {
   const [quickTaskTitle, setQuickTaskTitle] = useState('');
   const [quickTaskSaving, setQuickTaskSaving] = useState(false);
   const [quickTaskError, setQuickTaskError] = useState('');
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 767px)');
+    const update = () => setMobileViewport(query.matches);
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
   useEffect(() => {
     if (!session?.user || !user) return;
     const key = `atlas-tour-complete:${session.user.id}`;
@@ -215,7 +223,7 @@ export function AppShell() {
           <motion.div
             key={location.pathname}
             className="room-view-transition"
-            initial={{ opacity: 0, scale: 0.94, y: 26, rotateX: 4 }}
+            initial={{ opacity: 0, scale: 0.94, y: mobileViewport ? 16 : 26, rotateX: mobileViewport ? 2 : 4 }}
             animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
             exit={{ opacity: 0, scale: 0.975, y: -8, transition: { duration: 0.11, ease: [0.4, 0, 1, 1] } }}
             transition={{ type: 'spring', stiffness: 340, damping: 28, mass: 0.85 }}
