@@ -101,7 +101,7 @@ test('Focus timer survives refreshes and does not fabricate completed sessions',
 test('Morning Alignment and Evening Shutdown persist in the daily review record', () => {
   const residence = read('client/src/pages/TodayPage.tsx');
   assert.match(server, /intention TEXT NOT NULL DEFAULT ''/);
-  assert.match(server, /priority_task_ids TEXT NOT NULL DEFAULT '\\[\\]'/);
+  assert.ok(server.includes("priority_task_ids TEXT NOT NULL DEFAULT '[]'"));
   assert.match(server, /alignment_complete INTEGER NOT NULL DEFAULT 0/);
   assert.match(server, /shutdown_complete INTEGER NOT NULL DEFAULT 0/);
   assert.match(server, /priorityIds\.length>3/);
