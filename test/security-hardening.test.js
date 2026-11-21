@@ -32,9 +32,174 @@ test('browser responses have CSP, HSTS in production, and no-store API responses
   assert.match(server, /Cross-Origin-Opener-Policy/);
 });
 
-test('production installs are reproducible and CI audits production dependencies', () => {
-  assert.match(workflow, /npm ci/);
+test('production installs dependencies, builds the frontend, and CI audits production dependencies', () => {
+  assert.match(workflow, /npm install/);
   assert.match(workflow, /npm audit --omit=dev --audit-level=high/);
-  assert.match(render, /buildCommand: npm ci/);
+  assert.match(render, /buildCommand: npm install --include=dev && npm run build/);
   assert.match(render, /healthCheckPath: \/healthz/);
+  const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
+  assert.ok(pkg.dependencies.vite, 'Vite must be available when Render installs production dependencies');
+});
+
+
+test('Residence pins saved priorities, completes them inline, and links focus to the selected task', () => {
+  const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
+  const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'FocusPage.tsx'), 'utf8');
+  assert.match(residence, /YOUR PINNED TOP 3/);
+  assert.match(residence, /priorityTaskIds\.map\(id => tasks\.data\?\.find\(task => task\.id === id\)\)/);
+  assert.match(residence, /toggleTask\.mutate\(task\)/);
+  assert.match(residence, /residence-pinned-focus[^\n]*to=\{'\/focus\?task=' \+ task\.id\}/);
+  assert.match(residence, /onMutate: async task/);
+  assert.match(focus, /params\.get\('task'\)/);
+  assert.match(residence, /dailyReview\?\.alignment_complete && !editingAlignment/);
+  assert.match(residence, /yesterdayReview\?\.shutdown_complete && yesterdayReview\.next_focus\?\.trim\(\)/);
+  assert.match(residence, /showShutdownPrompt \? /);
+});
+
+
+test('Daily Rhythm records persist per workspace and remain compatible with older snapshots and exports', () => {
+  const backup = fs.readFileSync(path.join(__dirname, '..', 'workspace-backup.js'), 'utf8');
+  assert.match(server, /'self_control_entries','rhythm_records','reading_items','email_events'/);
+  assert.match(server, /'faith_logs','rhythm_records','reading_items','login_events'/);
+  assert.match(server, /CREATE TABLE IF NOT EXISTS rhythm_records/);
+  assert.match(server, /values\.faith_tradition=values\.faith_tradition\|\|values\.religion/);
+  assert.match(server, /'faith_tradition','leaderboard_name'/);
+  assert.match(server, /app\.post\('\/api\/rhythm\/records'/);
+  assert.match(server, /app\.get\('\/api\/rhythm\/summary'/);
+  assert.match(server, /rhythm_records:all\('SELECT \* FROM rhythm_records'\)/);
+  assert.match(backup, /'self_control_entries','rhythm_records','reading_items','settings'/);
+  assert.match(backup, /'feedback_logs','rhythm_records','reading_items'\]\.includes\(table\)/);
+});
+
+test('Daily Rhythm separates planned from completed records and updates Residence Activity Pulse', () => {
+  const rhythm = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ValuesPage.tsx'), 'utf8');
+  const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
+  const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'FocusPage.tsx'), 'utf8');
+  assert.match(rhythm, /status: 'planned'\|'completed'\|'active'\|'answered'/);
+  assert.match(rhythm, /value="qada"/);
+  assert.match(rhythm, /Jumu’ah checklist/);
+  assert.match(rhythm, /P-R-A-Y Reflection|P-R-A-Y REFLECTION/);
+  assert.match(rhythm, /Start Qur’an Focus/);
+  assert.match(rhythm, /Start Devotional Focus/);
+  assert.match(rhythm, /Clarity & Reflection/);
+  assert.match(rhythm, /invalidateQueries\(\{ queryKey: \['rhythm-summary'\] \}\)/);
+  assert.match(residence, /api<RhythmSummary>\('\/rhythm\/summary\?date='/);
+  assert.match(residence, /rhythmSummary\.data\?\.completed/);
+  assert.match(residence, /CLARITY & REFLECTION/);
+  assert.match(focus, /get\('focus'\)/);
+});
+
+test('Self-Control consistency uses dated records and positive habit check-ins, not assumed streak days', () => {
+  const selfControl = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'SelfControlPage.tsx'), 'utf8');
+  const rituals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'RitualsPage.tsx'), 'utf8');
+  const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
+  assert.match(server, /FROM self_control_entries WHERE log_date>=date\(\?,'-29 days'\)/);
+  assert.match(server, /FROM habit_logs WHERE log_date>=date\(\?,'-29 days'\)/);
+  assert.match(server, /let best=0,run=0,previous=null/);
+  assert.match(selfControl, /ROLLING CONSISTENCY/);
+  assert.match(selfControl, /LAST 30 DAYS/);
+  assert.match(selfControl, /habits\.data\?\.length/);
+  assert.match(selfControl, /verified clean check-ins/);
+  assert.match(rituals, /invalidateQueries\(\{ queryKey: \['self-control'\] \}\)/);
+  assert.match(shell, /Deen & Reflection/);
+  assert.match(shell, /Faith & Devotion/);
+  assert.match(shell, /Clarity & Reflection/);
+});
+
+
+test('Room 3 records focus completion once and derives linked work metrics from sessions', () => {
+  const execution = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ExecutionFocusPage.tsx'), 'utf8');
+  const learning = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LearningPage.tsx'), 'utf8');
+  const goals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'GoalsPage.tsx'), 'utf8');
+  assert.match(server, /session_key TEXT UNIQUE/);
+  assert.match(server, /INSERT OR IGNORE INTO sessions/);
+  assert.match(server, /if\(insert\.changes\)awardXp\('session:'/);
+  assert.doesNotMatch(server, /Link a focus session to either a task or a learning lesson, not both/);
+  assert.match(server, /AS focus_minutes/);
+  assert.match(server, /progress_pct:\s*p\.task_count\s*\?/);
+  assert.match(server, /parent_task_id INTEGER REFERENCES tasks\(id\) ON DELETE CASCADE/);
+  assert.match(server, /goal_id INTEGER REFERENCES goals\(id\) ON DELETE SET NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP\);/);
+  assert.match(execution, /ROOM 03 \/ EXECUTION & FOCUS/);
+  assert.match(execution, /\['25','25m'\],\['50','50m'\],\['80','80m'\]/);
+  assert.match(execution, /session_key:timer\.sessionKey/);
+  assert.match(execution, /savedKeys\.current\.has\(timer\.sessionKey\)/);
+  assert.match(execution, /distractions:timer\.distractions/);
+  assert.match(execution, /parent_task_id:parentId/);
+  assert.match(execution, /Finish & save/);
+  assert.match(execution, /atlas-migrated-/);
+  assert.match(learning, /goal_id: goalId \|\| null/);
+  assert.match(learning, /Related goal/);
+  assert.match(goals, /focusMinutes: goal\.focus_minutes/);
+  assert.match(goals, /focus invested/);
+});
+
+test('Room 3 routes the execution workspace through the four-room shell without replacing existing project and task routes', () => {
+  const app = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'App.tsx'), 'utf8');
+  const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
+  const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
+  assert.match(app, /path="\/execution" element={<ExecutionFocusPage \/>}/);
+  assert.match(app, /path="\/projects" element={<ProjectsPage \/>}/);
+  assert.match(app, /path="\/tasks" element={<TasksPage \/>}/);
+  assert.match(shell, /to: '\/execution'/);
+  assert.match(shell, /label: 'Workspace', to: '\/execution'/);
+  assert.match(css, /\.execution-split\{display:grid;grid-template-columns/);
+  assert.match(css, /@media\(max-width:850px\)\{\.execution-split\{grid-template-columns:1fr\}/);
+});
+
+
+test('Room 4 reading library persists as an optional backward-compatible workspace table', () => {
+  const backup = fs.readFileSync(path.join(__dirname, '..', 'workspace-backup.js'), 'utf8');
+  const library = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LibraryPage.tsx'), 'utf8');
+  assert.match(server, /CREATE TABLE IF NOT EXISTS reading_items/);
+  assert.match(server, /CHECK\(status IN \('Queued','Active','Completed'\)\)/);
+  assert.match(server, /app\.get\('\/api\/reading-items'/);
+  assert.match(server, /app\.post\('\/api\/reading-items'/);
+  assert.match(server, /app\.patch\('\/api\/reading-items\/:id'/);
+  assert.match(server, /app\.delete\('\/api\/reading-items\/:id'/);
+  assert.match(server, /'self_control_entries','rhythm_records','reading_items'/);
+  assert.match(backup, /'rhythm_records','reading_items','settings'/);
+  assert.match(backup, /'feedback_logs','rhythm_records','reading_items'\]\.includes\(table\)/);
+  assert.match(library, /Queued/);
+  assert.match(library, /Active/);
+  assert.match(library, /Completed/);
+  assert.match(library, /Private library/);
+});
+
+test('Room 4 progress and weekly reviews use linked evidence and preserve existing review records', () => {
+  const goals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'GoalsPage.tsx'), 'utf8');
+  const learning = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LearningPage.tsx'), 'utf8');
+  const reviews = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ReviewsPage.tsx'), 'utf8');
+  assert.match(goals, /linkedLessons\.filter\(lesson => lesson\.status === 'Completed'\)/);
+  assert.match(goals, /milestones\.filter\(item => !!item\.completed\)/);
+  assert.match(goals, /Evidence-based progress/);
+  assert.match(goals, /short-term/);
+  assert.match(server, /horizon TEXT NOT NULL DEFAULT 'long-term'/);
+  assert.doesNotMatch(goals, /complete\.mutate/);
+  assert.match(learning, /lesson\.study_minutes/);
+  assert.match(server, /SELECT COALESCE\(SUM\(minutes\),0\) n FROM sessions WHERE lesson_id=\? AND session_kind='focus'/);
+  assert.match(learning, /Start Study Focus/);
+  assert.match(learning, /values:\{notes:/);
+  assert.match(server, /FROM sessions WHERE session_kind='focus' AND session_date>=\? AND session_date<=\?/);
+  assert.match(server, /app\.get\('\/api\/reviews\/evidence'/);
+  assert.match(server, /priority_task_ids:priorityIds/);
+  assert.match(reviews, /review-evidence/);
+  assert.match(reviews, /priority_task_ids: priorityIds/);
+  assert.match(reviews, /Adjust next week/);
+});
+
+test('Room 4 visual craft uses semantic tokens, responsive spacing, motion and reduced-motion safeguards', () => {
+  const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
+  assert.match(css, /--bg-canvas:var\(--bg\)/);
+  assert.match(css, /--bg-surface:var\(--surface\)/);
+  assert.match(css, /--bg-elevated:var\(--surface-raised\)/);
+  assert.match(css, /--border-hairline:var\(--line\)/);
+  assert.match(css, /--text-primary:var\(--text\)/);
+  assert.match(css, /--accent-primary:var\(--accent\)/);
+  assert.match(css, /Plus Jakarta Sans/);
+  assert.match(css, /JetBrains Mono/);
+  assert.match(css, /stroke-width:1\.5px/);
+  assert.match(css, /cubic-bezier\(0\.16,1,0\.3,1\)/);
+  assert.match(css, /translateY\(-2px\)/);
+  assert.match(css, /prefers-reduced-motion:reduce/);
+  assert.match(css, /room4-evidence-grid \{ grid-template-columns:repeat\(2/);
 });
