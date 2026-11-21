@@ -52,6 +52,17 @@ export function FocusPage() {
     }
   }, [timer.deadline, remaining]);
   useEffect(() => {
+    const syncSharedTimer = (event: Event) => {
+      const next = (event as CustomEvent<StoredTimer>).detail;
+      if (!next || !Number.isFinite(next.remaining)) return;
+      setTimer({ remaining: Math.max(0, Math.min(600 * 60, Math.floor(next.remaining))), deadline: next.deadline, taskId: next.taskId || '', lessonId: next.lessonId || '', projectId: next.projectId || '', taskTitle: next.taskTitle, lessonTitle: next.lessonTitle, focusLabel: next.focusLabel });
+      setCompleted(next.remaining === 0 && next.deadline === null);
+      setNow(Date.now());
+    };
+    window.addEventListener('atlas-focus-timer-change', syncSharedTimer);
+    return () => window.removeEventListener('atlas-focus-timer-change', syncSharedTimer);
+  }, []);
+  useEffect(() => {
     if (timer.deadline !== null || timer.remaining !== DEFAULT_SECONDS || timer.taskId || timer.lessonId || timer.projectId) localStorage.setItem(TIMER_KEY, JSON.stringify(timer));
     else localStorage.removeItem(TIMER_KEY);
   }, [timer]);
