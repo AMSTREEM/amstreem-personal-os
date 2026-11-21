@@ -4,6 +4,7 @@ import { BookOpen, Check, HeartHandshake, MoonStar, Plus, RotateCcw, Sparkles, T
 import { Link } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
+import { Cascade } from '../components/Cascade';
 
 type Settings = Record<string, string>;
 type Prayer = { prayer: string; completed: number; on_time: number };
@@ -72,7 +73,7 @@ export function ValuesPage() {
   const recordList = (types: string[]) => (records.data || []).filter(item => types.includes(item.record_type));
   const recordRow = (item: RhythmRecord, answerable = false) => <div className="rhythm-record-row" key={item.id}><span className={'rhythm-record-status rhythm-record-status--' + item.status}>{item.status === 'completed' ? <Check size={13}/> : item.status === 'answered' ? <HeartHandshake size={13}/> : null}</span><div><b>{item.title}</b>{item.detail && <small>{item.detail}</small>}</div>{answerable && item.status === 'active' ? <button type="button" className="text-link" onClick={() => updateRecord.mutate({id:item.id,status:'answered'})}>Mark answered</button> : ['planned','completed'].includes(item.status) && ['sunnah','adhkar','jumuah','prayer_rhythm','daily_intention'].includes(item.record_type) ? <button type="button" className="text-link" onClick={() => updateRecord.mutate({id:item.id,status:item.status==='completed'?'planned':'completed'})}>{item.status==='completed'?'Return to plan':'Mark complete'}</button> : <span className="rhythm-record-label">{item.status}</span>}</div>;
 
-  return <div className="stack rhythm-page">
+  return <Cascade className="stack rhythm-page">
     <PageHeader eyebrow="ROOM 02 / DAILY RHYTHM" title={tradition === 'islam' ? 'Deen & Reflection' : tradition === 'christianity' ? 'Faith & Devotion' : 'Clarity & Reflection'} description="A private place to record the practices and reflections that give your day its rhythm."/>
     {tradition === 'islam' && <>
       <section className="rhythm-intro"><div><span className="eyebrow">DEEN · DAILY PRACTICE</span><h2>Return to what matters.</h2><p>Record the five prayers, Qur’an work and optional acts of worship. A plan is not a completed act; keep the distinction honest.</p></div><div className="rhythm-intro-stat"><b>{prayerCount}/5</b><small>SALAH RECORDED</small></div></section>
@@ -137,5 +138,5 @@ export function ValuesPage() {
     {createRecord.isError && <p className="inline-error">{createRecord.error.message}</p>}
     {quran.isError && <p className="inline-error">{quran.error.message}</p>}
     {prayer.isError && <p className="inline-error">{prayer.error.message}</p>}
-  </div>;
+  </Cascade>;
 }
