@@ -82,7 +82,7 @@ Provide a coherent light/dark appearance system. Keep Amstreem brand assets inta
 - Keep workspace snapshot persistence in `personal_os_workspaces`.
 - Keep secret/service-role credentials server-side only.
 - Keep the request-scoped in-memory SQLite workspace schema and snapshot serializer compatible.
-- Nullable `habits.goal_id` and `sessions.lesson_id` relationships use backward-compatible defaults. Older snapshots that omit those fields load with null relationships; no destructive rewrite is required.
+- Nullable `habits.goal_id` and `sessions.lesson_id` relationships use backward-compatible defaults. New workspace snapshots are written as v3; readers continue accepting v1 and v2 snapshots, and older snapshots that omit the new fields load with null relationships.
 - Keep backup export/import compatible with every supported table and preserve foreign-key insertion order.
 - Do not silently overwrite malformed or unknown workspace data.
 - The current per-account queue is process-local and assumes one Render instance. Do not scale horizontally without replacing that coordination mechanism.
