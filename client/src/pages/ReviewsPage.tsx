@@ -5,7 +5,8 @@ import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea } from '../components/ui';
 
 type Evidence = { completed_tasks: number; focus_minutes: number; lessons_completed: number; rhythm_total: number; rhythm_completed: number; habit_checkins: number; self_control_slips: number; milestones_total: number; milestones_completed: number };
-type Review = { id: number; period_type: 'daily' | 'weekly'; period_start: string; period_end: string; wins: string; challenges: string; lessons: string; next_focus: string; updated_at: string };
+type Review = { id: number; period_type: 'daily' | 'weekly'; period_start: string; period_end: string; wins: string; challenges: string; lessons: string; next_focus: string; priority_task_ids?: number[]; updated_at: string };
+type Task = { id:number; title:string; done:number; priority:number; due_date:string|null };
 
 function dateKey(date: Date) {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(date);
@@ -30,6 +31,8 @@ export function ReviewsPage() {
   const [challenges, setChallenges] = useState('');
   const [lessons, setLessons] = useState('');
   const [nextFocus, setNextFocus] = useState('');
+  const [priorityIds,setPriorityIds] = useState<number[]>([]);
+  const tasks = useQuery({queryKey:['tasks'],queryFn:()=>api<Task[]>('/tasks')});
   const reviews = useQuery({ queryKey: ['reviews', type], queryFn: () => api<Review[]>('/reviews?period=' + type) });
   const evidence = useQuery({ queryKey: ['review-evidence', range.start, range.end], queryFn: () => api<Evidence>('/reviews/evidence?start=' + range.start + '&end=' + range.end), enabled: type === 'weekly' });
   const current = reviews.data?.find(item => item.period_start === range.start);
@@ -38,9 +41,10 @@ export function ReviewsPage() {
     setChallenges(current?.challenges || '');
     setLessons(current?.lessons || '');
     setNextFocus(current?.next_focus || '');
+    setPriorityIds(current?.priority_task_ids || []);
   }, [current?.id, current?.updated_at, type]);
   const save = useMutation({
-    mutationFn: () => api('/reviews', json('POST', { period_type: type, period_start: range.start, period_end: range.end, wins, challenges, lessons, next_focus: nextFocus })),
+    mutationFn: () => api('/reviews', json('POST', { period_type: type, period_start: range.start, period_end: range.end, wins, challenges, lessons, next_focus: nextFocus, priority_task_ids: priorityIds })),
     onSuccess: () => void client.invalidateQueries({ queryKey: ['reviews', type] })
   });
 
@@ -54,7 +58,8 @@ export function ReviewsPage() {
         <Field label="What went well?"><TextArea value={wins} onChange={event => setWins(event.target.value)} placeholder="What moved forward? What are you glad you did?" /></Field>
         <Field label="What was difficult?"><TextArea value={challenges} onChange={event => setChallenges(event.target.value)} placeholder="What created friction or took more energy than expected?" /></Field>
         <Field label="What did you learn?"><TextArea value={lessons} onChange={event => setLessons(event.target.value)} placeholder="What will you carry into the next day or week?" /></Field>
-        <Field label="What deserves your attention next?"><TextArea value={nextFocus} onChange={event => setNextFocus(event.target.value)} placeholder="Choose a clear direction for the next period." /></Field>
+        <Field label={type === 'weekly' ? 'What deserves your attention next week?' : 'What deserves your attention next?'}><TextArea value={nextFocus} onChange={event => setNextFocus(event.target.value)} placeholder={type === 'weekly' ? 'What will you deliberately prioritise, reduce or change next week?' : 'Choose a clear direction for the next period.'} /></Field>
+        {type === 'weekly' && <section className="room4-priority-adjust"><div><b>Adjust next week’s priorities</b><small>Choose up to three existing open tasks. This updates your saved review priorities.</small></div><div className="room4-priority-list">{(tasks.data||[]).filter(task=>!task.done).map(task=><label key={task.id}><input type="checkbox" checked={priorityIds.includes(task.id)} disabled={!priorityIds.includes(task.id)&&priorityIds.length>=3} onChange={event=>setPriorityIds(current=>event.target.checked?[...current,task.id]:current.filter(id=>id!==task.id))}/><span>{task.title}</span></label>)}</div></section>}
         <div><Button type="submit" disabled={save.isPending}><Save size={16} /> {save.isPending ? 'Saving…' : 'Save review'}</Button></div>
       </form>
       {save.isError && <p className="inline-error">{save.error.message}</p>}
