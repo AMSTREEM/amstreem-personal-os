@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Cascade } from '../components/Cascade';
+import { AnimatedMetric } from '../components/AnimatedMetric';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, BookOpen, Flame, MoonStar, Plus, Target, Timer, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -245,7 +246,7 @@ export function TodayPage() {
     <section className="residence-pulse" aria-label="Your daily activity pulse">
       <div className="residence-pulse__main">
         <div className="residence-pulse__heading"><span className="eyebrow">TODAY'S ACTIVITY PULSE</span><span className="residence-pulse__date">{today}</span></div>
-        <div className="residence-pulse__score">{activityPulse === null ? '—' : activityPulse + '%'}<span>{activityPulse === null ? 'Build your first signal' : 'across ' + scoreDimensions.length + ' active areas'}</span></div>
+        <div className="residence-pulse__score">{activityPulse === null ? '—' : <AnimatedMetric value={activityPulse} suffix="%" />}<span>{activityPulse === null ? 'Build your first signal' : 'across ' + scoreDimensions.length + ' active areas'}</span></div>
         <div className="residence-pulse__track"><span style={{ width: (activityPulse ?? 0) + '%' }} /></div>
         <p>{activityPulse === null ? 'Choose a habit, set a focus intention, or add a priority to begin. This snapshot only reflects areas you actively use.' : 'A snapshot of activity recorded today, not a rolling consistency score or a judgement. It only includes areas you actively use.'}</p>
       </div>
@@ -255,7 +256,7 @@ export function TodayPage() {
     </section>
 
     <div className="residence-stat-grid">
-      <Card className="residence-stat atlas-spotlight"><span className="eyebrow">FOCUS TODAY</span><strong>{formatMinutes(overview.data?.todayMin ?? 0)}</strong><small>{focusPercent}% of your {target}m intention</small></Card>
+      <Card className="residence-stat atlas-spotlight"><span className="eyebrow">FOCUS TODAY</span><strong><AnimatedMetric value={overview.data?.todayMin ?? 0} format="minutes" /></strong><small>{focusPercent}% of your {target}m intention</small></Card>
       <Card className="residence-stat"><span className="eyebrow">OPEN PRIORITIES</span><strong>{openTasks.length}</strong><small>{todayTasks.filter(task => !task.done).length} due today</small></Card>
       <Card className="residence-stat"><span className="eyebrow">HABITS COMPLETED</span><strong>{completedHabits}<small> / {habitList.length}</small></strong><small>Today's chosen habits</small></Card>
       <Card className="residence-stat"><span className="eyebrow">HABIT STREAK</span><strong><Flame size={18}/>{habitStreak}</strong><small>Consecutive days with habit activity</small></Card>

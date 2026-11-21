@@ -1522,36 +1522,51 @@ body { letter-spacing: -.006em; }
 }
 
 
-/* Magnetic Grid Assembly: directional spring arrival + one-pass accent trace. */
+
+/* Spatial Deck & Luminescent Lock-In */
 .room-view-transition {
   position: relative;
   min-width: 0;
-  transform-origin: 50% 0%;
   overflow: clip;
+  perspective: 1200px;
+  transform-origin: 50% 0%;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
 }
-.room-view-transition::before {
+.atlas-cascade-item {
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+  transform-origin: 50% 0%;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+.atlas-cascade-item::after {
   content: "";
   position: absolute;
-  z-index: 5;
+  z-index: 6;
   top: 0;
   left: 0;
   width: 100%;
   height: 1px;
+  border-radius: inherit;
   pointer-events: none;
-  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent-primary) 10%, transparent) 28%, color-mix(in srgb, var(--accent-primary) 42%, transparent) 50%, color-mix(in srgb, var(--accent-primary) 10%, transparent) 72%, transparent 100%);
-  background-size: 200% 100%;
-  background-position: 100% 0;
-  animation: atlas-border-trace 620ms cubic-bezier(.22,1,.36,1) both;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent-primary) 38%, transparent) 24%, color-mix(in srgb, var(--accent-primary) 45%, transparent) 50%, color-mix(in srgb, var(--accent-primary) 38%, transparent) 76%, transparent 100%);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent-primary) 38%, transparent);
+  animation: atlas-luminescent-lock-in 520ms cubic-bezier(.22,1,.36,1) 90ms both;
 }
-@keyframes atlas-border-trace {
-  from { background-position: 100% 0; opacity: .25; }
-  45% { opacity: .8; }
-  to { background-position: 0 0; opacity: 0; }
+@keyframes atlas-luminescent-lock-in {
+  0% { opacity: 0; background-position: 100% 0; }
+  35% { opacity: .9; }
+  68% { opacity: .72; }
+  100% { opacity: 0; background-position: 0 0; }
 }
 @media (max-width: 767px) {
   .room-view-transition { overflow-x: clip; }
   .atlas-cascade-item { max-width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .room-view-transition::before { animation: none; opacity: 0; }
+  .room-view-transition { will-change: auto; }
+  .atlas-cascade-item::after { animation: none; opacity: 0; }
 }
