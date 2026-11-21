@@ -4,6 +4,7 @@ import { CalendarCheck, Save } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea } from '../components/ui';
 
+type Evidence = { completed_tasks: number; focus_minutes: number; lessons_completed: number; rhythm_total: number; rhythm_completed: number; habit_checkins: number; self_control_slips: number; milestones_total: number; milestones_completed: number };
 type Review = { id: number; period_type: 'daily' | 'weekly'; period_start: string; period_end: string; wins: string; challenges: string; lessons: string; next_focus: string; updated_at: string };
 
 function dateKey(date: Date) {
@@ -30,6 +31,7 @@ export function ReviewsPage() {
   const [lessons, setLessons] = useState('');
   const [nextFocus, setNextFocus] = useState('');
   const reviews = useQuery({ queryKey: ['reviews', type], queryFn: () => api<Review[]>('/reviews?period=' + type) });
+  const evidence = useQuery({ queryKey: ['review-evidence', range.start, range.end], queryFn: () => api<Evidence>('/reviews/evidence?start=' + range.start + '&end=' + range.end), enabled: type === 'weekly' });
   const current = reviews.data?.find(item => item.period_start === range.start);
   useEffect(() => {
     setWins(current?.wins || '');
@@ -45,7 +47,8 @@ export function ReviewsPage() {
   return <div className="stack">
     <PageHeader eyebrow="REFLECT / REVIEW" title="Reviews" description="Make sense of what happened, notice what you learned, and choose what deserves attention next." />
     <div className="review-switch"><button className={type === 'daily' ? 'review-switch__active' : ''} onClick={() => setType('daily')}>Daily review</button><button className={type === 'weekly' ? 'review-switch__active' : ''} onClick={() => setType('weekly')}>Weekly review</button></div>
-    <Card>
+    {type === 'weekly' && <Card className="room4-card room4-evidence"><div className="card-heading"><div><span className="eyebrow">THE LAST SEVEN DAYS</span><h2>Your evidence, before reflection</h2><p>Workspace records for {range.start} — {range.end}. Missing records are not treated as zero-effort days.</p></div><CalendarCheck size={18}/></div>{evidence.isLoading ? <p>Gathering your workspace evidence…</p> : evidence.data ? <div className="room4-evidence-grid">{[['Focus minutes',evidence.data.focus_minutes+'m'],['Completed tasks',evidence.data.completed_tasks],['Lessons completed',evidence.data.lessons_completed],['Rhythm records',evidence.data.rhythm_completed+'/'+evidence.data.rhythm_total],['Habit check-ins',evidence.data.habit_checkins],['Self-control slips',evidence.data.self_control_slips],['Milestones completed',evidence.data.milestones_completed+'/'+evidence.data.milestones_total]].map(([label,value])=><div key={String(label)}><small>{label}</small><b>{value}</b></div>)}</div> : <p className="inline-error">Evidence is temporarily unavailable.</p>}<p className="room4-evidence-note">Task, lesson and milestone totals reflect currently completed records; older records do not have completion timestamps. Focus, Daily Rhythm and check-in counts use their actual dated logs.</p></Card>}
+    <Card className="room4-card">
       <div className="card-heading"><div><h2>{type === 'weekly' ? 'Your week, in perspective.' : 'Close the day with intention.'}</h2><p>{range.start} — {range.end} {current ? '· Saved review' : '· New review'}</p></div><CalendarCheck size={18} /></div>
       <form className="form-stack" onSubmit={event => { event.preventDefault(); save.mutate(); }}>
         <Field label="What went well?"><TextArea value={wins} onChange={event => setWins(event.target.value)} placeholder="What moved forward? What are you glad you did?" /></Field>
