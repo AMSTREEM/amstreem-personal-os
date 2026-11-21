@@ -5,6 +5,23 @@ import { api, json } from '../lib/api';
 import { Button, Card, Field, PageHeader, TextInput } from '../components/ui';
 
 type Settings = Record<string, string>;
+const themeBackgrounds: Record<string, string> = {
+  'shadowed-alchemist': '#07080A', 'nocturnal-amethyst': '#050408',
+  'abyssal-trench': '#03060C', 'whispering-woods': '#030806',
+  'crimson-velvet': '#080304', 'light-porcelain': '#F5F6F3',
+  'light-sandstone': '#F6F0E7', 'light-sage': '#EFF4EF',
+  'light-lavender': '#F4F1F8', 'light-sky': '#EFF5F9'
+};
+function applyTheme(themeId: string) {
+  if (!themeBackgrounds[themeId]) return;
+  localStorage.setItem('atlas_theme', themeId);
+  const root = document.documentElement;
+  root.setAttribute('data-theme', themeId);
+  root.style.colorScheme = themeId.startsWith('light-') ? 'light' : 'dark';
+  root.style.backgroundColor = themeBackgrounds[themeId];
+  const meta = document.querySelector('meta[name="theme-color"]');
+  meta?.setAttribute('content', themeBackgrounds[themeId]);
+}
 const themes = [
   { group: 'Dark', items: [
     { id: 'shadowed-alchemist', name: 'Shadowed Alchemist', note: 'Mysterious balanced', colors: ['#07080A','#0E1014','#CA8A04','#E4E4E7'] },
@@ -35,12 +52,12 @@ export function SettingsPage() {
       setName(settings.data.display_name || '');
       setNorthStar(settings.data.north_star || '');
       setTarget(settings.data.daily_target || '80');
-      setTheme(settings.data.theme || 'shadowed-alchemist');
+      setTheme(settings.data.theme || 'shadowed-alchemist');\n      applyTheme(settings.data.theme || 'shadowed-alchemist');
       try { setFeatures(settings.data.features ? JSON.parse(settings.data.features).map((feature: string) => feature === 'values' ? 'deen' : feature) : ['calendar','focus','rituals','selfcontrol','learning','library','deen']); } catch { setFeatures(['calendar','focus','rituals','selfcontrol','learning','library','deen']); }
     }
   }, [settings.data]);
   const save = useMutation({
-    mutationFn: () => api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), theme, features })),
+    mutationFn: () => { applyTheme(theme); return api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), theme, features })); },
     onSuccess: () => { setMessage('Your preferences have been saved.'); void client.invalidateQueries({ queryKey: ['settings'] }); }
   });
   async function exportData() {
@@ -76,7 +93,7 @@ export function SettingsPage() {
             {themes.map(group => <section className="theme-picker-group" key={group.group}>
               <div className="theme-picker-group__heading">{group.group} palettes <small>{group.items.length} styles</small></div>
               <div className="theme-picker-grid">
-                {group.items.map(item => <button key={item.id} type="button" className="theme-preset" aria-pressed={theme === item.id} onClick={() => { setTheme(item.id); document.documentElement.dataset.theme = item.id; }}>
+                {group.items.map(item => <button key={item.id} type="button" className="theme-preset" aria-pressed={theme === item.id} onClick={() => { setTheme(item.id); applyTheme(item.id); }}>
                   <span className="theme-preset__swatches" aria-hidden="true">{item.colors.map((color, index) => <i key={index} style={{ background: color }} />)}</span>
                   <span className="theme-preset__copy"><b>{item.name}</b><small>{item.note}</small></span>
                   <span className="theme-preset__check">{theme === item.id ? '✓' : ''}</span>
