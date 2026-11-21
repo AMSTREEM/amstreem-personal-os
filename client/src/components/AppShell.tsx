@@ -4,7 +4,7 @@ import type { FormEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, json } from '../lib/api';
-import { ArrowRight, BookOpen, Compass, GraduationCap, Heart, House, LogOut, Menu, MoonStar, Pause, Play, Search, Settings, SlidersHorizontal, Target, Timer, X, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, Check, Compass, GraduationCap, Heart, House, LogOut, Menu, MoonStar, Pause, Play, Plus, Search, Settings, SlidersHorizontal, Target, Timer, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
 import { EntrancePresetContext, entranceFrame, useCompactMotionViewport, useEntrancePreset } from './EntranceMotion';
@@ -35,7 +35,7 @@ type QuickPrayer = { prayer: string; completed: number; on_time: number };
 type QuickDeen = { prayers: QuickPrayer[] };
 type QuickHabit = { id: number; title: string; emoji: string; done: number };
 function atlasDate() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
-type SharedTimer = { remaining: number; deadline: number | null; durationSeconds?: number; sessionKey?: string | null; taskId?: string; lessonId?: string; projectId?: string; taskTitle?: string; lessonTitle?: string; focusLabel?: string; focus?: string };
+type SharedTimer = { remaining: number; deadline: number | null; durationSeconds?: number; sessionKey?: string | null; startedAt?: number; kind?: string; taskId?: string; lessonId?: string; projectId?: string; taskTitle?: string; lessonTitle?: string; focusLabel?: string; focus?: string };
 function readSharedTimer(): SharedTimer {
   try { const value = JSON.parse(localStorage.getItem('atlas-focus-timer-v1') || 'null'); if (value && Number.isFinite(value.remaining)) return value; } catch { /* Ignore invalid timer state. */ }
   return { remaining: 25 * 60, deadline: null };
@@ -74,7 +74,8 @@ export function AppShell() {
     const sync = () => setFocusTimer(readSharedTimer());
     const tick = window.setInterval(() => { setClockNow(Date.now()); sync(); }, 1000);
     window.addEventListener('storage', sync);
-    return () => { window.clearInterval(tick); window.removeEventListener('storage', sync); };
+    window.addEventListener('atlas-focus-timer-change', sync);
+    return () => { window.clearInterval(tick); window.removeEventListener('storage', sync); window.removeEventListener('atlas-focus-timer-change', sync); };
   }, []);
   useEffect(() => {
     const paths = ['/today','/values','/projects','/learning'];
@@ -91,7 +92,8 @@ export function AppShell() {
   const focusRemaining = focusTimer.deadline ? Math.max(0, Math.ceil((focusTimer.deadline - clockNow) / 1000)) : focusTimer.remaining;
   const focusActive = !!focusTimer.deadline && focusRemaining > 0;
   const focusClock = String(Math.floor(focusRemaining / 60)).padStart(2,'0') + ':' + String(focusRemaining % 60).padStart(2,'0');
-  const focusContext = focusTimer.taskTitle || focusTimer.lessonTitle || focusTimer.focusLabel || (focusTimer as SharedTimer & { focus?: string }).focus || 'Focus session';
+  const focusContext = focusTimer.taskTitle || focusTimer.lessonTitle || focusTimer.focusLabel || focusTimer.focus || 'Focus session';
+  const focusSessionVisible = focusRemaining > 0 && (focusActive || focusTimer.remaining < 25 * 60 || !!focusTimer.startedAt || !!focusTimer.sessionKey || !!focusTimer.taskId || !!focusTimer.lessonId || !!focusTimer.projectId || (focusTimer.durationSeconds !== undefined && focusTimer.durationSeconds !== 25 * 60));
   function writeTimer(value: SharedTimer) { localStorage.setItem('atlas-focus-timer-v1', JSON.stringify(value)); setFocusTimer(value); window.dispatchEvent(new CustomEvent('atlas-focus-timer-change', { detail: value })); }
   function toggleTimer() { if (focusActive) writeTimer({ ...focusTimer, remaining: focusRemaining, deadline: null }); else if (focusRemaining > 0) writeTimer({ ...focusTimer, deadline: Date.now() + focusRemaining * 1000 }); }
   function finishTimer() { const elapsed = Math.max(0, (focusTimer.durationSeconds || focusTimer.remaining) - focusRemaining); writeTimer({ ...focusTimer, remaining: 0, deadline: null, durationSeconds: elapsed, sessionKey: elapsed >= 60 ? focusTimer.sessionKey : null }); window.location.assign('/focus'); }
@@ -214,7 +216,7 @@ export function AppShell() {
         <div className="topbar-context"><span>AMSTREEM ATLAS</span><b>{current?.label || (location.pathname === '/reviews' ? 'Deen & Reflection' : location.pathname === '/library' ? 'Learning Studio' : location.pathname === '/admin' ? 'Administration' : 'Settings')}</b></div>
         <div className="topbar-right"><button className="global-capture-trigger" type="button" onClick={() => {setCommandOpen(true);setCommandQuery('');}}><Search size={14}/><span>Quick capture</span><kbd>⌘ K</kbd></button><button className="tour-launcher" type="button" onClick={() => setTourOpen(true)}><Compass size={14} /> Guided tour</button><span className="privacy-indicator"><span /> PRIVATE BY DESIGN</span><span className="topbar-date">{new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric'}).format(new Date())}</span></div>
       </header>
-      {focusRemaining > 0 && (focusActive || focusTimer.remaining < 25*60) && <div className="global-focus-bar"><span className="global-focus-pulse"/><div className="global-focus-copy"><b>{focusClock}</b><span>{focusContext}</span></div><span className="global-focus-label">{focusActive?'FOCUS IN PROGRESS':'FOCUS PAUSED'}</span><button type="button" onClick={toggleTimer} aria-label={focusActive?'Pause focus timer':'Resume focus timer'}>{focusActive?<Pause size={13}/>:<Play size={13}/>}<span>{focusActive?'Pause':'Resume'}</span></button><button type="button" onClick={finishTimer}>Finish & review</button><NavLink to="/focus">Open room <ArrowRight size={12}/></NavLink></div>}
+
       <div className="page-container">
         {activeTabs.length > 0 && <nav className="module-subnav" aria-label="Module sections">{activeTabs.map(tab => <NavLink key={tab.to} to={tab.to} onClick={() => setMobileOpen(false)} className={({ isActive }) => 'module-subnav__link ' + (isActive ? 'module-subnav__link--active' : '')}>{({isActive}) => <>{isActive && <motion.span className="module-subnav-indicator" layoutId={'atlas-subnav-' + current?.id} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}{tab.label}</>}</NavLink>)}</nav>}
         <EntrancePresetContext.Provider value={entrancePreset}>
@@ -239,6 +241,15 @@ export function AppShell() {
         <div className="command-results"><span className="eyebrow">JUMP TO OR CHECK IN</span>{commandItems.map(item=>{const Icon=item.icon;return <button key={item.label} type="button" onClick={()=>{setCommandOpen(false);navigate(item.to);}}><Icon size={16}/><span><b>{item.label}</b><small>{item.detail}</small></span><kbd>{item.shortcut}</kbd></button>;})}{!commandItems.length&&<p>No matching destination.</p>}</div>
         <div className="command-footer"><span>Navigate between rooms</span><span>⌘ 1 — 4</span></div>
       </motion.section></motion.div>}</AnimatePresence>
+      <motion.nav className="atlas-command-dock" layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }} aria-label="Atlas command dock">
+        <button type="button" className="atlas-dock-action" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={15}/><span>Command</span><kbd>⌘ K</kbd></button>
+        <button type="button" className="atlas-dock-action" onClick={() => { setCommandOpen(true); setCommandQuery('add a task'); }}><Plus size={15}/><span>Quick Capture</span></button>
+        <motion.div className={'atlas-dock-focus ' + (focusSessionVisible ? 'is-expanded' : '')} layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }}>
+          <button type="button" className="atlas-dock-action atlas-dock-focus__open" onClick={() => navigate('/focus')}><Timer size={15}/><span>Focus Timer</span>{focusSessionVisible && <strong>{focusClock}</strong>}</button>
+          {focusSessionVisible && <motion.div className="atlas-dock-focus__detail" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.18 }}><span title={focusContext}>{focusContext}</span><button type="button" onClick={toggleTimer} aria-label={focusActive ? 'Pause focus timer' : 'Resume focus timer'}>{focusActive ? <Pause size={13}/> : <Play size={13}/>}<small>{focusActive ? 'Pause' : 'Resume'}</small></button></motion.div>}
+        </motion.div>
+        <button type="button" className="atlas-dock-action" onClick={() => { navigate('/today'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></button>
+      </motion.nav>
       <footer className="app-footer"><span>AMSTREEM ATLAS</span><span>Make room for what matters.</span></footer>
     </main>
   </div>;

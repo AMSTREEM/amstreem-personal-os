@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Cascade } from '../components/Cascade';
 import { AnimatedMetric } from '../components/AnimatedMetric';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, BookOpen, Flame, MoonStar, Plus, Target, Timer, Zap } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Card, EmptyState, PageHeader } from '../components/ui';
 
@@ -24,6 +25,7 @@ type CalendarSummary = { streaks: Record<string, { current: number; best: number
 type SelfControlSummary = { summary: { id: number; name: string; symbol: string; streak: number; longest_days: number; last_slip: string | null }[] };
 type Insight = { recommendation: { title: string; detail: string; reason: string; action: string; destination: string; priority: string }; pattern: string; rhythm: string | null };
 type StoredTimer = { remaining: number; deadline: number | null; taskId?: string; lessonId?: string; projectId?: string };
+type FocusSession = { session_date: string; minutes: number; focus: string };
 const TIMER_KEY = 'atlas-focus-timer-v1';
 const faithPractices = ['bible', 'prayer', 'reflection', 'worship', 'service'];
 
@@ -46,6 +48,9 @@ function formatMinutes(minutes: number) {
 
 export function TodayPage() {
   const client = useQueryClient();
+  const navigate = useNavigate();
+  const [selectedPriorityId, setSelectedPriorityId] = useState<number | null>(null);
+  const [wallClock, setWallClock] = useState(() => Date.now());
   const today = todayKey();
   const localHour = Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',hourCycle:'h23'}).format(new Date()));
   const rhythm = localHour < 11 ? 'morning' : localHour < 17 ? 'day' : 'evening';
@@ -64,6 +69,7 @@ export function TodayPage() {
   const [shutdownNextFocus, setShutdownNextFocus] = useState('');
   const [timer, setTimer] = useState<StoredTimer>(readTimer);
   const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const tick = window.setInterval(() => setWallClock(Date.now()), 30000); return () => window.clearInterval(tick); }, []);
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Settings>('/settings') });
   const religion = settings.data?.faith_tradition || settings.data?.religion || 'none';
   let showCalendar = true;
@@ -74,6 +80,7 @@ export function TodayPage() {
   const yesterdayKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(yesterdayDate);
   const yesterdayReview = dailyReviews.data?.find(item => item.period_start === yesterdayKey);
   const overview = useQuery({ queryKey: ['overview'], queryFn: () => api<Overview>('/overview') });
+  const focusSessions = useQuery({ queryKey: ['sessions'], queryFn: () => api<FocusSession[]>('/sessions') });
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => api<Task[]>('/tasks') });
   const habits = useQuery({ queryKey: ['habits', today], queryFn: () => api<Habit[]>('/habits?date=' + today) });
   const deen = useQuery({ queryKey: ['deen', today], queryFn: () => api<Deen>('/deen/summary?date=' + today), enabled: religion === 'islam' });
@@ -155,6 +162,22 @@ export function TodayPage() {
   const activeTask = timer.taskId ? tasks.data?.find(task => String(task.id) === timer.taskId) : null;
   const activeLesson = timer.lessonId ? learning.data?.flatMap(path => path.lessons.map(lesson => ({ ...lesson, pathTitle: path.title }))).find(lesson => String(lesson.id) === timer.lessonId) : null;
   const activeFocusContext = activeTask ? 'Task · ' + activeTask.title : activeLesson ? 'Learning · ' + activeLesson.pathTitle + ' / ' + activeLesson.title : 'Unlinked focus session';
+  const completedFocusBlocks = (focusSessions.data || []).filter(item => item.session_date === today).length;
+  const completedRhythmAnchors = religion === 'islam' ? prayerCount + (rhythmSummary.data?.completed || 0) : religion === 'christianity' ? faithCount + (rhythmSummary.data?.completed || 0) : (rhythmSummary.data?.completed || 0);
+  const timeParts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Lagos', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(wallClock));
+  const currentMinutes = Number(timeParts.find(item => item.type === 'hour')?.value || 0) * 60 + Number(timeParts.find(item => item.type === 'minute')?.value || 0);
+  const dayProgress = Math.max(0, Math.min(100, currentMinutes / 1440 * 100));
+  function handlePriorityKeys(event: ReactKeyboardEvent<HTMLDivElement>) {
+    const target = event.target as HTMLElement;
+    if (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return;
+    if (!['ArrowDown', 'ArrowUp', 'j', 'k', ' ', 'f', 'F'].includes(event.key)) return;
+    if (!pinnedPriorityTasks.length) return;
+    event.preventDefault();
+    const currentIndex = pinnedPriorityTasks.findIndex(task => task.id === selectedPriorityId);
+    if (event.key === 'ArrowDown' || event.key === 'j') setSelectedPriorityId(pinnedPriorityTasks[(currentIndex + 1 + pinnedPriorityTasks.length) % pinnedPriorityTasks.length].id);
+    else if (event.key === 'ArrowUp' || event.key === 'k') setSelectedPriorityId(pinnedPriorityTasks[(currentIndex <= 0 ? pinnedPriorityTasks.length : currentIndex) - 1].id);
+    else { const task = pinnedPriorityTasks.find(item => item.id === selectedPriorityId) || pinnedPriorityTasks[0]; setSelectedPriorityId(task.id); if (event.key === ' ' && !toggleTask.isPending) toggleTask.mutate(task); if (event.key.toLowerCase() === 'f') navigate('/focus?task=' + task.id); }
+  }
 
   useEffect(() => {
     if (!dailyReview) return;
@@ -203,6 +226,11 @@ export function TodayPage() {
       : rhythm === 'day' ? <><div><span className="eyebrow">PROTECT DEEP WORK</span><b>{openTasks.length} open priorities · {totalLessons ? completedLessons + '/' + totalLessons + ' lessons complete' : 'Learning progress when you add a path'}</b><p>{focusRunning ? 'Your focus block is already underway. Keep your attention on the current session.' : 'Choose one important task, then give it a protected block of attention.'}</p></div><Link to={focusRunning ? '/focus' : '/tasks'}>{focusRunning ? 'Return to focus' : 'Choose a task'} <ArrowRight size={13}/></Link></>
       : <><div><span className="eyebrow">CLOSE THE DAY GENTLY</span><b>{pendingHabits} habits remaining{religion === 'islam' ? ' · ' + (5-prayerCount) + ' prayers not yet recorded' : ''}</b><p>{tomorrowTasks.length ? tomorrowTasks.length + ' task' + (tomorrowTasks.length === 1 ? '' : 's') + ' already planned for tomorrow.' : 'Review today honestly, then leave tomorrow one clear next step.'}</p></div><Link to="/reviews">Open daily reflection <ArrowRight size={13}/></Link></>}
     </section>
+      <section className="residence-day-ribbon" aria-label="Day progress">
+        <div className="residence-day-ribbon__head"><span>DAY PROGRESS</span><b>{timeParts.find(item => item.type === 'hour')?.value}:{timeParts.find(item => item.type === 'minute')?.value} <small>WAT</small></b></div>
+        <div className="residence-day-ribbon__track" aria-label={Math.round(dayProgress) + ' percent through the day'}><span className="residence-day-ribbon__elapsed" style={{ width: dayProgress + '%' }}/><i className="residence-day-ribbon__now" style={{ left: dayProgress + '%' }}><b>PRIVATE TIME</b></i></div>
+        <div className="residence-day-ribbon__foot"><span className="residence-day-ribbon__marks"><i className="is-focus"/>{Array.from({ length: Math.min(8, completedFocusBlocks) }, (_, index) => <i className="is-focus" key={'f' + index}/>)}<i className="is-anchor"/>{Array.from({ length: Math.min(10, completedRhythmAnchors) }, (_, index) => <i className="is-anchor" key={'a' + index}/>)}</span><span>{completedFocusBlocks} focus blocks <em>·</em> {completedRhythmAnchors} faith / rhythm anchors</span></div>
+      </section>
       {dailyReview?.alignment_complete && !editingAlignment ? <Card className="residence-intention-card">
         <div><span className="eyebrow">TODAY’S DAILY INTENTION</span><p>{dailyReview.intention}</p></div>
         <button type="button" className="text-link" onClick={() => setEditingAlignment(true)}>Edit plan <ArrowRight size={13}/></button>
@@ -269,7 +297,7 @@ export function TodayPage() {
       <section className="residence-main-column">
         <Card className="residence-pinned-priorities">
           <div className="residence-section-heading"><div><span className="eyebrow">YOUR PINNED TOP 3</span><h2>Today’s execution</h2><p>{pinnedPriorityTasks.filter(task => !!task.done).length} of {priorityTaskIds.length} priorities complete</p></div><button type="button" className="text-link" onClick={() => setEditingAlignment(true)}>Edit plan <ArrowRight size={13}/></button></div>
-          {pinnedPriorityTasks.length ? <div className="residence-pinned-list"><AnimatePresence initial={false}>{pinnedPriorityTasks.map((task,index) => <motion.div layout initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -5 }} transition={{ layout: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 }, opacity: { duration: 0.14 }, scale: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 } }} whileTap={{ scale: 0.985 }} className={'residence-pinned-row ' + (task.done ? 'is-complete' : '')} key={task.id}>
+          {pinnedPriorityTasks.length ? <div className="residence-pinned-list atlas-keyboard-list" tabIndex={0} aria-label="Today priorities. Use arrow keys or J and K to select, Space to complete, F to focus." onKeyDown={handlePriorityKeys}><AnimatePresence initial={false}>{pinnedPriorityTasks.map((task,index) => <motion.div layout initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -5 }} transition={{ layout: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 }, opacity: { duration: 0.14 }, scale: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 } }} whileTap={{ scale: 0.985 }} onClick={() => setSelectedPriorityId(task.id)} className={'residence-pinned-row ' + (task.done ? 'is-complete' : '') + (selectedPriorityId === task.id ? ' is-keyboard-selected' : '')} key={task.id}>
             <span className="residence-pinned-rank">#{index+1}</span>
             <motion.span whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }}><input type="checkbox" checked={!!task.done} disabled={toggleTask.isPending} onChange={() => toggleTask.mutate(task)} aria-label={(task.done ? 'Reopen ' : 'Complete ') + task.title} /></motion.span>
             <span className="residence-pinned-copy"><b>{task.title}</b>{task.project_title && <small>{task.project_title}</small>}</span>

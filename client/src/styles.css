@@ -1751,3 +1751,134 @@ body { letter-spacing: -.006em; }
   .room-view-transition,
   .atlas-cascade-item { will-change: auto !important; }
 }
+
+
+/* Signature layer — precision surfaces across every Atlas theme. */
+:root {
+  --bg-canvas: var(--bg);
+  --bg-surface: var(--surface);
+  --bg-elevated: var(--surface-raised);
+  --surface-specular: inset 0 1px 0 0 rgba(255,255,255,.07);
+}
+:root[data-theme^="light-"] { --surface-specular: inset 0 1px 0 0 rgba(255,255,255,.85); }
+body,.app-frame,.main-area { background: var(--bg-canvas); }
+.surface-card,.stat-card,.room4-card,.room4-path-card,.room4-evidence,.goal-card--connected,
+.execution-panel-card,.execution-focus-card,.execution-history-card,.residence-day-ribbon {
+  background-color: var(--bg-surface);
+  box-shadow: var(--surface-specular) !important;
+}
+.execution-panel-card .execution-focus-context,.execution-history-list article,
+.residence-alignment-card,.residence-intention-card,.residence-pinned-priorities {
+  background-color: var(--bg-elevated);
+}
+
+/* Floating command dock — persistent, compact, and shared across all rooms. */
+.atlas-command-dock {
+  position: fixed;
+  z-index: 45;
+  left: calc(50% + var(--sidebar-width, 0px) / 2);
+  bottom: max(18px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: calc(100vw - 28px);
+  padding: 6px;
+  border: 1px solid color-mix(in srgb,var(--line) 82%,var(--text));
+  border-radius: 17px;
+  background: color-mix(in srgb,var(--bg-elevated) 92%,transparent);
+  box-shadow: 0 12px 36px rgba(0,0,0,.18), var(--surface-specular);
+  backdrop-filter: blur(22px) saturate(1.25);
+}
+.atlas-dock-action {
+  min-height: 39px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 140ms ease,background 140ms ease,border-color 140ms ease;
+}
+.atlas-dock-action:hover { color: var(--text); background: var(--accent-wash); border-color: var(--line); }
+.atlas-dock-action kbd { padding: 3px 5px; border: 1px solid var(--line); border-radius: 5px; color: var(--subtle); font: 500 9px "JetBrains Mono",monospace; }
+.atlas-dock-focus { display: flex; align-items: center; min-width: 0; border-radius: 11px; }
+.atlas-dock-focus.is-expanded { padding-left: 2px; background: var(--accent-wash); }
+.atlas-dock-focus__open strong { color: var(--accent-strong); font: 600 10px "JetBrains Mono",monospace; font-variant-numeric: tabular-nums; }
+.atlas-dock-focus__detail { min-width: 0; max-width: 250px; display: flex; align-items: center; gap: 9px; padding: 0 8px 0 2px; }
+.atlas-dock-focus__detail>span { overflow: hidden; max-width: 150px; color: var(--muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.atlas-dock-focus__detail>button { min-height: 29px; display: inline-flex; align-items: center; gap: 5px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg-surface); color: var(--text); font-size: 9px; white-space: nowrap; }
+@media (min-width: 761px) { .atlas-command-dock { left: calc(50% + 125px); } }
+@media (max-width: 760px) {
+  .atlas-command-dock { left: 50%; bottom: max(10px,env(safe-area-inset-bottom)); width: max-content; gap: 1px; padding: 5px; border-radius: 14px; }
+  .atlas-dock-action { min-height: 38px; gap: 5px; padding: 0 8px; font-size: 0; }
+  .atlas-dock-action svg { width: 16px; height: 16px; }
+  .atlas-dock-action kbd { display: none; }
+  .atlas-dock-focus__open strong { font-size: 9px; }
+  .atlas-dock-focus__detail { max-width: 120px; gap: 4px; padding-right: 4px; }
+  .atlas-dock-focus__detail>span { max-width: 54px; }
+  .atlas-dock-focus__detail>button { padding: 0 5px; font-size: 0; }
+  .atlas-dock-focus__detail>button small { font-size: 9px; }
+}
+@media (prefers-reduced-motion:reduce) { .atlas-dock-action { transition: none; } }
+
+/* Residence day progress ribbon: the marker is private local time; ticks are completed records. */
+.residence-day-ribbon { display: grid; gap: 12px; padding: 17px 20px; border: 1px solid var(--line); border-radius: 13px; }
+.residence-day-ribbon__head,.residence-day-ribbon__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.residence-day-ribbon__head>span { color: var(--subtle); font: 600 8px Manrope,sans-serif; letter-spacing: .14em; }
+.residence-day-ribbon__head>b { color: var(--text); font: 600 11px "JetBrains Mono",monospace; font-variant-numeric: tabular-nums; }
+.residence-day-ribbon__head>b small { color: var(--subtle); font-size: 8px; }
+.residence-day-ribbon__track { position: relative; height: 5px; margin: 10px 0 6px; border-radius: 9px; background: var(--bg-elevated); }
+.residence-day-ribbon__elapsed { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: color-mix(in srgb,var(--accent) 62%,var(--line)); }
+.residence-day-ribbon__now { position: absolute; top: 50%; width: 1px; height: 19px; background: var(--accent-strong); transform: translate(-50%,-50%); }
+.residence-day-ribbon__now b { position: absolute; bottom: 21px; left: 50%; color: var(--accent-strong); font: 600 7px Manrope,sans-serif; letter-spacing: .12em; white-space: nowrap; transform: translateX(-50%); }
+.residence-day-ribbon__foot { color: var(--muted); font-size: 9px; }
+.residence-day-ribbon__foot em { padding: 0 4px; color: var(--subtle); font-style: normal; }
+.residence-day-ribbon__marks { display: inline-flex; align-items: center; gap: 3px; }
+.residence-day-ribbon__marks i { width: 3px; height: 11px; border-radius: 2px; background: var(--line); }
+.residence-day-ribbon__marks i.is-focus { background: var(--accent-strong); }
+.residence-day-ribbon__marks i.is-anchor { height: 8px; background: var(--success); }
+@media(max-width:600px) { .residence-day-ribbon { padding: 14px; } .residence-day-ribbon__foot { align-items: flex-start; flex-direction: column; gap: 6px; } }
+
+/* Keyboard-first task selection. */
+.atlas-keyboard-list { outline: none; }
+.atlas-keyboard-list:focus-visible { outline: 1px solid color-mix(in srgb,var(--accent) 55%,transparent); outline-offset: 5px; border-radius: 10px; }
+.is-keyboard-selected { background: color-mix(in srgb,var(--accent) 8%,var(--bg-surface)) !important; box-shadow: inset 2px 0 0 var(--accent-strong); }
+.residence-pinned-row.is-keyboard-selected { border-radius: 9px; }
+@media (prefers-reduced-motion:no-preference) {
+  .is-keyboard-selected { transition: background 140ms ease,box-shadow 140ms ease; }
+}
+
+/* Structural skeletons and quiet editorial loading states. */
+.atlas-skeleton-list { display: grid; gap: 10px; padding: 4px 0; }
+.atlas-skeleton-list i,.atlas-skeleton-block {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  height: 52px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+}
+.atlas-skeleton-list i::after,.atlas-skeleton-block::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg,transparent,color-mix(in srgb,var(--text) 7%,transparent),transparent);
+  animation: atlas-skeleton-shimmer 1.35s ease-in-out infinite;
+}
+.atlas-skeleton-list i:nth-child(2) { width: 91%; }
+.atlas-skeleton-list i:nth-child(3) { width: 76%; }
+.atlas-skeleton-block { width: 220px; height: 12px; margin-top: 14px; border: 0; border-radius: 6px; }
+.atlas-skeleton-block--short { width: 145px; }
+.atlas-skeleton-block--wide { width: min(520px,80vw); height: 70px; margin-top: 28px; border-radius: 13px; }
+@keyframes atlas-skeleton-shimmer { to { transform: translateX(100%); } }
+@media(prefers-reduced-motion:reduce) { .atlas-skeleton-list i::after,.atlas-skeleton-block::after { animation: none; opacity: .35; } }

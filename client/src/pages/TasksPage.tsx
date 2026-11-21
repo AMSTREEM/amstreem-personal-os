@@ -1,5 +1,7 @@
 import { Cascade } from '../components/Cascade';
 import { useState } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Trash2 } from 'lucide-react';
 import { api, json } from '../lib/api';
@@ -11,6 +13,8 @@ type Goal = { id: number; title: string };
 
 export function TasksPage() {
   const client = useQueryClient();
+  const navigate = useNavigate();
+  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [title, setTitle] = useState('');
   const [detail, setDetail] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -31,6 +35,17 @@ export function TasksPage() {
     mutationFn: (id: number) => api('/tasks/' + id, { method: 'DELETE' }),
     onSuccess: () => void client.invalidateQueries({ queryKey: ['tasks'] })
   });
+  function handleTaskKeys(event: ReactKeyboardEvent<HTMLDivElement>) {
+    const target = event.target as HTMLElement;
+    if (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return;
+    const rows = tasks.data || [];
+    if (!rows.length || !['ArrowDown', 'ArrowUp', 'j', 'k', ' ', 'f', 'F'].includes(event.key)) return;
+    event.preventDefault();
+    const index = rows.findIndex(task => task.id === selectedTaskId);
+    if (event.key === 'ArrowDown' || event.key === 'j') setSelectedTaskId(rows[(index + 1 + rows.length) % rows.length].id);
+    else if (event.key === 'ArrowUp' || event.key === 'k') setSelectedTaskId(rows[(index <= 0 ? rows.length : index) - 1].id);
+    else { const task = rows.find(item => item.id === selectedTaskId) || rows[0]; setSelectedTaskId(task.id); if (event.key === ' ' && !update.isPending) update.mutate({ task, done: !task.done }); if (event.key.toLowerCase() === 'f' && !task.done) navigate('/focus?task=' + task.id); }
+  }
 
   return <Cascade className="stack">
     <PageHeader eyebrow="PLAN / EXECUTION" title="Tasks" description="Turn intentions into clear, finishable next actions." />
@@ -48,7 +63,7 @@ export function TasksPage() {
     </Card>
     <Card>
       <div className="card-heading"><div><h2>Your task list</h2><p>{tasks.data?.filter(task => !task.done).length || 0} still open</p></div></div>
-      {tasks.isLoading ? <p className="muted">Loading tasks…</p> : tasks.data?.length ? <div className="list-stack">{tasks.data.map(task => <div className="list-row" key={task.id}><input className="check-control" type="checkbox" checked={!!task.done} onChange={event => update.mutate({ task, done: event.target.checked })} aria-label={'Complete ' + task.title} /><div className="list-row__body"><b className={task.done ? 'is-complete' : ''}>{task.title}</b>{(task.detail || task.project_title || task.goal_title) && <small>{[task.detail, task.project_title, task.goal_title].filter(Boolean).join(' · ')}</small>}</div><span className="list-row__meta">{task.due_date || 'No date'}</span><button className="icon-button" onClick={() => { if (window.confirm('Delete this task?')) remove.mutate(task.id); }} aria-label={'Delete ' + task.title}><Trash2 size={15} /></button></div>)}</div> : <EmptyState title="A clean slate." detail="Capture the next action that would make a meaningful difference." />}
+      {tasks.isLoading ? <div className="atlas-skeleton-list" aria-label="Loading tasks"><i/><i/><i/></div> : tasks.data?.length ? <div className="list-stack atlas-keyboard-list" tabIndex={0} aria-label="Tasks. Use arrow keys or J and K to select, Space to complete, F to focus." onKeyDown={handleTaskKeys}>{tasks.data.map(task => <div className={'list-row ' + (selectedTaskId === task.id ? 'is-keyboard-selected' : '')} data-task-id={task.id} onClick={() => setSelectedTaskId(task.id)} key={task.id}><input className="check-control" type="checkbox" checked={!!task.done} onChange={event => update.mutate({ task, done: event.target.checked })} aria-label={'Complete ' + task.title} /><div className="list-row__body"><b className={task.done ? 'is-complete' : ''}>{task.title}</b>{(task.detail || task.project_title || task.goal_title) && <small>{[task.detail, task.project_title, task.goal_title].filter(Boolean).join(' · ')}</small>}</div><span className="list-row__meta">{task.due_date || 'No date'}</span><button className="icon-button" onClick={() => { if (window.confirm('Delete this task?')) remove.mutate(task.id); }} aria-label={'Delete ' + task.title}><Trash2 size={15} /></button></div>)}</div> : <EmptyState title="A clear runway." detail="Press ⌘ K to capture your next meaningful action." />}
     </Card>
   </Cascade>;
 }
