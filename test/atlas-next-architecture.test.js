@@ -101,7 +101,7 @@ test('FocusWorkspace uses one shared timer store and owns the focus-session work
   assert.doesNotMatch(read('client/src/pages/LearningPage.tsx'), /\/focus\?lesson=/);
   assert.doesNotMatch(read('client/src/pages/TodayPage.tsx'), /\/focus\?task=/);
   assert.doesNotMatch(read('client/src/pages/ValuesPage.tsx'), /\/focus\?focus=/);
-  assert.doesNotMatch(read('client/src/pages/FocusPage.tsx'), /./);
+  assert.equal(fs.existsSync(path.join(root, 'client/src/pages/FocusPage.tsx')), false);
 });
 
 
