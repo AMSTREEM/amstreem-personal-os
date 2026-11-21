@@ -13,6 +13,8 @@ type Prayer = { prayer: string; completed: number; on_time: number };
 type Deen = { date: string; prayers: Prayer[]; quran: { activity: string; pages: number; entries: number }[]; tahajjud: { woke_up: number; prayed: number } };
 type Faith = { activity: string; completed: number };
 type Goal = { id: number; title: string; target_date: string | null; status: string };
+type Announcement = { id: number; title: string; body: string; kind: string; created_at: string; published_at: string | null };
+type AnnouncementFeed = { items: Announcement[]; readIds: number[] };
 type Insight = { recommendation: { title: string; detail: string; reason: string; action: string; destination: string; priority: string }; pattern: string; rhythm: string | null };
 type StoredTimer = { remaining: number; deadline: number | null; taskId?: string; lessonId?: string; projectId?: string };
 const TIMER_KEY = 'atlas-focus-timer-v1';
@@ -51,6 +53,7 @@ export function TodayPage() {
   const learning = useQuery({ queryKey: ['learning-paths'], queryFn: () => api<{ id: number; title: string; lessons: { id: number; title: string }[] }[]>('/learning/paths'), enabled: !!timer.lessonId });
   const goals = useQuery({ queryKey: ['goals'], queryFn: () => api<Goal[]>('/goals') });
   const insight = useQuery({ queryKey: ['intelligence'], queryFn: () => api<Insight>('/intelligence') });
+  const announcements = useQuery({ queryKey: ['announcements'], queryFn: () => api<AnnouncementFeed>('/announcements') });
 
   const addTask = useMutation({
     mutationFn: () => api<Task>('/tasks', json('POST', { title: quickTask.trim(), category: 'Personal', due_date: today })),
@@ -72,6 +75,7 @@ export function TodayPage() {
     mutationFn: (item: Faith) => api('/faith', json('PATCH', { date: today, activity: item.activity, completed: !item.completed })),
     onSuccess: () => void client.invalidateQueries({ queryKey: ['faith', today] })
   });
+  const markAnnouncementRead = useMutation({ mutationFn: (id: number) => api('/announcements/' + id + '/read', json('POST')), onSuccess: () => void client.invalidateQueries({ queryKey: ['announcements'] }) });
 
   const habitList = habits.data || [];
   const completedHabits = habitList.filter(habit => habit.done).length;
@@ -194,6 +198,10 @@ export function TodayPage() {
           {insight.data?.recommendation ? <div className="today-recommendation"><b>{insight.data.recommendation.title}</b><p>{insight.data.recommendation.detail}</p><Link className="text-link" to={nextDestination}>{insight.data.recommendation.action} <ArrowRight size={13}/></Link></div> : <p className="muted">As you build a record of consistency, Atlas will surface a useful next step.</p>}
         </Card>
 
+        {announcements.data?.items?.filter(item => !announcements.data?.readIds.includes(item.id)).length ? <Card className="today-announcements">
+          <div className="residence-section-heading"><div><span className="eyebrow">UPDATES</span><h2>From Atlas</h2></div></div>
+          {announcements.data.items.filter(item => !announcements.data?.readIds.includes(item.id)).slice(0,2).map(item => <div className="today-announcement" key={item.id}><b>{item.title}</b><p>{item.body}</p><button className="text-link" onClick={() => markAnnouncementRead.mutate(item.id)}>Mark as read</button></div>)}
+        </Card> : null}
         <Card className="residence-goals-card">
           <div className="residence-section-heading"><div><span className="eyebrow">LONG-TERM DIRECTION</span><h2>Active goals</h2></div><Link to="/goals" className="text-link">All goals <ArrowRight size={13}/></Link></div>
           {activeGoals.length ? <div className="residence-goal-list">{activeGoals.map(goal => <div className="residence-goal" key={goal.id}><Target size={15}/><div><b>{goal.title}</b><small>{goal.target_date ? 'Target ' + goal.target_date : 'No target date'}</small></div></div>)}</div> : <p className="muted">Your longer-term direction will appear here when you add a goal.</p>}
