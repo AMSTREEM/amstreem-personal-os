@@ -100,7 +100,8 @@ test('Focus timer survives refreshes and does not fabricate completed sessions',
 
 test('Residence derives a daily consistency pulse from active life areas', () => {
   const residence = read('client/src/pages/TodayPage.tsx');
-  assert.match(residence, /TODAY'S CONSISTENCY PULSE/);
+  assert.match(residence, /TODAY'S ACTIVITY PULSE/);
+  assert.doesNotMatch(residence, /TODAY'S CONSISTENCY PULSE/);
   assert.match(residence, /api<Deen>\('\/deen\/summary/);
   assert.match(residence, /api<Faith\[]>\('\/faith/);
   assert.match(residence, /scoreDimensions/);
@@ -112,6 +113,9 @@ test('Residence derives a daily consistency pulse from active life areas', () =>
   assert.match(residence, /Focus streak/);
   assert.match(residence, /api<SelfControlSummary>\('\/self-control\?date=/);
   assert.match(residence, /Your commitments/);
+  assert.match(residence, /residence-band--orientation/);
+  assert.match(residence, /residence-band--overview/);
+  assert.match(residence, /residence-band--execution/);
   assert.match(residence, /api<AnnouncementFeed>\('\/announcements'/);
   assert.match(residence, /markAnnouncementRead/);
 });
