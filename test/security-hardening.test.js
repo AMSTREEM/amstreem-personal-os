@@ -113,7 +113,7 @@ test('Room 3 records focus completion once and derives linked work metrics from 
   assert.match(server, /if\(insert\.changes\)awardXp\('session:'/);
   assert.doesNotMatch(server, /Link a focus session to either a task or a learning lesson, not both/);
   assert.match(server, /AS focus_minutes/);
-  assert.match(server, /progress_pct:Math\.round\(p\.completed_tasks\/p\.task_count\*100\)/);
+  assert.match(server, /progress_pct:\s*p\.task_count\s*\?/);
   assert.match(server, /parent_task_id INTEGER REFERENCES tasks\(id\) ON DELETE CASCADE/);
   assert.match(server, /goal_id INTEGER REFERENCES goals\(id\) ON DELETE SET NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP\);/);
   assert.match(execution, /ROOM 03 \/ EXECUTION & FOCUS/);
