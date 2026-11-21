@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, json } from '../lib/api';
 import { ArrowRight, BookOpen, Compass, GraduationCap, Heart, House, LogOut, Menu, MoonStar, Pause, Play, Search, Settings, SlidersHorizontal, Target, Timer, X, Zap } from 'lucide-react';
@@ -43,6 +43,7 @@ export function AppShell() {
   const navigate = useNavigate();
   const { user, role, signOut, session, completeOnboarding } = useAuth();
   const queryClient = useQueryClient();
+  const reduceMotion = useReducedMotion();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileViewport, setMobileViewport] = useState(() => window.matchMedia('(max-width: 767px)').matches);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -223,10 +224,10 @@ export function AppShell() {
           <motion.div
             key={location.pathname}
             className="room-view-transition"
-            initial={{ opacity: 0, scale: 0.94, y: mobileViewport ? 16 : 26, rotateX: mobileViewport ? 2 : 4 }}
+            initial={reduceMotion ? false : { opacity: 0, scale: 0.94, y: mobileViewport ? 16 : 26, rotateX: mobileViewport ? 2 : 4 }}
             animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
-            exit={{ opacity: 0, scale: 0.975, y: -8, transition: { duration: 0.11, ease: [0.4, 0, 1, 1] } }}
-            transition={{ type: 'spring', stiffness: 340, damping: 28, mass: 0.85 }}
+            exit={reduceMotion ? { opacity: 1, transition: { duration: 0 } } : { opacity: 0, scale: 0.975, y: -8, transition: { duration: 0.11, ease: [0.4, 0, 1, 1] } }}
+            transition={reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 340, damping: 28, mass: 0.85 }}
           >
             <Outlet />
           </motion.div>
