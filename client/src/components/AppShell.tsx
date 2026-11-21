@@ -47,7 +47,6 @@ export function AppShell() {
   const hasMountedRoom = useRef(false);
   useEffect(() => { hasMountedRoom.current = true; }, []);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [mobileViewport, setMobileViewport] = useState(() => window.matchMedia('(max-width: 767px)').matches);
   const [profileOpen, setProfileOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
