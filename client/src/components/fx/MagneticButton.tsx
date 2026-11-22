@@ -1,0 +1,8 @@
+import { useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { motion, useMotionValue, useReducedMotion, useSpring } from 'motion/react';
+type MagneticButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onAnimationStart' | 'onAnimationEnd' | 'onDrag' | 'onDragStart' | 'onDragEnd'> & { children: ReactNode };
+export function MagneticButton({children,className='',...props}:MagneticButtonProps){
+ const ref=useRef<HTMLButtonElement>(null),reduce=useReducedMotion(),px=useMotionValue(0),py=useMotionValue(0),x=useSpring(px,{stiffness:350,damping:24}),y=useSpring(py,{stiffness:350,damping:24});
+ useEffect(()=>{const el=ref.current;if(!el||reduce||!matchMedia('(hover: hover) and (pointer: fine)').matches)return;let raf=0,cx=0,cy=0;const move=(e:PointerEvent)=>{cx=e.clientX;cy=e.clientY;if(!raf)raf=requestAnimationFrame(()=>{raf=0;const r=el.getBoundingClientRect();px.set(Math.max(-4,Math.min(4,(cx-r.left-r.width/2)/Math.max(1,r.width/2)*4)));py.set(Math.max(-4,Math.min(4,(cy-r.top-r.height/2)/Math.max(1,r.height/2)*4)));});};const reset=()=>{cancelAnimationFrame(raf);raf=0;px.set(0);py.set(0);};el.addEventListener('pointermove',move,{passive:true});el.addEventListener('pointerleave',reset,{passive:true});return()=>{reset();el.removeEventListener('pointermove',move);el.removeEventListener('pointerleave',reset);};},[reduce,px,py]);
+ return <motion.button ref={ref} type="button" className={className} style={{x,y}} whileTap={{scale:.985}} transition={{type:"spring",stiffness:500,damping:32}} {...props}>{children}</motion.button>;
+}

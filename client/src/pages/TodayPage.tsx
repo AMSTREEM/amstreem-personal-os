@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Cascade } from '../components/Cascade';
 import { playAtlasFeedback } from '../lib/microFeedback';
 import { AnimatedMetric } from '../components/AnimatedMetric';
+import { MagneticDotField } from '../components/fx/MagneticDotField';
+import { SpatialTiltCard } from '../components/fx/SpatialTiltCard';
+import { OdometerNumber } from '../components/fx/OdometerNumber';
+import { triggerSparkBurst } from '../components/fx/SparkBurst';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, BookOpen, Flame, MoonStar, Plus, Target, Timer, Zap } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -48,6 +52,7 @@ function formatMinutes(minutes: number) {
 }
 
 export function TodayPage() {
+  const reduceMotion = useReducedMotion();
   const client = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -179,7 +184,7 @@ export function TodayPage() {
     const currentIndex = pinnedPriorityTasks.findIndex(task => task.id === selectedPriorityId);
     if (event.key === 'ArrowDown' || event.key === 'j') setSelectedPriorityId(pinnedPriorityTasks[(currentIndex + 1 + pinnedPriorityTasks.length) % pinnedPriorityTasks.length].id);
     else if (event.key === 'ArrowUp' || event.key === 'k') setSelectedPriorityId(pinnedPriorityTasks[(currentIndex <= 0 ? pinnedPriorityTasks.length : currentIndex) - 1].id);
-    else { const task = pinnedPriorityTasks.find(item => item.id === selectedPriorityId) || pinnedPriorityTasks[0]; setSelectedPriorityId(task.id); if (event.key === ' ' && !toggleTask.isPending) toggleTask.mutate(task); if (event.key.toLowerCase() === 'f') navigate('/focus?task=' + task.id); }
+    else { const task = pinnedPriorityTasks.find(item => item.id === selectedPriorityId) || pinnedPriorityTasks[0]; setSelectedPriorityId(task.id); if (event.key === ' ' && !toggleTask.isPending) { if (!task.done) { const rect = event.currentTarget.getBoundingClientRect(); triggerSparkBurst(rect.left + rect.width / 2, rect.top + rect.height / 2); } toggleTask.mutate(task); } if (event.key.toLowerCase() === 'f') navigate('/focus?task=' + task.id); }
   }
 
   useEffect(() => {
@@ -220,7 +225,7 @@ export function TodayPage() {
   return <Cascade className="stack today-dashboard">
     <section className="residence-band residence-band--orientation" aria-label="Today's orientation">
       <PageHeader eyebrow={new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()).toUpperCase()} title={`Good ${rhythm === 'day' ? 'afternoon' : rhythm}, ${settings.data?.display_name?.trim() || user?.name || user?.username || 'there'}`} description="Your Residence: a clear view of today’s priorities, routines, focus and progress." action={showCalendar ? <Link className="button button--secondary" to="/calendar">View calendar <ArrowRight size={14} /></Link> : undefined} />
-      <section className="residence-rhythm"><div><span className="eyebrow">{rhythmCopy.eyebrow}</span><h2>{rhythmCopy.title}</h2><p>{rhythmCopy.detail}</p></div><span className="residence-rhythm-time">{new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',minute:'2-digit'}).format(new Date())} WAT</span></section>
+      <section className="residence-rhythm"><div><span className="eyebrow">{rhythmCopy.eyebrow}</span><span className="residence-rhythm-title-mask"><motion.h2 initial={reduceMotion ? false : { y: "105%", opacity: 0 }} animate={{ y: "0%", opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.28, delay: 0.07, ease: [0.16, 1, 0.3, 1] }}>{rhythmCopy.title}</motion.h2></span><p>{rhythmCopy.detail}</p></div><span className="residence-rhythm-time">{new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',minute:'2-digit'}).format(new Date())} WAT</span></section>
       {yesterdayReview?.shutdown_complete && yesterdayReview.next_focus?.trim() && <div className="residence-carryforward"><span className="eyebrow">YOUR FIRST MEANINGFUL STEP</span><p>{yesterdayReview.next_focus}</p><small>Carried forward from yesterday’s shutdown</small></div>}
     <section className="residence-rhythm-action" aria-live="polite">
       {showShutdownPrompt ? <><div><span className="eyebrow">EVENING SHUTDOWN</span><b>{prioritiesCompleted ? 'Your three priorities are complete. Close the loop.' : 'Make space to close the day.'}</b><p>Capture what moved forward and choose tomorrow’s first meaningful step.</p></div><Link to="#evening-shutdown">Begin shutdown <ArrowRight size={13}/></Link></>
@@ -234,7 +239,7 @@ export function TodayPage() {
         <div className="residence-day-ribbon__foot"><span className="residence-day-ribbon__marks">{Array.from({ length: Math.min(8, completedFocusBlocks) }, (_, index) => <i className="is-focus" key={'f' + index}/>)}{Array.from({ length: Math.min(10, completedRhythmAnchors) }, (_, index) => <i className="is-anchor" key={'a' + index}/>)}</span><span>{completedFocusBlocks} focus blocks <em>·</em> {completedRhythmAnchors} faith / rhythm anchors</span></div>
       </section>
       {dailyReview?.alignment_complete && !editingAlignment ? <Card className="residence-intention-card">
-        <div><span className="eyebrow">TODAY’S DAILY INTENTION</span><p>{dailyReview.intention}</p></div>
+        <div><span className="eyebrow">TODAY’S DAILY INTENTION</span><span className="residence-intention-mask"><motion.p initial={reduceMotion ? false : { y: "105%", opacity: 0 }} animate={{ y: "0%", opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.28, delay: 0.13, ease: [0.16, 1, 0.3, 1] }}>{dailyReview.intention}</motion.p></span></div>
         <button type="button" className="text-link" onClick={() => setEditingAlignment(true)}>Edit plan <ArrowRight size={13}/></button>
       </Card> : <Card className="residence-alignment-card">
         <div className="residence-section-heading">
@@ -261,7 +266,7 @@ export function TodayPage() {
       </Card>}
     </section>
 
-    <section className="residence-band residence-band--overview" aria-label="Life at a glance">
+    <section className="residence-band residence-band--overview" aria-label="Life at a glance"><MagneticDotField/>
       <div className="residence-band-heading"><span className="eyebrow">02 / YOUR LIFE AT A GLANCE</span><p>Connected areas of your life, with activity drawn from your existing records.</p></div>
       <section className="residence-pillar-grid" aria-label="Six life pillars">
       {[
@@ -273,17 +278,17 @@ export function TodayPage() {
         {title:'Goals',detail:'Keep long-term direction visible',to:'/goals',symbol:'◎',tone:'goals'}
       ].map(pillar=><Link className={'residence-pillar atlas-spotlight residence-pillar--'+pillar.tone} to={pillar.to} key={pillar.to}><span>{pillar.symbol}</span><div><b>{pillar.title}</b><small>{pillar.detail}</small></div><ArrowRight size={14}/></Link>)}
     </section>
-    <section className="residence-pulse" aria-label="Your daily activity pulse">
+    <SpatialTiltCard className="residence-pulse-tilt"><section className="residence-pulse" aria-label="Your daily activity pulse">
       <div className="residence-pulse__main">
         <div className="residence-pulse__heading"><span className="eyebrow">TODAY'S ACTIVITY PULSE</span><span className="residence-pulse__date">{today}</span></div>
-        <div className="residence-pulse__score" style={{ '--pulse-score': (activityPulse ?? 0) + '%' } as CSSProperties & { '--pulse-score': string }}>{activityPulse === null ? '—' : <AnimatedMetric value={activityPulse} suffix="%" />}<span>{activityPulse === null ? 'Build your first signal' : 'across ' + scoreDimensions.length + ' active areas'}</span></div>
+        <div className="residence-pulse__score" style={{ '--pulse-score': (activityPulse ?? 0) + '%' } as CSSProperties & { '--pulse-score': string }}>{activityPulse === null ? '—' : <OdometerNumber value={activityPulse} suffix="%"/>}<span>{activityPulse === null ? 'Build your first signal' : 'across ' + scoreDimensions.length + ' active areas'}</span></div>
         <div className="residence-pulse__track"><span style={{ width: (activityPulse ?? 0) + '%' }} /></div>
         <p>{activityPulse === null ? 'Choose a habit, set a focus intention, or add a priority to begin. This snapshot only reflects areas you actively use.' : 'A snapshot of activity recorded today, not a rolling consistency score or a judgement. It only includes areas you actively use.'}</p>
       </div>
       <div className="residence-pulse__dimensions">
         {scoreDimensions.length ? scoreDimensions.map(item => <div className="residence-dimension" key={item.label}><span>{item.label}</span><b>{Math.round(item.score)}%</b><small>{item.detail}</small><i><span style={{ width: Math.max(0, Math.min(100, item.score)) + '%' }} /></i></div>) : <div className="residence-dimension residence-dimension--empty"><span>YOUR DAILY RHYTHM</span><b>Start small</b><small>Activity appears here as you use Atlas.</small></div>}
       </div>
-    </section>
+    </section></SpatialTiltCard>
 
     <div className="residence-stat-grid">
       <Card className="residence-stat atlas-spotlight"><span className="eyebrow">FOCUS TODAY</span><strong><AnimatedMetric value={overview.data?.todayMin ?? 0} format="minutes" /></strong><small>{focusPercent}% of your {target}m intention</small></Card>

@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { animate, useMotionValue, useReducedMotion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 
 type AnimatedMetricProps = {
   value: number;
@@ -12,32 +11,31 @@ function formatValue(value: number, format: AnimatedMetricProps['format']) {
   if (format === 'minutes') {
     const hours = Math.floor(rounded / 60);
     const minutes = rounded % 60;
-    return hours ? hours + 'h ' + minutes + 'm' : minutes + 'm';
+    return hours ? hours + 'h ' + String(minutes).padStart(2, '0') + 'm' : String(minutes) + 'm';
   }
   return String(rounded);
 }
 
-export function AnimatedMetric({ value, suffix = '', format = 'integer' }: AnimatedMetricProps) {
-  const motionValue = useMotionValue(0);
-  const [display, setDisplay] = useState(0);
+export function OdometerText({ value, className }: { value: string; className?: string }) {
   const reduceMotion = useReducedMotion();
+  return <span className={['atlas-odometer', className].filter(Boolean).join(' ')} aria-label={value}>
+    {Array.from(value).map((character, index) => (
+      <span className="atlas-odometer__slot" aria-hidden="true" key={index}>
+        <AnimatePresence initial={false} mode="sync">
+          <motion.span
+            className="atlas-odometer__digit"
+            key={index + ':' + character}
+            initial={reduceMotion ? false : { y: '105%', opacity: 0.65 }}
+            animate={{ y: '0%', opacity: 1 }}
+            exit={reduceMotion ? { opacity: 0 } : { y: '-105%', opacity: 0.35 }}
+            transition={reduceMotion ? { duration: 0 } : { duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >{character === ' ' ? '\u00a0' : character}</motion.span>
+        </AnimatePresence>
+      </span>
+    ))}
+  </span>;
+}
 
-  useEffect(() => {
-    const unsubscribe = motionValue.on('change', latest => setDisplay(Math.round(latest)));
-    if (reduceMotion) {
-      motionValue.set(value);
-      setDisplay(value);
-      return () => unsubscribe();
-    }
-    const controls = animate(motionValue, value, {
-      duration: 0.4,
-      ease: [0.22, 1, 0.36, 1]
-    });
-    return () => {
-      controls.stop();
-      unsubscribe();
-    };
-  }, [motionValue, reduceMotion, value]);
-
-  return <>{formatValue(display, format)}{format === 'minutes' ? '' : suffix}</>;
+export function AnimatedMetric({ value, suffix = '', format = 'integer' }: AnimatedMetricProps) {
+  return <><OdometerText value={formatValue(value, format)} />{format === 'minutes' ? '' : suffix}</>;
 }

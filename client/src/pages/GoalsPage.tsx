@@ -4,6 +4,7 @@ import { ArrowRight, BookOpen, CheckCircle2, Clock3, FolderKanban, Heart, ListCh
 import { Link } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
+import { SpatialTiltCard } from '../components/fx/SpatialTiltCard';
 import { Cascade } from '../components/Cascade';
 
 type Goal = { id: number; title: string; detail: string; target_date: string | null; status: string; category?: string; horizon?:'short-term'|'long-term'; focus_minutes: number };
@@ -64,7 +65,7 @@ export function GoalsPage() {
     <div className="goal-grid">
       {goals.data?.length ? goals.data.map(goal => {
         const work = workByGoal.get(goal.id);
-        return <Card key={goal.id} className="goal-card goal-card--connected atlas-spotlight">
+        return <SpatialTiltCard key={goal.id} className="goal-spatial-wrap"><Card className="goal-card goal-card--connected atlas-spotlight">
           <div className="goal-card__top"><span className="status-pill">{goal.category || 'Personal'} · {goal.horizon || 'long-term'}</span><Target size={17}/></div>
           <h2>{goal.title}</h2><p>{goal.detail || 'No additional context yet.'}</p>
           <div className="goal-work-summary">
@@ -84,7 +85,7 @@ export function GoalsPage() {
           </div> : <p className="goal-no-work">Give this goal a first step by connecting a project or task.</p>}
           <div className="goal-card__bottom"><span className="goal-meta-chip"><Target size={12}/>{goal.target_date ? 'Target ' + goal.target_date : 'No target date'}</span><span className="goal-meta-chip"><Clock3 size={12}/>{work?.focusMinutes ?? 0}m focus invested</span><span>{work?.completed ?? 0} of {work?.total ?? 0} verified actions</span></div>
           <div className="goal-link-actions"><Link to="/execution" className="text-link">Add project <ArrowRight size={13}/></Link><Link to="/execution" className="text-link">Add task <ArrowRight size={13}/></Link></div>
-        </Card>;
+        </Card></SpatialTiltCard>;
       }) : <Card><EmptyState title="Give your effort a direction." detail="Your active goals will live here. Start with one outcome that genuinely matters." /></Card>}
     </div>
   </Cascade>;
