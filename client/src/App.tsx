@@ -47,7 +47,7 @@ export function App() {
       <Route path="/reviews" element={<LegacyRedirect to="/reviews-insights" />} />
       <Route path="/rituals" element={<LegacyRedirect to="/habits" />} />
       <Route path="/self-control" element={<LegacyRedirect to="/habits" />} />
-      <Route path="/projects" element={<LegacyRedirect to="/execution" />} />
+      <Route path="/projects" element={<LegacyRedirect to="/goals" />} />
       <Route path="/tasks" element={<LegacyRedirect to="/execution" />} />
       <Route path="/learning" element={<LegacyRedirect to="/learning-library" />} />
       <Route path="/library" element={<LegacyRedirect to="/learning-library" />} />
