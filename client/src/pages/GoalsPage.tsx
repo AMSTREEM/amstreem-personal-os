@@ -106,7 +106,7 @@ export function GoalsPage() {
             {work.paths.slice(0,2).map(path => <div key={'l'+path.id}><BookOpen size={13}/><span>{path.title}</span><small>{path.lessons.filter(lesson=>lesson.status==='Completed').length}/{path.lessons.length} lessons</small></div>)}
           </div> : <p className="goal-no-work">Give this goal a first step by connecting a project or task.</p>}
           <div className="goal-card__bottom"><span className="goal-meta-chip"><Target size={12}/>{goal.target_date ? 'Target ' + goal.target_date : 'No target date'}</span><span className="goal-meta-chip"><Clock3 size={12}/>{work?.focusMinutes ?? 0}m focus invested</span><span>{work?.completed ?? 0} of {work?.total ?? 0} verified actions</span></div>
-          <div className="goal-link-actions"><Link to="/execution" className="text-link">Add project <ArrowRight size={13}/></Link><Link to="/execution" className="text-link">Add task <ArrowRight size={13}/></Link></div>
+          <div className="goal-link-actions"><Link to="/goals#projects-workspace" className="text-link">Add project <ArrowRight size={13}/></Link><Link to="/execution" className="text-link">Add task <ArrowRight size={13}/></Link></div>
         </Card></SpatialTiltCard>;
       }) : <Card><EmptyState title="Give your effort a direction." detail="Your active goals will live here. Start with one outcome that genuinely matters." /></Card>}
     </div>
