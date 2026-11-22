@@ -2403,3 +2403,45 @@ input, select, textarea { min-width: 0; }
   }
   .rhythm-page > .rhythm-grid { gap: 18px !important; }
 }
+
+/* Administration: compact, scannable section directory. */
+.admin-section-grid,
+.admin-faith-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.admin-section-link,
+.admin-faith-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+.admin-section-link:hover,
+.admin-faith-option:hover {
+  border-color: var(--accent);
+  background: var(--surface);
+  transform: translateY(-1px);
+}
+.admin-section-link > span:first-child,
+.admin-faith-option { display: grid; gap: 6px; }
+.admin-section-link b,
+.admin-faith-option b { font-size: 12px; font-weight: 650; }
+.admin-section-link small,
+.admin-faith-option small { color: var(--muted); font-size: 10px; line-height: 1.5; }
+.admin-section-link > span:last-child { color: var(--accent-strong); font-size: 16px; }
+.admin-faith-option > span { margin-top: 5px; color: var(--accent-strong); font-size: 10px; font-weight: 650; }
+@media (max-width: 680px) {
+  .admin-section-grid,
+  .admin-faith-grid { grid-template-columns: 1fr; }
+}
