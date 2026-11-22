@@ -23,6 +23,8 @@ export function GoalsPage() {
   const [targetDate, setTargetDate] = useState('');
   const [category, setCategory] = useState('Personal');
   const [horizon,setHorizon]=useState<'short-term'|'long-term'>('long-term');
+  const [activeWorkspace,setActiveWorkspace]=useState<'goals'|'projects'|'learning'|'all'>('goals');
+  const [pendingConstellationTarget,setPendingConstellationTarget]=useState<{kind:'goal'|'project'|'learning';id:number}|null>(null);
   const goals = useQuery({ queryKey: ['goals'], queryFn: () => api<Goal[]>('/goals') });
   const projects = useQuery({ queryKey: ['projects'], queryFn: () => api<Project[]>('/projects') });
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => api<Task[]>('/tasks') });
@@ -55,22 +57,31 @@ export function GoalsPage() {
     const handleConstellationSelect = (event: Event) => {
       const detail = (event as CustomEvent<{kind:'goal'|'project'|'learning';id:number}>).detail;
       if (!detail) return;
-      const target = document.getElementById('atlas-' + detail.kind + '-' + detail.id);
-      if (!target) return;
-      target.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
-      target.classList.remove('atlas-constellation-highlight');
-      void target.offsetWidth;
-      target.classList.add('atlas-constellation-highlight');
-      window.setTimeout(() => target.classList.remove('atlas-constellation-highlight'), 1900);
+      setActiveWorkspace(detail.kind === 'goal' ? 'goals' : detail.kind === 'project' ? 'projects' : 'learning');
+      setPendingConstellationTarget(detail);
     };
     window.addEventListener('atlas:constellation-select', handleConstellationSelect);
     return () => window.removeEventListener('atlas:constellation-select', handleConstellationSelect);
   }, []);
+  useEffect(() => {
+    if (!pendingConstellationTarget) return;
+    const target = document.getElementById('atlas-' + pendingConstellationTarget.kind + '-' + pendingConstellationTarget.id);
+    if (!target) return;
+    target.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+    target.classList.remove('atlas-constellation-highlight');
+    void target.offsetWidth;
+    target.classList.add('atlas-constellation-highlight');
+    window.setTimeout(() => target.classList.remove('atlas-constellation-highlight'), 1900);
+    setPendingConstellationTarget(null);
+  }, [activeWorkspace,pendingConstellationTarget]);
 
   return <Cascade className="stack growth-horizon-layout goals-horizon">
     <PageHeader eyebrow="DIRECTION / LONG GAME" title="Goals & Milestones" description="Keep meaningful outcomes visible, with progress earned through linked tasks, completed lessons and project milestones." />
     <LifeConstellation goals={(goals.data||[]).map(({id,title})=>({id,title}))} projects={(projects.data||[]).map(({id,title,goal_id})=>({id,title,goal_id}))} paths={(paths.data||[]).map(({id,title,goal_id})=>({id,title,goal_id}))} />
-    <section id="goals-workspace" className="growth-view-section atlas-constellation-target">
+    <nav className="growth-workspace-switcher" aria-label="Choose Growth workspace">
+      {([{id:'goals',label:'Goals'},{id:'projects',label:'Projects'},{id:'learning',label:'Learning Paths'},{id:'all',label:'Show All'}] as const).map(tab=><button key={tab.id} type="button" className={activeWorkspace===tab.id?'is-active':''} aria-pressed={activeWorkspace===tab.id} onClick={()=>setActiveWorkspace(tab.id)}>{tab.label}</button>)}
+    </nav>
+    {(activeWorkspace==='goals'||activeWorkspace==='all') && <section id="goals-workspace" className="growth-view-section atlas-constellation-target">
     <div className="growth-section-heading"><span className="eyebrow">01 / DIRECTION</span><h2>Goals & milestones</h2><p>Set outcomes and let linked work provide the evidence of progress.</p></div>
     <Card>
       <div className="card-heading"><div><h2>Set a direction</h2><p>Describe an outcome, not a vague aspiration.</p></div></div>
@@ -110,14 +121,14 @@ export function GoalsPage() {
         </Card></SpatialTiltCard>;
       }) : <Card><EmptyState title="Give your effort a direction." detail="Your active goals will live here. Start with one outcome that genuinely matters." /></Card>}
     </div>
-    </section>
-    <section id="projects-workspace" className="growth-view-section atlas-constellation-target">
+    </section>}
+    {(activeWorkspace==='projects'||activeWorkspace==='all') && <section id="projects-workspace" className="growth-view-section atlas-constellation-target">
       <div className="growth-section-heading"><span className="eyebrow">02 / BUILD</span><h2>Projects</h2><p>Turn a goal into a body of work, with target dates, linked goals and meaningful milestones.</p></div>
       <ProjectsPage embedded />
-    </section>
-    <section id="learning-workspace" className="growth-view-section atlas-constellation-target">
+    </section>}
+    {(activeWorkspace==='learning'||activeWorkspace==='all') && <section id="learning-workspace" className="growth-view-section atlas-constellation-target">
       <div className="growth-section-heading"><span className="eyebrow">03 / DEVELOP</span><h2>Learning paths</h2><p>Connect skills and structured lessons to the direction they support.</p></div>
       <LearningPage embedded />
-    </section>
+    </section>}
   </Cascade>;
 }
