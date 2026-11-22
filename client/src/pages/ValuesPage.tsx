@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, Check, HeartHandshake, MoonStar, Plus, RotateCcw, Sparkles, Timer } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../auth/AuthProvider';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
 import { Cascade } from '../components/Cascade';
@@ -19,6 +20,8 @@ function dateKey() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa
 
 export function ValuesPage() {
   const client = useQueryClient();
+  const { role } = useAuth();
+  const [searchParams] = useSearchParams();
   const date = dateKey();
   const [activity, setActivity] = useState('memorisation');
   const [surah, setSurah] = useState('');
@@ -44,12 +47,14 @@ export function ValuesPage() {
   const [intercessionDetail, setIntercessionDetail] = useState('');
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Settings>('/settings') });
   const religion = settings.data?.faith_tradition || settings.data?.religion || 'none';
-  const tradition = religion === 'islam' || religion === 'christianity' ? religion : 'general';
+  const requestedTradition = searchParams.get('tradition');
+  const adminPreview = role === 'admin' && ['islam','christianity','general'].includes(requestedTradition || '') ? requestedTradition : null;
+  const tradition = adminPreview || (religion === 'islam' || religion === 'christianity' ? religion : 'general');
   const deen = useQuery({ queryKey: ['deen', date], queryFn: () => api<Deen>('/deen/summary?date=' + date), enabled: tradition === 'islam' });
   const quranLogs = useQuery({ queryKey: ['quran-logs'], queryFn: () => api<QuranLog[]>('/deen/quran'), enabled: tradition === 'islam' });
   const records = useQuery({ queryKey: ['rhythm-records', date], queryFn: () => api<RhythmRecord[]>('/rhythm/records?date=' + date) });
   const createRecord = useMutation({
-    mutationFn: (entry: { record_type: string; title: string; detail?: string; status?: RhythmRecord['status']; record_date?: string }) => api<RhythmRecord>('/rhythm/records', json('POST', { record_date: date, status: 'completed', ...entry })),
+    mutationFn: (entry: { record_type: string; title: string; detail?: string; status?: RhythmRecord['status']; record_date?: string }) => api<RhythmRecord>('/rhythm/records', json('POST', { record_date: date, status: 'completed', ...entry, ...(adminPreview ? { admin_tradition: adminPreview } : {}) })),
     onSuccess: () => { void client.invalidateQueries({ queryKey: ['rhythm-records', date] }); void client.invalidateQueries({ queryKey: ['rhythm-summary'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });
   const updateRecord = useMutation({
