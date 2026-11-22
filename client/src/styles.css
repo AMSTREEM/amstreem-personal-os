@@ -4440,3 +4440,63 @@ html, body, #root, .app-frame, .main-area, .page-container {
 @media (prefers-reduced-motion: reduce) {
   .atlas-constellation-highlight { animation: none; outline: 1px solid var(--accent-strong); outline-offset: 4px; }
 }
+
+
+/* Flagship instrument suite — quiet luminous surfaces, strict containment. */
+.atlas-rhythm-constellation,.atlas-celestial-horizon{width:100%;min-width:0;overflow:hidden;border:1px solid var(--line);border-radius:var(--atlas-radius-card,18px);background:linear-gradient(135deg,color-mix(in srgb,var(--accent-wash) 24%,var(--surface)),var(--surface) 72%);box-shadow:var(--surface-specular);}
+.atlas-rhythm-constellation{padding:18px 20px 14px;}
+.atlas-rhythm-constellation__heading{display:flex;align-items:center;justify-content:space-between;gap:14px;min-width:0;}
+.atlas-rhythm-constellation__heading h2{margin:4px 0;font:650 18px/1.2 Manrope,sans-serif;letter-spacing:-.035em;}
+.atlas-rhythm-constellation__heading p{margin:0;color:var(--muted);font-size:11px;line-height:1.5;}
+.atlas-rhythm-constellation__total{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:48px;min-height:48px;border:1px solid var(--line);border-radius:50%;font:650 16px Manrope,sans-serif;font-variant-numeric:tabular-nums;}
+.atlas-rhythm-constellation__total small{color:var(--muted);font:600 7px Manrope,sans-serif;text-transform:uppercase;letter-spacing:.08em;}
+.atlas-rhythm-constellation canvas{display:block;width:100%;height:140px;max-width:100%;margin-top:2px;touch-action:pan-y;cursor:crosshair;}
+.atlas-rhythm-constellation__detail{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px 14px;min-height:34px;padding:7px 11px;border:1px solid var(--line-soft);border-radius:10px;background:color-mix(in srgb,var(--surface-raised) 78%,transparent);font-size:10px;}
+.atlas-rhythm-constellation__detail b{color:var(--text);font-weight:650;}
+.atlas-rhythm-constellation__detail span{color:var(--muted);}
+.atlas-rhythm-constellation__detail strong{color:var(--accent-strong,var(--text));font-size:10px;}
+.atlas-rhythm-constellation__hint{margin:7px 0 0;color:var(--subtle);font-size:9px;}
+.atlas-celestial-horizon{display:grid;grid-template-columns:minmax(150px,.75fr) minmax(0,1.5fr);align-items:center;gap:4px 16px;padding:12px 18px;min-height:94px;}
+.atlas-celestial-horizon__copy{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.atlas-celestial-horizon__copy b{font:650 11px Manrope,sans-serif;letter-spacing:.08em;}
+.atlas-celestial-horizon__copy small{color:var(--muted);font-size:10px;}
+.atlas-celestial-horizon svg{display:block;width:100%;height:72px;overflow:visible;}
+.atlas-celestial-horizon>p{grid-column:1/-1;margin:0;color:var(--subtle);font-size:9px;}
+.atlas-celestial-horizon.is-dawn{color:#e2b66c;background:linear-gradient(100deg,rgba(220,158,82,.13),transparent 70%);}
+.atlas-celestial-horizon.is-day{color:#9dc9d5;background:linear-gradient(100deg,rgba(92,172,190,.1),transparent 70%);}
+.atlas-celestial-horizon.is-dusk{color:#b69ae5;background:linear-gradient(100deg,rgba(138,102,190,.15),transparent 70%);}
+.atlas-celestial-horizon.is-night{color:#8495c8;background:linear-gradient(100deg,rgba(67,83,140,.16),transparent 70%);}
+.atlas-astrolabe-rings{position:absolute;inset:50% auto auto 50%;width:260px;height:260px;max-width:100%;transform:translate(-50%,-50%);overflow:visible;pointer-events:none;opacity:.32;z-index:1;}
+.atlas-astrolabe-rings g{transform-origin:130px 130px;fill:none;stroke:var(--accent-strong,var(--accent));stroke-width:.7;}
+.atlas-astrolabe-rings__outer{opacity:.55;}
+.atlas-astrolabe-rings.is-active .atlas-astrolabe-rings__inner{animation:atlas-orbit-cw 42s linear infinite;}
+.atlas-astrolabe-rings.is-active .atlas-astrolabe-rings__outer{animation:atlas-orbit-ccw 68s linear infinite;}
+@keyframes atlas-orbit-cw{to{transform:rotate(360deg);}}
+@keyframes atlas-orbit-ccw{to{transform:rotate(-360deg);}}
+.focus-charge-launch{position:relative;display:inline-flex;isolation:isolate;border-radius:999px;}
+.focus-charge-launch:before{content:"";position:absolute;inset:-4px;border:1px solid color-mix(in srgb,var(--accent-strong,var(--accent)) 60%,transparent);border-radius:inherit;opacity:.7;pointer-events:none;animation:atlas-charge-breathe 2.8s ease-in-out infinite;}
+@keyframes atlas-charge-breathe{50%{inset:-7px;opacity:.25;}}
+.residence-pinned-priorities.is-harmonically-locked{position:relative;overflow:hidden;border-color:color-mix(in srgb,#d7b56e 55%,var(--line));}
+.residence-pinned-priorities.is-harmonically-locked:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 30%,rgba(232,196,123,.14) 48%,transparent 66%);transform:translateX(-110%);animation:atlas-harmonic-sweep 2.2s ease-out both;}
+@keyframes atlas-harmonic-sweep{to{transform:translateX(110%);}}
+.residence-day-secured{display:inline-flex;margin-top:7px;padding:5px 9px;border:1px solid rgba(211,178,105,.32);border-radius:999px;color:#c9aa69;background:rgba(211,178,105,.08);font-size:9px;letter-spacing:.02em;}
+.atlas-constellation__hint{display:block;margin-top:6px;color:var(--subtle);font-size:9px;}
+.atlas-command-dock{bottom:calc(10px + env(safe-area-inset-bottom)) !important;padding-bottom:max(6px,env(safe-area-inset-bottom)) !important;}
+.atlas-dock-action{min-height:44px;min-width:44px;}
+.atlas-command-dock,.atlas-command-dock *{min-width:0;}
+.main-area,.page-container,.atlas-tour__body{ -webkit-overflow-scrolling:touch; }
+@media(max-width:760px){
+ .atlas-rhythm-constellation{padding:15px 14px 12px;}
+ .atlas-rhythm-constellation canvas{height:120px;}
+ .atlas-rhythm-constellation__detail{justify-content:flex-start;}
+ .atlas-rhythm-constellation__detail strong{margin-left:auto;}
+ .atlas-celestial-horizon{grid-template-columns:minmax(0,1fr);gap:2px;padding:12px 14px;}
+ .atlas-celestial-horizon svg{height:62px;}
+ .atlas-celestial-horizon>p{grid-column:1;}
+ .atlas-astrolabe-rings{width:240px;height:240px;}
+ .atlas-command-dock{width:calc(100vw - 24px) !important;max-width:calc(100vw - 24px) !important;}
+ .atlas-dock-action{min-width:44px;min-height:44px;padding-inline:9px;}
+}
+@media(prefers-reduced-motion:reduce){
+ .atlas-astrolabe-rings.is-active g,.focus-charge-launch:before,.residence-pinned-priorities.is-harmonically-locked:after{animation:none !important;}
+}
