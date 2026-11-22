@@ -5112,3 +5112,159 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .atlas-segmented-switcher::-webkit-scrollbar { display: none; }
   .atlas-segmented-switcher button { flex: 0 0 auto; padding-inline: 14px; }
 }
+
+
+/* INNER PADDING + EDGE CLEARANCE — shared ergonomics guardrails.
+   Deliberately targets content surfaces, not FX instrument internals or their geometry. */
+:where(
+  .surface-card,
+  .stat-card,
+  .room4-card,
+  .room4-path-card,
+  .room4-evidence,
+  .goal-card--connected,
+  .execution-panel-card,
+  .execution-focus-card,
+  .execution-history-card,
+  .residence-alignment-card,
+  .residence-intention-card,
+  .residence-pinned-priorities,
+  .calendar-month-card,
+  .calendar-day-agenda,
+  .rhythm-intro
+) {
+  box-sizing: border-box;
+  padding: 20px 22px;
+}
+:where(
+  .list-row,
+  .today-task-row,
+  .today-habit-row,
+  .rituals-row,
+  .execution-task,
+  .room4-resource,
+  .rhythm-prayer-row,
+  .rhythm-check-row,
+  .rhythm-record-row,
+  .calendar-agenda-list article,
+  .tracker-row,
+  .habit-row,
+  .checklist-item,
+  .stat-tile,
+  .residence-stat
+) {
+  box-sizing: border-box;
+  padding: 12px 16px;
+}
+:where(
+  .status-pill,
+  .rhythm-prayer-segments button,
+  .atlas-segmented-switcher button,
+  .growth-workspace-switcher button,
+  .module-subnav__link,
+  .tracker-actions button,
+  .choice-row button,
+  .data-actions button
+) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.25;
+  padding: 8px 14px;
+  box-sizing: border-box;
+}
+:where(.status-pill,.tracker-status,.rhythm-status-chip,.compact-status-chip) {
+  padding: 4px 10px;
+  line-height: 1.25;
+}
+:where(
+  .field-input,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select
+) {
+  box-sizing: border-box;
+  max-width: 100%;
+  padding-inline: 14px;
+}
+:where(textarea,.field-input--area) { padding-block: 12px; }
+:where(.button,.button--primary,.button--secondary,.button--ghost,.button--danger) {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.25;
+  padding: 8px 14px;
+}
+:where(.modal,.modal-content,.dialog,.dialog-content,[role="dialog"],.mobile-more-drawer) {
+  box-sizing: border-box;
+  padding: 20px 22px;
+}
+:where(.page-container,.page-container > *, .page-container :where(
+  .content-grid,.goal-grid,.library-grid,.stat-grid,.rhythm-grid,.rhythm-quran-layout,
+  .tracker-grid,.growth-horizon-layout,.growth-combined-view,.execution-split,
+  .execution-focus-links,.calendar-workspace-grid,.residence-grid,.residence-pillar-grid,
+  .residence-stat-grid
+)) {
+  box-sizing: border-box;
+  min-width: 0;
+}
+:where(.page-container :is(
+  .content-grid,.goal-grid,.library-grid,.stat-grid,.rhythm-grid,.rhythm-quran-layout,
+  .tracker-grid,.growth-horizon-layout,.growth-combined-view,.execution-split,
+  .execution-focus-links,.calendar-workspace-grid,.residence-grid,.residence-pillar-grid,
+  .residence-stat-grid
+)) {
+  width: 100%;
+  justify-items: stretch;
+  align-items: stretch;
+}
+.atlas-segmented-switcher {
+  box-sizing: border-box;
+  margin-inline: auto;
+}
+.atlas-segmented-switcher button { min-width: max-content; }
+@media (min-width: 768px) {
+  .page-container {
+    width: 100%;
+    max-width: 1160px;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+  }
+}
+@media (max-width: 639px) {
+  :where(
+    .surface-card,.stat-card,.room4-card,.room4-path-card,.room4-evidence,
+    .goal-card--connected,.execution-panel-card,.execution-focus-card,
+    .execution-history-card,.residence-alignment-card,.residence-intention-card,
+    .residence-pinned-priorities,.calendar-month-card,.calendar-day-agenda,.rhythm-intro
+  ) {
+    padding: 16px 18px;
+  }
+  :where(
+    .list-row,.today-task-row,.today-habit-row,.rituals-row,.execution-task,
+    .room4-resource,.rhythm-prayer-row,.rhythm-check-row,.rhythm-record-row,
+    .calendar-agenda-list article,.tracker-row,.habit-row,.checklist-item,
+    .stat-tile,.residence-stat
+  ) {
+    padding: 10px 14px;
+  }
+  :where(.modal,.modal-content,.dialog,.dialog-content,[role="dialog"],.mobile-more-drawer) {
+    padding: 16px 18px;
+  }
+}
+@media (max-width: 767px) {
+  .atlas-segmented-switcher {
+    width: 100%;
+    max-width: 100%;
+    margin-inline: auto;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    scrollbar-width: none;
+  }
+  .atlas-segmented-switcher::-webkit-scrollbar { display: none; }
+  .atlas-segmented-switcher button { flex: 0 0 auto; white-space: nowrap; }
+  .page-container { margin-inline: auto; }
+}
