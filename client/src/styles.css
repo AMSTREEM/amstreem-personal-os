@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 :root {
@@ -3738,3 +3738,14 @@ input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
 .goal-spatial-wrap > .card { height:100%; }
 .residence-pulse-tilt { grid-column:1 / -1; }
 .residence-pulse-tilt > .residence-pulse { height:100%; }
+
+
+/* Launch camera-dolly: content only, keeping fixed dock and global overlays viewport-bound. */
+.atlas-workspace-boot {
+  min-width: 0;
+  transform-origin: 50% 42%;
+  will-change: transform, opacity, filter;
+}
+@media (prefers-reduced-motion: reduce) {
+  .atlas-workspace-boot { will-change: auto; }
+}
