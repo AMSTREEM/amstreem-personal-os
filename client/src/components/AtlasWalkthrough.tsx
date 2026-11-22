@@ -66,6 +66,13 @@ const steps = [
     label: 'GOALS → PROJECTS'
   },
   {
+    eyebrow: 'SEE HOW YOUR WORK CONNECTS',
+    title: 'Your Life Constellation makes direction visible.',
+    description: 'The constellation is a living map of the outcomes you care about and the work supporting them. Goals are the anchors; projects and learning paths become connected when you link them to a goal.',
+    rows: ['Each point represents a goal, project or learning path.', 'Connect a project or learning path to a goal to create a visible link.', 'Drag points to explore the map; select one to see its name.', 'The map grows as your real workspace grows—nothing is fabricated.'],
+    label: 'GOALS · PROJECTS · LEARNING'
+  },
+  {
     eyebrow: 'MAKE THE NEXT MOVE CLEAR',
     title: 'Execution & Focus keeps work in one place.',
     description: 'Workspace gives you the overview. Projects and Tasks organise the work, Focus Timer protects your attention, and Calendar keeps commitments in time.',

@@ -50,7 +50,8 @@ export function GoalsPage() {
   }, [goals.data, projects.data, tasks.data, habits.data, paths.data]);
 
   return <Cascade className="stack growth-horizon-layout goals-horizon">
-    <PageHeader eyebrow="DIRECTION / LONG GAME" title="Goals & Milestones" description="Keep meaningful outcomes visible, with progress earned through linked tasks, completed lessons and project milestones." />\n    <LifeConstellation goals={(goals.data||[]).map(({id,title})=>({id,title}))} projects={(projects.data||[]).map(({id,title,goal_id})=>({id,title,goal_id}))} paths={(paths.data||[]).map(({id,title,goal_id})=>({id,title,goal_id}))} />
+    <PageHeader eyebrow="DIRECTION / LONG GAME" title="Goals & Milestones" description="Keep meaningful outcomes visible, with progress earned through linked tasks, completed lessons and project milestones." />
+    <LifeConstellation goals={(goals.data||[]).map(({id,title})=>({id,title}))} projects={(projects.data||[]).map(({id,title,goal_id})=>({id,title,goal_id}))} paths={(paths.data||[]).map(({id,title,goal_id})=>({id,title,goal_id}))} />
     <Card>
       <div className="card-heading"><div><h2>Set a direction</h2><p>Describe an outcome, not a vague aspiration.</p></div></div>
       <details className="atlas-add-disclosure"><summary>+ Add goal</summary><form className="form-stack" onSubmit={event => { event.preventDefault(); if (title.trim()) create.mutate(); }}>
