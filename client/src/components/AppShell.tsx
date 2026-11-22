@@ -164,7 +164,7 @@ export function AppShell() {
     execution: [{ label: 'Workspace', to: '/execution' }, { label: 'Projects', to: '/projects' }, { label: 'Tasks', to: '/tasks' }, { label: 'Focus Timer', to: '/focus' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
     growth: [{ label: 'Learning Studio', to: '/learning' }, { label: 'Private Library', to: '/library', feature: 'library' }, { label: 'Goals', to: '/goals' }, { label: 'Reviews', to: '/reviews' }]
   };
-  const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
+  const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => role === 'admin' || !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
   useEffect(() => {
     const updateSpotlight = (event: PointerEvent) => {
       if (event.pointerType !== 'mouse') return;
