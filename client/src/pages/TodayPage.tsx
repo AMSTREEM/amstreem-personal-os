@@ -239,7 +239,7 @@ export function TodayPage() {
         <div className="residence-day-ribbon__foot"><span className="residence-day-ribbon__marks">{Array.from({ length: Math.min(8, completedFocusBlocks) }, (_, index) => <i className="is-focus" key={'f' + index}/>)}{Array.from({ length: Math.min(10, completedRhythmAnchors) }, (_, index) => <i className="is-anchor" key={'a' + index}/>)}</span><span>{completedFocusBlocks} focus blocks <em>·</em> {completedRhythmAnchors} faith / rhythm anchors</span></div>
       </section>
       {dailyReview?.alignment_complete && !editingAlignment ? <Card className="residence-intention-card">
-        <div><span className="eyebrow">TODAY’S DAILY INTENTION</span><p>{dailyReview.intention}</p></div>
+        <div><span className="eyebrow">TODAY’S DAILY INTENTION</span><span className="residence-intention-mask"><motion.p initial={reduceMotion ? false : { y: "105%", opacity: 0 }} animate={{ y: "0%", opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.28, delay: 0.13, ease: [0.16, 1, 0.3, 1] }}>{dailyReview.intention}</motion.p></span></div>
         <button type="button" className="text-link" onClick={() => setEditingAlignment(true)}>Edit plan <ArrowRight size={13}/></button>
       </Card> : <Card className="residence-alignment-card">
         <div className="residence-section-heading">
