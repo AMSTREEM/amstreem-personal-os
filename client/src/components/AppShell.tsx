@@ -11,6 +11,7 @@ import { MobileInstallPrompt } from './MobileInstallPrompt';
 import { EntrancePresetContext, entranceFrame, useCompactMotionViewport, useEntrancePreset } from './EntranceMotion';
 import { playAtlasFeedback } from '../lib/microFeedback';
 import { useFocusTimer, updateFocusTimer } from '../lib/focusTimerStore';
+import { OdometerText } from './AnimatedMetric';
 
 const MotionNavLink = motion.create(NavLink);
 
@@ -215,31 +216,6 @@ export function AppShell() {
     growth: [{ label: 'Goals & Milestones', to: '/goals' }, { label: 'Learning & Library', to: '/learning-library' }, { label: 'Reviews & Insights', to: '/reviews-insights' }]
   };
   const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => role === 'admin' || !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
-  useEffect(() => {
-    const updateSpotlight = (event: PointerEvent) => {
-      if (event.pointerType !== 'mouse') return;
-      const target = event.target instanceof Element ? event.target.closest<HTMLElement>('.atlas-spotlight, .room4-library .room4-card') : null;
-      if (!target) return;
-      const rect = target.getBoundingClientRect();
-      target.style.setProperty('--spotlight-x', ((event.clientX - rect.left) / rect.width * 100) + '%');
-      target.style.setProperty('--spotlight-y', ((event.clientY - rect.top) / rect.height * 100) + '%');
-    };
-    const clearSpotlight = (event: PointerEvent) => {
-      const target = event.target instanceof Element ? event.target.closest<HTMLElement>('.atlas-spotlight') : null;
-      const next = event.relatedTarget instanceof Element ? event.relatedTarget.closest('.atlas-spotlight, .room4-library .room4-card') : null;
-      if (target && target !== next) {
-        target.style.removeProperty('--spotlight-x');
-        target.style.removeProperty('--spotlight-y');
-      }
-    };
-    document.addEventListener('pointermove', updateSpotlight);
-    document.addEventListener('pointerout', clearSpotlight);
-    return () => {
-      document.removeEventListener('pointermove', updateSpotlight);
-      document.removeEventListener('pointerout', clearSpotlight);
-    };
-  }, []);
-
   return <div className="app-frame">
     <MobileInstallPrompt />
     <AnimatePresence initial={false}>{tourOpen && <AtlasWalkthrough onClose={closeTour} />}</AnimatePresence>
@@ -301,7 +277,7 @@ export function AppShell() {
         <MagneticDockButton className="atlas-dock-action" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={15}/><span>Command</span><kbd>⌘ K</kbd></MagneticDockButton>
         <MagneticDockButton className="atlas-dock-action" onClick={() => { setCommandOpen(true); setCommandQuery('add a task'); }}><Plus size={15}/><span>Quick Capture</span></MagneticDockButton>
         <motion.div className={'atlas-dock-focus ' + (focusSessionVisible ? 'is-expanded' : '')} layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }}>
-          <MagneticDockButton className="atlas-dock-action atlas-dock-focus__open" onClick={() => navigate('/focus')}><Timer size={15}/><span>Focus Timer</span>{focusSessionVisible && <strong>{focusClock}</strong>}</MagneticDockButton>
+          <MagneticDockButton className="atlas-dock-action atlas-dock-focus__open" onClick={() => navigate('/focus')}><Timer size={15}/><span>Focus Timer</span>{focusSessionVisible && <strong><OdometerText value={focusClock}/></strong>}</MagneticDockButton>
           {focusSessionVisible && <motion.div className="atlas-dock-focus__detail" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.18 }}><span title={focusContext}>{focusContext}</span><MagneticDockButton className="atlas-dock-action atlas-dock-focus__toggle" onClick={toggleTimer}>{focusActive ? <Pause size={13}/> : <Play size={13}/>}<small>{focusActive ? "Pause" : "Resume"}</small></MagneticDockButton></motion.div>}
         </motion.div>
         <MagneticDockButton className="atlas-dock-action" onClick={() => { navigate('/residence'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></MagneticDockButton>
