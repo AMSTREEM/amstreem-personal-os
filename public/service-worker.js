@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amstreem-atlas-shell-v4';
+const CACHE_NAME = 'amstreem-atlas-shell-v5';
 const SHELL = ['/', '/index.html', '/supabase-config.js', '/assets/brand/amstreem-symbol.svg', '/assets/brand/amstreem-apple-touch-icon.png', '/manifest.webmanifest'];
 
 self.addEventListener('install', event => {
