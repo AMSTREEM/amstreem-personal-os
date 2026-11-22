@@ -3,6 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../lib/utils';
 import { motion, useReducedMotion } from 'motion/react';
 import { Inbox } from 'lucide-react';
+import { KineticText } from './fx/KineticText';
 
 const buttonVariants = cva('button', {
   variants: {
@@ -34,7 +35,7 @@ export function Card({ children, className }: { children: ReactNode; className?:
 }
 export function PageHeader({ eyebrow, title, description, action }: { eyebrow?: string; title: string; description?: string; action?: ReactNode }) {
   const reduceMotion = useReducedMotion();
-  return <header className="page-header"><div>{eyebrow && <div className="eyebrow">{eyebrow}</div>}<h1 className="page-header__title"><span className="page-header__title-mask"><motion.span key={title} initial={reduceMotion ? false : { y: '105%', opacity: 0 }} animate={{ y: '0%', opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.26, ease: [0.16, 1, 0.3, 1] }}>{title}</motion.span></span></h1>{description && <p>{description}</p>}</div>{action && <div className="page-header__action">{action}</div>}</header>;
+  return <header className="page-header"><div>{eyebrow && <div className="eyebrow">{eyebrow}</div>}<h1 className="page-header__title"><span className="page-header__title-mask"><KineticText key={title} text={title}/></span></h1>{description && <p>{description}</p>}</div>{action && <div className="page-header__action">{action}</div>}</header>;
 }
 export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
   const { className, 'aria-invalid': invalid, ...rest } = props;
