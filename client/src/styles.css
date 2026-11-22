@@ -3693,7 +3693,6 @@ input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
 .atlas-auth-shader { opacity:.92; }
 .execution-timer { position:relative; isolation:isolate; overflow:hidden; }
 .execution-timer > :not(.atlas-focus-shader) { position:relative; z-index:2; }
-.atlas-focus-shader { z-index:0 !important; opacity:.95; }
 .atlas-dot-field { position:absolute; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; mask-image:radial-gradient(ellipse 85% 80% at 50% 45%,#000 55%,transparent 100%); -webkit-mask-image:radial-gradient(ellipse 85% 80% at 50% 45%,#000 55%,transparent 100%); }
 .residence-band--overview { position:relative; isolation:isolate; }
 .residence-band--overview > :not(.atlas-dot-field) { position:relative; z-index:1; }
@@ -3729,8 +3728,7 @@ input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
  .atlas-spatial-tilt__foil,.atlas-cursor-aura { display:none !important; }
  .atlas-focus-sonar,.atlas-spark-burst { display:none !important; }
  .atlas-kinetic-char-mask > span { will-change:auto; }
- .atlas-command-dock::before { filter:none !important; }
- .atlas-odometer-number__stack { transition:none !important; }
+  .atlas-odometer-number__stack { transition:none !important; }
 }
 
 .atlas-shader-backdrop.is-fallback { background:radial-gradient(ellipse at 24% 28%,color-mix(in srgb,var(--accent-primary) 18%,transparent),transparent 48%),radial-gradient(ellipse at 76% 68%,color-mix(in srgb,var(--accent-primary) 12%,transparent),transparent 52%),linear-gradient(135deg,var(--bg-surface,var(--surface)),var(--bg-elevated,var(--surface))); }
