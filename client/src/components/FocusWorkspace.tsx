@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Cascade } from './Cascade';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, Check, ChevronDown, Circle, Clock3, Pause, Play, Plus, RotateCcw, Timer, X } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ProjectsPage } from '../pages/ProjectsPage';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, TextArea, TextInput } from './ui';
@@ -21,6 +21,7 @@ const priorityClass=(value:number)=>'execution-priority execution-priority--'+(p
 
 export function FocusWorkspace() {
   const location = useLocation();
+  const navigate = useNavigate();
   const client=useQueryClient();
   const timer=useFocusTimer();
   const setTimer=updateFocusTimer;
@@ -105,18 +106,18 @@ export function FocusWorkspace() {
   function pause(){setTimer(current=>({...current,remaining,deadline:null}));}
   function reset(){const seconds=timer.kind==='break'?Math.max(1,Math.min(60,Number(breakMinutes)||5))*60:Math.max(1,Math.min(600,Number(preset==='custom'?customMinutes:preset)||25))*60;setTimer(current=>({...current,remaining:seconds,durationSeconds:seconds,deadline:null,sessionKey:null,startedAt:null}));}
   function selectTask(task:Task){if(sessionInProgress)return;setTimer(current=>({...current,taskId:String(task.id),lessonId:'',projectId:task.project_id?String(task.project_id):'',focus:task.title}));}
-  function focusProject(project:Project){if(sessionInProgress)return;setTimer(current=>({...current,taskId:'',lessonId:'',projectId:String(project.id),focus:project.title}));start('focus');}
+  function focusProject(project:Project){if(sessionInProgress)return;setTimer(current=>({...current,taskId:'',lessonId:'',projectId:String(project.id),focus:project.title}));start('focus');navigate('/focus');}
   function selectLesson(lessonId:string){if(running)return;const lesson=learning.data?.flatMap(path=>path.lessons).find(item=>String(item.id)===lessonId);setTimer(current=>({...current,lessonId,focus:lesson?.title||current.focus}));}
   function finish(){if(timer.kind==='break'){setTimer(current=>({...current,remaining:0,deadline:null,sessionKey:null}));return;}const elapsed=timer.durationSeconds-remaining;if(elapsed<60)return;setTimer(current=>({...current,remaining:0,deadline:null,durationSeconds:elapsed}));}
   function addDistraction(){const value=distractionDraft.trim();if(!value)return;setTimer(current=>({...current,distractions:[...current.distractions,value.slice(0,240)].slice(-50)}));setDistractionDraft('');}
-  function focusTask(task:Task){if(sessionInProgress)return;selectTask(task);start('focus');window.scrollTo({top:0,behavior:'smooth'});}
+  function focusTask(task:Task){if(sessionInProgress)return;selectTask(task);start('focus');navigate('/focus');}
   const selectedDuration=timer.durationSeconds/60;
 
   const isFocusRoute=location.pathname==='/focus';
   return <Cascade className={isFocusRoute ? "stack execution-workspace focus-room-only" : "stack execution-workspace"}>
     <div className="execution-heading"><div><span className="eyebrow">ROOM 03 / EXECUTION & FOCUS</span><h1>{isFocusRoute?'Settle into deep work.':'Protect your attention.'}</h1><p>{isFocusRoute?'One clear intention. One protected block. Your progress is recorded alongside the work it supports.':'Choose the work. Protect your attention. Let each completed session strengthen the same record.'}</p></div><div className="execution-heading-stat"><b>{sessions.data?.length||0}</b><span>RECORDED SESSIONS</span></div></div>
-    <div className="execution-split">
-      <section className="execution-projects-panel">
+    <div className={"execution-split "+(isFocusRoute?"focus-room-layout":"execution-projects-layout")}>
+      {!isFocusRoute && <section className="execution-projects-panel">
         <Card className="execution-panel-card">
           <div className="execution-panel-heading"><div><span className="eyebrow">01 / PROJECTS & TASKS</span><h2>Choose what moves.</h2><p>One task at a time, connected to the bigger picture.</p></div><Link className="text-link" to="/projects">Manage projects ↗</Link></div>
           <div className="execution-project-rail">
@@ -143,9 +144,8 @@ export function FocusWorkspace() {
           </div>
         </Card>
         <div className="execution-project-metrics">{(projects.data||[]).filter(project=>projectFilter==='all'||String(project.id)===projectFilter).slice(0,3).map(project=><Card key={project.id} className="execution-project-metric"><span className="eyebrow">{project.title}</span><b>{project.progress_pct}%</b><small>{project.focus_minutes}m focused · {project.open_tasks} open</small><i><span style={{width:project.progress_pct+'%'}}/></i></Card>)}</div>
-      </section>
-      <details className="execution-focus-dock" open><summary><span><Timer size={14}/> Focus Dock</span><strong>{timerText}</strong></summary>
-      <section className="execution-focus-panel">
+      </section>}
+      {isFocusRoute && <section className="execution-focus-panel">
         <Card className="execution-focus-card">
           <div className="execution-panel-heading"><div><span className="eyebrow">02 / FOCUS TIMER</span><h2>One thing at a time.</h2><p>{running?'Your timer is protected while you move around Atlas.':'Choose a duration and begin when you are ready.'}</p></div><Timer size={19}/></div>
           <div className="execution-focus-context"><span>THIS SESSION</span><b>{contextLabel}</b><small>{taskSelected?.project_title||lessonSelected?.pathTitle||'Unlinked focus is fine too'}</small></div>
@@ -167,8 +167,7 @@ export function FocusWorkspace() {
         <Card className="execution-history-card"><div className="execution-panel-heading"><div><span className="eyebrow">YOUR ATTENTION, RECORDED</span><h2>Recent sessions</h2><p>{sessions.data?.reduce((sum,item)=>sum+item.minutes,0)||0} {sessions.data?.reduce((sum,item)=>sum+item.minutes,0)===1?'minute':'minutes'} across the latest records.</p></div><Clock3 size={17}/></div>
           {sessions.data?.length?<div className="execution-history-list">{sessions.data.slice(0,8).map(item=><article key={item.id}><span className="execution-history-mark"><Clock3 size={14}/></span><div><b>{item.focus}</b><small>{item.session_date}{item.task_title?' · '+item.task_title:''}{item.lesson_title?' · '+item.path_title+' / '+item.lesson_title:''}{item.project_title?' · '+item.project_title:''}</small>{item.reflection&&<p>{item.reflection}</p>}{item.distractions&&item.distractions.length>0&&<small>{item.distractions.length} distraction notes</small>}</div><strong>{item.minutes}m</strong></article>)}</div>:<EmptyState title="Your focus history starts here." detail="A completed focus block will appear here and update your connected work."/>}
         </Card>
-      </section>
-      </details>
+      </section>}
     </div>
   </Cascade>;
 }
