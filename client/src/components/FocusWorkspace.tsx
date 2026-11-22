@@ -130,7 +130,7 @@ export function FocusWorkspace() {
     <div className={"execution-split "+(isFocusRoute?"focus-room-layout":"execution-projects-layout")+(inspectedTask&&!isFocusRoute?" has-task-inspector":"")}>
       {!isFocusRoute && <section className="execution-projects-panel">
         <Card className="execution-panel-card">
-          <div className="execution-panel-heading"><div><span className="eyebrow">01 / PROJECTS & TASKS</span><h2>Choose what moves.</h2><p>One task at a time, connected to the bigger picture.</p></div><Link className="text-link" to="/projects">Manage projects ↗</Link></div>
+          <div className="execution-panel-heading"><div><span className="eyebrow">01 / DAILY ACTION</span><h2>Task queue.</h2><p>Choose the next useful action, with project and goal context close at hand.</p></div></div>
           <div className="execution-project-rail">
             <button className={projectFilter==='all'?'is-active':''} onClick={()=>{setProjectFilter('all');setGoalFilter('all');}}>All work <small>{(tasks.data||[]).filter(task=>!task.parent_task_id&&!task.done).length}</small></button>
             {(projects.data||[]).map(project=><div className={'execution-project-choice '+(projectFilter===String(project.id)?'is-active':'')} key={project.id}><button className="execution-project-choice__select" onClick={()=>{setProjectFilter(String(project.id));setGoalFilter('all');if(!sessionInProgress)setTimer(current=>({...current,taskId:'',lessonId:'',projectId:String(project.id),focus:project.title}));}}>{project.title}<small>{project.open_tasks}</small></button><button className="execution-project-choice__focus" disabled={sessionInProgress} onClick={()=>focusProject(project)} aria-label={'Start focus on '+project.title}><Timer size={12}/></button></div>)}
