@@ -47,7 +47,7 @@ export function GoalsPage() {
     }));
   }, [goals.data, projects.data, tasks.data, habits.data, paths.data]);
 
-  return <Cascade className="stack">
+  return <Cascade className="stack growth-horizon-layout goals-horizon">
     <PageHeader eyebrow="DIRECTION / LONG GAME" title="Goals & Milestones" description="Keep meaningful outcomes visible, with progress earned through linked tasks, completed lessons and project milestones." />
     <Card>
       <div className="card-heading"><div><h2>Set a direction</h2><p>Describe an outcome, not a vague aspiration.</p></div></div>
