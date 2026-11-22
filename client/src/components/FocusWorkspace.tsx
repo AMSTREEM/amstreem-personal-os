@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Cascade } from './Cascade';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, Check, ChevronDown, Circle, Clock3, Pause, Play, Plus, RotateCcw, Timer, X } from 'lucide-react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, TextArea, TextInput } from './ui';
 import { playAtlasFeedback, primeAtlasAudio } from '../lib/microFeedback';
