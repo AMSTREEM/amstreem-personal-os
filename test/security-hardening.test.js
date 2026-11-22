@@ -269,9 +269,9 @@ test('Atlas rooms use distinct spatial layouts, an actionable task inspector and
   const consolidated = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ConsolidatedViews.tsx'), 'utf8');
   const goals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'GoalsPage.tsx'), 'utf8');
   const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
-  assert.match(css, /grid-template-columns:minmax\\(0,1\\.6fr\\) minmax\\(290px,1fr\\)/);
-  assert.match(css, /daily-rhythm-sanctuary\\{width:min\\(100%,840px\\)/);
-  assert.match(css, /execution-split\\.has-task-inspector/);
+  assert.ok(css.includes('grid-template-columns:minmax(0,1.6fr) minmax(290px,1fr)'));
+  assert.ok(css.includes('.daily-rhythm-sanctuary{width:min(100%,840px)'));
+  assert.ok(css.includes('.execution-split.has-task-inspector'));
   assert.match(css, /execution-timer-ring__progress/);
   assert.match(css, /growth-horizon-layout/);
   assert.match(residence, /--pulse-score/);
@@ -281,5 +281,5 @@ test('Atlas rooms use distinct spatial layouts, an actionable task inspector and
   assert.match(focus, /TASK INSPECTOR/);
   assert.match(focus, /inspectedSubtasks/);
   assert.match(focus, /execution-timer-ring/);
-  assert.match(focus, /session_key:timer\\.sessionKey/);
+  assert.ok(focus.includes('session_key:timer.sessionKey'));
 });
