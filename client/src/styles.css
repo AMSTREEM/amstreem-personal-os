@@ -3732,3 +3732,9 @@ input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
  .atlas-command-dock::before { filter:none !important; }
  .atlas-odometer-number__stack { transition:none !important; }
 }
+
+.atlas-shader-backdrop.is-fallback { background:radial-gradient(ellipse at 24% 28%,color-mix(in srgb,var(--accent-primary) 18%,transparent),transparent 48%),radial-gradient(ellipse at 76% 68%,color-mix(in srgb,var(--accent-primary) 12%,transparent),transparent 52%),linear-gradient(135deg,var(--bg-surface,var(--surface)),var(--bg-elevated,var(--surface))); }
+.goal-grid > .goal-spatial-wrap { min-width:0; height:100%; }
+.goal-spatial-wrap > .card { height:100%; }
+.residence-pulse-tilt { grid-column:1 / -1; }
+.residence-pulse-tilt > .residence-pulse { height:100%; }
