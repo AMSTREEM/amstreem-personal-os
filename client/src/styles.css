@@ -4624,3 +4624,19 @@ html, body, #root, .app-frame, .main-area, .page-container {
   /* No animation rules are overridden here: existing FX retain their own
      reduced-motion behavior and all visual instruments stay mounted. */
 }
+
+
+/* Helper copy is a single calm scan line; full detail remains in the content below. */
+.page-container .page-header > div > p,
+.page-container :where(.card-heading p, .growth-section-heading > p, .module-intro) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.page-container .page-header > div > p {
+  max-width: 68ch;
+  font-size: 13px;
+  line-height: 1.5;
+}
