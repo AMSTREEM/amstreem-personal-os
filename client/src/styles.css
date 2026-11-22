@@ -2824,3 +2824,30 @@ input, select, textarea { min-width: 0; }
 .growth-section-heading h2 { margin: 0; font-size: 1.2rem; letter-spacing: -.025em; }
 .growth-section-heading p { margin: 0; max-width: 66ch; color: var(--text-muted, var(--muted)); font-size: .9rem; line-height: 1.6; }
 .growth-view-section > .stack { gap: 1.25rem; }
+
+
+/* Phase 5 — distinct full-width execution and distraction-free Focus Room */
+.execution-projects-layout { grid-template-columns: minmax(0, 1fr) !important; }
+.execution-projects-layout > .execution-projects-panel { width: 100%; min-width: 0; }
+.focus-room-only { width: 100%; }
+.focus-room-layout {
+  width: 100%;
+  max-width: 960px;
+  margin-inline: auto;
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+.focus-room-only .execution-heading {
+  max-width: 960px;
+  margin-inline: auto;
+  width: 100%;
+}
+.focus-room-only .execution-heading-stat { display: none; }
+.focus-room-only .execution-focus-panel {
+  width: 100%;
+  max-width: 760px;
+  margin-inline: auto;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+.focus-room-only .execution-focus-card { width: 100%; }
+.focus-room-only .execution-history-card { width: 100%; }
