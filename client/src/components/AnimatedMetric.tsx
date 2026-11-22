@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 
 type AnimatedMetricProps = {
   value: number;
@@ -17,6 +17,7 @@ function formatValue(value: number, format: AnimatedMetricProps['format']) {
 }
 
 export function OdometerText({ value, className }: { value: string; className?: string }) {
+  const reduceMotion = useReducedMotion();
   return <span className={['atlas-odometer', className].filter(Boolean).join(' ')} aria-label={value}>
     {Array.from(value).map((character, index) => (
       <span className="atlas-odometer__slot" aria-hidden="true" key={index}>
@@ -24,10 +25,10 @@ export function OdometerText({ value, className }: { value: string; className?: 
           <motion.span
             className="atlas-odometer__digit"
             key={index + ':' + character}
-            initial={{ y: '105%', opacity: 0.65 }}
+            initial={reduceMotion ? false : { y: '105%', opacity: 0.65 }}
             animate={{ y: '0%', opacity: 1 }}
-            exit={{ y: '-105%', opacity: 0.35 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            exit={reduceMotion ? { opacity: 0 } : { y: '-105%', opacity: 0.35 }}
+            transition={reduceMotion ? { duration: 0 } : { duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
           >{character === ' ' ? '\u00a0' : character}</motion.span>
         </AnimatePresence>
       </span>
