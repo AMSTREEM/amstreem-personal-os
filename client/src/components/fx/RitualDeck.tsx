@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { ArrowLeft, ArrowRight, Check, MoonStar, Sun } from 'lucide-react';
-type Props={mode:'morning'|'evening';initial?:{intention?:string;wins?:string;lessons?:string;challenges?:string;nextFocus?:string};priorityCount?:number;onClose:()=>void;onComplete:(values:{first:string;second:string;third:string;fourth:string})=>void};
+type Props={mode:'morning'|'evening';initial?:{intention?:string;wins?:string;lessons?:string;challenges?:string;nextFocus?:string};priorityCount?:number;activityPulse?:number;onClose:()=>void;onComplete:(values:{first:string;second:string;third:string;fourth:string})=>void};
 const copy={morning:{title:'Morning kickoff',eyebrow:'BEGIN WITH INTENTION',steps:[['Set daily intention','Name the quality or outcome that deserves your attention today.'],['Lock in your Top 3','Choose three meaningful priorities. Keep the list honest and achievable.'],['Ignite your first action','Your workspace is ready. Start a protected focus block or take the first step.']],finish:'Begin the day'},evening:{title:'Evening shutdown',eyebrow:'CLOSE WITH CLARITY',steps:[['Review today’s wins','Notice what moved forward, including the small things.'],['Log a reflection','Capture one useful lesson to carry into tomorrow.'],['Seal the day','Save your reflection to today’s existing Evening Shutdown record.']],finish:'Seal the day'}};
-export function RitualDeck({mode,initial,priorityCount=0,onClose,onComplete}:Props){
+export function RitualDeck({mode,initial,priorityCount=0,activityPulse=0,onClose,onComplete}:Props){
  const [step,setStep]=useState(0),[first,setFirst]=useState(mode==='morning'?initial?.intention||'':initial?.wins||''),[second,setSecond]=useState(initial?.lessons||''),[third,setThird]=useState(initial?.challenges||''),[fourth,setFourth]=useState(initial?.nextFocus||'');
  const reduce=useReducedMotion(),data=copy[mode];
  useEffect(()=>{const key=(e:KeyboardEvent)=>{if(e.key==='Escape')onClose();else if(e.key==='Enter'&&!['TEXTAREA','INPUT','BUTTON'].includes((e.target as HTMLElement).tagName)){e.preventDefault();setStep(s=>Math.min(2,s+1));}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[onClose]);
@@ -15,7 +15,7 @@ export function RitualDeck({mode,initial,priorityCount=0,onClose,onComplete}:Pro
     <span className="eyebrow">STEP 0{step+1} / 03</span><h3>{data.steps[step][0]}</h3><p>{data.steps[step][1]}</p>
     {mode==='morning'&&step===0&&<textarea autoFocus rows={3} value={first} onChange={e=>setFirst(e.target.value)} placeholder="Today, I will…"/>}
     {mode==='morning'&&step===1&&<div className="atlas-ritual-stat"><b>{priorityCount}/3</b><span>priorities selected in your Residence plan</span></div>}
-    {mode==='evening'&&step===0&&<textarea autoFocus rows={3} value={first} onChange={e=>setFirst(e.target.value)} placeholder="I made progress on…"/>}
+    {mode==='evening'&&step===0&&<><div className="atlas-ritual-stat"><b>{activityPulse}%</b><span>today’s recorded Activity Pulse</span></div><textarea autoFocus rows={3} value={first} onChange={e=>setFirst(e.target.value)} placeholder="I made progress on…"/></>}
     {mode==='evening'&&step===1&&<textarea autoFocus rows={3} value={second} onChange={e=>setSecond(e.target.value)} placeholder="One thing I learned…"/>}
     {mode==='evening'&&step===2&&<div className="atlas-ritual-final-fields"><label>What created friction? (optional)<textarea rows={2} value={third} onChange={e=>setThird(e.target.value)} placeholder="What got in the way?"/></label><label>Tomorrow’s first meaningful step<textarea rows={2} value={fourth} onChange={e=>setFourth(e.target.value)} placeholder="Tomorrow, I will begin by…"/></label></div>}
     {step===2&&<div className="atlas-ritual-seal"><span>✦</span><b>{mode==='morning'?'Your first action is waiting.':'A clear ending makes room for a better beginning.'}</b><small>{mode==='morning'?'Move directly into Focus Room.':'Your notes will be saved to today’s existing review.'}</small></div>}

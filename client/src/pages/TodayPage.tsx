@@ -419,7 +419,7 @@ export function TodayPage() {
         </form>
       </Card></div>
     </section>
-    <AnimatePresence>{ritualMode&&<RitualDeck mode={ritualMode} initial={{intention:dailyIntention,wins:shutdownWins,lessons:shutdownLessons,challenges:shutdownChallenges,nextFocus:shutdownNextFocus}} priorityCount={priorityTaskIds.length} onClose={()=>setRitualMode(null)} onComplete={finishRitual}/>}</AnimatePresence>
+    <AnimatePresence>{ritualMode&&<RitualDeck mode={ritualMode} initial={{intention:dailyIntention,wins:shutdownWins,lessons:shutdownLessons,challenges:shutdownChallenges,nextFocus:shutdownNextFocus}} priorityCount={priorityTaskIds.length} activityPulse={activityPulse} onClose={()=>setRitualMode(null)} onComplete={finishRitual}/>}</AnimatePresence>
     {artifactOpen&&<DailyArtifact date={today} pulse={activityPulse} focusMinutes={overview.data?.todayMin||0} streak={dailyStreak} onClose={()=>setArtifactOpen(false)}/>}
   </Cascade>;
 }
