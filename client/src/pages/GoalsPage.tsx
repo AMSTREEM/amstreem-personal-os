@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, BookOpen, CheckCircle2, Clock3, FolderKanban, Heart, ListChecks, Plus, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ProjectsPage } from './ProjectsPage';
+import { LearningPage } from './LearningPage';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
 import { SpatialTiltCard } from '../components/fx/SpatialTiltCard';
@@ -49,9 +51,27 @@ export function GoalsPage() {
     }));
   }, [goals.data, projects.data, tasks.data, habits.data, paths.data]);
 
+  useEffect(() => {
+    const handleConstellationSelect = (event: Event) => {
+      const detail = (event as CustomEvent<{kind:'goal'|'project'|'learning';id:number}>).detail;
+      if (!detail) return;
+      const target = document.getElementById('atlas-' + detail.kind + '-' + detail.id);
+      if (!target) return;
+      target.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+      target.classList.remove('atlas-constellation-highlight');
+      void target.offsetWidth;
+      target.classList.add('atlas-constellation-highlight');
+      window.setTimeout(() => target.classList.remove('atlas-constellation-highlight'), 1900);
+    };
+    window.addEventListener('atlas:constellation-select', handleConstellationSelect);
+    return () => window.removeEventListener('atlas:constellation-select', handleConstellationSelect);
+  }, []);
+
   return <Cascade className="stack growth-horizon-layout goals-horizon">
     <PageHeader eyebrow="DIRECTION / LONG GAME" title="Goals & Milestones" description="Keep meaningful outcomes visible, with progress earned through linked tasks, completed lessons and project milestones." />
     <LifeConstellation goals={(goals.data||[]).map(({id,title})=>({id,title}))} projects={(projects.data||[]).map(({id,title,goal_id})=>({id,title,goal_id}))} paths={(paths.data||[]).map(({id,title,goal_id})=>({id,title,goal_id}))} />
+    <section id="goals-workspace" className="growth-view-section atlas-constellation-target">
+    <div className="growth-section-heading"><span className="eyebrow">01 / DIRECTION</span><h2>Goals & milestones</h2><p>Set outcomes and let linked work provide the evidence of progress.</p></div>
     <Card>
       <div className="card-heading"><div><h2>Set a direction</h2><p>Describe an outcome, not a vague aspiration.</p></div></div>
       <details className="atlas-add-disclosure"><summary>+ Add goal</summary><form className="form-stack" onSubmit={event => { event.preventDefault(); if (title.trim()) create.mutate(); }}>
@@ -90,5 +110,14 @@ export function GoalsPage() {
         </Card></SpatialTiltCard>;
       }) : <Card><EmptyState title="Give your effort a direction." detail="Your active goals will live here. Start with one outcome that genuinely matters." /></Card>}
     </div>
+    </section>
+    <section id="projects-workspace" className="growth-view-section atlas-constellation-target">
+      <div className="growth-section-heading"><span className="eyebrow">02 / BUILD</span><h2>Projects</h2><p>Turn a goal into a body of work, with target dates, linked goals and meaningful milestones.</p></div>
+      <ProjectsPage embedded />
+    </section>
+    <section id="learning-workspace" className="growth-view-section atlas-constellation-target">
+      <div className="growth-section-heading"><span className="eyebrow">03 / DEVELOP</span><h2>Learning paths</h2><p>Connect skills and structured lessons to the direction they support.</p></div>
+      <LearningPage embedded />
+    </section>
   </Cascade>;
 }
