@@ -9,7 +9,6 @@ import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, TextArea, TextInput } from './ui';
 import { playAtlasFeedback, primeAtlasAudio } from '../lib/microFeedback';
 import { useFocusTimer, updateFocusTimer } from '../lib/focusTimerStore';
-import { OdometerText } from './AnimatedMetric';
 import { ShaderBackdrop } from './fx/ShaderBackdrop';
 import { SpatialTiltCard } from './fx/SpatialTiltCard';
 import { FocusSonar } from './fx/FocusSonar';
