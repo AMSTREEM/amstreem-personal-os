@@ -3052,3 +3052,215 @@ input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
 @media(prefers-reduced-motion:reduce) {
   .execution-timer.is-running::before { animation:none; }
 }
+
+
+/* FINAL INNER-ROOM CRAFT PASS — restore hierarchy and real vertical rhythm. */
+.daily-rhythm-sanctuary {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 30px !important;
+}
+.daily-rhythm-sanctuary > .atlas-cascade-item {
+  min-width: 0;
+  margin-block: 0 !important;
+}
+.daily-rhythm-sanctuary .rhythm-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  align-items: start;
+  column-gap: 26px !important;
+  row-gap: 26px !important;
+}
+.daily-rhythm-sanctuary > .atlas-cascade-item + .atlas-cascade-item {
+  margin-top: 0 !important;
+}
+.daily-rhythm-sanctuary .card,
+.daily-rhythm-sanctuary .surface-card {
+  position: relative;
+  min-width: 0;
+  padding: 25px !important;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb,var(--line) 88%,var(--accent-primary)) !important;
+  border-radius: 15px !important;
+  background:
+    linear-gradient(145deg,color-mix(in srgb,var(--accent-primary) 4%,var(--surface)),var(--surface) 42%) !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb,#fff 7%,transparent), 0 8px 24px rgba(0,0,0,.055) !important;
+}
+:root[data-theme^="light-"] .daily-rhythm-sanctuary .card,
+:root[data-theme^="light-"] .daily-rhythm-sanctuary .surface-card {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.92), 0 8px 24px rgba(35,39,30,.045) !important;
+}
+.daily-rhythm-sanctuary .card > .module-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0 0 18px !important;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.daily-rhythm-sanctuary .module-panel-head > svg {
+  display: block !important;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  color: var(--accent-strong);
+}
+.daily-rhythm-sanctuary .module-kicker,
+.daily-rhythm-sanctuary .eyebrow:not(.page-header .eyebrow) {
+  display: block !important;
+  margin-bottom: 7px;
+  color: var(--accent-strong);
+  font-size: 9px !important;
+  font-weight: 700;
+  letter-spacing: .13em;
+}
+.daily-rhythm-sanctuary .module-panel-head h2 {
+  margin: 0;
+  font-size: 17px !important;
+  line-height: 1.25;
+  letter-spacing: -.035em;
+}
+.daily-rhythm-sanctuary .module-intro,
+.daily-rhythm-sanctuary .module-panel-head p {
+  display: block !important;
+  max-width: 62ch;
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.65;
+}
+.daily-rhythm-sanctuary .rhythm-intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 30px !important;
+  border-left: 3px solid var(--accent-primary) !important;
+  background:
+    radial-gradient(ellipse at 92% 12%,color-mix(in srgb,var(--accent-primary) 12%,transparent),transparent 44%),
+    linear-gradient(120deg,color-mix(in srgb,var(--accent-primary) 5%,var(--surface)),var(--surface) 64%) !important;
+}
+.daily-rhythm-sanctuary .rhythm-intro h2 {
+  margin: 7px 0 9px;
+  font: 650 clamp(23px,2.3vw,31px)/1.12 Manrope,sans-serif;
+  letter-spacing: -.045em;
+}
+.daily-rhythm-sanctuary .rhythm-intro p {
+  max-width: 64ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.daily-rhythm-sanctuary .rhythm-intro-stat {
+  display: grid;
+  flex: none;
+  min-width: 116px;
+  min-height: 100px;
+  align-content: center;
+  justify-items: center;
+  gap: 7px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: color-mix(in srgb,var(--bg-elevated) 88%,transparent);
+}
+.daily-rhythm-sanctuary .rhythm-intro-stat b {
+  color: var(--accent-strong);
+  font: 700 34px/1 Manrope,sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.06em;
+}
+.daily-rhythm-sanctuary .rhythm-intro-stat small {
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-align: center;
+}
+.daily-rhythm-sanctuary .rhythm-prayer-list { margin-top: 15px; }
+.daily-rhythm-sanctuary .rhythm-prayer-row { min-height: 70px; padding-block: 14px; }
+.daily-rhythm-sanctuary .rhythm-stats { margin-block: 22px; }
+.daily-rhythm-sanctuary .rhythm-quran-layout { gap: 22px; }
+.daily-rhythm-sanctuary .rhythm-record-list { display: grid; gap: 5px; margin-top: 14px; }
+.daily-rhythm-sanctuary .rhythm-record-row {
+  padding: 12px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: color-mix(in srgb,var(--bg-elevated) 72%,transparent);
+}
+.daily-rhythm-sanctuary .rhythm-quick-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+.daily-rhythm-sanctuary .rhythm-quick-actions button {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  color: var(--muted);
+  font-size: 10px;
+}
+.daily-rhythm-sanctuary .rhythm-check-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.daily-rhythm-sanctuary .rhythm-check-row:last-child { border-bottom: 0; }
+.daily-rhythm-sanctuary .rhythm-check-row button {
+  flex: none;
+  min-height: 30px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--bg-elevated);
+  color: var(--accent-strong);
+  font-size: 9px;
+}
+.daily-rhythm-sanctuary .atlas-add-disclosure { margin-top: 12px; }
+.daily-rhythm-sanctuary .atlas-add-disclosure > form { margin-top: 17px; }
+@media(max-width:760px) {
+  .daily-rhythm-sanctuary { gap: 22px !important; }
+  .daily-rhythm-sanctuary .rhythm-grid { grid-template-columns:minmax(0,1fr); gap: 18px !important; }
+  .daily-rhythm-sanctuary .card,
+  .daily-rhythm-sanctuary .surface-card { padding: 19px !important; }
+  .daily-rhythm-sanctuary .rhythm-intro { align-items: flex-start; padding: 22px !important; }
+  .daily-rhythm-sanctuary .rhythm-intro-stat { min-width: 88px; min-height: 82px; }
+}
+@media(max-width:480px) {
+  .daily-rhythm-sanctuary .rhythm-intro { flex-direction: column; gap: 18px; }
+  .daily-rhythm-sanctuary .rhythm-intro-stat { min-width: 100%; min-height: 66px; grid-auto-flow: column; justify-content: start; justify-items: start; }
+  .daily-rhythm-sanctuary .rhythm-check-row { align-items: flex-start; flex-direction: column; }
+}
+
+/* Shared inner-room cards: replace flat generic panels with a restrained material surface. */
+.execution-workspace .execution-panel-card,
+.execution-workspace .execution-focus-card,
+.execution-workspace .execution-history-card,
+.growth-horizon-layout .room4-path-card,
+.growth-horizon-layout .room4-resource,
+.goals-horizon .goal-card {
+  border-color: color-mix(in srgb,var(--line) 88%,var(--accent-primary)) !important;
+  background: linear-gradient(145deg,color-mix(in srgb,var(--accent-primary) 3%,var(--surface)),var(--surface) 58%) !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb,#fff 6%,transparent),0 7px 22px rgba(0,0,0,.045) !important;
+}
+.execution-workspace .execution-panel-card,
+.execution-workspace .execution-focus-card,
+.growth-horizon-layout .room4-path-card,
+.goals-horizon .goal-card { border-radius: 14px !important; }
+.execution-workspace .execution-panel-heading,
+.growth-horizon-layout .growth-section-heading {
+  padding-bottom: 13px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.growth-horizon-layout .room4-resource { border-left-width: 3px !important; }
+@media(prefers-reduced-motion:reduce) {
+  .daily-rhythm-sanctuary .card,
+  .daily-rhythm-sanctuary .surface-card { transition: none !important; }
+}
