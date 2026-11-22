@@ -3332,3 +3332,211 @@ input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
   .atlas-card { padding: 19px; }
   .daily-rhythm-sanctuary .rhythm-branch { gap: 20px; }
 }
+
+
+/* PROPORTION & CONTENT BREATHING ROOM — shared four-room refinement */
+.atlas-card,
+.surface-card.atlas-card,
+.daily-rhythm-sanctuary .card,
+.daily-rhythm-sanctuary .surface-card {
+  min-width:0;
+  min-height:0;
+  height:auto;
+  padding:18px 20px !important;
+  overflow:visible;
+}
+.daily-rhythm-sanctuary .rhythm-intro {
+  min-width:0;
+  padding:18px 20px !important;
+  gap:20px;
+}
+.atlas-card > *,
+.surface-card > *,
+.stat-card > *,
+.execution-panel-card > *,
+.execution-focus-card > *,
+.execution-history-card > *,
+.room4-path-card > *,
+.room4-resource > *,
+.goal-card > *,
+.note-card > * { min-width:0; }
+.content-grid,
+.goal-grid,
+.library-grid,
+.daily-rhythm-sanctuary .rhythm-grid,
+.growth-horizon-layout .growth-view-section > .stack,
+.growth-horizon-layout .room4-library,
+.growth-horizon-layout .room4-resource-list {
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));
+  min-width:0;
+  column-gap:22px;
+  row-gap:22px;
+}
+.stat-grid,
+.stat-grid--three,
+.stat-grid--four {
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));
+  min-width:0;
+  gap:12px;
+}
+.residence-pillar-grid {
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));
+}
+.residence-stat-grid {
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));
+}
+.execution-split.has-task-inspector {
+  grid-template-columns:minmax(0,1.35fr) minmax(0,.85fr);
+}
+.execution-split > *,
+.execution-workspace > *,
+.growth-horizon-layout > *,
+.goals-horizon > *,
+.residence-overview > *,
+.daily-rhythm-sanctuary > * { min-width:0; }
+.execution-task,
+.today-habit-row,
+.room4-goal-milestone,
+.goal-milestone-disclosure .room4-goal-milestone,
+.growth-horizon-layout .room4-resource {
+  min-width:0;
+  min-height:0;
+  height:auto;
+  padding:10px 14px;
+  gap:10px;
+}
+.execution-task-main,
+.execution-task-copy,
+.execution-task-meta,
+.today-habit-row > *,
+.room4-goal-milestone > *,
+.goal-card__top,
+.goal-card__bottom,
+.note-card__top,
+.execution-task-toolbar,
+.execution-task-toolbar > * {
+  min-width:0;
+}
+.execution-task-main,
+.today-habit-row,
+.room4-goal-milestone {
+  flex-wrap:wrap;
+}
+.execution-task-meta,
+.execution-presets,
+.goal-card__bottom,
+.goal-work-summary,
+.rhythm-quick-actions,
+.data-actions,
+.choice-row {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px 12px;
+}
+.execution-presets { justify-content:center; }
+.execution-presets button {
+  min-width:0;
+  flex:0 1 auto;
+  white-space:normal;
+}
+.rhythm-page .rhythm-prayer-row,
+.daily-rhythm-sanctuary .rhythm-prayer-row,
+.daily-rhythm-sanctuary .rhythm-check-row {
+  min-width:0;
+  min-height:0;
+  height:auto;
+  padding:10px 14px !important;
+  gap:10px 12px !important;
+}
+.rhythm-page .rhythm-prayer-row > *,
+.rhythm-page .rhythm-prayer-segments,
+.rhythm-page .rhythm-prayer-segments button,
+.daily-rhythm-sanctuary .rhythm-check-row > * {
+  min-width:0;
+}
+.rhythm-prayer-segments {
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:5px;
+}
+.rhythm-prayer-segments button {
+  min-width:0;
+  min-height:34px;
+  padding:6px 7px;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  line-height:1.25;
+}
+.rhythm-stats { flex-wrap:wrap; }
+.rhythm-stats > div { min-width:0; }
+.goal-card,
+.note-card,
+.room4-path-card,
+.room4-resource,
+.execution-panel-card,
+.execution-focus-card,
+.execution-history-card,
+.stat-card {
+  min-width:0;
+  min-height:0;
+  height:auto;
+}
+.goal-card { padding:18px 20px !important; }
+.growth-horizon-layout .room4-path-card { padding:18px 20px !important; }
+.growth-horizon-layout .room4-resource { padding:10px 14px !important; }
+.growth-horizon-layout .room4-library,
+.growth-horizon-layout .room4-resource-list { gap:10px 20px; }
+.goal-work-summary { grid-template-columns:repeat(auto-fit,minmax(min(100%,100px),1fr)); }
+.status-pill,
+.goal-meta-chip,
+.execution-task-meta > time,
+.execution-task-meta > span {
+  max-width:100%;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+@media(max-width:900px) {
+  .execution-split.has-task-inspector { grid-template-columns:minmax(0,1fr); }
+}
+@media(max-width:760px) {
+  .atlas-card,
+  .surface-card.atlas-card,
+  .daily-rhythm-sanctuary .card,
+  .daily-rhythm-sanctuary .surface-card,
+  .daily-rhythm-sanctuary .rhythm-intro,
+  .goals-horizon .goal-grid > .goal-card {
+    padding:16px 16px !important;
+  }
+  .content-grid,
+  .goal-grid,
+  .library-grid,
+  .daily-rhythm-sanctuary .rhythm-grid,
+  .growth-horizon-layout .growth-view-section > .stack,
+  .growth-horizon-layout .room4-library,
+  .growth-horizon-layout .room4-resource-list {
+    grid-template-columns:minmax(0,1fr);
+    gap:16px;
+  }
+  .stat-grid,
+  .stat-grid--three,
+  .stat-grid--four { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .daily-rhythm-sanctuary .rhythm-intro { align-items:flex-start; }
+  .rhythm-page .rhythm-prayer-row,
+  .rhythm-page .rhythm-prayer-list--devotional .rhythm-prayer-row {
+    grid-template-columns:minmax(0,1fr);
+    gap:9px;
+  }
+  .execution-task { padding:12px 10px; }
+  .execution-task-main { gap:9px; }
+  .execution-presets { justify-content:flex-start; }
+  .goal-card__top,
+  .goal-card__bottom,
+  .execution-task-toolbar { flex-wrap:wrap; }
+}
+@media(max-width:420px) {
+  .stat-grid,
+  .stat-grid--three,
+  .stat-grid--four { grid-template-columns:minmax(0,1fr); }
+  .rhythm-prayer-segments { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .rhythm-prayer-segments button { padding-inline:4px; font-size:9px; }
+}
