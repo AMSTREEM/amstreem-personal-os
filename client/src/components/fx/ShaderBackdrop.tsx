@@ -29,7 +29,7 @@ function compile(gl: WebGL2RenderingContext, type: number, source: string) { con
 export function ShaderBackdrop({className='',fixed=false,intensity=1}:Props){
  const canvas=useRef<HTMLCanvasElement>(null); const reduced=useReducedMotion(); const [fallback,setFallback]=useState(false);
  useEffect(()=>{
-  const node=canvas.current;if(!node||reduced)return;
+  const node=canvas.current;if(!node)return;if(reduced){setFallback(true);return;}
   const gl=node.getContext('webgl2',{alpha:true,antialias:false,powerPreference:'low-power'});
   if(!gl){setFallback(true);return;}
   const vs=compile(gl,gl.VERTEX_SHADER,vertex),fs=compile(gl,gl.FRAGMENT_SHADER,fragment);
