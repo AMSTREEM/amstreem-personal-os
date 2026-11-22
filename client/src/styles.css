@@ -4113,9 +4113,23 @@ html, body {
   border-radius:var(--radius);
   background:var(--surface);
 }
-.rituals-page .rituals-summary,
-.rituals-page .rituals-list,
+.rituals-page .rituals-summary-card,
+.rituals-page .rituals-list-card,
+.rituals-page .rituals-add-card,
 .self-control-page .self-rhythm-consistency { margin:0; }
+.rituals-summary-card .rituals-summary,
+.rituals-list-card .rituals-list {
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.rituals-add-card > .atlas-add-disclosure {
+  padding:0;
+  border:0;
+  background:transparent;
+}
 .self-control-page .tracker-grid { gap:24px; }
 .self-control-page .self-control-history { margin-top:0; }
 
