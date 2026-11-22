@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useReducedMotion } from 'motion/react';
 
 const vertex = `#version 300 es
@@ -76,29 +76,37 @@ export function FerrofluidCore({ className='', active=false }: {className?:strin
 type ConstellationNode={id:string;label:string;kind:'goal'|'project'|'learning';goalId:number|null};
 export function LifeConstellation({goals,projects,paths}:{goals:{id:number;title:string}[];projects:{id:number;title:string;goal_id:number|null}[];paths:{id:number;title:string;goal_id:number|null}[]}) {
   const ref=useRef<HTMLCanvasElement>(null),reduced=useReducedMotion();
-  useEffect(()=>{const canvas=ref.current;if(!canvas)return;const ctx=canvas.getContext('2d');if(!ctx)return;
+  const [selectedNode,setSelectedNode]=useState<string|null>(null);
+  const total=goals.length+projects.length+paths.length;
+  useEffect(()=>{const canvas=ref.current;if(!canvas||!total)return;const ctx=canvas.getContext('2d');if(!ctx)return;
     const nodes: (ConstellationNode&{x:number;y:number;vx:number;vy:number;fx:number|null;fy:number|null})[]=[
       ...goals.map(x=>({id:'g'+x.id,label:x.title,kind:'goal' as const,goalId:x.id,x:0,y:0,vx:0,vy:0,fx:null,fy:null})),
       ...projects.map(x=>({id:'p'+x.id,label:x.title,kind:'project' as const,goalId:x.goal_id,x:0,y:0,vx:0,vy:0,fx:null,fy:null})),
       ...paths.map(x=>({id:'l'+x.id,label:x.title,kind:'learning' as const,goalId:x.goal_id,x:0,y:0,vx:0,vy:0,fx:null,fy:null}))
     ].slice(0,48);
-    let width=0,height=280,raf=0,drag=-1,hover=-1,selected=-1,lastMove=0,downX=0,downY=0;
-    const resize=()=>{const d=Math.min(devicePixelRatio||1,1.5);width=Math.max(320,canvas.clientWidth);height=280;canvas.width=Math.floor(width*d);canvas.height=Math.floor(height*d);ctx!.setTransform(d,0,0,d,0,0);nodes.forEach((n,i)=>{if(!n.x){const a=i/Math.max(1,nodes.length)*Math.PI*2;n.x=width/2+Math.cos(a)*(70+i%4*12);n.y=height/2+Math.sin(a)*(65+i%3*10);}});wake();};
+    let width=0,height=260,raf=0,drag=-1,hover=-1,selected=-1,lastMove=0,downX=0,downY=0;
+    const resize=()=>{const d=Math.min(devicePixelRatio||1,1.5);width=Math.max(280,canvas.clientWidth);height=Math.max(190,canvas.clientHeight||260);canvas.width=Math.floor(width*d);canvas.height=Math.floor(height*d);ctx!.setTransform(d,0,0,d,0,0);nodes.forEach((n,i)=>{if(!n.x){const a=i/Math.max(1,nodes.length)*Math.PI*2;n.x=width/2+Math.cos(a)*Math.min(112,width*.29);n.y=height/2+Math.sin(a)*Math.min(82,height*.29);}});wake();};
     const links:[number,number][]=[];nodes.forEach((n,i)=>{if(n.kind==='goal')return;const parent=nodes.findIndex(g=>g.kind==='goal'&&g.goalId===n.goalId);if(parent>=0)links.push([i,parent]);});
-    const wake=()=>{if(!reduced&&!raf)raf=requestAnimationFrame(draw);};
+    const wake=()=>{if(!reduced&&!raf&&!document.hidden)raf=requestAnimationFrame(draw);};
     const draw=()=>{raf=0;ctx!.clearRect(0,0,width,height);for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){const a=nodes[i],b=nodes[j],dx=b.x-a.x,dy=b.y-a.y,dist=Math.max(1,Math.hypot(dx,dy)),force=(dist-112)*.0008;a.vx+=dx/dist*force;b.vx-=dx/dist*force;a.vy+=dy/dist*force;b.vy-=dy/dist*force;if(dist<135){ctx!.strokeStyle='rgba(135,160,220,'+(1-dist/150)*.24+')';ctx!.lineWidth=1;ctx!.beginPath();ctx!.moveTo(a.x,a.y);ctx!.lineTo(b.x,b.y);ctx!.stroke();}}
-      links.forEach(([a,b])=>{ctx!.strokeStyle='rgba(125,145,255,.5)';ctx!.lineWidth=1.2;ctx!.beginPath();ctx!.moveTo(nodes[a].x,nodes[a].y);ctx!.lineTo(nodes[b].x,nodes[b].y);ctx!.stroke();});
-      let energy=0;nodes.forEach((n,i)=>{if(n.fx!==null){n.x=n.fx;n.y=n.fy??n.y;}else{n.vx+=(width/2-n.x)*.0008;n.vy+=(height/2-n.y)*.0008;n.vx*=.91;n.vy*=.91;n.x+=n.vx;n.y+=n.vy;}energy+=Math.abs(n.vx)+Math.abs(n.vy);ctx!.beginPath();ctx!.fillStyle=n.kind==='goal'?'#9b9cff':n.kind==='project'?'#6dc8d6':'#d2b3ff';if(i===selected){ctx!.strokeStyle='rgba(225,232,255,.95)';ctx!.lineWidth=1.5;ctx!.beginPath();ctx!.arc(n.x,n.y,12,0,Math.PI*2);ctx!.stroke();}ctx!.shadowBlur=i===hover?16:7;ctx!.shadowColor=String(ctx!.fillStyle);ctx!.arc(n.x,n.y,n.kind==='goal'?6:4,0,Math.PI*2);ctx!.fill();ctx!.shadowBlur=0;if(i===hover||n.kind==='goal'){ctx!.font='11px Inter, sans-serif';ctx!.fillStyle='rgba(230,235,250,.9)';ctx!.fillText(n.label.slice(0,25),n.x+9,n.y-8);}});
-      if(!reduced&&(energy>.08||drag>=0||performance.now()-lastMove<900))raf=requestAnimationFrame(draw);else { /* settled: wait for pointer input */ }};
+      links.forEach(([a,b])=>{ctx!.strokeStyle='rgba(125,145,255,.56)';ctx!.lineWidth=1.3;ctx!.beginPath();ctx!.moveTo(nodes[a].x,nodes[a].y);ctx!.lineTo(nodes[b].x,nodes[b].y);ctx!.stroke();});
+      let energy=0;nodes.forEach((n,i)=>{if(n.fx!==null){n.x=n.fx;n.y=n.fy??n.y;}else{n.vx+=(width/2-n.x)*.0008;n.vy+=(height/2-n.y)*.0008;n.vx*=.91;n.vy*=.91;n.x+=n.vx;n.y+=n.vy;}energy+=Math.abs(n.vx)+Math.abs(n.vy);ctx!.beginPath();ctx!.fillStyle=n.kind==='goal'?'#9b9cff':n.kind==='project'?'#6dc8d6':'#d2b3ff';if(i===selected){ctx!.strokeStyle='rgba(225,232,255,.95)';ctx!.lineWidth=1.5;ctx!.beginPath();ctx!.arc(n.x,n.y,12,0,Math.PI*2);ctx!.stroke();}ctx!.shadowBlur=i===hover?16:7;ctx!.shadowColor=String(ctx!.fillStyle);ctx!.arc(n.x,n.y,n.kind==='goal'?6:4,0,Math.PI*2);ctx!.fill();ctx!.shadowBlur=0;if(i===hover||n.kind==='goal'){ctx!.font='11px Inter, sans-serif';ctx!.fillStyle='rgba(230,235,250,.9)';const label=n.label.slice(0,24),labelWidth=ctx!.measureText(label).width;ctx!.fillText(label,Math.min(width-labelWidth-8,n.x+10),Math.max(14,n.y-9));}});
+      if(!reduced&&(energy>.08||drag>=0||performance.now()-lastMove<900))raf=requestAnimationFrame(draw);};
     const point=(e:PointerEvent)=>{const r=canvas.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};};
-    const move=(e:PointerEvent)=>{const p=point(e);lastMove=performance.now();if(drag>=0){nodes[drag].fx=p.x;nodes[drag].fy=p.y;nodes[drag].x=p.x;nodes[drag].y=p.y;}else{const next=nodes.findIndex(n=>Math.hypot(n.x-p.x,n.y-p.y)<16);if(next!==hover){hover=next;canvas.style.cursor=hover>=0?'grab':'default';} }wake();};
-    const down=(e:PointerEvent)=>{const p=point(e);downX=p.x;downY=p.y;drag=nodes.findIndex(n=>Math.hypot(n.x-p.x,n.y-p.y)<18);if(drag>=0){nodes[drag].fx=p.x;nodes[drag].fy=p.y;canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';}};
-    const up=(e?:PointerEvent)=>{if(drag>=0){const p=e?point(e):{x:downX,y:downY};if(Math.hypot(p.x-downX,p.y-downY)<5)selected=drag;nodes[drag].fx=null;nodes[drag].fy=null;drag=-1;canvas.style.cursor='grab';wake();}};
+    const move=(e:PointerEvent)=>{const p=point(e);lastMove=performance.now();if(drag>=0){nodes[drag].fx=p.x;nodes[drag].fy=p.y;nodes[drag].x=p.x;nodes[drag].y=p.y;}else{const next=nodes.findIndex(n=>Math.hypot(n.x-p.x,n.y-p.y)<18);if(next!==hover){hover=next;canvas.style.cursor=hover>=0?'grab':'default';}}wake();};
+    const down=(e:PointerEvent)=>{const p=point(e);downX=p.x;downY=p.y;drag=nodes.findIndex(n=>Math.hypot(n.x-p.x,n.y-p.y)<20);if(drag>=0){nodes[drag].fx=p.x;nodes[drag].fy=p.y;canvas.setPointerCapture(e.pointerId);canvas.style.cursor='grabbing';}};
+    const up=(e?:PointerEvent)=>{if(drag>=0){const p=e?point(e):{x:downX,y:downY};if(Math.hypot(p.x-downX,p.y-downY)<7){selected=drag;setSelectedNode(nodes[drag].label);}nodes[drag].fx=null;nodes[drag].fy=null;drag=-1;canvas.style.cursor='grab';wake();}};
     const cancel=()=>up();const leave=()=>{hover=-1;up();};
     const observer=new ResizeObserver(resize);observer.observe(canvas);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',cancel);canvas.addEventListener('pointerleave',leave);const vis=()=>{if(document.hidden&&raf){cancelAnimationFrame(raf);raf=0;}else if(!document.hidden)wake();};document.addEventListener('visibilitychange',vis);resize();if(reduced)draw();
     return()=>{if(raf)cancelAnimationFrame(raf);observer.disconnect();canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointercancel',cancel);canvas.removeEventListener('pointerleave',leave);document.removeEventListener('visibilitychange',vis);};
-  },[goals,projects,paths,reduced]);
-  return <section className="atlas-constellation" style={{border:"1px solid var(--border-subtle, rgba(150,160,190,.18))",borderRadius:20,padding:20,background:"var(--surface-raised, rgba(18,22,34,.55))"}}><div className="atlas-constellation__heading" style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:16,flexWrap:"wrap"}}><div><span className="eyebrow">THE LIVING SYSTEM</span><h2>Life Constellation</h2><p>Goals anchor the work. Projects and learning paths become the connected stars.</p></div><span>{goals.length} goals · {projects.length} projects · {paths.length} paths</span></div><canvas ref={ref} aria-label="Interactive life constellation. Drag nodes to explore connected goals, projects and learning paths." style={{display:'block',width:'100%',height:280,touchAction:'pan-y',cursor:'grab'}}/></section>;
+  },[goals,projects,paths,reduced,total]);
+  return <section className="atlas-constellation">
+    <div className="atlas-constellation__heading">
+      <div className="atlas-constellation__copy"><span className="eyebrow">YOUR DIRECTION, CONNECTED</span><h2>Life Constellation</h2><p>Each point is part of your real workspace. Link projects and learning paths to a goal to see how your effort connects.</p></div>
+      <div className="atlas-constellation__counts"><span><b>{goals.length}</b> goals</span><span><b>{projects.length}</b> projects</span><span><b>{paths.length}</b> learning paths</span></div>
+    </div>
+    {total>0 ? <><div className="atlas-constellation__legend" aria-label="Constellation key"><span><i className="is-goal"/>Goals</span><span><i className="is-project"/>Projects</span><span><i className="is-learning"/>Learning paths</span><small>Drag to arrange · Tap a point to identify it</small></div><canvas ref={ref} aria-label="Interactive life constellation. Drag nodes to arrange them and tap a node to identify it."/><div className="atlas-constellation__selection" aria-live="polite">{selectedNode ? <><b>{selectedNode}</b><span>Selected in your constellation</span></> : <span>Select a point to see what it represents.</span>}</div></> : <div className="atlas-constellation__empty"><span className="atlas-constellation__empty-mark"><i/><i/><i/></span><div><b>Your map will take shape as you build.</b><p>Add a goal, then connect a project or learning path to it. Atlas will show those relationships here—no extra tracking required.</p></div></div>}
+  </section>;
 }
 
 const vortexEvent='atlas:energy-vortex';
