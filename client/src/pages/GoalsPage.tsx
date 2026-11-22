@@ -73,7 +73,6 @@ export function GoalsPage() {
     target.classList.add('atlas-constellation-highlight');
     const timeout = window.setTimeout(() => target.classList.remove('atlas-constellation-highlight'), 1900);
     setPendingConstellationTarget(null);
-    return () => window.clearTimeout(timeout);
   }, [activeWorkspace,pendingConstellationTarget]);
 
   return <Cascade className="stack growth-horizon-layout goals-horizon">
