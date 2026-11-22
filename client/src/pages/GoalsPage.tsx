@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, BookOpen, CheckCircle2, Clock3, FolderKanban, Heart, ListChecks, Plus, Target } from 'lucide-react';
 import { Link } from 'react-router-dom';
