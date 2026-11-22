@@ -3756,3 +3756,260 @@ input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
 @media (prefers-reduced-motion: reduce) {
   .residence-intention-mask > p { will-change: auto !important; }
 }
+
+
+/* ARCHITECTURAL GRID ALIGNMENT — shared frame and bounded visual layers. */
+.page-container {
+  width:100%;
+  max-width:1160px;
+  margin-inline:auto;
+  padding:32px 36px 64px;
+}
+.page-container > *,
+.room-view-transition,
+.atlas-portal-room,
+.atlas-cascade-item,
+.atlas-cascade-item > *,
+.atlas-spatial-tilt,
+.atlas-spatial-tilt > * {
+  min-width:0;
+  box-sizing:border-box;
+}
+.atlas-spatial-tilt {
+  width:100%;
+  max-width:100%;
+  overflow:hidden;
+}
+canvas:not(.atlas-fluid-ink):not(.atlas-energy-vortex) {
+  display:block;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+.atlas-constellation,
+.atlas-constellation canvas,
+.execution-timer-core,
+.execution-timer-core canvas {
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+  box-sizing:border-box;
+}
+
+/* Room 01 — aligned 1.45 / 1 Residence bento. */
+.today-dashboard {
+  grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);
+  gap:24px;
+  align-items:stretch;
+}
+.today-dashboard > .atlas-cascade-item:has(>.residence-band--orientation),
+.today-dashboard > .atlas-cascade-item:has(>.residence-band--overview) {
+  align-self:stretch;
+  min-width:0;
+}
+.today-dashboard > .atlas-cascade-item:has(>.residence-band--execution) {
+  grid-column:1/-1;
+  min-width:0;
+}
+.residence-band--orientation,
+.residence-band--overview,
+.residence-band--execution {
+  min-width:0;
+  gap:24px;
+}
+.residence-band--execution {
+  display:grid;
+  grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);
+  align-items:stretch;
+  column-gap:24px;
+  row-gap:16px;
+}
+.residence-band--execution > .residence-band-heading { grid-column:1/-1; }
+.residence-band--execution > .residence-grid {
+  grid-column:1/-1;
+  grid-row:auto;
+  display:grid;
+  grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);
+  align-items:stretch;
+  gap:24px;
+}
+.residence-main-column,
+.residence-side-column {
+  min-width:0;
+  align-content:start;
+  gap:24px;
+}
+.residence-pulse-tilt {
+  grid-column:auto;
+  width:100%;
+  max-width:100%;
+  overflow:hidden;
+}
+.residence-pulse-tilt > .residence-pulse { min-width:0; height:100%; }
+.residence-pulse__main > [aria-hidden="true"] {
+  width:200px !important;
+  height:200px !important;
+  max-width:100%;
+  overflow:hidden;
+}
+.residence-pulse__main { position:relative; min-width:0; overflow:hidden; }
+.residence-pulse__main > *:not([aria-hidden="true"]) { position:relative; z-index:1; }
+.residence-pillar-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.residence-stat-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.residence-band--execution .residence-pinned-priorities,
+.residence-band--execution .today-tasks-card,
+.residence-band--execution .residence-faith-card,
+.residence-band--execution .today-habits-card,
+.residence-band--execution .residence-focus-card,
+.residence-band--execution .residence-goals-card,
+.residence-band--execution .residence-shutdown-card {
+  min-width:0;
+  align-self:stretch;
+}
+.residence-band--execution > #evening-shutdown {
+  grid-column:2;
+  grid-row:2;
+  min-width:0;
+}
+.residence-band--execution > .residence-grid:has(.residence-main-column) .residence-main-column,
+.residence-band--execution > .residence-grid:has(.residence-side-column) .residence-side-column {
+  min-width:0;
+}
+@media (max-width:980px) {
+  .today-dashboard { grid-template-columns:minmax(0,1fr); gap:22px; }
+  .residence-band--execution,
+  .residence-band--execution > .residence-grid { grid-template-columns:minmax(0,1fr); }
+  .residence-band--execution > #evening-shutdown { grid-column:1; grid-row:auto; }
+}
+
+/* Room 02 — 860px editorial column with equal-height paired cards. */
+.daily-rhythm-sanctuary,
+.rhythm-page {
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  max-width:860px;
+  margin-inline:auto;
+  gap:24px;
+}
+.daily-rhythm-sanctuary .rhythm-branch {
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+  min-width:0;
+}
+.daily-rhythm-sanctuary .rhythm-grid,
+.rhythm-page .rhythm-grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:stretch;
+  grid-auto-rows:1fr;
+  gap:20px;
+}
+.daily-rhythm-sanctuary .rhythm-grid > *,
+.rhythm-page .rhythm-grid > * {
+  min-width:0;
+  height:100%;
+}
+
+/* Room 03 — full-width project toolbar/list and centered Focus Room. */
+.execution-projects-layout { grid-template-columns:minmax(0,1fr); }
+.execution-projects-panel { width:100%; min-width:0; }
+.execution-projects-panel > .execution-panel-card { width:100%; min-width:0; }
+.execution-task-toolbar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  width:100%;
+  min-width:0;
+}
+.execution-task-list { width:100%; min-width:0; }
+.execution-split.has-task-inspector {
+  grid-template-columns:minmax(0,1fr) 360px;
+  gap:24px;
+}
+.focus-room-only .execution-heading,
+.focus-room-layout,
+.focus-room-only .execution-focus-panel,
+.focus-room-only .execution-history-card {
+  width:100%;
+  max-width:560px;
+  margin-inline:auto;
+}
+.focus-room-layout { justify-items:stretch; }
+.focus-room-only .execution-focus-panel { gap:24px; }
+.focus-room-only .execution-focus-card {
+  width:100%;
+  min-width:0;
+  justify-items:center;
+}
+.focus-room-only .execution-timer { width:260px; height:260px; max-width:100%; }
+.focus-room-only .execution-timer-core {
+  width:220px !important;
+  height:220px !important;
+  max-width:100%;
+  overflow:hidden;
+}
+.execution-timer-core canvas { width:100% !important; height:100% !important; }
+.execution-history-card { margin-top:0; }
+
+/* Room 04 — full-width constellation banner and aligned growth grids. */
+.goals-horizon .atlas-constellation {
+  width:100%;
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:var(--atlas-radius-card);
+}
+.goals-horizon .atlas-constellation canvas { height:260px !important; }
+.goals-horizon .goal-grid,
+.growth-horizon-layout .growth-view-section > .stack,
+.growth-horizon-layout .room4-library {
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:stretch;
+  gap:24px;
+}
+.goals-horizon .goal-grid > *,
+.goals-horizon .goal-grid > .goal-spatial-wrap,
+.growth-horizon-layout .growth-view-section > .stack > * {
+  min-width:0;
+  height:100%;
+}
+.goals-horizon .goal-spatial-wrap > .card,
+.goals-horizon .goal-grid > .goal-card { height:100%; }
+
+/* Canvas and transform descendants may never enlarge their grid track. */
+.atlas-spatial-tilt canvas,
+.atlas-constellation canvas,
+.execution-timer-core canvas,
+.residence-pulse canvas {
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+@media (max-width:760px) {
+  .page-container { padding:20px 16px 48px; }
+  .daily-rhythm-sanctuary .rhythm-grid,
+  .rhythm-page .rhythm-grid,
+  .goals-horizon .goal-grid,
+  .growth-horizon-layout .growth-view-section > .stack,
+  .growth-horizon-layout .room4-library {
+    grid-template-columns:minmax(0,1fr);
+    grid-auto-rows:auto;
+    gap:16px;
+  }
+  .daily-rhythm-sanctuary .rhythm-grid > *,
+  .rhythm-page .rhythm-grid > *,
+  .goals-horizon .goal-grid > *,
+  .growth-horizon-layout .growth-view-section > .stack > * { height:auto; }
+  .execution-split.has-task-inspector { grid-template-columns:minmax(0,1fr); }
+  .focus-room-only .execution-heading,
+  .focus-room-layout,
+  .focus-room-only .execution-focus-panel,
+  .focus-room-only .execution-history-card { max-width:100%; }
+}
