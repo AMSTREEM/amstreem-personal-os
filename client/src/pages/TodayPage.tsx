@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Cascade } from '../components/Cascade';
 import { playAtlasFeedback } from '../lib/microFeedback';
@@ -276,7 +276,7 @@ export function TodayPage() {
     <section className="residence-pulse" aria-label="Your daily activity pulse">
       <div className="residence-pulse__main">
         <div className="residence-pulse__heading"><span className="eyebrow">TODAY'S ACTIVITY PULSE</span><span className="residence-pulse__date">{today}</span></div>
-        <div className="residence-pulse__score">{activityPulse === null ? '—' : <AnimatedMetric value={activityPulse} suffix="%" />}<span>{activityPulse === null ? 'Build your first signal' : 'across ' + scoreDimensions.length + ' active areas'}</span></div>
+        <div className="residence-pulse__score" style={{ '--pulse-score': (activityPulse ?? 0) + '%' } as CSSProperties & { '--pulse-score': string }}>{activityPulse === null ? '—' : <AnimatedMetric value={activityPulse} suffix="%" />}<span>{activityPulse === null ? 'Build your first signal' : 'across ' + scoreDimensions.length + ' active areas'}</span></div>
         <div className="residence-pulse__track"><span style={{ width: (activityPulse ?? 0) + '%' }} /></div>
         <p>{activityPulse === null ? 'Choose a habit, set a focus intention, or add a priority to begin. This snapshot only reflects areas you actively use.' : 'A snapshot of activity recorded today, not a rolling consistency score or a judgement. It only includes areas you actively use.'}</p>
       </div>
