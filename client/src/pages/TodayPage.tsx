@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Cascade } from '../components/Cascade';
 import { playAtlasFeedback } from '../lib/microFeedback';
@@ -297,7 +297,7 @@ export function TodayPage() {
         <div className="residence-pulse__top">
           <div className="residence-pulse__main">
             <div className="residence-pulse__heading"><span className="eyebrow">TODAY'S ACTIVITY PULSE</span><span className="residence-pulse__date">{today}</span></div>
-            <div className="residence-pulse__score"><OdometerNumber value={activityPulse} suffix="%"/><span>across 3 active areas</span></div>
+            <div className="residence-pulse__score" style={{ "--pulse-score": activityPulse + "%" } as CSSProperties & { "--pulse-score": string }}><OdometerNumber value={activityPulse} suffix="%"/><span>across 3 active areas</span></div>
             <p>A clear snapshot of today's Deen, habits and focused work — based only on activity you choose to track.</p>
           </div>
           <div className="residence-pulse__core" aria-hidden="true"><FerrofluidCore active={focusRunning}/></div>
