@@ -8,8 +8,14 @@ import { PageHeader } from '../components/ui';
 export function HabitsSelfControlView() {
   return <div className="stack habits-self-control-view daily-rhythm-sanctuary">
     <PageHeader eyebrow="ROOM 02 / DAILY RHYTHM" title="Habits & Self-Control" description="Build the routines you want to keep, honour your personal commitments, and learn from the days that do not go to plan." />
-    <SelfControlPage embedded />
-    <RitualsPage embedded />
+    <section className="habits-module-section habits-module-section--self-control">
+      <div className="habits-module-heading"><span className="module-kicker">01 / SELF-CONTROL COMMITMENTS</span><h2>Commitments you choose to keep.</h2><p>Track clean days honestly, and use a slip as information—not a verdict.</p></div>
+      <SelfControlPage embedded />
+    </section>
+    <section className="habits-module-section habits-module-section--positive">
+      <div className="habits-module-heading"><span className="module-kicker">02 / DAILY POSITIVE HABITS</span><h2>Small actions, repeated.</h2><p>Check off the routines you want to build and watch consistency take shape.</p></div>
+      <RitualsPage embedded />
+    </section>
   </div>;
 }
 
