@@ -102,7 +102,9 @@ test('Self-Control consistency uses dated records and positive habit check-ins, 
   assert.match(rituals, /habit\.streak/);
   assert.match(rituals, /Pencil/);
   const consolidated = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ConsolidatedViews.tsx'), 'utf8');
-  assert.match(consolidated, /<SelfControlPage embedded \/>/);
+  assert.match(consolidated, /<SelfControlPage embedded afterHeatmap=\{switcher\}/);
+  assert.match(consolidated, /workspace==='habits'/);
+  assert.match(consolidated, /workspace==='self-control'/);
   assert.match(consolidated, /<RitualsPage embedded \/>/);
   assert.match(server, /return \{\.\.\.habit,streak\}/);
   assert.match(selfControl, /verified clean check-ins/);
