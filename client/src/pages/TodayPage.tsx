@@ -4,6 +4,9 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Cascade } from '../components/Cascade';
 import { playAtlasFeedback } from '../lib/microFeedback';
 import { AnimatedMetric } from '../components/AnimatedMetric';
+import { MagneticDotField } from '../components/fx/MagneticDotField';
+import { SpatialTiltCard } from '../components/fx/SpatialTiltCard';
+import { OdometerNumber } from '../components/fx/OdometerNumber';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, BookOpen, Flame, MoonStar, Plus, Target, Timer, Zap } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -262,7 +265,7 @@ export function TodayPage() {
       </Card>}
     </section>
 
-    <section className="residence-band residence-band--overview" aria-label="Life at a glance">
+    <section className="residence-band residence-band--overview" aria-label="Life at a glance"><MagneticDotField/>
       <div className="residence-band-heading"><span className="eyebrow">02 / YOUR LIFE AT A GLANCE</span><p>Connected areas of your life, with activity drawn from your existing records.</p></div>
       <section className="residence-pillar-grid" aria-label="Six life pillars">
       {[
@@ -274,17 +277,17 @@ export function TodayPage() {
         {title:'Goals',detail:'Keep long-term direction visible',to:'/goals',symbol:'◎',tone:'goals'}
       ].map(pillar=><Link className={'residence-pillar atlas-spotlight residence-pillar--'+pillar.tone} to={pillar.to} key={pillar.to}><span>{pillar.symbol}</span><div><b>{pillar.title}</b><small>{pillar.detail}</small></div><ArrowRight size={14}/></Link>)}
     </section>
-    <section className="residence-pulse" aria-label="Your daily activity pulse">
+    <SpatialTiltCard className="residence-pulse-tilt"><section className="residence-pulse" aria-label="Your daily activity pulse">
       <div className="residence-pulse__main">
         <div className="residence-pulse__heading"><span className="eyebrow">TODAY'S ACTIVITY PULSE</span><span className="residence-pulse__date">{today}</span></div>
-        <div className="residence-pulse__score" style={{ '--pulse-score': (activityPulse ?? 0) + '%' } as CSSProperties & { '--pulse-score': string }}>{activityPulse === null ? '—' : <AnimatedMetric value={activityPulse} suffix="%" />}<span>{activityPulse === null ? 'Build your first signal' : 'across ' + scoreDimensions.length + ' active areas'}</span></div>
+        <div className="residence-pulse__score" style={{ '--pulse-score': (activityPulse ?? 0) + '%' } as CSSProperties & { '--pulse-score': string }}>{activityPulse === null ? '—' : <OdometerNumber value={activityPulse} suffix="%"/>}<span>{activityPulse === null ? 'Build your first signal' : 'across ' + scoreDimensions.length + ' active areas'}</span></div>
         <div className="residence-pulse__track"><span style={{ width: (activityPulse ?? 0) + '%' }} /></div>
         <p>{activityPulse === null ? 'Choose a habit, set a focus intention, or add a priority to begin. This snapshot only reflects areas you actively use.' : 'A snapshot of activity recorded today, not a rolling consistency score or a judgement. It only includes areas you actively use.'}</p>
       </div>
       <div className="residence-pulse__dimensions">
         {scoreDimensions.length ? scoreDimensions.map(item => <div className="residence-dimension" key={item.label}><span>{item.label}</span><b>{Math.round(item.score)}%</b><small>{item.detail}</small><i><span style={{ width: Math.max(0, Math.min(100, item.score)) + '%' }} /></i></div>) : <div className="residence-dimension residence-dimension--empty"><span>YOUR DAILY RHYTHM</span><b>Start small</b><small>Activity appears here as you use Atlas.</small></div>}
       </div>
-    </section>
+    </section></SpatialTiltCard>
 
     <div className="residence-stat-grid">
       <Card className="residence-stat atlas-spotlight"><span className="eyebrow">FOCUS TODAY</span><strong><AnimatedMetric value={overview.data?.todayMin ?? 0} format="minutes" /></strong><small>{focusPercent}% of your {target}m intention</small></Card>
