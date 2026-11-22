@@ -269,8 +269,8 @@ test('Atlas rooms use distinct spatial layouts, an actionable task inspector and
   const consolidated = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ConsolidatedViews.tsx'), 'utf8');
   const goals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'GoalsPage.tsx'), 'utf8');
   const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
-  assert.ok(css.includes('grid-template-columns:minmax(0,1.6fr) minmax(290px,1fr)'));
-  assert.ok(css.includes('.daily-rhythm-sanctuary{width:min(100%,840px)'));
+  assert.ok(css.includes('grid-template-columns:minmax(0,1.55fr) minmax(0,1fr)'));
+  assert.ok(css.includes('width:min(100%,820px)'));
   assert.ok(css.includes('.execution-split.has-task-inspector'));
   assert.match(css, /execution-timer-ring__progress/);
   assert.match(css, /growth-horizon-layout/);
@@ -282,4 +282,27 @@ test('Atlas rooms use distinct spatial layouts, an actionable task inspector and
   assert.match(focus, /inspectedSubtasks/);
   assert.match(focus, /execution-timer-ring/);
   assert.ok(focus.includes('session_key:timer.sessionKey'));
+});
+
+
+test('Atlas flagship CSS has one shared frame, consolidated room geometry and theme-aware tactile surfaces', () => {
+  const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
+  assert.ok(css.includes('--atlas-frame: 1180px'));
+  assert.ok(css.includes('--atlas-page-x: 40px'));
+  assert.ok(css.includes('--atlas-page-y: 36px'));
+  assert.ok(css.includes('grid-template-columns:minmax(0,1.55fr) minmax(0,1fr)'));
+  assert.ok(css.includes('width:min(100%,820px)'));
+  assert.ok(css.includes('grid-template-columns:minmax(0,1fr) 360px'));
+  assert.ok(css.includes('width:260px'));
+  assert.ok(css.includes('stroke-width:6'));
+  assert.ok(css.includes('font:600 56px/1 "JetBrains Mono",monospace'));
+  assert.ok(css.includes('grid-template-columns:repeat(2,minmax(0,1fr))'));
+  assert.ok(css.includes('--surface-specular: inset 0 1px 0 0 rgba(255,255,255,.08)'));
+  assert.ok(css.includes('--surface-specular: inset 0 1px 0 0 rgba(255,255,255,.9)'));
+  assert.ok(css.includes('--atlas-radius-card: 14px'));
+  assert.ok(css.includes('--atlas-radius-control: 9px'));
+  assert.ok(css.includes('transition:transform 160ms ease'));
+  assert.ok(!css.includes('Daily Rhythm — Cascade-aware spacing system (staging).'));
+  assert.ok(!css.includes('ATLAS SPATIAL ARCHITECTURE — executive-grade room silhouettes'));
+  assert.ok(!css.includes('Room 02 — spacious Deen layout pass (staging).'));
 });
