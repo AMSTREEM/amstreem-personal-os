@@ -2767,3 +2767,288 @@ button:not(:disabled),a { -webkit-tap-highlight-color:transparent; }
 @media(prefers-reduced-motion:reduce) {
   *,*::before,*::after { scroll-behavior:auto!important; transition-duration:.01ms!important; animation-duration:.01ms!important; animation-iteration-count:1!important; }
 }
+
+
+/* INNER ROOMS — bespoke interaction layer, inherited by every Atlas theme */
+:root {
+  --accent-soft:var(--accent-wash);
+  --bg-elevated:var(--surface-raised);
+}
+:root[data-theme^="light-"] {
+  --control-chevron:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2362675d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+:root:not([data-theme^="light-"]) {
+  --control-chevron:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a2a69a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+input:not([type="checkbox"]):not([type="radio"]),textarea,select,.field-input {
+  border-radius:9px;
+  border-color:var(--line);
+  background-color:var(--bg-elevated);
+  color:var(--text);
+  transition:border-color 160ms ease,background-color 160ms ease,box-shadow 160ms ease;
+}
+select,.field-input:is(select) {
+  appearance:none;
+  -webkit-appearance:none;
+  padding-right:36px;
+  background-image:var(--control-chevron);
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  background-size:14px;
+}
+input:not([type="checkbox"]):not([type="radio"]):focus,textarea:focus,select:focus,.field-input:focus {
+  outline:none;
+  border-color:color-mix(in srgb,var(--accent-primary) 68%,var(--line));
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-soft) 85%,transparent);
+}
+input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
+
+/* Daily Rhythm — status segmented controls and practice telemetry */
+.rhythm-prayer-progress {
+  height:4px;
+  overflow:hidden;
+  margin:16px 0 8px;
+  border-radius:99px;
+  background:var(--line-soft);
+}
+.rhythm-prayer-progress>span {
+  display:block;
+  height:100%;
+  border-radius:inherit;
+  background:var(--accent-primary);
+  transition:width 220ms ease;
+}
+.rhythm-page .rhythm-prayer-list { gap:0; }
+.rhythm-page .rhythm-prayer-row {
+  display:grid;
+  grid-template-columns:minmax(105px,.7fr) minmax(0,1.3fr);
+  align-items:center;
+  gap:12px;
+  min-height:62px;
+  padding:11px 0;
+  border:0;
+  border-bottom:1px solid var(--line-soft);
+  border-radius:0;
+  background:transparent;
+}
+.rhythm-page .rhythm-prayer-row:last-child { border-bottom:0; }
+.rhythm-page .rhythm-prayer-row>div:first-child { display:grid; gap:5px; min-width:0; }
+.rhythm-page .rhythm-prayer-row>div:first-child>b { font-size:12px; font-weight:650; }
+.rhythm-page .rhythm-prayer-row>div:first-child>small { color:var(--muted); font-size:9px; }
+.rhythm-prayer-segments {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:3px;
+  padding:3px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--bg-elevated);
+}
+.rhythm-prayer-segments button {
+  min-width:0;
+  min-height:31px;
+  padding:5px 4px;
+  border:1px solid transparent;
+  border-radius:7px;
+  background:transparent;
+  color:var(--muted);
+  font-size:9px;
+  font-weight:600;
+  white-space:nowrap;
+  transition:background-color 160ms ease,color 160ms ease,border-color 160ms ease,box-shadow 160ms ease;
+}
+.rhythm-prayer-segments button:hover { color:var(--text); background:color-mix(in srgb,var(--accent-soft) 55%,transparent); }
+.rhythm-prayer-segments button.is-active {
+  border-color:color-mix(in srgb,var(--accent-primary) 32%,var(--line));
+  background:var(--accent-soft);
+  color:var(--accent-strong);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07);
+}
+.rhythm-prayer-row--on_time .rhythm-prayer-row__status { color:var(--success); }
+.rhythm-prayer-segments--faith { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.rhythm-prayer-list--devotional .rhythm-prayer-row { grid-template-columns:minmax(0,1fr) minmax(190px,.9fr); }
+.rhythm-stats {
+  display:flex;
+  align-items:stretch;
+  gap:0;
+  margin:18px 0;
+  padding:13px 0;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+.rhythm-stats>div {
+  flex:1;
+  display:grid;
+  align-content:center;
+  gap:5px;
+  min-width:0;
+  padding:2px 18px;
+  border:0;
+  border-right:1px solid var(--line);
+  border-radius:0;
+  background:transparent;
+}
+.rhythm-stats>div:first-child { padding-left:0; }
+.rhythm-stats>div:last-child { padding-right:0; border-right:0; }
+.rhythm-stats b { font:650 25px/1 Manrope,sans-serif; letter-spacing:-.04em; font-variant-numeric:tabular-nums; }
+.rhythm-stats small { color:var(--muted); font-size:9px; letter-spacing:.09em; line-height:1.4; }
+.self-rhythm-metrics { gap:0; border:1px solid var(--line); border-radius:var(--atlas-radius-card); background:var(--surface); box-shadow:var(--surface-specular); }
+.self-rhythm-metrics>div { min-width:0; padding:18px; border:0; border-right:1px solid var(--line); border-radius:0; background:transparent; }
+.self-rhythm-metrics>div:last-child { border-right:0; }
+.self-rhythm-heatmap-wrap { padding:20px; border-radius:var(--atlas-radius-card); box-shadow:var(--surface-specular); }
+.self-rhythm-heatmap { grid-template-columns:repeat(10,minmax(0,1fr)); gap:3px; }
+.self-rhythm-heatmap>span {
+  min-width:0;
+  aspect-ratio:1;
+  border:0;
+  border-radius:4px;
+  background:var(--line-soft);
+  transition:transform 160ms ease,background-color 160ms ease;
+}
+.self-rhythm-heatmap>span:hover { transform:scale(1.12); }
+.self-rhythm-heatmap>span.is-low { background:color-mix(in srgb,var(--accent-primary) 25%,var(--surface-raised)); }
+.self-rhythm-heatmap>span.is-medium { background:color-mix(in srgb,var(--accent-primary) 55%,var(--surface-raised)); }
+.self-rhythm-heatmap>span.is-high { background:var(--accent-primary); }
+
+/* Execution — Linear-like task rows and precision chronograph */
+.execution-task-list { border-top:1px solid var(--line); }
+.execution-task {
+  padding:15px 8px;
+  border-bottom:1px solid var(--line-soft);
+  border-radius:0;
+  background:transparent;
+}
+.execution-task:hover,.execution-task.is-selected {
+  background:color-mix(in srgb,var(--surface-raised) 72%,transparent);
+}
+.execution-task-check {
+  width:27px;
+  height:27px;
+  border:1.5px solid color-mix(in srgb,var(--muted) 65%,var(--line));
+  border-radius:50%;
+  background:transparent;
+  color:transparent;
+  transition:border-color 160ms ease,background-color 160ms ease,color 160ms ease,box-shadow 160ms ease;
+}
+.execution-task-check.execution-priority--urgent { border-color:var(--danger); color:var(--danger); }
+.execution-task-check.execution-priority--high { border-color:#d6a46d; color:#d6a46d; }
+.execution-task-check.execution-priority--normal { border-color:var(--accent-primary); color:var(--accent-primary); }
+.execution-task-check.execution-priority--low { border-color:var(--subtle); color:var(--subtle); }
+.execution-task-check:hover { background:var(--accent-soft); box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-primary) 10%,transparent); }
+.execution-task.is-done .execution-task-check { border-color:var(--success); background:color-mix(in srgb,var(--success) 14%,transparent); color:var(--success); }
+.execution-task-meta { gap:7px; font-size:9px; }
+.execution-task-meta>time,.execution-task-meta>span:not(.execution-priority) {
+  display:inline-flex;
+  align-items:center;
+  min-height:21px;
+  padding:3px 7px;
+  border:1px solid var(--line-soft);
+  border-radius:6px;
+  background:var(--bg-elevated);
+}
+.execution-task-meta>.execution-priority { border-radius:6px; }
+.execution-timer { position:relative; isolation:isolate; }
+.execution-timer::before {
+  content:"";
+  position:absolute;
+  z-index:-1;
+  width:210px;
+  height:210px;
+  border-radius:50%;
+  background:radial-gradient(circle,color-mix(in srgb,var(--accent-primary) 10%,transparent),transparent 68%);
+  opacity:0;
+  transform:scale(.92);
+  transition:opacity 300ms ease,transform 300ms ease;
+}
+.execution-timer.is-running::before { opacity:1; transform:scale(1.08); animation:atlas-focus-breathe 3.6s ease-in-out infinite; }
+.execution-timer-ring { overflow:visible; }
+.execution-timer-tick { stroke:var(--subtle); stroke-width:1; opacity:.35; }
+.execution-timer-tick--major { stroke:var(--muted); stroke-width:1.5; opacity:.68; }
+.execution-timer-ring__track { stroke-width:6; }
+.execution-timer-ring__progress { stroke-width:6; filter:drop-shadow(0 0 4px color-mix(in srgb,var(--accent-primary) 30%,transparent)); }
+.execution-presets { display:flex; justify-content:center; gap:7px; }
+.execution-presets button {
+  min-width:74px;
+  min-height:38px;
+  padding:0 15px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--bg-elevated);
+  color:var(--muted);
+  font:600 10px Manrope,sans-serif;
+  transition:transform 160ms ease,border-color 160ms ease,background-color 160ms ease,color 160ms ease;
+}
+.execution-presets button:hover:not(:disabled) { transform:translateY(-1px); border-color:var(--accent-primary); }
+.execution-presets button.is-active { border-color:color-mix(in srgb,var(--accent-primary) 58%,var(--line)); background:var(--accent-soft); color:var(--accent-strong); box-shadow:inset 0 1px 0 rgba(255,255,255,.08); }
+@keyframes atlas-focus-breathe { 0%,100% { opacity:.55; transform:scale(.96); } 50% { opacity:1; transform:scale(1.08); } }
+
+/* Growth — milestone disclosures and curated status shelves */
+.goal-meta-chip {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  width:fit-content;
+  padding:6px 9px;
+  border:1px solid var(--line);
+  border-radius:7px;
+  background:var(--bg-elevated);
+  color:var(--muted);
+  font-size:9px;
+  font-variant-numeric:tabular-nums;
+}
+.goal-card__bottom { display:flex; flex-wrap:wrap; align-items:center; gap:7px; }
+.goal-milestone-disclosure { margin:12px 0 2px; border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft); }
+.goal-milestone-disclosure>summary { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 2px; color:var(--text); font-size:10px; font-weight:650; cursor:pointer; list-style:none; }
+.goal-milestone-disclosure>summary::-webkit-details-marker { display:none; }
+.goal-milestone-disclosure>summary::after { content:"+"; color:var(--accent-strong); font-size:15px; }
+.goal-milestone-disclosure[open]>summary::after { content:"−"; }
+.goal-milestone-disclosure>summary b { margin-left:auto; color:var(--muted); font-size:9px; font-variant-numeric:tabular-nums; }
+.goal-milestone-disclosure>div { padding:0 0 8px; }
+.goal-milestone-disclosure .room4-goal-milestone { display:flex; align-items:center; gap:9px; min-width:0; padding:10px 2px; border-top:1px solid var(--line-soft); }
+.goal-milestone-disclosure .room4-goal-milestone span { flex:1; min-width:0; overflow-wrap:anywhere; }
+.growth-horizon-layout .room4-resource-list { gap:0; }
+.growth-horizon-layout .room4-resource {
+  position:relative;
+  padding:15px 14px;
+  border:0;
+  border-left:3px solid var(--accent-primary);
+  border-bottom:1px solid var(--line-soft);
+  border-radius:0 9px 9px 0;
+  background:var(--surface);
+  box-shadow:none;
+  transition:background-color 160ms ease,border-color 160ms ease,transform 160ms ease;
+}
+.growth-horizon-layout .room4-resource:hover { transform:translateX(2px); background:var(--bg-elevated); }
+.room4-resource--active { border-left-color:var(--accent-primary)!important; }
+.room4-resource--completed { border-left-color:var(--success)!important; }
+.room4-resource--queued { border-left-color:var(--subtle)!important; }
+.growth-horizon-layout .room4-path-card {
+  position:relative;
+  padding:21px 20px 21px 23px;
+  border:1px solid var(--line);
+  border-left:3px solid var(--accent-primary);
+  border-radius:var(--atlas-radius-card);
+  background:var(--surface);
+  box-shadow:var(--surface-specular);
+}
+.room4-path-card--completed { border-left-color:var(--success)!important; }
+.room4-path-card--queued,.room4-path-card--not-started { border-left-color:var(--subtle)!important; }
+.room4-path-card--in-progress,.room4-path-card--active { border-left-color:var(--accent-primary)!important; }
+.goals-horizon .goal-progress-track { height:7px; overflow:hidden; border-radius:99px; background:var(--line-soft); }
+.goals-horizon .goal-progress-track>span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--accent-primary),var(--accent-strong)); transition:width 240ms ease; }
+.goals-horizon .goal-card { min-width:0; }
+.goals-horizon .goal-card__top { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+@media(max-width:760px) {
+  .rhythm-page .rhythm-prayer-row,.rhythm-page .rhythm-prayer-list--devotional .rhythm-prayer-row { grid-template-columns:minmax(0,1fr); gap:9px; }
+  .rhythm-prayer-segments button { min-height:35px; }
+  .rhythm-stats>div { padding:2px 10px; }
+  .rhythm-stats b { font-size:22px; }
+  .self-rhythm-metrics>div { padding:14px; border-right:0; border-bottom:1px solid var(--line); }
+  .self-rhythm-metrics>div:last-child { border-bottom:0; }
+  .self-rhythm-heatmap { grid-template-columns:repeat(10,minmax(0,1fr)); }
+  .execution-presets button { min-width:68px; }
+  .goal-card__bottom { align-items:flex-start; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .execution-timer.is-running::before { animation:none; }
+}
