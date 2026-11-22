@@ -5416,3 +5416,13 @@ html, body, #root, .app-frame, .main-area, .page-container {
     background: var(--surface);
   }
 }
+
+
+/* Extra iPhone header clearance requested after device testing. */
+@media (max-width: 767px) {
+  .topbar {
+    min-height: calc(64px + env(safe-area-inset-top, 0px));
+    padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
+    padding-bottom: 4px;
+  }
+}
