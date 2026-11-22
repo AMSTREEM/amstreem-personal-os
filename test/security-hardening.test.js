@@ -144,11 +144,11 @@ test('Room 3 uses the unified FocusWorkspace route and preserves project/task bo
   const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
   assert.match(app, /path="\/execution" element={<FocusWorkspace \/>}/);
-  assert.match(app, /path="\/projects" element={<LegacyRedirect to="\/execution" \/>}/);
+  assert.match(app, /path="\/projects" element={<LegacyRedirect to="\/goals" \/>}/);
   assert.match(app, /path="\/tasks" element={<LegacyRedirect to="\/execution" \/>}/);
   assert.match(app, /path="\/focus" element={<FocusWorkspace \/>}/);
   assert.match(shell, /to: '\/execution'/);
-  assert.match(shell, /label: 'Projects & Tasks', to: '\/execution'/);
+  assert.match(shell, /label: 'Tasks', to: '\/execution'/);
   assert.match(css, /\.execution-heading/);
   assert.match(fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8'), /project/i);
 });
@@ -214,12 +214,14 @@ test('Room 4 visual craft uses semantic tokens, responsive spacing, motion and r
 
 test('Room 4 presents learning, library, reviews and insights together without moving intelligence into Residence', () => {
   const consolidated = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ConsolidatedViews.tsx'), 'utf8');
+  const goals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'GoalsPage.tsx'), 'utf8');
   const learning = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LearningPage.tsx'), 'utf8');
   const library = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LibraryPage.tsx'), 'utf8');
   const reviews = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ReviewsPage.tsx'), 'utf8');
   const insights = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'InsightsPage.tsx'), 'utf8');
   const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
-  assert.match(consolidated, /<LearningPage embedded \/>/);
+  assert.match(goals, /<LearningPage embedded \/>/);
+  assert.match(goals, /<ProjectsPage embedded \/>/);
   assert.match(consolidated, /<LibraryPage embedded \/>/);
   assert.match(consolidated, /<ReviewsPage embedded \/>/);
   assert.match(consolidated, /<InsightsPage embedded \/>/);
@@ -276,7 +278,7 @@ test('Atlas rooms use distinct spatial layouts, an actionable task inspector and
   assert.match(css, /growth-horizon-layout/);
   assert.match(residence, /--pulse-score/);
   assert.match(rhythm, /daily-rhythm-sanctuary/);
-  assert.match(consolidated, /growth-horizon-layout/);
+  assert.match(goals, /growth-horizon-layout/);
   assert.match(goals, /goals-horizon/);
   assert.match(focus, /TASK INSPECTOR/);
   assert.match(focus, /inspectedSubtasks/);
