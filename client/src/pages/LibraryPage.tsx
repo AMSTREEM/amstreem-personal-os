@@ -9,7 +9,7 @@ type Note = { id: number; title: string; body: string; updated_at: string };
 type ReadingItem = { id: number; title: string; item_type: 'book'|'article'|'reference'; url: string; author: string; notes: string; status: 'Queued'|'Active'|'Completed' };
 const typeIcon = { book: BookOpen, article: FileText, reference: Link2 };
 
-export function LibraryPage() {
+export function LibraryPage({ embedded = false }: { embedded?: boolean }) {
   const client = useQueryClient();
   const [title,setTitle]=useState(''),[body,setBody]=useState('');
   const [editing,setEditing]=useState<number|null>(null),[editTitle,setEditTitle]=useState(''),[editBody,setEditBody]=useState('');
@@ -22,7 +22,7 @@ export function LibraryPage() {
   const createItem=useMutation({mutationFn:()=>api('/reading-items',json('POST',{title:resourceTitle,item_type:resourceType,author,url})),onSuccess:()=>{setResourceTitle('');setAuthor('');setUrl('');void client.invalidateQueries({queryKey:['reading-items']});}});
   const status=useMutation({mutationFn:({item,value}:{item:ReadingItem;value:ReadingItem['status']})=>api('/reading-items/'+item.id,json('PATCH',{status:value})),onSuccess:()=>void client.invalidateQueries({queryKey:['reading-items']})});
   return <Cascade className="stack room4-library">
-    <PageHeader eyebrow="KNOWLEDGE / PERSONAL LIBRARY" title="Private library" description="A considered collection of books, articles, references and notes worth returning to." />
+    {!embedded && <PageHeader eyebrow="KNOWLEDGE / PERSONAL LIBRARY" title="Private library" description="A considered collection of books, articles, references and notes worth returning to." />}
     <Card className="room4-card">
       <div className="card-heading"><div><h2>Add to your reading list</h2><p>Capture a resource and decide its place in your reading queue.</p></div><BookMarked size={18}/></div>
       <details className="atlas-add-disclosure"><summary>+ Add resource</summary><form className="form-stack" onSubmit={e=>{e.preventDefault();if(resourceTitle.trim())createItem.mutate();}}>
