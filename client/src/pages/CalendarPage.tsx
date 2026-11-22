@@ -50,7 +50,8 @@ export function CalendarPage() {
 
   return <Cascade className="stack">
     <PageHeader eyebrow="PLAN / TIME" title="Calendar" description="See your commitments alongside the activity you record. Select a day to schedule something." />
-    <Card>
+    <div className="calendar-workspace-grid">
+    <Card className="calendar-month-card">
       <div className="calendar-head"><Button variant="ghost" onClick={() => changeMonth(-1)} aria-label="Previous month"><ChevronLeft size={18} /></Button><h2>{first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</h2><Button variant="ghost" onClick={() => changeMonth(1)} aria-label="Next month"><ChevronRight size={18} /></Button></div>
       <div className="calendar-grid">{['MON','TUE','WED','THU','FRI','SAT','SUN'].map(day => <div className="calendar-weekday" key={day}>{day}</div>)}{cells.map((day, index) => {
         if (!day) return <div className="calendar-cell calendar-cell--blank" key={'blank-' + index} />;
@@ -61,8 +62,14 @@ export function CalendarPage() {
       })}</div>
       <div className="calendar-legend"><span><i className="dot dot--focus" /> Focus</span><span><i className="dot dot--learning" /> Learning</span><span><i className="dot dot--habits" /> Rituals</span><span><i className="dot dot--faith" /> Values</span><span><i className="dot dot--event" /> Commitments</span></div>
     </Card>
+    <Card className="calendar-day-agenda">
+      <div className="card-heading"><div><span className="module-kicker">DAY AGENDA</span><h2>{selectedDate || 'Choose a day'}</h2><p>{selectedDate ? 'Commitments scheduled for this day.' : 'Select a date in the calendar to inspect its commitments.'}</p></div><CalendarPlus size={18}/></div>
+      {selectedDate ? ((data.data?.events || []).filter(event => event.start_at.slice(0,10) === selectedDate).length ? <div className="calendar-agenda-list">{(data.data?.events || []).filter(event => event.start_at.slice(0,10) === selectedDate).map(event=><article key={event.id}><span>{event.start_at.slice(11,16)}</span><div><b>{event.title}</b><small>{event.description || 'Scheduled commitment'}</small></div></article>)}</div> : <EmptyState title="No commitments yet." detail="This day is open. Add a commitment below when something deserves a place in it."/>) : <EmptyState title="Your day, in view." detail="Choose any date to see its scheduled commitments here."/>}
+      {selectedDate && <Button size="sm" variant="secondary" onClick={()=>{setTitle('');setStartAt(selectedDate+'T09:00');document.getElementById('calendar-schedule-form')?.scrollIntoView({behavior:'smooth',block:'center'});}}>Schedule on this day</Button>}
+    </Card>
+    </div>
     <div className="content-grid">
-      <Card>
+      <Card id="calendar-schedule-form">
         <div className="card-heading"><div><h2>Schedule a commitment</h2><p>{selectedDate ? 'Selected day: ' + selectedDate : 'Add a time commitment to your calendar.'}</p></div><CalendarPlus size={18} /></div>
         <form className="form-stack" onSubmit={event => { event.preventDefault(); if (title.trim()) create.mutate(); }}>
           <Field label="What is happening?"><TextInput value={title} onChange={event => setTitle(event.target.value)} placeholder="Name the commitment" required /></Field>
