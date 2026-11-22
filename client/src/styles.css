@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 :root {
@@ -2153,257 +2153,6 @@ input, select, textarea { min-width: 0; }
 .atlas-install-guide-card__done { width: 100%; min-height: 45px; border: 0; border-radius: 11px; background: var(--accent); color: #171710; font-size: 11px; font-weight: 700; }
 
 
-/* Focus timer: place the timer card and its primary controls on the visual centreline. */
-.focus-room-only .execution-focus-panel { width:100%; max-width:900px; margin-inline:auto; justify-items:center; }
-.focus-room-only .execution-focus-card { width:100%; max-width:680px; margin-inline:auto; }
-.focus-room-only .execution-focus-card > .execution-panel-heading { justify-content:center; text-align:center; }
-.focus-room-only .execution-focus-card > .execution-panel-heading > div { width:100%; }
-.focus-room-only .execution-focus-card > .execution-panel-heading > svg { display:none; }
-.focus-room-only .execution-focus-context { text-align:center; justify-items:center; }
-.focus-room-only .execution-timer { width:100%; justify-items:center; text-align:center; }
-.focus-room-only .execution-timer-actions { justify-content:center; }
-.focus-room-only .execution-break-row { justify-content:center; flex-wrap:wrap; }
-.focus-room-only .execution-break-row > div { flex:0 1 auto; text-align:center; }
-.focus-room-only .execution-focus-links { width:100%; }
-.focus-room-only .execution-focus-card > .field,
-.focus-room-only .execution-focus-card > .execution-distractions { width:100%; }
-.focus-room-only .execution-history-card { width:100%; }
-@media(max-width:600px) {
-  .focus-room-only .execution-focus-card { max-width:100%; }
-  .focus-room-only .execution-focus-card > .execution-panel-heading { text-align:center; }
-  .focus-room-only .execution-timer-actions { display:grid; grid-template-columns:1fr 1fr; }
-  .focus-room-only .execution-timer-actions .button:first-child { grid-column:1/-1; }
-}
-
-
-/* Focus route uses the full workspace canvas; never leave the hidden task column empty. */
-.focus-room-only .execution-split {
-  display:grid !important;
-  grid-template-columns:minmax(0,1fr) !important;
-  width:100%;
-}
-.focus-room-only .execution-focus-panel {
-  width:100% !important;
-  max-width:none !important;
-  margin:0 !important;
-  justify-items:stretch;
-  grid-template-columns:minmax(0,1fr) !important;
-}
-.focus-room-only .execution-focus-card,
-.focus-room-only .execution-history-card {
-  width:100% !important;
-  max-width:none !important;
-  margin:0 !important;
-}
-.focus-room-only .execution-focus-card {
-  display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-  align-items:start;
-  column-gap:clamp(18px,3vw,36px);
-}
-.focus-room-only .execution-focus-card > .execution-panel-heading,
-.focus-room-only .execution-focus-card > .execution-focus-context,
-.focus-room-only .execution-focus-card > .execution-timer,
-.focus-room-only .execution-focus-card > .execution-presets,
-.focus-room-only .execution-focus-card > .execution-timer-actions,
-.focus-room-only .execution-focus-card > .execution-save-state,
-.focus-room-only .execution-focus-card > .execution-save-error,
-.focus-room-only .execution-focus-card > .execution-break-row {
-  grid-column:1/-1;
-}
-.focus-room-only .execution-focus-card > .execution-panel-heading { justify-content:center; }
-.focus-room-only .execution-focus-card > .execution-focus-links,
-.focus-room-only .execution-focus-card > .field,
-.focus-room-only .execution-focus-card > .execution-distractions { grid-column:auto; }
-.focus-room-only .execution-timer { padding-block:clamp(26px,4vw,48px); }
-@media(max-width:700px) {
-  .focus-room-only .execution-focus-card { grid-template-columns:minmax(0,1fr); }
-  .focus-room-only .execution-focus-card > .execution-focus-links,
-  .focus-room-only .execution-focus-card > .field,
-  .focus-room-only .execution-focus-card > .execution-distractions { grid-column:1/-1; }
-}
-
-
-/* Focus Timer refinement — balanced workspace, grouped controls, cleaner scan path. */
-.focus-room-only .execution-focus-panel {
-  width:100% !important;
-  max-width:1120px !important;
-  margin:0 auto !important;
-  justify-items:stretch;
-  gap:16px;
-}
-.focus-room-only .execution-focus-card {
-  width:100% !important;
-  max-width:none !important;
-  margin:0 !important;
-  display:grid;
-  grid-template-columns:minmax(0,1.08fr) minmax(280px,.92fr);
-  align-items:start;
-  column-gap:clamp(22px,3.2vw,42px);
-  row-gap:16px;
-  padding:clamp(22px,3vw,34px) !important;
-}
-.focus-room-only .execution-focus-card > .execution-panel-heading {
-  grid-column:1/-1;
-  justify-content:space-between;
-  text-align:left;
-  padding-bottom:4px;
-  border-bottom:1px solid var(--line-soft);
-}
-.focus-room-only .execution-focus-card > .execution-panel-heading > div { width:auto; }
-.focus-room-only .execution-focus-card > .execution-panel-heading > svg { display:block; color:var(--accent-strong); }
-.focus-room-only .execution-focus-context,
-.focus-room-only .execution-timer,
-.focus-room-only .execution-presets,
-.focus-room-only .execution-timer-actions,
-.focus-room-only .execution-break-row,
-.focus-room-only .execution-save-state,
-.focus-room-only .execution-save-error { grid-column:1; }
-.focus-room-only .execution-focus-context { text-align:left; justify-items:start; }
-.focus-room-only .execution-timer { min-height:170px; align-content:center; padding:20px 8px; }
-.focus-room-only .execution-timer>span { font-size:clamp(64px,8vw,94px); }
-.focus-room-only .execution-timer-actions { justify-content:flex-start; flex-wrap:wrap; }
-.focus-room-only .execution-break-row { justify-content:flex-start; }
-.focus-room-only .execution-break-row > div { text-align:left; }
-.focus-room-only .execution-focus-links,
-.focus-room-only .execution-focus-card > .field,
-.focus-room-only .execution-distractions { grid-column:2; }
-.focus-room-only .execution-focus-links { grid-row:2 / span 2; align-self:stretch; align-content:start; gap:14px; padding:14px; border:1px solid var(--line-soft); border-radius:12px; background:var(--surface); }
-.focus-room-only .execution-focus-card > .field { min-width:0; }
-.focus-room-only .execution-distractions { min-width:0; padding:14px; border:1px solid var(--line-soft); border-radius:12px; background:var(--surface); }
-.focus-room-only .execution-history-card { width:100% !important; max-width:none !important; margin:0 !important; }
-@media(max-width:760px) {
-  .focus-room-only .execution-focus-card {
-    grid-template-columns:minmax(0,1fr);
-    padding:18px !important;
-    row-gap:14px;
-  }
-  .focus-room-only .execution-focus-card > .execution-panel-heading,
-  .focus-room-only .execution-focus-context,
-  .focus-room-only .execution-timer,
-  .focus-room-only .execution-presets,
-  .focus-room-only .execution-timer-actions,
-  .focus-room-only .execution-break-row,
-  .focus-room-only .execution-save-state,
-  .focus-room-only .execution-save-error,
-  .focus-room-only .execution-focus-links,
-  .focus-room-only .execution-focus-card > .field,
-  .focus-room-only .execution-distractions { grid-column:1; grid-row:auto; }
-  .focus-room-only .execution-focus-card > .execution-panel-heading { justify-content:center; text-align:center; }
-  .focus-room-only .execution-focus-card > .execution-panel-heading > div { width:100%; }
-  .focus-room-only .execution-focus-card > .execution-panel-heading > svg { display:none; }
-  .focus-room-only .execution-focus-context { text-align:center; justify-items:center; }
-  .focus-room-only .execution-timer { min-height:130px; }
-  .focus-room-only .execution-timer-actions { justify-content:center; }
-  .focus-room-only .execution-break-row { justify-content:center; }
-  .focus-room-only .execution-break-row > div { text-align:center; }
-}
-
-/* Room 02 + focus history refinement: give each section breathing room and clear hierarchy. */
-.rhythm-page { gap:28px !important; }
-.rhythm-page > .rhythm-grid { gap:24px !important; }
-.rhythm-grid > .surface-card { display:grid; align-content:start; gap:18px; min-height:100%; padding:26px !important; border-radius:16px; }
-.rhythm-grid .module-panel-head { margin:0 0 2px; }
-.rhythm-grid .module-panel-head h2 { margin-top:5px; font-size:16px; }
-.rhythm-page .rhythm-prayer-list { gap:10px; margin-top:0; }
-.rhythm-page .rhythm-prayer-row { min-height:62px; gap:16px; padding:13px 15px; border:1px solid var(--line); border-radius:11px; background:var(--surface-raised); }
-.rhythm-page .rhythm-prayer-row b { font-size:12px; }
-.rhythm-page .rhythm-prayer-row small { margin-top:2px; font-size:10px; }
-.rhythm-page .rhythm-record-list { gap:10px; margin-top:0; }
-.rhythm-page .rhythm-record-row { min-height:54px; gap:12px; padding:12px 14px; border:1px solid var(--line); border-radius:11px; background:var(--surface-raised); }
-.rhythm-page .rhythm-record-row>div { gap:5px; }
-.rhythm-page .rhythm-record-row b { font-size:11px; line-height:1.45; }
-.rhythm-page .rhythm-record-row small { font-size:10px; line-height:1.6; }
-.rhythm-page .rhythm-record-status { width:30px; height:30px; border-radius:9px; }
-.rhythm-page .rhythm-check-row { gap:16px; padding:14px 2px; font-size:11px; line-height:1.5; }
-.rhythm-page .rhythm-check-row button { min-height:32px; padding:7px 11px; border-radius:8px; font-size:10px; }
-.rhythm-page .rhythm-stats { gap:10px; margin:4px 0 8px; }
-.rhythm-page .rhythm-stats>div { gap:7px; padding:14px; border-radius:11px; }
-.rhythm-page .rhythm-quran-layout { gap:22px; }
-.rhythm-page .rhythm-focus-link { margin-top:4px; padding-top:16px; }
-.rhythm-page .atlas-add-disclosure > form { margin-top:18px; }
-.rhythm-page .field { gap:9px; }
-.rhythm-page .field-input { min-height:46px; }
-.rhythm-page .field-input--area { min-height:112px; }
-.execution-history-list { display:grid; gap:10px !important; }
-.execution-history-list article { display:grid !important; grid-template-columns:36px minmax(0,1fr) auto; align-items:center !important; gap:14px !important; padding:15px 16px !important; border:1px solid var(--line) !important; border-radius:12px; background:var(--surface-raised) !important; }
-.execution-history-mark { width:36px !important; height:36px !important; border:1px solid var(--line); border-radius:10px !important; }
-.execution-history-list article>div { gap:6px !important; }
-.execution-history-list article b { color:var(--text); font-size:12px !important; font-weight:650; line-height:1.45; }
-.execution-history-list article small { color:var(--muted); font-size:10px !important; line-height:1.6 !important; overflow-wrap:anywhere; }
-.execution-history-list article p { margin-top:2px !important; color:var(--muted); font-size:10px !important; line-height:1.65 !important; }
-.execution-history-list article>strong { align-self:center; min-width:42px; padding:7px 9px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--accent-strong); font-size:11px !important; text-align:center; font-variant-numeric:tabular-nums; }
-@media(max-width:760px) {
-  .rhythm-grid > .surface-card { gap:15px; padding:19px !important; }
-  .rhythm-page .rhythm-prayer-row { min-height:56px; padding:11px 12px; }
-  .rhythm-page .rhythm-record-row { padding:11px 12px; }
-  .execution-history-list article { grid-template-columns:32px minmax(0,1fr) auto; gap:10px !important; padding:12px !important; }
-  .execution-history-mark { width:32px !important; height:32px !important; }
-}
-
-
-/* Room 02 vertical rhythm correction: restore real top/bottom breathing room. */
-.rhythm-page > .surface-card,
-.rhythm-page > .rhythm-grid > .surface-card {
-  padding-block: 32px !important;
-}
-.rhythm-page > .surface-card > .module-panel-head,
-.rhythm-page > .rhythm-grid > .surface-card > .module-panel-head {
-  margin-bottom: 4px;
-}
-.rhythm-page > .surface-card > .rhythm-record-list,
-.rhythm-page > .rhythm-grid > .surface-card > .rhythm-record-list,
-.rhythm-page > .surface-card > .rhythm-prayer-list,
-.rhythm-page > .rhythm-grid > .surface-card > .rhythm-prayer-list {
-  margin-block: 6px;
-}
-.rhythm-page > .surface-card > .rhythm-focus-link {
-  margin-top: 12px;
-}
-@media (max-width: 760px) {
-  .rhythm-page > .surface-card,
-  .rhythm-page > .rhythm-grid > .surface-card {
-    padding-block: 25px !important;
-  }
-}
-
-
-/* Daily Rhythm spacing: enforce vertical breathing room inside every panel. */
-.rhythm-page > .surface-card,
-.rhythm-page > .rhythm-grid > .surface-card {
-  box-sizing: border-box !important;
-  padding: 30px 30px !important;
-  display: grid;
-  align-content: start;
-  gap: 20px !important;
-}
-.rhythm-page > .rhythm-grid {
-  align-items: stretch;
-  gap: 26px !important;
-}
-.rhythm-page > .surface-card > .module-panel-head,
-.rhythm-page > .rhythm-grid > .surface-card > .module-panel-head {
-  margin: 0 0 4px !important;
-}
-.rhythm-page .rhythm-prayer-list,
-.rhythm-page .rhythm-record-list {
-  gap: 12px !important;
-  margin-block: 8px !important;
-}
-.rhythm-page .rhythm-prayer-row,
-.rhythm-page .rhythm-record-row {
-  padding-block: 14px !important;
-  min-height: 58px;
-}
-@media (max-width: 760px) {
-  .rhythm-page > .surface-card,
-  .rhythm-page > .rhythm-grid > .surface-card {
-    padding: 24px 20px !important;
-    gap: 16px !important;
-  }
-  .rhythm-page > .rhythm-grid { gap: 18px !important; }
-}
-
 /* Administration: compact, scannable section directory. */
 .admin-section-grid,
 .admin-faith-grid {
@@ -2447,289 +2196,1347 @@ input, select, textarea { min-width: 0; }
 }
 
 
-/* Room 02 — spacious Deen layout pass (staging). */
-.rhythm-page {
-  width: 100%;
-  max-width: 1480px;
-  margin-inline: auto;
-  gap: 30px !important;
+/* ATLAS FLAGSHIP SYSTEM — one geometric and surface authority */
+:root {
+  --atlas-frame: 1180px;
+  --atlas-page-x: 40px;
+  --atlas-page-y: 36px;
+  --atlas-room-gap: 28px;
+  --atlas-radius-card: 14px;
+  --atlas-radius-control: 9px;
+  --atlas-title-size: 30px;
+  --atlas-body-size: 14.5px;
+  --surface-specular: inset 0 1px 0 0 rgba(255,255,255,.08);
+  --accent-primary: var(--accent);
 }
-.rhythm-page > .rhythm-grid {
-  width: 100%;
-  gap: 24px !important;
-  align-items: stretch;
+:root[data-theme^="light-"] {
+  --surface-specular: inset 0 1px 0 0 rgba(255,255,255,.9);
 }
-.rhythm-page > .rhythm-grid > .surface-card,
-.rhythm-page > .surface-card {
-  min-width: 0;
-  padding: 28px !important;
-  border-radius: 16px;
+body,.app-frame,.main-area { background:var(--bg); }
+.page-container {
+  width:min(100%,var(--atlas-frame));
+  max-width:var(--atlas-frame);
+  margin:0 auto;
+  padding:var(--atlas-page-y) var(--atlas-page-x) 72px;
 }
-.rhythm-page .module-panel-head {
-  margin-bottom: 6px !important;
-  gap: 14px;
+.page-header {
+  align-items:flex-end;
+  gap:24px;
+  margin:0 0 28px;
 }
-.rhythm-page .module-intro {
-  margin-bottom: 8px;
-  line-height: 1.7;
+.page-header h1,.execution-heading h1 {
+  margin:0 0 9px;
+  font:650 var(--atlas-title-size)/1.12 Manrope,"DM Sans",sans-serif;
+  letter-spacing:-.03em;
 }
-.rhythm-page .rhythm-prayer-list,
-.rhythm-page .rhythm-record-list {
-  display: grid;
-  gap: 12px !important;
-  margin-top: 4px;
+.page-header p,.execution-heading p,.growth-section-heading p {
+  font-size:var(--atlas-body-size);
+  line-height:1.55;
 }
+.page-header p { max-width:62ch; }
+.page-header__action { align-self:flex-end; }
+.surface-card,.stat-card,.room4-card,.room4-path-card,.room4-evidence,.goal-card--connected,
+.execution-panel-card,.execution-focus-card,.execution-history-card,.residence-day-ribbon {
+  min-width:0;
+  border-radius:var(--atlas-radius-card);
+  box-shadow:var(--surface-specular);
+  transition:border-color 160ms ease,background-color 160ms ease,box-shadow 160ms ease,transform 160ms ease;
+}
+.surface-card { border-color:var(--line); }
+.surface-card:hover,.stat-card:hover,.room4-card:hover,.room4-path-card:hover,.room4-evidence:hover,.goal-card--connected:hover {
+  border-color:color-mix(in srgb,var(--accent-primary) 30%,var(--line));
+}
+.button,.field-input,textarea,select,.execution-quick-add input,.execution-subtask-form input,
+.execution-subtask-form button,.rhythm-prayer-row select,.rhythm-prayer-row>button {
+  border-radius:var(--atlas-radius-control);
+}
+.button {
+  min-height:42px;
+  transition:transform 160ms ease,background-color 160ms ease,border-color 160ms ease,box-shadow 160ms ease;
+}
+.button--primary {
+  border-color:color-mix(in srgb,var(--accent-primary) 70%,#fff 8%);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--accent-primary) 92%,#fff 8%),var(--accent-primary));
+  color:#171710;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 2px 7px rgba(0,0,0,.12);
+}
+.button--primary:not(:disabled):hover {
+  transform:translateY(-1px);
+  background:linear-gradient(180deg,var(--accent-strong),var(--accent-primary));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.34),0 5px 14px rgba(0,0,0,.16);
+}
+.button--secondary,.button--ghost {
+  border:1px solid var(--line);
+  background:transparent;
+  color:var(--muted);
+  box-shadow:none;
+}
+.button--secondary:not(:disabled):hover,.button--ghost:not(:disabled):hover {
+  border-color:color-mix(in srgb,var(--accent-primary) 42%,var(--line));
+  background:color-mix(in srgb,var(--accent-primary) 5%,transparent);
+  color:var(--text);
+}
+.field-input,textarea,select {
+  border-color:var(--line);
+  transition:border-color 160ms ease,background-color 160ms ease,box-shadow 160ms ease;
+}
+.field-input:focus,textarea:focus,select:focus {
+  border-color:color-mix(in srgb,var(--accent-primary) 65%,var(--line));
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-primary) 12%,transparent);
+}
+.card-heading h2,.module-panel-head h2 { letter-spacing:-.02em; }
+.page-container p,.page-container label,.page-container li { text-wrap:pretty; }
+.stat-card strong,.residence-stat strong,.residence-pulse__score,.residence-dimension b,
+.rhythm-intro-stat b,.rhythm-stats b,.self-rhythm-metrics b,.execution-heading-stat b,
+.execution-timer-readout>span,.execution-history-list article>strong,.goal-work-summary b,
+.goal-focus-metric b,.room4-progress,.room4-resource__body small {
+  font-variant-numeric:tabular-nums lining-nums;
+}
+.execution-heading-stat,.execution-project-metric>b,.residence-day-ribbon__head b { font-variant-numeric:tabular-nums; }
+
+/* Room 01 — Residence: primary stream beside a telemetry rail */
+.today-dashboard {
+  display:grid;
+  grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);
+  align-items:start;
+  gap:var(--atlas-room-gap);
+}
+.today-dashboard>.atlas-cascade-item:has(>.residence-band--orientation) {
+  grid-column:1;
+  grid-row:1;
+  min-width:0;
+}
+.today-dashboard>.atlas-cascade-item:has(>.residence-band--overview) {
+  grid-column:2;
+  grid-row:1;
+  min-width:0;
+}
+.today-dashboard>.atlas-cascade-item:has(>.residence-band--execution) {
+  grid-column:1/-1;
+  grid-row:2;
+  min-width:0;
+}
+.residence-band { display:grid; gap:20px; min-width:0; }
+.residence-band--orientation .page-header { margin-bottom:0; }
+.residence-band--orientation .page-header h1 { max-width:18ch; font-size:clamp(30px,3vw,38px); }
+.residence-rhythm {
+  position:relative;
+  isolation:isolate;
+  min-height:170px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:20px;
+  overflow:hidden;
+  padding:26px;
+  border:1px solid color-mix(in srgb,var(--accent-primary) 18%,var(--line));
+  border-radius:var(--atlas-radius-card);
+  background:
+    radial-gradient(ellipse at 14% 4%,color-mix(in srgb,var(--accent-primary) 8%,transparent),transparent 65%),
+    linear-gradient(125deg,var(--surface),var(--surface-raised));
+  box-shadow:var(--surface-specular);
+}
+.residence-rhythm h2 { max-width:17ch; margin:9px 0; font:650 clamp(24px,2.7vw,34px)/1.12 Manrope,sans-serif; letter-spacing:-.04em; }
+.residence-rhythm p { max-width:52ch; margin:0; color:var(--muted); font-size:13px; line-height:1.65; }
+.residence-rhythm-time { flex:none; color:var(--accent-strong); font:600 12px "JetBrains Mono",monospace; font-variant-numeric:tabular-nums; }
+.residence-rhythm-action,.residence-carryforward {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:17px 0;
+  border:0;
+  border-top:1px solid var(--line);
+  border-radius:0;
+  background:transparent;
+}
+.residence-rhythm-action>div { min-width:0; }
+.residence-rhythm-action b { display:block; margin:5px 0; font-size:13px; }
+.residence-rhythm-action p,.residence-carryforward p { margin:4px 0; color:var(--muted); font-size:12px; line-height:1.55; }
+.residence-rhythm-action>a { flex:none; color:var(--accent-strong); font-size:11px; font-weight:650; }
+.residence-day-ribbon { padding:15px 17px; }
+.residence-band--overview { gap:18px; align-content:start; }
+.residence-band--overview .residence-band-heading { display:grid; gap:7px; }
+.residence-band--overview .residence-band-heading p { margin:0; color:var(--muted); font-size:12px; line-height:1.55; text-align:left; }
+.residence-pillar-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 14px; }
+.residence-pillar {
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 2px;
+  border:0;
+  border-bottom:1px solid var(--line-soft);
+  border-radius:0;
+  background:transparent;
+}
+.residence-pillar>span { flex:none; color:var(--accent-strong); font-size:17px; }
+.residence-pillar>div { display:grid; min-width:0; gap:4px; flex:1; }
+.residence-pillar b { font-size:11px; font-weight:650; }
+.residence-pillar small { color:var(--muted); font-size:9px; line-height:1.45; }
+.residence-pillar>svg { flex:none; color:var(--subtle); }
+.residence-pulse {
+  display:grid;
+  gap:15px;
+  padding:20px;
+  border:1px solid color-mix(in srgb,var(--accent-primary) 17%,var(--line));
+  border-radius:var(--atlas-radius-card);
+  background:
+    radial-gradient(ellipse at 12% 0%,color-mix(in srgb,var(--accent-primary) 8%,transparent),transparent 58%),
+    var(--surface);
+  box-shadow:var(--surface-specular);
+}
+.residence-pulse__heading { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.residence-pulse__date { color:var(--muted); font:10px "JetBrains Mono",monospace; font-variant-numeric:tabular-nums; }
+.residence-pulse__score { display:flex; flex-direction:column; align-items:flex-start; gap:3px; }
+.residence-pulse__score>span:first-child { font:650 clamp(36px,4vw,48px)/1 Manrope,sans-serif; letter-spacing:-.055em; }
+.residence-pulse__score>span:last-child { color:var(--muted); font-size:11px; }
+.residence-pulse__track,.residence-dimension i { height:5px; overflow:hidden; border-radius:99px; background:var(--line); }
+.residence-pulse__track>span,.residence-dimension i>span { display:block; height:100%; border-radius:inherit; background:var(--accent-primary); }
+.residence-pulse__main>p { margin:0; color:var(--muted); font-size:11px; line-height:1.6; }
+.residence-pulse__dimensions { display:grid; gap:12px; }
+.residence-dimension { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 10px; padding-bottom:10px; border-bottom:1px solid var(--line-soft); }
+.residence-dimension>span { color:var(--muted); font-size:10px; }
+.residence-dimension>b { font-size:11px; }
+.residence-dimension>small,.residence-dimension>i { grid-column:1/-1; }
+.residence-dimension>small { color:var(--subtle); font-size:9px; line-height:1.45; }
+.residence-dimension>i { height:3px; }
+.residence-stat-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 16px; }
+.residence-stat { min-width:0; padding:14px 2px; border:0; border-top:1px solid var(--line); border-radius:0; background:transparent; }
+.residence-stat strong { display:flex; align-items:center; gap:7px; font:650 27px Manrope,sans-serif; letter-spacing:-.04em; }
+.residence-band--execution {
+  grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);
+  align-items:start;
+  column-gap:var(--atlas-room-gap);
+  row-gap:14px;
+}
+.residence-band--execution>.residence-band-heading { grid-column:1/-1; }
+.residence-band--execution>.residence-grid { grid-column:1; grid-row:2; min-width:0; display:grid; grid-template-columns:minmax(0,1fr); gap:var(--atlas-room-gap); }
+.residence-main-column,.residence-side-column { display:grid; align-content:start; gap:18px; min-width:0; }
+.residence-pinned-priorities,.residence-faith-card,.today-habits-card,.today-tasks-card,
+.residence-focus-card,.residence-goals-card,.residence-shutdown-card {
+  min-width:0;
+  padding:20px 0;
+  border:0;
+  border-top:1px solid var(--line);
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.residence-pinned-row { border-bottom:1px solid var(--line-soft); }
+.residence-pinned-copy b { font-size:12px; }
+.residence-band--execution>#evening-shutdown { grid-column:2; grid-row:2; min-width:0; align-self:start; }
+.residence-band--execution>#evening-shutdown .residence-shutdown-card {
+  padding:20px;
+  border:1px solid var(--line);
+  border-radius:var(--atlas-radius-card);
+  background:
+    radial-gradient(ellipse at 100% 0%,color-mix(in srgb,var(--accent-primary) 7%,transparent),transparent 55%),
+    var(--surface);
+  box-shadow:var(--surface-specular);
+}
+.residence-shutdown-form { display:grid; gap:15px; }
+.residence-shutdown-form .residence-field textarea { min-height:76px; }
+.residence-workflow-footer { display:grid; gap:12px; }
+@media(max-width:980px) {
+  .today-dashboard { grid-template-columns:minmax(0,1fr); gap:22px; }
+  .today-dashboard>.atlas-cascade-item:has(>.residence-band--orientation),
+  .today-dashboard>.atlas-cascade-item:has(>.residence-band--overview),
+  .today-dashboard>.atlas-cascade-item:has(>.residence-band--execution) { grid-column:1; grid-row:auto; }
+  .residence-band--execution { grid-template-columns:minmax(0,1fr); }
+  .residence-band--execution>.residence-grid,.residence-band--execution>#evening-shutdown { grid-column:1; grid-row:auto; }
+}
+@media(max-width:620px) {
+  .residence-rhythm { min-height:0; align-items:flex-start; flex-direction:column; padding:20px; }
+  .residence-band--overview { gap:14px; }
+  .residence-pillar-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 10px; }
+  .residence-stat-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .residence-band--execution>#evening-shutdown .residence-shutdown-card { padding:17px; }
+  .residence-rhythm-action { align-items:flex-start; flex-direction:column; }
+}
+
+/* Room 02 — Daily Rhythm: 820px editorial column */
+.rhythm-page,.daily-rhythm-sanctuary {
+  width:min(100%,820px);
+  max-width:820px;
+  min-width:0;
+  margin-inline:auto;
+  gap:24px;
+}
+.rhythm-page>.page-header,.daily-rhythm-sanctuary>.page-header {
+  margin:0;
+  padding:0 0 20px;
+  border-bottom:1px solid var(--line);
+}
+.rhythm-page>.rhythm-intro {
+  padding:23px 0;
+  border:0;
+  border-bottom:1px solid var(--line);
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.rhythm-page>.rhythm-grid,.daily-rhythm-sanctuary .rhythm-grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:start;
+  gap:24px;
+}
+.rhythm-page .rhythm-grid>.surface-card,.rhythm-page>.surface-card,
+.daily-rhythm-sanctuary .surface-card,.daily-rhythm-sanctuary .module-card {
+  min-width:0;
+  padding:22px;
+  border-radius:var(--atlas-radius-card);
+  background:var(--surface);
+  box-shadow:var(--surface-specular);
+}
+.rhythm-page .rhythm-prayer-list,.rhythm-page .rhythm-record-list { display:grid; gap:9px; margin-top:12px; }
+.rhythm-page .rhythm-prayer-row,.rhythm-page .rhythm-record-row {
+  min-width:0;
+  min-height:48px;
+  padding:10px 12px;
+  border:1px solid var(--line-soft);
+  border-radius:10px;
+  background:var(--surface-raised);
+}
+.rhythm-page .rhythm-prayer-row b,.rhythm-page .rhythm-record-row b { font-size:12px; }
+.rhythm-page .rhythm-prayer-row small,.rhythm-page .rhythm-record-row small { font-size:10px; }
+.rhythm-page .rhythm-prayer-row select,.rhythm-page .rhythm-prayer-row>button { min-height:34px; font-size:10px; }
+.rhythm-page .rhythm-stats { gap:10px; }
+.rhythm-page .rhythm-stats>div { min-width:0; padding:13px; border-radius:10px; }
+.rhythm-page .rhythm-quran-layout { gap:18px; }
+.rhythm-page .rhythm-check-row { min-width:0; padding:12px 2px; font-size:11px; }
+.daily-rhythm-sanctuary { gap:24px; }
+.daily-rhythm-sanctuary>.page-header h1 { font-size:30px; }
+.daily-rhythm-sanctuary .growth-section-heading { margin-bottom:0; }
+.habits-self-control-view { gap:28px; }
+.habits-self-control-view>.self-control-page,.habits-self-control-view>.rituals-page { width:100%; min-width:0; gap:20px; }
+.rituals-edit-form { display:grid; grid-template-columns:minmax(120px,1fr) minmax(120px,.8fr) auto auto; align-items:center; gap:9px; min-width:0; }
+.rituals-edit-form .field-input { min-width:0; }
+.self-rhythm-consistency { grid-template-columns:minmax(0,.65fr) minmax(0,1.35fr); gap:16px; }
+.self-rhythm-metrics>div,.self-rhythm-heatmap-wrap { border-radius:12px; }
+@media(max-width:760px) {
+  .rhythm-page,.daily-rhythm-sanctuary { gap:20px; }
+  .rhythm-page>.rhythm-grid,.daily-rhythm-sanctuary .rhythm-grid,.rhythm-page .rhythm-quran-layout,
+  .self-rhythm-consistency { grid-template-columns:minmax(0,1fr); }
+  .rhythm-page .rhythm-grid>.surface-card,.rhythm-page>.surface-card,
+  .daily-rhythm-sanctuary .surface-card,.daily-rhythm-sanctuary .module-card { padding:18px; }
+  .rituals-edit-form { grid-template-columns:minmax(0,1fr) auto auto; }
+  .rituals-edit-form .field-input { grid-column:1/-1; }
+}
+@media(max-width:560px) {
+  .rhythm-page>.rhythm-intro { align-items:flex-start; flex-direction:column; gap:12px; }
+  .rhythm-page .rhythm-intro-stat { text-align:left; }
+  .rhythm-page .self-positive-list { grid-template-columns:1fr; }
+}
+
+/* Room 03 — full-width task list, 360px slide-open inspector */
+.execution-workspace { gap:20px; min-width:0; }
+.execution-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; }
+.execution-heading h1 { margin:7px 0 8px; }
+.execution-heading p { max-width:64ch; margin:0; color:var(--muted); }
+.execution-heading-stat { display:grid; gap:4px; flex:none; text-align:right; }
+.execution-heading-stat b { font:650 24px Manrope,sans-serif; }
+.execution-heading-stat span { color:var(--subtle); font-size:9px; letter-spacing:.12em; }
+.execution-split { display:grid; grid-template-columns:minmax(0,1fr); align-items:start; gap:0; min-width:0; }
+.execution-projects-layout { grid-template-columns: minmax(0, 1fr); }
+.execution-projects-panel,.execution-focus-panel { display:grid; gap:18px; min-width:0; }
+.execution-projects-panel>.execution-panel-card { padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; }
+.execution-panel-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
+.execution-panel-heading h2 { margin:6px 0; font:650 20px Manrope,sans-serif; letter-spacing:-.035em; }
+.execution-panel-heading p { margin:0; color:var(--muted); font-size:12px; line-height:1.55; }
+.execution-project-rail { display:flex; gap:8px; overflow-x:auto; padding:2px 0 7px; }
+.execution-project-choice,.execution-project-rail>button { display:flex; align-items:center; flex:none; gap:8px; border:1px solid var(--line); border-radius:10px; background:var(--surface); }
+.execution-project-choice__select,.execution-project-choice__focus,.execution-project-rail>button {
+  min-height:36px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:7px 11px;
+  border:0;
+  border-radius:inherit;
+  background:transparent;
+  color:var(--muted);
+  font-size:10px;
+  white-space:nowrap;
+}
+.execution-project-choice__select { min-width:0; }
+.execution-project-choice__select small,.execution-project-rail small { display:grid; place-items:center; min-width:18px; height:18px; padding:0 4px; border-radius:6px; background:var(--surface-raised); color:var(--subtle); font-size:9px; }
+.execution-project-choice__focus { justify-content:center; border-left:1px solid var(--line); color:var(--accent-strong); }
+.execution-project-choice.is-active,.execution-project-rail>button.is-active { border-color:color-mix(in srgb,var(--accent-primary) 45%,var(--line)); background:color-mix(in srgb,var(--accent-primary) 8%,var(--surface)); color:var(--accent-strong); }
+.execution-project-manager { border:1px solid var(--line); border-radius:11px; background:var(--surface); box-shadow:var(--surface-specular); }
+.execution-project-manager>summary { display:flex; align-items:center; gap:8px; padding:12px 14px; color:var(--accent-strong); font-size:11px; font-weight:650; cursor:pointer; list-style:none; }
+.execution-project-manager>summary::-webkit-details-marker { display:none; }
+.execution-project-manager[open]>.atlas-cascade-item { padding:0 14px 14px; }
+.execution-project-manager .project-card { padding:16px; }
+.execution-project-manager .stack { gap:12px; }
+.execution-project-manager .project-meta { flex-wrap:wrap; }
+.execution-task-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; }
+.execution-task-toolbar>div:first-child { display:flex; align-items:baseline; gap:9px; }
+.execution-task-toolbar b { font-size:13px; }
+.execution-task-toolbar span { color:var(--muted); font-size:10px; }
+.execution-filter-tabs { display:flex; gap:3px; padding:3px; border:1px solid var(--line); border-radius:10px; background:var(--surface); }
+.execution-filter-tabs button { padding:6px 10px; border:0; border-radius:7px; background:transparent; color:var(--muted); font-size:10px; }
+.execution-filter-tabs button.is-active { background:var(--surface-raised); color:var(--text); }
+.execution-quick-add { display:grid; grid-template-columns:minmax(0,1fr) 125px 95px 145px auto; gap:8px; align-items:center; }
+.execution-quick-add .field-input,.execution-quick-add input { min-width:0; min-height:40px; padding:8px 10px; border:1px solid var(--line); background:var(--surface); color:var(--text); font-size:11px; }
+.execution-quick-add .button { min-height:40px; padding:0 13px; font-size:10px; }
+.execution-task-list { display:grid; gap:0; border-top:1px solid var(--line); }
+.execution-task {
+  display:grid;
+  gap:8px;
+  min-width:0;
+  padding:16px 6px;
+  border:0;
+  border-bottom:1px solid var(--line-soft);
+  border-radius:0;
+  background:transparent;
+  transition:background-color 160ms ease;
+  cursor:pointer;
+}
+.execution-task:hover,.execution-task.is-selected { background:color-mix(in srgb,var(--surface-raised) 75%,transparent); }
+.execution-task.is-done { opacity:.72; }
+.execution-task-main { display:flex; align-items:center; gap:12px; min-width:0; }
+.execution-task-check { display:grid; place-items:center; width:28px; height:28px; flex:none; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--muted); }
+.execution-task-copy { display:grid; gap:5px; flex:1; min-width:0; }
+.execution-task-copy>b { overflow-wrap:anywhere; font-size:13px; font-weight:650; }
+.execution-task-meta { display:flex; align-items:center; flex-wrap:wrap; gap:8px; color:var(--muted); font-size:10px; }
+.execution-priority { padding:4px 7px; border-radius:6px; font-size:8px; }
+.execution-task-main .button { min-height:33px; padding:0 11px; font-size:9px; }
+.execution-subtasks { display:grid; gap:7px; margin:0 0 0 40px; padding:8px 12px; border-left:1px solid var(--line); }
+.execution-subtasks label { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:10px; }
+.execution-subtask-form { display:flex; gap:7px; margin-left:40px; }
+.execution-subtask-form input { flex:1; min-width:0; min-height:34px; padding:7px 9px; border:1px solid var(--line-soft); background:transparent; color:var(--text); font-size:10px; }
+.execution-subtask-form button { display:inline-flex; align-items:center; gap:5px; padding:6px 9px; border:1px solid var(--line); background:var(--surface-raised); color:var(--muted); font-size:9px; }
+.execution-project-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-top:16px; }
+.execution-project-metric { display:grid; gap:7px; min-width:0; padding:15px; border:1px solid var(--line); border-radius:12px; background:var(--surface); }
+.execution-project-metric>b { font:650 24px Manrope,sans-serif; }
+.execution-project-metric>small { color:var(--muted); font-size:10px; }
+.execution-project-metric>i { height:4px; overflow:hidden; border-radius:99px; background:var(--line); }
+.execution-project-metric>i>span { display:block; height:100%; background:var(--accent-primary); }
+.execution-split.has-task-inspector {
+  grid-template-columns:minmax(0,1fr) 360px;
+  gap:24px;
+}
+.execution-task-inspector {
+  position:sticky;
+  top:20px;
+  align-self:start;
+  min-width:0;
+  min-height:380px;
+  padding:22px;
+  border:1px solid var(--line);
+  border-radius:var(--atlas-radius-card);
+  background:var(--surface);
+  box-shadow:var(--surface-specular);
+}
+.execution-inspector-top,.execution-inspector-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.execution-inspector-title { padding:22px 0 17px; border-bottom:1px solid var(--line-soft); }
+.execution-inspector-title h2 { margin:12px 0 8px; font:650 22px/1.2 Manrope,sans-serif; letter-spacing:-.035em; overflow-wrap:anywhere; }
+.execution-inspector-title p { margin:0; color:var(--muted); font-size:12px; line-height:1.6; }
+.execution-inspector-meta { display:flex; flex-wrap:wrap; gap:8px; padding:14px 0; border-bottom:1px solid var(--line-soft); }
+.execution-inspector-meta span { color:var(--muted); font-size:10px; }
+.execution-inspector-section { padding:20px 0; }
+.execution-inspector-heading b { font-size:12px; }
+.execution-inspector-heading small { color:var(--muted); font-size:10px; }
+.execution-inspector-subtask { display:flex; align-items:center; gap:9px; padding:11px 0; border-bottom:1px solid var(--line-soft); color:var(--text); font-size:11px; }
+.execution-inspector-subtask input { accent-color:var(--accent-primary); }
+.execution-inspector-add { margin-top:14px; }
+.execution-inspector-actions { display:grid; gap:9px; }
+@media(max-width:900px) {
+  .execution-split.has-task-inspector { grid-template-columns:minmax(0,1fr); gap:16px; }
+  .execution-task-inspector { position:relative; top:auto; min-height:0; }
+}
+@media(max-width:680px) {
+  .execution-quick-add { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  .execution-quick-add>*:first-child { grid-column:1/-1; }
+  .execution-quick-add .button { justify-content:center; }
+  .execution-project-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media(max-width:480px) {
+  .execution-quick-add { grid-template-columns:minmax(0,1fr); }
+  .execution-quick-add>*:first-child { grid-column:auto; }
+  .execution-project-metrics { grid-template-columns:minmax(0,1fr); }
+}
+
+/* Room 03 — Focus Room: centered, quiet 260px chronograph */
+.focus-room-only { width:100%; }
+.focus-room-only .execution-heading { width:100%; max-width:760px; margin-inline:auto; }
+.focus-room-only .execution-heading-stat { display:none; }
+.focus-room-layout { width:100%; max-width:760px; margin:0 auto; justify-items:center; grid-template-columns:minmax(0,1fr); }
+.focus-room-only .execution-focus-panel { display:grid; width:100%; max-width:760px; grid-template-columns:minmax(0,1fr); gap:22px; margin-inline:auto; }
+.focus-room-only .execution-focus-card { display:grid; grid-template-columns:minmax(0,1fr); gap:17px; padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; }
+.focus-room-only .execution-focus-card>.execution-panel-heading { justify-content:center; text-align:center; }
+.focus-room-only .execution-focus-card>.execution-panel-heading>svg { display:none; }
+.focus-room-only .execution-focus-context { justify-items:center; text-align:center; padding:14px 0; border:0; border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft); border-radius:0; background:transparent; }
+.focus-room-only .execution-timer {
+  position:relative;
+  width:260px;
+  height:260px;
+  display:grid;
+  place-items:center;
+  margin:8px auto 2px;
+  padding:0;
+}
+.execution-timer-ring { position:absolute; inset:0; width:100%; height:100%; overflow:visible; transform:rotate(-90deg); }
+.execution-timer-ring circle { fill:none; stroke-width:6; }
+.execution-timer-ring__track { stroke:var(--line); }
+.execution-timer-ring__progress { stroke:var(--accent-primary); stroke-linecap:round; transition:stroke-dashoffset 400ms linear; }
+.execution-timer-readout { position:relative; z-index:1; display:grid; justify-items:center; gap:7px; }
+.execution-timer-readout>span { font:600 56px/1 "JetBrains Mono",monospace; font-variant-numeric:tabular-nums; letter-spacing:-.07em; }
+.execution-timer-readout>small { color:var(--accent-strong); font:650 9px Manrope,sans-serif; letter-spacing:.2em; }
+.execution-presets { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; }
+.execution-presets button { min-width:64px; min-height:36px; padding:0 12px; border:1px solid var(--line); border-radius:999px; background:transparent; color:var(--muted); font-size:10px; transition:background-color 160ms ease,border-color 160ms ease,color 160ms ease; }
+.execution-presets button.is-active { border-color:color-mix(in srgb,var(--accent-primary) 55%,var(--line)); background:color-mix(in srgb,var(--accent-primary) 10%,transparent); color:var(--accent-strong); }
+.execution-timer-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:9px; }
+.execution-save-state,.execution-save-error { text-align:center; }
+.execution-break-row,.execution-focus-links,.execution-distractions { width:100%; max-width:700px; margin:10px auto; }
+.focus-room-only .execution-focus-card>.field { width:100%; max-width:700px; margin:0 auto; }
+.execution-history-card { width:100%; max-width:760px; margin:0 auto; padding:21px 0; border:0; border-top:1px solid var(--line); border-radius:0; background:transparent; box-shadow:none; }
+.execution-history-list { display:grid; gap:0; }
+.execution-history-list article { display:flex; align-items:flex-start; gap:12px; padding:14px 0; border:0; border-bottom:1px solid var(--line-soft); border-radius:0; background:transparent; }
+.execution-history-list article:last-child { border-bottom:0; }
+.execution-history-list article b { font-size:11px; }
+.execution-history-list article small,.execution-history-list article p { font-size:10px; line-height:1.55; }
+@media(max-width:560px) {
+  .focus-room-only .execution-timer { width:240px; height:240px; }
+  .execution-timer-readout>span { font-size:52px; }
+  .execution-focus-links { grid-template-columns:minmax(0,1fr); }
+}
+
+/* Room 04 — Growth & Direction: disciplined two-column evidence grids */
+.growth-combined-view,.growth-horizon-layout { min-width:0; gap:30px; }
+.growth-view-section { display:flex; flex-direction:column; gap:18px; min-width:0; }
+.growth-view-section+.growth-view-section { padding-top:26px; border-top:1px solid var(--line); }
+.growth-section-heading { display:grid; gap:7px; min-width:0; }
+.growth-section-heading h2 { margin:0; font:650 25px/1.15 Manrope,sans-serif; letter-spacing:-.035em; }
+.growth-section-heading p { max-width:64ch; margin:0; color:var(--muted); }
+.growth-view-section>.stack,.growth-view-section>.atlas-cascade-item { min-width:0; }
+.growth-horizon-layout .growth-view-section>.stack { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:22px; }
+.growth-horizon-layout .growth-view-section>.stack>.room4-path-card { min-width:0; }
+.growth-horizon-layout .room4-library { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:18px 24px; min-width:0; }
+.growth-horizon-layout .room4-library>.card-heading,.growth-horizon-layout .room4-library>.atlas-add-disclosure { grid-column:1/-1; }
+.growth-horizon-layout .room4-resource-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 20px; min-width:0; }
+.growth-horizon-layout .room4-resource,.growth-horizon-layout .note-card,.growth-horizon-layout .room4-path-card {
+  min-width:0;
+  border:0;
+  border-top:1px solid var(--line);
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.growth-horizon-layout .room4-resource { padding:14px 0; }
+.growth-horizon-layout .note-card,.growth-horizon-layout .room4-path-card { padding:20px 0; }
+.growth-horizon-layout .goal-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; min-width:0; }
+.goals-horizon>.atlas-cascade-item:has(>.goal-grid) { min-width:0; }
+.goals-horizon .goal-grid>.goal-card { min-width:0; padding:22px; border-radius:var(--atlas-radius-card); box-shadow:var(--surface-specular); }
+.goals-horizon .goal-card h2 { font-size:21px; letter-spacing:-.035em; overflow-wrap:anywhere; }
+.goals-horizon .goal-card p { font-size:13px; line-height:1.6; }
+.goals-horizon .goal-work-summary { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; padding:14px 0; border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft); }
+.goals-horizon .goal-work-summary>div { min-width:0; display:grid; gap:4px; }
+.goals-horizon .goal-work-summary b { font-size:15px; }
+.goals-horizon .goal-progress-track,.growth-horizon-layout .room4-progress>span { height:6px; border-radius:99px; background:var(--line-soft); }
+.goals-horizon .goal-progress-track>span,.growth-horizon-layout .room4-progress i { border-radius:99px; }
+.goals-horizon .goal-linked-list { min-width:0; }
+.growth-horizon-layout .room4-card,.growth-horizon-layout .room4-path-card,.growth-horizon-layout .note-card { min-width:0; }
+@media(max-width:900px) {
+  .growth-horizon-layout .growth-view-section>.stack,.growth-horizon-layout .room4-library,
+  .growth-horizon-layout .room4-resource-list { grid-template-columns:minmax(0,1fr); }
+  .growth-horizon-layout .room4-library>.card-heading,.growth-horizon-layout .room4-library>.atlas-add-disclosure { grid-column:1; }
+}
+@media(max-width:760px) {
+  .growth-horizon-layout .goal-grid,.goals-horizon .goal-grid { grid-template-columns:minmax(0,1fr); gap:18px; }
+  .goals-horizon .goal-work-summary { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+
+/* Shared theme-aware geometry, contrast and motion safeguards */
+.atlas-add-disclosure { border-radius:11px; }
+.atlas-add-disclosure>summary { min-height:42px; }
+.execution-history-list article>strong { font-variant-numeric:tabular-nums; }
+.list-row { border-color:var(--line-soft); }
+button:not(:disabled),a { -webkit-tap-highlight-color:transparent; }
+@media(max-width:760px) {
+  :root { --atlas-page-x:16px; --atlas-page-y:20px; --atlas-room-gap:20px; }
+  .page-container { padding:var(--atlas-page-y) var(--atlas-page-x) 58px; }
+  .page-header { align-items:flex-start; flex-direction:column; gap:14px; margin-bottom:22px; }
+  .page-header h1,.execution-heading h1 { font-size:28px; }
+  .page-header__action { align-self:flex-start; }
+  .execution-heading { align-items:flex-start; flex-direction:column; gap:10px; }
+  .execution-heading-stat { display:none; }
+}
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after { scroll-behavior:auto!important; transition-duration:.01ms!important; animation-duration:.01ms!important; animation-iteration-count:1!important; }
+}
+
+
+/* INNER ROOMS — bespoke interaction layer, inherited by every Atlas theme */
+:root {
+  --accent-soft:var(--accent-wash);
+  --bg-elevated:var(--surface-raised);
+}
+:root[data-theme^="light-"] {
+  --control-chevron:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2362675d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+:root:not([data-theme^="light-"]) {
+  --control-chevron:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a2a69a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+input:not([type="checkbox"]):not([type="radio"]),textarea,select,.field-input {
+  border-radius:9px;
+  border-color:var(--line);
+  background-color:var(--bg-elevated);
+  color:var(--text);
+  transition:border-color 160ms ease,background-color 160ms ease,box-shadow 160ms ease;
+}
+select,.field-input:is(select) {
+  appearance:none;
+  -webkit-appearance:none;
+  padding-right:36px;
+  background-image:var(--control-chevron);
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  background-size:14px;
+}
+input:not([type="checkbox"]):not([type="radio"]):focus,textarea:focus,select:focus,.field-input:focus {
+  outline:none;
+  border-color:color-mix(in srgb,var(--accent-primary) 68%,var(--line));
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-soft) 85%,transparent);
+}
+input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
+
+/* Daily Rhythm — status segmented controls and practice telemetry */
+.rhythm-prayer-progress {
+  height:4px;
+  overflow:hidden;
+  margin:16px 0 8px;
+  border-radius:99px;
+  background:var(--line-soft);
+}
+.rhythm-prayer-progress>span {
+  display:block;
+  height:100%;
+  border-radius:inherit;
+  background:var(--accent-primary);
+  transition:width 220ms ease;
+}
+.rhythm-page .rhythm-prayer-list { gap:0; }
 .rhythm-page .rhythm-prayer-row {
-  min-height: 64px;
-  padding: 14px 16px !important;
-  gap: 16px;
+  display:grid;
+  grid-template-columns:minmax(105px,.7fr) minmax(0,1.3fr);
+  align-items:center;
+  gap:12px;
+  min-height:62px;
+  padding:11px 0;
+  border:0;
+  border-bottom:1px solid var(--line-soft);
+  border-radius:0;
+  background:transparent;
 }
-.rhythm-page .rhythm-record-row {
-  min-height: 58px;
-  padding: 14px 16px !important;
-  gap: 14px;
+.rhythm-page .rhythm-prayer-row:last-child { border-bottom:0; }
+.rhythm-page .rhythm-prayer-row>div:first-child { display:grid; gap:5px; min-width:0; }
+.rhythm-page .rhythm-prayer-row>div:first-child>b { font-size:12px; font-weight:650; }
+.rhythm-page .rhythm-prayer-row>div:first-child>small { color:var(--muted); font-size:9px; }
+.rhythm-prayer-segments {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:3px;
+  padding:3px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--bg-elevated);
 }
-.rhythm-page .rhythm-check-row {
-  min-height: 56px;
-  padding: 14px 4px !important;
-  gap: 18px;
-  line-height: 1.65;
+.rhythm-prayer-segments button {
+  min-width:0;
+  min-height:31px;
+  padding:5px 4px;
+  border:1px solid transparent;
+  border-radius:7px;
+  background:transparent;
+  color:var(--muted);
+  font-size:9px;
+  font-weight:600;
+  white-space:nowrap;
+  transition:background-color 160ms ease,color 160ms ease,border-color 160ms ease,box-shadow 160ms ease;
 }
-.rhythm-page .rhythm-check-row + .rhythm-check-row {
-  border-top: 1px solid var(--line-soft);
+.rhythm-prayer-segments button:hover { color:var(--text); background:color-mix(in srgb,var(--accent-soft) 55%,transparent); }
+.rhythm-prayer-segments button.is-active {
+  border-color:color-mix(in srgb,var(--accent-primary) 32%,var(--line));
+  background:var(--accent-soft);
+  color:var(--accent-strong);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07);
 }
-.rhythm-page .rhythm-stats {
-  gap: 14px !important;
-  margin: 8px 0 12px !important;
+.rhythm-prayer-row--on_time .rhythm-prayer-row__status { color:var(--success); }
+.rhythm-prayer-segments--faith { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.rhythm-prayer-list--devotional .rhythm-prayer-row { grid-template-columns:minmax(0,1fr) minmax(190px,.9fr); }
+.rhythm-stats {
+  display:flex;
+  align-items:stretch;
+  gap:0;
+  margin:18px 0;
+  padding:13px 0;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
 }
-.rhythm-page .rhythm-stats > div {
-  min-height: 78px;
-  padding: 16px 18px !important;
+.rhythm-stats>div {
+  flex:1;
+  display:grid;
+  align-content:center;
+  gap:5px;
+  min-width:0;
+  padding:2px 18px;
+  border:0;
+  border-right:1px solid var(--line);
+  border-radius:0;
+  background:transparent;
 }
-.rhythm-page .rhythm-quran-layout {
-  gap: 24px !important;
+.rhythm-stats>div:first-child { padding-left:0; }
+.rhythm-stats>div:last-child { padding-right:0; border-right:0; }
+.rhythm-stats b { font:650 25px/1 Manrope,sans-serif; letter-spacing:-.04em; font-variant-numeric:tabular-nums; }
+.rhythm-stats small { color:var(--muted); font-size:9px; letter-spacing:.09em; line-height:1.4; }
+.self-rhythm-metrics { gap:0; border:1px solid var(--line); border-radius:var(--atlas-radius-card); background:var(--surface); box-shadow:var(--surface-specular); }
+.self-rhythm-metrics>div { min-width:0; padding:18px; border:0; border-right:1px solid var(--line); border-radius:0; background:transparent; }
+.self-rhythm-metrics>div:last-child { border-right:0; }
+.self-rhythm-heatmap-wrap { padding:20px; border-radius:var(--atlas-radius-card); box-shadow:var(--surface-specular); }
+.self-rhythm-heatmap { grid-template-columns:repeat(10,minmax(0,1fr)); gap:3px; }
+.self-rhythm-heatmap>span {
+  min-width:0;
+  aspect-ratio:1;
+  border:0;
+  border-radius:4px;
+  background:var(--line-soft);
+  transition:transform 160ms ease,background-color 160ms ease;
 }
-.rhythm-page .rhythm-focus-link {
-  margin-top: 18px !important;
-  padding-top: 18px !important;
+.self-rhythm-heatmap>span:hover { transform:scale(1.12); }
+.self-rhythm-heatmap>span.is-low { background:color-mix(in srgb,var(--accent-primary) 25%,var(--surface-raised)); }
+.self-rhythm-heatmap>span.is-medium { background:color-mix(in srgb,var(--accent-primary) 55%,var(--surface-raised)); }
+.self-rhythm-heatmap>span.is-high { background:var(--accent-primary); }
+
+/* Execution — Linear-like task rows and precision chronograph */
+.execution-task-list { border-top:1px solid var(--line); }
+.execution-task {
+  padding:15px 8px;
+  border-bottom:1px solid var(--line-soft);
+  border-radius:0;
+  background:transparent;
 }
-.rhythm-page .atlas-add-disclosure > summary {
-  padding-block: 10px;
+.execution-task:hover,.execution-task.is-selected {
+  background:color-mix(in srgb,var(--surface-raised) 72%,transparent);
 }
-.rhythm-page .rhythm-quick-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 8px;
+.execution-task-check {
+  width:27px;
+  height:27px;
+  border:1.5px solid color-mix(in srgb,var(--muted) 65%,var(--line));
+  border-radius:50%;
+  background:transparent;
+  color:transparent;
+  transition:border-color 160ms ease,background-color 160ms ease,color 160ms ease,box-shadow 160ms ease;
 }
-@media (min-width: 1200px) {
-  .rhythm-page > .rhythm-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.execution-task-check--urgent { border-color:var(--danger); color:var(--danger); }
+.execution-task-check--high { border-color:#d6a46d; color:#d6a46d; }
+.execution-task-check--normal { border-color:var(--accent-primary); color:var(--accent-primary); }
+.execution-task-check--low { border-color:var(--subtle); color:var(--subtle); }
+.execution-task-check:hover { background:var(--accent-soft); box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-primary) 10%,transparent); }
+.execution-task.is-done .execution-task-check { border-color:var(--success); background:color-mix(in srgb,var(--success) 14%,transparent); color:var(--success); }
+.execution-task-meta { gap:7px; font-size:9px; }
+.execution-task-meta>time,.execution-task-meta>span:not(.execution-priority) {
+  display:inline-flex;
+  align-items:center;
+  min-height:21px;
+  padding:3px 7px;
+  border:1px solid var(--line-soft);
+  border-radius:6px;
+  background:var(--bg-elevated);
 }
-@media (max-width: 760px) {
-  .rhythm-page { gap: 20px !important; }
-  .rhythm-page > .rhythm-grid { gap: 16px !important; }
-  .rhythm-page > .rhythm-grid > .surface-card,
-  .rhythm-page > .surface-card { padding: 20px !important; }
-  .rhythm-page .rhythm-check-row { align-items: flex-start; }
+.execution-task-meta>.execution-priority { border-radius:6px; }
+.execution-timer { position:relative; isolation:isolate; }
+.execution-timer::before {
+  content:"";
+  position:absolute;
+  z-index:-1;
+  width:210px;
+  height:210px;
+  border-radius:50%;
+  background:radial-gradient(circle,color-mix(in srgb,var(--accent-primary) 10%,transparent),transparent 68%);
+  opacity:0;
+  transform:scale(.92);
+  transition:opacity 300ms ease,transform 300ms ease;
+}
+.execution-timer.is-running::before { opacity:1; transform:scale(1.08); animation:atlas-focus-breathe 3.6s ease-in-out infinite; }
+.execution-timer-ring { overflow:visible; }
+.execution-timer-tick { stroke:var(--subtle); stroke-width:1; opacity:.35; }
+.execution-timer-tick--major { stroke:var(--muted); stroke-width:1.5; opacity:.68; }
+.execution-timer-ring__track { stroke-width:6; }
+.execution-timer-ring__progress { stroke-width:6; filter:drop-shadow(0 0 4px color-mix(in srgb,var(--accent-primary) 30%,transparent)); }
+.execution-presets { display:flex; justify-content:center; gap:7px; }
+.execution-presets button {
+  min-width:74px;
+  min-height:38px;
+  padding:0 15px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--bg-elevated);
+  color:var(--muted);
+  font:600 10px Manrope,sans-serif;
+  transition:transform 160ms ease,border-color 160ms ease,background-color 160ms ease,color 160ms ease;
+}
+.execution-presets button:hover:not(:disabled) { transform:translateY(-1px); border-color:var(--accent-primary); }
+.execution-presets button.is-active { border-color:color-mix(in srgb,var(--accent-primary) 58%,var(--line)); background:var(--accent-soft); color:var(--accent-strong); box-shadow:inset 0 1px 0 rgba(255,255,255,.08); }
+@keyframes atlas-focus-breathe { 0%,100% { opacity:.55; transform:scale(.96); } 50% { opacity:1; transform:scale(1.08); } }
+
+/* Growth — milestone disclosures and curated status shelves */
+.goal-meta-chip {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  width:fit-content;
+  padding:6px 9px;
+  border:1px solid var(--line);
+  border-radius:7px;
+  background:var(--bg-elevated);
+  color:var(--muted);
+  font-size:9px;
+  font-variant-numeric:tabular-nums;
+}
+.goal-card__bottom { display:flex; flex-wrap:wrap; align-items:center; gap:7px; }
+.goal-milestone-disclosure { margin:12px 0 2px; border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft); }
+.goal-milestone-disclosure>summary { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 2px; color:var(--text); font-size:10px; font-weight:650; cursor:pointer; list-style:none; }
+.goal-milestone-disclosure>summary::-webkit-details-marker { display:none; }
+.goal-milestone-disclosure>summary::after { content:"+"; color:var(--accent-strong); font-size:15px; }
+.goal-milestone-disclosure[open]>summary::after { content:"−"; }
+.goal-milestone-disclosure>summary b { margin-left:auto; color:var(--muted); font-size:9px; font-variant-numeric:tabular-nums; }
+.goal-milestone-disclosure>div { padding:0 0 8px; }
+.goal-milestone-disclosure .room4-goal-milestone { display:flex; align-items:center; gap:9px; min-width:0; padding:10px 2px; border-top:1px solid var(--line-soft); }
+.goal-milestone-disclosure .room4-goal-milestone span { flex:1; min-width:0; overflow-wrap:anywhere; }
+.growth-horizon-layout .room4-resource-list { gap:0; }
+.growth-horizon-layout .room4-resource {
+  position:relative;
+  padding:15px 14px;
+  border:0;
+  border-left:3px solid var(--accent-primary);
+  border-bottom:1px solid var(--line-soft);
+  border-radius:0 9px 9px 0;
+  background:var(--surface);
+  box-shadow:none;
+  transition:background-color 160ms ease,border-color 160ms ease,transform 160ms ease;
+}
+.growth-horizon-layout .room4-resource:hover { transform:translateX(2px); background:var(--bg-elevated); }
+.room4-resource--active { border-left-color:var(--accent-primary)!important; }
+.room4-resource--completed { border-left-color:var(--success)!important; }
+.room4-resource--queued { border-left-color:var(--subtle)!important; }
+.growth-horizon-layout .room4-path-card {
+  position:relative;
+  padding:21px 20px 21px 23px;
+  border:1px solid var(--line);
+  border-left:3px solid var(--accent-primary);
+  border-radius:var(--atlas-radius-card);
+  background:var(--surface);
+  box-shadow:var(--surface-specular);
+}
+.room4-path-card--completed { border-left-color:var(--success)!important; }
+.room4-path-card--queued,.room4-path-card--not-started { border-left-color:var(--subtle)!important; }
+.room4-path-card--in-progress,.room4-path-card--active { border-left-color:var(--accent-primary)!important; }
+.goals-horizon .goal-progress-track { height:7px; overflow:hidden; border-radius:99px; background:var(--line-soft); }
+.goals-horizon .goal-progress-track>span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--accent-primary),var(--accent-strong)); transition:width 240ms ease; }
+.goals-horizon .goal-card { min-width:0; }
+.goals-horizon .goal-card__top { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+@media(max-width:760px) {
+  .rhythm-page .rhythm-prayer-row,.rhythm-page .rhythm-prayer-list--devotional .rhythm-prayer-row { grid-template-columns:minmax(0,1fr); gap:9px; }
+  .rhythm-prayer-segments button { min-height:35px; }
+  .rhythm-stats>div { padding:2px 10px; }
+  .rhythm-stats b { font-size:22px; }
+  .self-rhythm-metrics>div { padding:14px; border-right:0; border-bottom:1px solid var(--line); }
+  .self-rhythm-metrics>div:last-child { border-bottom:0; }
+  .self-rhythm-heatmap { grid-template-columns:repeat(10,minmax(0,1fr)); }
+  .execution-presets button { min-width:68px; }
+  .goal-card__bottom { align-items:flex-start; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .execution-timer.is-running::before { animation:none; }
 }
 
 
-/* Room 02 layout fix: Cascade inserts .atlas-cascade-item between the page
-   stack and each authored section. Use descendant selectors so every nested
-   Deen/Faith card receives the same spacing scale. */
-.rhythm-page {
-  gap: 24px !important;
-}
-.rhythm-page .rhythm-grid {
-  width: 100%;
-  gap: 24px !important;
-  align-items: stretch;
-}
-.rhythm-page .surface-card {
-  box-sizing: border-box;
-  min-width: 0;
-  padding: 22px 24px !important;
-  display: grid;
-  align-content: start;
-  gap: 18px !important;
-  border-radius: 16px;
-}
-.rhythm-page .module-panel-head {
-  margin: 0 0 2px !important;
-}
-.rhythm-page .rhythm-prayer-list,
-.rhythm-page .rhythm-record-list {
-  display: grid;
-  gap: 12px !important;
-  margin-block: 4px !important;
-}
-.rhythm-page .rhythm-prayer-row {
-  min-height: 62px;
-  padding: 14px 16px !important;
-  gap: 16px !important;
-}
-.rhythm-page .rhythm-record-row {
-  min-height: 56px;
-  padding: 14px 16px !important;
-  gap: 14px !important;
-}
-.rhythm-page .rhythm-check-row {
-  min-height: 56px;
-  padding: 15px 4px !important;
-  gap: 18px !important;
-  line-height: 1.65;
-}
-.rhythm-page .rhythm-check-row + .rhythm-check-row {
-  border-top: 1px solid var(--line-soft);
-}
-.rhythm-page .rhythm-stats {
-  gap: 14px !important;
-  margin: 8px 0 12px !important;
-}
-.rhythm-page .rhythm-stats > div {
-  min-height: 78px;
-  padding: 16px 18px !important;
-}
-.rhythm-page .rhythm-quran-layout {
-  gap: 20px !important;
-}
-.rhythm-page .form-stack,
-.rhythm-page .rhythm-inline-form {
-  gap: 18px !important;
-}
-.rhythm-page .field-row {
-  gap: 16px !important;
-}
-.rhythm-page .field {
-  gap: 9px !important;
-}
-.rhythm-page .rhythm-focus-link {
-  margin-top: 12px !important;
-  padding-top: 18px !important;
-}
-.rhythm-page .atlas-add-disclosure > form {
-  margin-top: 16px !important;
-}
-@media (max-width: 760px) {
-  .rhythm-page {
-    gap: 20px !important;
-  }
-  .rhythm-page .rhythm-grid {
-    gap: 18px !important;
-  }
-  .rhythm-page .surface-card {
-    padding: 20px !important;
-    gap: 16px !important;
-  }
-  .rhythm-page .rhythm-prayer-row,
-  .rhythm-page .rhythm-record-row {
-    padding: 12px 14px !important;
-  }
-  .rhythm-page .form-stack,
-  .rhythm-page .rhythm-inline-form,
-  .rhythm-page .field-row {
-    gap: 16px !important;
-  }
-}
-
-
-/* Daily Rhythm — Cascade-aware spacing system (staging). */
-.stack:has(> .atlas-cascade-item) {
-  display: flex;
-  flex-direction: column;
-  gap: 24px !important;
-}
-.stack:has(> .atlas-cascade-item) > .atlas-cascade-item {
-  width: 100%;
-  min-width: 0;
-}
-.rhythm-page {
+/* FINAL INNER-ROOM CRAFT PASS — restore hierarchy and real vertical rhythm. */
+.daily-rhythm-sanctuary {
   display: flex !important;
   flex-direction: column !important;
-  gap: 24px !important;
-  width: 100%;
+  gap: 30px !important;
 }
-.rhythm-page > .atlas-cascade-item {
-  width: 100%;
+.daily-rhythm-sanctuary > .atlas-cascade-item {
   min-width: 0;
+  margin-block: 0 !important;
 }
-.rhythm-page .rhythm-intro {
-  box-sizing: border-box;
+.daily-rhythm-sanctuary .rhythm-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  align-items: start;
+  column-gap: 26px !important;
+  row-gap: 26px !important;
+}
+.daily-rhythm-sanctuary > .atlas-cascade-item + .atlas-cascade-item {
+  margin-top: 0 !important;
+}
+.daily-rhythm-sanctuary .card,
+.daily-rhythm-sanctuary .surface-card {
+  position: relative;
+  min-width: 0;
+  padding: 25px !important;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb,var(--line) 88%,var(--accent-primary)) !important;
+  border-radius: 15px !important;
+  background:
+    linear-gradient(145deg,color-mix(in srgb,var(--accent-primary) 4%,var(--surface)),var(--surface) 42%) !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb,#fff 7%,transparent), 0 8px 24px rgba(0,0,0,.055) !important;
+}
+:root[data-theme^="light-"] .daily-rhythm-sanctuary .card,
+:root[data-theme^="light-"] .daily-rhythm-sanctuary .surface-card {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.92), 0 8px 24px rgba(35,39,30,.045) !important;
+}
+.daily-rhythm-sanctuary .card > .module-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0 0 18px !important;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.daily-rhythm-sanctuary .module-panel-head > svg {
+  display: block !important;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  color: var(--accent-strong);
+}
+.daily-rhythm-sanctuary .module-kicker,
+.daily-rhythm-sanctuary .eyebrow:not(.page-header .eyebrow) {
+  display: block !important;
+  margin-bottom: 7px;
+  color: var(--accent-strong);
+  font-size: 9px !important;
+  font-weight: 700;
+  letter-spacing: .13em;
+}
+.daily-rhythm-sanctuary .module-panel-head h2 {
+  margin: 0;
+  font-size: 17px !important;
+  line-height: 1.25;
+  letter-spacing: -.035em;
+}
+.daily-rhythm-sanctuary .module-intro,
+.daily-rhythm-sanctuary .module-panel-head p {
+  display: block !important;
+  max-width: 62ch;
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.65;
+}
+.daily-rhythm-sanctuary .rhythm-intro {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  width: 100%;
-  min-width: 0;
-  padding: 24px !important;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: linear-gradient(110deg, var(--surface), var(--surface-raised));
+  gap: 28px;
+  padding: 30px !important;
+  border-left: 3px solid var(--accent-primary) !important;
+  background:
+    radial-gradient(ellipse at 92% 12%,color-mix(in srgb,var(--accent-primary) 12%,transparent),transparent 44%),
+    linear-gradient(120deg,color-mix(in srgb,var(--accent-primary) 5%,var(--surface)),var(--surface) 64%) !important;
 }
-.rhythm-page .rhythm-grid {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)) !important;
-  gap: 24px !important;
-  width: 100%;
-  align-items: stretch;
+.daily-rhythm-sanctuary .rhythm-intro h2 {
+  margin: 7px 0 9px;
+  font: 650 clamp(23px,2.3vw,31px)/1.12 Manrope,sans-serif;
+  letter-spacing: -.045em;
 }
-.rhythm-page .surface-card {
-  box-sizing: border-box;
-  min-width: 0;
-  padding: 24px !important;
-  display: flex;
-  flex-direction: column;
-  align-content: start;
-  gap: 18px !important;
-  border-radius: 16px;
-}
-.rhythm-page .module-panel-head {
-  margin: 0 !important;
-  gap: 14px;
-}
-.rhythm-page .module-intro {
-  margin: 0 !important;
+.daily-rhythm-sanctuary .rhythm-intro p {
+  max-width: 64ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
   line-height: 1.7;
 }
-.rhythm-page .rhythm-prayer-list,
-.rhythm-page .rhythm-record-list {
+.daily-rhythm-sanctuary .rhythm-intro-stat {
   display: grid;
+  flex: none;
+  min-width: 116px;
+  min-height: 100px;
+  align-content: center;
+  justify-items: center;
+  gap: 7px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: color-mix(in srgb,var(--bg-elevated) 88%,transparent);
+}
+.daily-rhythm-sanctuary .rhythm-intro-stat b {
+  color: var(--accent-strong);
+  font: 700 34px/1 Manrope,sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.06em;
+}
+.daily-rhythm-sanctuary .rhythm-intro-stat small {
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-align: center;
+}
+.daily-rhythm-sanctuary .rhythm-prayer-list { margin-top: 15px; }
+.daily-rhythm-sanctuary .rhythm-prayer-row { min-height: 70px; padding-block: 14px; }
+.daily-rhythm-sanctuary .rhythm-stats { margin-block: 22px; }
+.daily-rhythm-sanctuary .rhythm-quran-layout { gap: 22px; }
+.daily-rhythm-sanctuary .rhythm-record-list { display: grid; gap: 5px; margin-top: 14px; }
+.daily-rhythm-sanctuary .rhythm-record-row {
+  padding: 12px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: color-mix(in srgb,var(--bg-elevated) 72%,transparent);
+}
+.daily-rhythm-sanctuary .rhythm-quick-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+.daily-rhythm-sanctuary .rhythm-quick-actions button {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  color: var(--muted);
+  font-size: 10px;
+}
+.daily-rhythm-sanctuary .rhythm-check-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.daily-rhythm-sanctuary .rhythm-check-row:last-child { border-bottom: 0; }
+.daily-rhythm-sanctuary .rhythm-check-row button {
+  flex: none;
+  min-height: 30px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--bg-elevated);
+  color: var(--accent-strong);
+  font-size: 9px;
+}
+.daily-rhythm-sanctuary .atlas-add-disclosure { margin-top: 12px; }
+.daily-rhythm-sanctuary .atlas-add-disclosure > form { margin-top: 17px; }
+@media(max-width:760px) {
+  .daily-rhythm-sanctuary { gap: 22px !important; }
+  .daily-rhythm-sanctuary .rhythm-grid { grid-template-columns:minmax(0,1fr); gap: 18px !important; }
+  .daily-rhythm-sanctuary .card,
+  .daily-rhythm-sanctuary .surface-card { padding: 19px !important; }
+  .daily-rhythm-sanctuary .rhythm-intro { align-items: flex-start; padding: 22px !important; }
+  .daily-rhythm-sanctuary .rhythm-intro-stat { min-width: 88px; min-height: 82px; }
+}
+@media(max-width:480px) {
+  .daily-rhythm-sanctuary .rhythm-intro { flex-direction: column; gap: 18px; }
+  .daily-rhythm-sanctuary .rhythm-intro-stat { min-width: 100%; min-height: 66px; grid-auto-flow: column; justify-content: start; justify-items: start; }
+  .daily-rhythm-sanctuary .rhythm-check-row { align-items: flex-start; flex-direction: column; }
+}
+
+/* Shared inner-room cards: replace flat generic panels with a restrained material surface. */
+.execution-workspace .execution-panel-card,
+.execution-workspace .execution-focus-card,
+.execution-workspace .execution-history-card,
+.growth-horizon-layout .room4-path-card,
+.growth-horizon-layout .room4-resource,
+.goals-horizon .goal-card {
+  border-color: color-mix(in srgb,var(--line) 88%,var(--accent-primary)) !important;
+  background: linear-gradient(145deg,color-mix(in srgb,var(--accent-primary) 3%,var(--surface)),var(--surface) 58%) !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb,#fff 6%,transparent),0 7px 22px rgba(0,0,0,.045) !important;
+}
+.execution-workspace .execution-panel-card,
+.execution-workspace .execution-focus-card,
+.growth-horizon-layout .room4-path-card,
+.goals-horizon .goal-card { border-radius: 14px !important; }
+.execution-workspace .execution-panel-heading,
+.growth-horizon-layout .growth-section-heading {
+  padding-bottom: 13px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.growth-horizon-layout .room4-resource { border-left-width: 3px !important; }
+@media(prefers-reduced-motion:reduce) {
+  .daily-rhythm-sanctuary .card,
+  .daily-rhythm-sanctuary .surface-card { transition: none !important; }
+}
+
+
+/* Atlas shared Card primitive — consistent flagship surface across all rooms. */
+:root {
+  --border-strong: color-mix(in srgb,var(--text-primary,var(--text)) 22%,var(--border-hairline,var(--line)));
+  --atlas-card-specular: rgba(255,255,255,.08);
+}
+:root[data-theme^="light-"] { --atlas-card-specular: rgba(255,255,255,.9); }
+.atlas-card,
+.surface-card.atlas-card {
+  position: relative;
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid var(--border-hairline,var(--line));
+  border-radius: 14px;
+  background:
+    linear-gradient(145deg,color-mix(in srgb,var(--accent-primary,var(--accent)) 4%,var(--bg-surface,var(--surface))),var(--bg-surface,var(--surface)) 54%);
+  box-shadow: inset 0 1px 0 0 var(--atlas-card-specular), 0 8px 24px rgba(0,0,0,.055);
+  transition: border-color 180ms ease,box-shadow 180ms ease,background-color 180ms ease;
+}
+.atlas-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: inset 0 1px 0 0 var(--atlas-card-specular),0 10px 28px rgba(0,0,0,.075);
+}
+:root[data-theme^="light-"] .atlas-card {
+  box-shadow: inset 0 1px 0 0 var(--atlas-card-specular),0 8px 24px rgba(35,39,30,.045);
+}
+:root[data-theme^="light-"] .atlas-card:hover {
+  box-shadow: inset 0 1px 0 0 var(--atlas-card-specular),0 10px 28px rgba(35,39,30,.065);
+}
+
+/* Daily Rhythm: branch wrappers keep Cascade's child spacing intact. */
+.daily-rhythm-sanctuary .rhythm-branch {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+.daily-rhythm-sanctuary .rhythm-intro {
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--border-hairline) !important;
+  border-left: 3px solid var(--accent-primary) !important;
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 var(--atlas-card-specular),0 6px 20px rgba(0,0,0,.045);
+}
+.daily-rhythm-sanctuary .rhythm-prayer-row {
   gap: 12px !important;
-  margin: 0 !important;
+  margin-block: 6px;
+  padding: 12px !important;
+  border: 1px solid var(--border-hairline) !important;
+  border-radius: 10px !important;
+  background: var(--bg-elevated) !important;
+}
+.daily-rhythm-sanctuary .rhythm-prayer-row:last-child { border-bottom: 1px solid var(--border-hairline) !important; }
+.daily-rhythm-sanctuary .rhythm-prayer-list { display: grid; gap: 8px; }
+.daily-rhythm-sanctuary .rhythm-check-row {
+  gap: 12px !important;
+  margin-block: 6px;
+  padding: 12px !important;
+  border: 1px solid var(--border-hairline) !important;
+  border-radius: 10px !important;
+  background: var(--bg-elevated) !important;
+}
+.daily-rhythm-sanctuary .rhythm-check-row:last-child { border-bottom: 1px solid var(--border-hairline) !important; }
+@media(max-width:760px) {
+  .atlas-card { padding: 19px; }
+  .daily-rhythm-sanctuary .rhythm-branch { gap: 20px; }
+}
+
+
+/* PROPORTION & CONTENT BREATHING ROOM — shared four-room refinement */
+.atlas-card,
+.surface-card.atlas-card,
+.daily-rhythm-sanctuary .card,
+.daily-rhythm-sanctuary .surface-card {
+  min-width:0;
+  min-height:0;
+  height:auto;
+  padding:18px 20px !important;
+  overflow:visible;
+}
+.daily-rhythm-sanctuary .rhythm-intro {
+  min-width:0;
+  padding:18px 20px !important;
+  gap:20px;
+}
+.atlas-card > *,
+.surface-card > *,
+.stat-card > *,
+.execution-panel-card > *,
+.execution-focus-card > *,
+.execution-history-card > *,
+.room4-path-card > *,
+.room4-resource > *,
+.goal-card > *,
+.note-card > * { min-width:0; }
+.content-grid,
+.goal-grid,
+.library-grid,
+.daily-rhythm-sanctuary .rhythm-grid,
+.growth-horizon-layout .growth-view-section > .stack,
+.growth-horizon-layout .room4-library,
+.growth-horizon-layout .room4-resource-list {
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));
+  min-width:0;
+  column-gap:22px;
+  row-gap:22px;
+}
+.stat-grid,
+.stat-grid--three,
+.stat-grid--four {
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));
+  min-width:0;
+  gap:12px;
+}
+.residence-pillar-grid {
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));
+}
+.residence-stat-grid {
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));
+}
+.execution-split.has-task-inspector {
+  grid-template-columns:minmax(0,1.35fr) minmax(0,.85fr);
+}
+.execution-split > *,
+.execution-workspace > *,
+.growth-horizon-layout > *,
+.goals-horizon > *,
+.residence-overview > *,
+.daily-rhythm-sanctuary > * { min-width:0; }
+.execution-task,
+.today-habit-row,
+.room4-goal-milestone,
+.goal-milestone-disclosure .room4-goal-milestone,
+.growth-horizon-layout .room4-resource {
+  min-width:0;
+  min-height:0;
+  height:auto;
+  padding:10px 14px;
+  gap:10px;
+}
+.execution-task-main,
+.execution-task-copy,
+.execution-task-meta,
+.today-habit-row > *,
+.room4-goal-milestone > *,
+.goal-card__top,
+.goal-card__bottom,
+.note-card__top,
+.execution-task-toolbar,
+.execution-task-toolbar > * {
+  min-width:0;
+}
+.execution-task-main,
+.today-habit-row,
+.room4-goal-milestone {
+  flex-wrap:wrap;
+}
+.execution-task-meta,
+.execution-presets,
+.goal-card__bottom,
+.goal-work-summary,
+.rhythm-quick-actions,
+.data-actions,
+.choice-row {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px 12px;
+}
+.execution-presets { justify-content:center; }
+.execution-presets button {
+  min-width:0;
+  flex:0 1 auto;
+  white-space:normal;
 }
 .rhythm-page .rhythm-prayer-row,
-.rhythm-page .rhythm-record-row {
-  box-sizing: border-box;
-  padding: 12px 14px !important;
-  gap: 14px !important;
+.daily-rhythm-sanctuary .rhythm-prayer-row,
+.daily-rhythm-sanctuary .rhythm-check-row {
+  min-width:0;
+  min-height:0;
+  height:auto;
+  padding:10px 14px !important;
+  gap:10px 12px !important;
 }
-.rhythm-page .rhythm-stats {
-  gap: 16px !important;
-  margin: 16px 0 !important;
+.rhythm-page .rhythm-prayer-row > *,
+.rhythm-page .rhythm-prayer-segments,
+.rhythm-page .rhythm-prayer-segments button,
+.daily-rhythm-sanctuary .rhythm-check-row > * {
+  min-width:0;
 }
-.rhythm-page .rhythm-quran-layout {
-  gap: 16px !important;
+.rhythm-prayer-segments {
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:5px;
 }
-.rhythm-page .rhythm-focus-link {
-  margin-top: 20px !important;
-  padding-top: 16px !important;
+.rhythm-prayer-segments button {
+  min-width:0;
+  min-height:34px;
+  padding:6px 7px;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  line-height:1.25;
 }
-.rhythm-page .rhythm-check-row {
-  padding-block: 14px !important;
+.rhythm-stats { flex-wrap:wrap; }
+.rhythm-stats > div { min-width:0; }
+.goal-card,
+.note-card,
+.room4-path-card,
+.room4-resource,
+.execution-panel-card,
+.execution-focus-card,
+.execution-history-card,
+.stat-card {
+  min-width:0;
+  min-height:0;
+  height:auto;
 }
-@media (max-width: 760px) {
-  .stack:has(> .atlas-cascade-item) { gap: 20px !important; }
-  .rhythm-page { gap: 20px !important; }
-  .rhythm-page .rhythm-grid {
-    grid-template-columns: minmax(0, 1fr) !important;
-    gap: 18px !important;
+.goal-card { padding:18px 20px !important; }
+.growth-horizon-layout .room4-path-card { padding:18px 20px !important; }
+.growth-horizon-layout .room4-resource { padding:10px 14px !important; }
+.growth-horizon-layout .room4-library,
+.growth-horizon-layout .room4-resource-list { gap:10px 20px; }
+.goal-work-summary { grid-template-columns:repeat(auto-fit,minmax(min(100%,100px),1fr)); }
+.status-pill,
+.goal-meta-chip,
+.execution-task-meta > time,
+.execution-task-meta > span {
+  max-width:100%;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+@media(max-width:900px) {
+  .execution-split.has-task-inspector { grid-template-columns:minmax(0,1fr); }
+}
+@media(max-width:760px) {
+  .atlas-card,
+  .surface-card.atlas-card,
+  .daily-rhythm-sanctuary .card,
+  .daily-rhythm-sanctuary .surface-card,
+  .daily-rhythm-sanctuary .rhythm-intro,
+  .goals-horizon .goal-grid > .goal-card {
+    padding:16px 16px !important;
   }
-  .rhythm-page .surface-card { padding: 20px !important; gap: 16px !important; }
-  .rhythm-page .rhythm-intro {
-    align-items: flex-start;
-    padding: 20px !important;
+  .content-grid,
+  .goal-grid,
+  .library-grid,
+  .daily-rhythm-sanctuary .rhythm-grid,
+  .growth-horizon-layout .growth-view-section > .stack,
+  .growth-horizon-layout .room4-library,
+  .growth-horizon-layout .room4-resource-list {
+    grid-template-columns:minmax(0,1fr);
+    gap:16px;
   }
-  .rhythm-page .rhythm-stats { gap: 12px !important; }
+  .stat-grid,
+  .stat-grid--three,
+  .stat-grid--four { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .daily-rhythm-sanctuary .rhythm-intro { align-items:flex-start; }
+  .rhythm-page .rhythm-prayer-row,
+  .rhythm-page .rhythm-prayer-list--devotional .rhythm-prayer-row {
+    grid-template-columns:minmax(0,1fr);
+    gap:9px;
+  }
+  .execution-task { padding:12px 10px; }
+  .execution-task-main { gap:9px; }
+  .execution-presets { justify-content:flex-start; }
+  .goal-card__top,
+  .goal-card__bottom,
+  .execution-task-toolbar { flex-wrap:wrap; }
+}
+@media(max-width:420px) {
+  .stat-grid,
+  .stat-grid--three,
+  .stat-grid--four { grid-template-columns:minmax(0,1fr); }
+  .rhythm-prayer-segments { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .rhythm-prayer-segments button { padding-inline:4px; font-size:9px; }
 }

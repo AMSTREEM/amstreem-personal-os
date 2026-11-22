@@ -76,7 +76,7 @@ test('Daily Rhythm separates planned from completed records and updates Residenc
   const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
   const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
   assert.match(rhythm, /status: 'planned'\|'completed'\|'active'\|'answered'/);
-  assert.match(rhythm, /value="qada"/);
+  assert.match(rhythm, /value:'qada'/);
   assert.match(rhythm, /Jumu’ah checklist/);
   assert.match(rhythm, /P-R-A-Y Reflection|P-R-A-Y REFLECTION/);
   assert.match(rhythm, /Start Qur’an Focus/);
@@ -98,7 +98,13 @@ test('Self-Control consistency uses dated records and positive habit check-ins, 
   assert.match(server, /let best=0,run=0,previous=null/);
   assert.match(selfControl, /ROLLING CONSISTENCY/);
   assert.match(selfControl, /LAST 30 DAYS/);
-  assert.match(selfControl, /habits\.data\?\.length/);
+  assert.doesNotMatch(selfControl, /habits\.data\?\.length/);
+  assert.match(rituals, /habit\.streak/);
+  assert.match(rituals, /Pencil/);
+  const consolidated = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ConsolidatedViews.tsx'), 'utf8');
+  assert.match(consolidated, /<SelfControlPage embedded \/>/);
+  assert.match(consolidated, /<RitualsPage embedded \/>/);
+  assert.match(server, /return \{\.\.\.habit,streak\}/);
   assert.match(selfControl, /verified clean check-ins/);
   assert.match(rituals, /invalidateQueries\(\{ queryKey: \['self-control'\] \}\)/);
   assert.match(shell, /Deen & Reflection/);
@@ -133,17 +139,18 @@ test('Room 3 records focus completion once and derives linked work metrics from 
   assert.match(goals, /focus invested/);
 });
 
-test('Room 3 routes the execution workspace through the four-room shell without replacing existing project and task routes', () => {
+test('Room 3 uses the unified FocusWorkspace route and preserves project/task bookmarks through redirects', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'App.tsx'), 'utf8');
   const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
-  assert.match(app, /path="\/execution" element={<ExecutionFocusPage \/>}/);
-  assert.match(app, /path="\/projects" element={<ProjectsPage \/>}/);
-  assert.match(app, /path="\/tasks" element={<TasksPage \/>}/);
+  assert.match(app, /path="\/execution" element={<FocusWorkspace \/>}/);
+  assert.match(app, /path="\/projects" element={<LegacyRedirect to="\/execution" \/>}/);
+  assert.match(app, /path="\/tasks" element={<LegacyRedirect to="\/execution" \/>}/);
+  assert.match(app, /path="\/focus" element={<FocusWorkspace \/>}/);
   assert.match(shell, /to: '\/execution'/);
-  assert.match(shell, /label: 'Workspace', to: '\/execution'/);
+  assert.match(shell, /label: 'Projects & Tasks', to: '\/execution'/);
   assert.match(css, /\.execution-heading/);
-  assert.match(fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ExecutionFocusPage.tsx'), 'utf8'), /Projects/);
+  assert.match(fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8'), /project/i);
 });
 
 
@@ -191,7 +198,7 @@ test('Room 4 visual craft uses semantic tokens, responsive spacing, motion and r
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
   assert.match(css, /--bg-canvas:var\(--bg\)/);
   assert.match(css, /--bg-surface:var\(--surface\)/);
-  assert.match(css, /--bg-elevated:var\(--surface-raised\)/);
+  assert.ok(css.includes('--bg-elevated:var(--surface-raised)'));
   assert.match(css, /--border-hairline:var\(--line\)/);
   assert.match(css, /--text-primary:var\(--text\)/);
   assert.match(css, /--accent-primary:var\(--accent\)/);
@@ -202,4 +209,131 @@ test('Room 4 visual craft uses semantic tokens, responsive spacing, motion and r
   assert.match(css, /translateY\(-2px\)/);
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.match(css, /room4-evidence-grid \{ grid-template-columns:repeat\(2/);
+});
+
+
+test('Room 4 presents learning, library, reviews and insights together without moving intelligence into Residence', () => {
+  const consolidated = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ConsolidatedViews.tsx'), 'utf8');
+  const learning = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LearningPage.tsx'), 'utf8');
+  const library = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LibraryPage.tsx'), 'utf8');
+  const reviews = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ReviewsPage.tsx'), 'utf8');
+  const insights = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'InsightsPage.tsx'), 'utf8');
+  const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
+  assert.match(consolidated, /<LearningPage embedded \/>/);
+  assert.match(consolidated, /<LibraryPage embedded \/>/);
+  assert.match(consolidated, /<ReviewsPage embedded \/>/);
+  assert.match(consolidated, /<InsightsPage embedded \/>/);
+  assert.match(learning, /Start Study Focus/);
+  assert.match(library, /reading-items/);
+  assert.match(library, /notes/);
+  assert.match(reviews, /priority_task_ids: priorityIds/);
+  assert.match(insights, /focusLast7Days/);
+  assert.doesNotMatch(residence, /queryKey: \['intelligence'\]/);
+  assert.doesNotMatch(residence, /residence-next-card/);
+});
+
+
+test('Room 3 has a dedicated Focus Room with safe context handoffs and a persistent global timer dock', () => {
+  const app = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'App.tsx'), 'utf8');
+  const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
+  const workspace = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
+  const values = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ValuesPage.tsx'), 'utf8');
+  const learning = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LearningPage.tsx'), 'utf8');
+  const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
+  const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
+  assert.match(app, /path="\/execution" element={<FocusWorkspace \/>}/);
+  assert.match(app, /path="\/focus" element={<FocusWorkspace \/>}/);
+  assert.match(shell, /paths: \['\/execution', '\/focus', '\/calendar'\]/);
+  assert.match(shell, /label: 'Focus Room', to: '\/focus'/);
+  assert.match(shell, /navigate\('\/focus'\)/);
+  assert.match(shell, /className="atlas-command-dock"/);
+  assert.match(workspace, /!isFocusRoute && <section className="execution-projects-panel">/);
+  assert.match(workspace, /\{isFocusRoute && <section className="execution-focus-panel">/);
+  assert.match(workspace, /navigate\('\/focus'\)/);
+  assert.match(workspace, /sessionKey&&timer\.remaining>0/);
+  assert.match(workspace, /session_key:timer\.sessionKey/);
+  assert.match(workspace, /savedKeys\.current\.has\(timer\.sessionKey\)/);
+  assert.match(values, /to="\/focus\?focus=Qur/);
+  assert.match(values, /to="\/focus\?focus=Devotional%20Focus"/);
+  assert.match(learning, /to=\{'\/focus\?lesson=' \+ lesson\.id\}/);
+  assert.match(residence, /to=\{'\/focus\?task=' \+ task\.id\}/);
+  assert.match(css, /\.execution-projects-layout \{ grid-template-columns: minmax\(0, 1fr\)/);
+  assert.match(css, /\.focus-room-layout/);
+});
+
+
+test('Atlas rooms use distinct spatial layouts, an actionable task inspector and a centered focus chronograph', () => {
+  const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
+  const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
+  const rhythm = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ValuesPage.tsx'), 'utf8');
+  const consolidated = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ConsolidatedViews.tsx'), 'utf8');
+  const goals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'GoalsPage.tsx'), 'utf8');
+  const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
+  assert.ok(css.includes('grid-template-columns:minmax(0,1.55fr) minmax(0,1fr)'));
+  assert.ok(css.includes('width:min(100%,820px)'));
+  assert.ok(css.includes('.execution-split.has-task-inspector'));
+  assert.match(css, /execution-timer-ring__progress/);
+  assert.match(css, /growth-horizon-layout/);
+  assert.match(residence, /--pulse-score/);
+  assert.match(rhythm, /daily-rhythm-sanctuary/);
+  assert.match(consolidated, /growth-horizon-layout/);
+  assert.match(goals, /goals-horizon/);
+  assert.match(focus, /TASK INSPECTOR/);
+  assert.match(focus, /inspectedSubtasks/);
+  assert.match(focus, /execution-timer-ring/);
+  assert.ok(focus.includes('session_key:timer.sessionKey'));
+});
+
+
+test('Atlas flagship CSS has one shared frame, consolidated room geometry and theme-aware tactile surfaces', () => {
+  const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
+  assert.ok(css.includes('--atlas-frame: 1180px'));
+  assert.ok(css.includes('--atlas-page-x: 40px'));
+  assert.ok(css.includes('--atlas-page-y: 36px'));
+  assert.ok(css.includes('grid-template-columns:minmax(0,1.55fr) minmax(0,1fr)'));
+  assert.ok(css.includes('width:min(100%,820px)'));
+  assert.ok(css.includes('grid-template-columns:minmax(0,1fr) 360px'));
+  assert.ok(css.includes('width:260px'));
+  assert.ok(css.includes('stroke-width:6'));
+  assert.ok(css.includes('font:600 56px/1 "JetBrains Mono",monospace'));
+  assert.ok(css.includes('grid-template-columns:repeat(2,minmax(0,1fr))'));
+  assert.ok(css.includes('--surface-specular: inset 0 1px 0 0 rgba(255,255,255,.08)'));
+  assert.ok(css.includes('--surface-specular: inset 0 1px 0 0 rgba(255,255,255,.9)'));
+  assert.ok(css.includes('--atlas-radius-card: 14px'));
+  assert.ok(css.includes('--atlas-radius-control: 9px'));
+  assert.ok(css.includes('transition:transform 160ms ease'));
+  assert.ok(!css.includes('Daily Rhythm — Cascade-aware spacing system (staging).'));
+  assert.ok(!css.includes('ATLAS SPATIAL ARCHITECTURE — executive-grade room silhouettes'));
+  assert.ok(!css.includes('Room 02 — spacious Deen layout pass (staging).'));
+});
+
+
+test('Atlas inner rooms use bespoke faith, task, chronograph, milestone and library interactions', () => {
+  const read = file => fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
+  const values = read('client/src/pages/ValuesPage.tsx');
+  const selfControl = read('client/src/pages/SelfControlPage.tsx');
+  const focus = read('client/src/components/FocusWorkspace.tsx');
+  const goals = read('client/src/pages/GoalsPage.tsx');
+  const learning = read('client/src/pages/LearningPage.tsx');
+  const library = read('client/src/pages/LibraryPage.tsx');
+  const css = read('client/src/styles.css');
+  assert.match(values, /rhythm-prayer-segments/);
+  assert.match(values, /aria-pressed=\{value===option\.value\}/);
+  assert.match(values, /rhythm-prayer-progress/);
+  assert.match(values, /Not recorded/);
+  assert.match(selfControl, /self-rhythm-heatmap/);
+  assert.match(focus, /execution-timer-tick/);
+  assert.match(focus, /is-running/);
+  assert.match(focus, /execution-task-check--/);
+  assert.match(goals, /goal-milestone-disclosure/);
+  assert.match(goals, /goal-meta-chip/);
+  assert.match(learning, /room4-path-card--/);
+  assert.match(library, /room4-resource--/);
+  assert.ok(css.includes('--accent-soft:var(--accent-wash)'));
+  assert.ok(css.includes('--bg-elevated:var(--surface-raised)'));
+  assert.match(css, /appearance:none/);
+  assert.match(css, /grid-template-columns:\s*repeat\(10,minmax\(0,1fr\)\);\s*gap:3px/);
+  assert.match(css, /border-radius:4px/);
+  assert.match(css, /execution-timer-tick--major/);
+  assert.match(css, /room4-resource--completed/);
 });

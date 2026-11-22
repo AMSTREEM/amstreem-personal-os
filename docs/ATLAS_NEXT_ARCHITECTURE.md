@@ -17,36 +17,33 @@ It is not a generic task manager, habit streak game, CRM or team project-managem
 - Respect reduced motion, keyboard use, accessible labels and readable contrast.
 - Preserve user control over data through export and restore.
 
-## Information architecture
+## Information architecture — official 4-Room, 8-View structure
 
-### Space
-- **Today:** daily briefing, focus, open priorities, rituals, next step, announcements.
-- **Calendar:** commitments and activity history.
+The primary navigation contains four rooms, opened with ⌘ 1–⌘ 4. The room sub-navigation contains exactly eight views across the four rooms. Settings and owner-only Administration sit in the system rail.
 
-### Plan
-- **Goals:** meaningful outcomes and direction.
-- **Projects:** bodies of work connected to goals, with milestones.
-- **Tasks:** concrete next actions linked to goals/projects where useful.
+### 01 — Residence (⌘ 1)
+- One unified, scannable daily command centre; no sub-tabs.
+- Time-aware hero, consistency ring, six-pillar pulse, top three priorities and Evening Shutdown.
+- Daily activity summaries and announcements; analytics and trends live in Reviews & Insights.
 
-### Practice
-- **Focus:** timer and recorded focus sessions, optionally linked to tasks/projects.
-- **Rituals:** repeatable practices and daily check-ins.
-- **Self-control:** private trackers and non-judgemental check-ins.
-- **Learning:** learning paths, lessons and study records.
+### 02 — Daily Rhythm (⌘ 2)
+- **Faith / Deen:** tradition-aware Islamic, Christian or general daily practice.
+- **Habits & Self-Control:** positive routines and discipline commitments with shared check-in/history experience, trigger/slip/recovery records and 30-day consistency history.
 
-### Knowledge
-- **Library:** private notes and references.
+### 03 — Execution & Focus (⌘ 3)
+- **Projects & Tasks:** unified execution workspace with a persistent Focus Dock; desktop split layout and responsive mobile layout. Focus can launch directly from a task.
+- **Calendar (optional):** scheduled commitments and date-based activity.
 
-### Reflect
-- **Reviews:** daily and weekly reflections.
-- **Insights:** evidence-based patterns and suggested next steps.
+### 04 — Growth & Direction (⌘ 4)
+- **Goals & Milestones:** outcomes, linked projects, tasks, milestones and evidence.
+- **Learning & Library:** learning paths, lessons, study records, reading resources and private notes.
+- **Reviews & Insights:** daily/weekly reflections, recorded workspace evidence, patterns and suggested next steps.
 
-### Personal
-- **Values:** optional faith/value practices, with the user's choice controlling which tools appear.
+### System
+- **Settings:** one grouped page for profile/North Star, workspace views, appearance/sound and data backup.
+- **Administration:** owner-only accounts, product sections, feedback, announcements and aggregate operational insights.
 
-### Preferences and ownership
-- **Settings:** identity, daily focus intention, appearance, export and restore.
-- **Administration:** owner-only accounts, feedback, announcements and aggregate operational insights.
+Legacy route paths remain supported as redirects to their canonical view. Navigation consolidation does not delete the underlying feature components or data operations.
 
 ## Core data relationships
 
@@ -75,12 +72,14 @@ Standalone tasks, projects and focus sessions remain valid without links.
 
 ## Snapshot compatibility
 
-- New writes use `personal-os-sqlite-snapshot-v2`.
-- The server continues to read `personal-os-sqlite-snapshot-v1`.
-- New tables are optional when reading old snapshots and are created empty.
-- New nullable links on existing tasks/sessions default to null when old snapshot rows do not contain them.
-- Export/restore must include the new tables and preserve foreign-key insert/delete order.
-- No production migration is required for these additions because workspace tables live inside per-user JSON snapshots. Production data must still be backed up and tested before any cutover.
+- The current server writes `personal-os-sqlite-snapshot-v3` (`schemaVersion: 3`).
+- The server accepts `personal-os-sqlite-snapshot-v1`, `personal-os-sqlite-snapshot-v2` and `personal-os-sqlite-snapshot-v3`.
+- Existing optional tables remain optional when reading older snapshots; missing optional sections are initialized empty.
+- Snapshot reconstruction uses the current SQLite schema and preserves existing table names, row identifiers and relationships.
+- Serialization continues to include every table in the workspace table registry.
+- Export/restore must preserve the same snapshot contract and foreign-key insert/delete order.
+- The 4-Room, 8-View UI refactor must not require a snapshot format bump, database migration, API contract change or Supabase write.
+- Compatibility must be verified with representative v1/v2/v3 snapshots and backup export/restore tests before production consideration.
 
 ## Security invariants
 

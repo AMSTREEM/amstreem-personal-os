@@ -3,7 +3,8 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Cascade } from './Cascade';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, Check, ChevronDown, Circle, Clock3, Pause, Play, Plus, RotateCcw, Timer, X } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ProjectsPage } from '../pages/ProjectsPage';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, TextArea, TextInput } from './ui';
 import { playAtlasFeedback, primeAtlasAudio } from '../lib/microFeedback';
@@ -20,6 +21,7 @@ const priorityClass=(value:number)=>'execution-priority execution-priority--'+(p
 
 export function FocusWorkspace() {
   const location = useLocation();
+  const navigate = useNavigate();
   const client=useQueryClient();
   const timer=useFocusTimer();
   const setTimer=updateFocusTimer;
@@ -28,10 +30,12 @@ export function FocusWorkspace() {
   const [customMinutes,setCustomMinutes]=useState('40');
   const [breakMinutes,setBreakMinutes]=useState('5');
   const [projectFilter,setProjectFilter]=useState('all');
+  const [selectedTaskId,setSelectedTaskId]=useState<number|null>(null);
   const [taskFilter,setTaskFilter]=useState<'open'|'all'|'done'>('open');
   const [newTask,setNewTask]=useState('');
   const [newTaskProject,setNewTaskProject]=useState('');
   const [newTaskPriority,setNewTaskPriority]=useState('2');
+  const [newTaskDueDate,setNewTaskDueDate]=useState('');
   const [subtaskDrafts,setSubtaskDrafts]=useState<Record<number,string>>({});
   const [distractionDraft,setDistractionDraft]=useState('');
   const savedKeys=useRef(new Set<string>());
@@ -45,7 +49,9 @@ export function FocusWorkspace() {
   const timerText=String(Math.floor(remaining/60)).padStart(2,'0')+':'+String(remaining%60).padStart(2,'0');
   const taskSelected=tasks.data?.find(item=>String(item.id)===timer.taskId);
   const lessonSelected=learning.data?.flatMap(path=>path.lessons.map(lesson=>({...lesson,pathTitle:path.title}))).find(item=>String(item.id)===timer.lessonId);
-  const contextLabel=taskSelected?.title||lessonSelected?.title||timer.focus||'A quiet block for meaningful work';
+  const projectSelected=projects.data?.find(item=>String(item.id)===timer.projectId);
+  const contextLabel=taskSelected?.title||lessonSelected?.title||projectSelected?.title||timer.focus||'A quiet block for meaningful work';
+  const sessionInProgress=timer.kind==='focus'&&!!timer.sessionKey&&timer.remaining>0;
   const focusMinutes=timer.kind==='focus'?timer.durationSeconds/60:0;
 
   useEffect(()=>{if(!running)return;const id=window.setInterval(()=>setNow(Date.now()),250);return()=>window.clearInterval(id);},[running]);
@@ -71,7 +77,7 @@ export function FocusWorkspace() {
   useEffect(()=>{
     const params=new URLSearchParams(window.location.search);
     const requestedTask=params.get('task'),requestedLesson=params.get('lesson'),requestedFocus=params.get('focus');
-    if(timer.deadline!==null||timer.sessionKey)return;
+    if(timer.deadline!==null||(timer.sessionKey&&timer.remaining>0))return;
     if(requestedTask&&tasks.data?.some(task=>String(task.id)===requestedTask)){
       const task=tasks.data.find(item=>String(item.id)===requestedTask)!;
       setTimer(current=>({...current,taskId:requestedTask,lessonId:'',projectId:task.project_id?String(task.project_id):current.projectId,focus:task.title}));
@@ -81,7 +87,7 @@ export function FocusWorkspace() {
     } else if(requestedFocus) setTimer(current=>({...current,focus:requestedFocus.slice(0,120)}));
   },[tasks.data,learning.data]);
 
-  const createTask=useMutation({mutationFn:()=>api<Task>('/tasks',json('POST',{title:newTask,category:'Personal',project_id:newTaskProject||null,priority:Number(newTaskPriority)})),onSuccess:()=>{setNewTask('');void client.invalidateQueries({queryKey:['tasks']});void client.invalidateQueries({queryKey:['projects']});}});
+  const createTask=useMutation({mutationFn:()=>api<Task>('/tasks',json('POST',{title:newTask,category:'Personal',project_id:newTaskProject||null,priority:Number(newTaskPriority),due_date:newTaskDueDate||null})),onSuccess:()=>{setNewTask('');setNewTaskDueDate('');void client.invalidateQueries({queryKey:['tasks']});void client.invalidateQueries({queryKey:['projects']});}});
   const toggleTask=useMutation({mutationFn:(task:Task)=>api('/tasks/'+task.id,json('PATCH',{done:!task.done})),onMutate:task=>{if(!task.done)playAtlasFeedback('tick');},onSuccess:()=>{void client.invalidateQueries({queryKey:['tasks']});void client.invalidateQueries({queryKey:['projects']});void client.invalidateQueries({queryKey:['overview']});}});
   const createSubtask=useMutation({mutationFn:({parentId,title}:{parentId:number;title:string})=>api('/tasks',json('POST',{title,category:'Personal',parent_task_id:parentId,project_id:tasks.data?.find(item=>item.id===parentId)?.project_id||null})),onSuccess:(_data,variables)=>{setSubtaskDrafts(current=>({...current,[variables.parentId]:''}));void client.invalidateQueries({queryKey:['tasks']});}});
   const visibleTasks=useMemo(()=>{
@@ -89,6 +95,8 @@ export function FocusWorkspace() {
     return rows.filter(task=>!task.parent_task_id&&(projectFilter==='all'||String(task.project_id||'none')===projectFilter)&&(taskFilter==='all'||(taskFilter==='open'?!task.done:!!task.done)));
   },[tasks.data,projectFilter,taskFilter]);
   const children=(parentId:number)=>(tasks.data||[]).filter(task=>task.parent_task_id===parentId);
+  const inspectedTask=tasks.data?.find(task=>task.id===selectedTaskId)||null;
+  const inspectedSubtasks=inspectedTask?children(inspectedTask.id):[];
 
   function start(kind:'focus'|'break') {
     if(running)return;
@@ -100,48 +108,52 @@ export function FocusWorkspace() {
   }
   function pause(){setTimer(current=>({...current,remaining,deadline:null}));}
   function reset(){const seconds=timer.kind==='break'?Math.max(1,Math.min(60,Number(breakMinutes)||5))*60:Math.max(1,Math.min(600,Number(preset==='custom'?customMinutes:preset)||25))*60;setTimer(current=>({...current,remaining:seconds,durationSeconds:seconds,deadline:null,sessionKey:null,startedAt:null}));}
-  function selectTask(task:Task){if(running)return;setTimer(current=>({...current,taskId:String(task.id),projectId:task.project_id?String(task.project_id):'',focus:task.title}));}
+  function selectTask(task:Task){if(sessionInProgress)return;setTimer(current=>({...current,taskId:String(task.id),lessonId:'',projectId:task.project_id?String(task.project_id):'',focus:task.title}));}
+  function focusProject(project:Project){if(sessionInProgress)return;setTimer(current=>({...current,taskId:'',lessonId:'',projectId:String(project.id),focus:project.title}));start('focus');navigate('/focus');}
   function selectLesson(lessonId:string){if(running)return;const lesson=learning.data?.flatMap(path=>path.lessons).find(item=>String(item.id)===lessonId);setTimer(current=>({...current,lessonId,focus:lesson?.title||current.focus}));}
   function finish(){if(timer.kind==='break'){setTimer(current=>({...current,remaining:0,deadline:null,sessionKey:null}));return;}const elapsed=timer.durationSeconds-remaining;if(elapsed<60)return;setTimer(current=>({...current,remaining:0,deadline:null,durationSeconds:elapsed}));}
   function addDistraction(){const value=distractionDraft.trim();if(!value)return;setTimer(current=>({...current,distractions:[...current.distractions,value.slice(0,240)].slice(-50)}));setDistractionDraft('');}
-  function focusTask(task:Task){if(running)return;selectTask(task);window.scrollTo({top:0,behavior:'smooth'});}
+  function focusTask(task:Task){if(sessionInProgress)return;selectTask(task);start('focus');navigate('/focus');}
   const selectedDuration=timer.durationSeconds/60;
 
   const isFocusRoute=location.pathname==='/focus';
   return <Cascade className={isFocusRoute ? "stack execution-workspace focus-room-only" : "stack execution-workspace"}>
     <div className="execution-heading"><div><span className="eyebrow">ROOM 03 / EXECUTION & FOCUS</span><h1>{isFocusRoute?'Settle into deep work.':'Protect your attention.'}</h1><p>{isFocusRoute?'One clear intention. One protected block. Your progress is recorded alongside the work it supports.':'Choose the work. Protect your attention. Let each completed session strengthen the same record.'}</p></div><div className="execution-heading-stat"><b>{sessions.data?.length||0}</b><span>RECORDED SESSIONS</span></div></div>
-    <div className="execution-split">
-      <section className="execution-projects-panel">
+    <div className={"execution-split "+(isFocusRoute?"focus-room-layout":"execution-projects-layout")+(inspectedTask&&!isFocusRoute?" has-task-inspector":"")}>
+      {!isFocusRoute && <section className="execution-projects-panel">
         <Card className="execution-panel-card">
           <div className="execution-panel-heading"><div><span className="eyebrow">01 / PROJECTS & TASKS</span><h2>Choose what moves.</h2><p>One task at a time, connected to the bigger picture.</p></div><Link className="text-link" to="/projects">Manage projects ↗</Link></div>
           <div className="execution-project-rail">
             <button className={projectFilter==='all'?'is-active':''} onClick={()=>setProjectFilter('all')}>All work <small>{(tasks.data||[]).filter(task=>!task.parent_task_id&&!task.done).length}</small></button>
-            {(projects.data||[]).map(project=><button key={project.id} className={projectFilter===String(project.id)?'is-active':''} onClick={()=>setProjectFilter(String(project.id))}>{project.title}<small>{project.open_tasks}</small></button>)}
+            {(projects.data||[]).map(project=><div className={'execution-project-choice '+(projectFilter===String(project.id)?'is-active':'')} key={project.id}><button className="execution-project-choice__select" onClick={()=>{setProjectFilter(String(project.id));if(!sessionInProgress)setTimer(current=>({...current,taskId:'',lessonId:'',projectId:String(project.id),focus:project.title}));}}>{project.title}<small>{project.open_tasks}</small></button><button className="execution-project-choice__focus" disabled={sessionInProgress} onClick={()=>focusProject(project)} aria-label={'Start focus on '+project.title}><Timer size={12}/></button></div>)}
             <button className={projectFilter==='none'?'is-active':''} onClick={()=>setProjectFilter('none')}>Standalone <small>{(tasks.data||[]).filter(task=>!task.project_id&&!task.done&&!task.parent_task_id).length}</small></button>
           </div>
+          <details className="execution-project-manager"><summary><Plus size={13}/> Create project · manage milestones & goal links</summary><ProjectsPage embedded /></details>
           <div className="execution-task-toolbar"><div><b>Tasks</b><span>{visibleTasks.length} shown</span></div><div className="execution-filter-tabs"><button className={taskFilter==='open'?'is-active':''} onClick={()=>setTaskFilter('open')}>Open</button><button className={taskFilter==='all'?'is-active':''} onClick={()=>setTaskFilter('all')}>All</button><button className={taskFilter==='done'?'is-active':''} onClick={()=>setTaskFilter('done')}>Done</button></div></div>
           <details className="atlas-add-disclosure"><summary>+ Add task</summary><form className="execution-quick-add" onSubmit={event=>{event.preventDefault();if(newTask.trim())createTask.mutate();}}>
             <TextInput value={newTask} onChange={event=>setNewTask(event.target.value)} placeholder="Add a clear next action…" />
             <select className="field-input" value={newTaskProject} onChange={event=>setNewTaskProject(event.target.value)}><option value="">No project</option>{(projects.data||[]).map(project=><option key={project.id} value={project.id}>{project.title}</option>)}</select>
             <select className="field-input" value={newTaskPriority} onChange={event=>setNewTaskPriority(event.target.value)}><option value="1">Urgent</option><option value="2">High</option><option value="3">Normal</option><option value="4">Low</option></select>
+            <TextInput type="date" value={newTaskDueDate} onChange={event=>setNewTaskDueDate(event.target.value)} aria-label="Task due date"/>
             <Button type="submit" disabled={!newTask.trim()||createTask.isPending}><Plus size={14}/> Add</Button>
           </form></details>
           {createTask.isError&&<p className="inline-error">{createTask.error.message}</p>}
           <div className="execution-task-list">
-            {tasks.isLoading?<div className="atlas-skeleton-list" aria-label="Loading tasks"><i/><i/><i/></div>:visibleTasks.length?<AnimatePresence initial={false}>{visibleTasks.map(task=><motion.article layout initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0, y: -5, marginBottom: 0 }} transition={{ layout: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 }, opacity: { duration: 0.14 }, height: { duration: 0.16 } }} className={'execution-task '+(task.done?'is-done':'')} key={task.id}>
-              <div className="execution-task-main"><motion.button whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} className="execution-task-check" onClick={()=>toggleTask.mutate(task)} aria-label={task.done?'Reopen '+task.title:'Complete '+task.title}>{task.done?<Check size={15}/>:<Circle size={15}/>}</motion.button><div className="execution-task-copy"><b>{task.title}</b><div className="execution-task-meta"><span className={priorityClass(task.priority)}>{priorityLabels[task.priority]||'Normal'}</span>{task.due_date&&<time>{task.due_date}</time>}{task.project_title&&<span>{task.project_title}</span>}{task.focus_minutes>0&&<span><Clock3 size={11}/> {task.focus_minutes}m focused</span>}</div></div><Button size="sm" variant="secondary" disabled={running||!!task.done} onClick={()=>focusTask(task)}><Timer size={13}/> Focus</Button></div>
+            {tasks.isLoading?<div className="atlas-skeleton-list" aria-label="Loading tasks"><i/><i/><i/></div>:visibleTasks.length?<AnimatePresence initial={false}>{visibleTasks.map(task=><motion.article layout initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0, y: -5, marginBottom: 0 }} transition={{ layout: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 }, opacity: { duration: 0.14 }, height: { duration: 0.16 } }} className={'execution-task '+(task.done?'is-done':'')+(selectedTaskId===task.id?' is-selected':'')} key={task.id} onClick={()=>setSelectedTaskId(task.id)} tabIndex={0} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();setSelectedTaskId(task.id);}}}>
+              <div className="execution-task-main"><motion.button whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} className={"execution-task-check execution-task-check--"+(priorityLabels[task.priority]||"Normal").toLowerCase()} onClick={()=>toggleTask.mutate(task)} aria-label={task.done?'Reopen '+task.title:'Complete '+task.title}>{task.done?<Check size={15}/>:<Circle size={15}/>}</motion.button><div className="execution-task-copy"><b>{task.title}</b><div className="execution-task-meta"><span className={priorityClass(task.priority)}>{priorityLabels[task.priority]||'Normal'}</span>{task.due_date&&<time>{task.due_date}</time>}{task.project_title&&<span>{task.project_title}</span>}{task.focus_minutes>0&&<span><Clock3 size={11}/> {task.focus_minutes}m focused</span>}</div></div><Button size="sm" variant="secondary" disabled={sessionInProgress||!!task.done} onClick={()=>focusTask(task)}><Timer size={13}/> Focus</Button></div>
               {!!children(task.id).length&&<div className="execution-subtasks">{children(task.id).map(child=><label key={child.id}><input type="checkbox" checked={!!child.done} onChange={()=>toggleTask.mutate(child)}/><span className={child.done?'is-complete':''}>{child.title}</span></label>)}</div>}
               <details className="atlas-add-disclosure atlas-add-disclosure--compact"><summary>+ Add subtask</summary><form className="execution-subtask-form" onSubmit={event=>{event.preventDefault();const title=subtaskDrafts[task.id]?.trim();if(title)createSubtask.mutate({parentId:task.id,title});}}><input value={subtaskDrafts[task.id]||''} onChange={event=>setSubtaskDrafts(current=>({...current,[task.id]:event.target.value}))} placeholder="Add subtask…" aria-label={'Add subtask to '+task.title}/><button type="submit" disabled={!subtaskDrafts[task.id]?.trim()||createSubtask.isPending}><Plus size={12}/> Subtask</button></form></details>
             </motion.article>)}</AnimatePresence>:<EmptyState title="Nothing in this view." detail="Add a task or choose another project filter."/>}
           </div>
         </Card>
         <div className="execution-project-metrics">{(projects.data||[]).filter(project=>projectFilter==='all'||String(project.id)===projectFilter).slice(0,3).map(project=><Card key={project.id} className="execution-project-metric"><span className="eyebrow">{project.title}</span><b>{project.progress_pct}%</b><small>{project.focus_minutes}m focused · {project.open_tasks} open</small><i><span style={{width:project.progress_pct+'%'}}/></i></Card>)}</div>
-      </section>
-      <section className="execution-focus-panel">
+      </section>}
+      {!isFocusRoute && inspectedTask && <motion.aside initial={{opacity:0,x:22}} animate={{opacity:1,x:0}} className="execution-task-inspector" aria-label="Task details"><div className="execution-inspector-top"><span className="eyebrow">TASK INSPECTOR</span><button className="icon-button" type="button" onClick={()=>setSelectedTaskId(null)} aria-label="Close task inspector"><X size={16}/></button></div><div className="execution-inspector-title"><span className={priorityClass(inspectedTask.priority)}>{priorityLabels[inspectedTask.priority]||'Normal'} priority</span><h2>{inspectedTask.title}</h2><p>{inspectedTask.detail||'No additional task detail has been added.'}</p></div><div className="execution-inspector-meta"><span>{inspectedTask.project_title||'Standalone task'}</span><span>{inspectedTask.due_date||'No due date'}</span><span>{inspectedTask.focus_minutes||0}m focused</span></div><div className="execution-inspector-section"><div className="execution-inspector-heading"><b>Subtasks</b><small>{inspectedSubtasks.filter(item=>item.done).length}/{inspectedSubtasks.length} complete</small></div>{inspectedSubtasks.length?inspectedSubtasks.map(child=><label className="execution-inspector-subtask" key={child.id}><input type="checkbox" checked={!!child.done} onChange={()=>toggleTask.mutate(child)}/><span className={child.done?'is-complete':''}>{child.title}</span></label>):<p className="muted">Break this task into smaller steps when useful.</p>}<form className="execution-subtask-form execution-inspector-add" onSubmit={event=>{event.preventDefault();const title=subtaskDrafts[inspectedTask.id]?.trim();if(title)createSubtask.mutate({parentId:inspectedTask.id,title});}}><input value={subtaskDrafts[inspectedTask.id]||''} onChange={event=>setSubtaskDrafts(current=>({...current,[inspectedTask.id]:event.target.value}))} placeholder="Add a subtask…" aria-label="Add a subtask"/><button type="submit" disabled={!subtaskDrafts[inspectedTask.id]?.trim()||createSubtask.isPending}><Plus size={13}/> Add</button></form></div><div className="execution-inspector-actions"><Button disabled={!!inspectedTask.done||sessionInProgress} onClick={()=>focusTask(inspectedTask)}><Timer size={14}/> Focus this task</Button><Button variant="secondary" onClick={()=>toggleTask.mutate(inspectedTask)}>{inspectedTask.done?'Reopen task':'Mark complete'}</Button></div></motion.aside>}
+      {isFocusRoute && <section className="execution-focus-panel">
         <Card className="execution-focus-card">
           <div className="execution-panel-heading"><div><span className="eyebrow">02 / FOCUS TIMER</span><h2>One thing at a time.</h2><p>{running?'Your timer is protected while you move around Atlas.':'Choose a duration and begin when you are ready.'}</p></div><Timer size={19}/></div>
           <div className="execution-focus-context"><span>THIS SESSION</span><b>{contextLabel}</b><small>{taskSelected?.project_title||lessonSelected?.pathTitle||'Unlinked focus is fine too'}</small></div>
-          <div className="execution-timer" role="timer" aria-live="off"><span>{timerText}</span><small>{timer.kind==='break'?'BREAK':'DEEP WORK'}</small></div>
+          <div className={"execution-timer"+(running&&timer.kind==='focus'?' is-running':'')} role="timer" aria-live="off"><svg className="execution-timer-ring" viewBox="0 0 220 220" aria-hidden="true">{Array.from({length:60},(_,index)=>{const angle=(index/60)*Math.PI*2-Math.PI/2;const major=index%5===0;const inner=major?99:102;const outer=major?108:106;return <line key={index} className={major?"execution-timer-tick execution-timer-tick--major":"execution-timer-tick"} x1={110+Math.cos(angle)*inner} y1={110+Math.sin(angle)*inner} x2={110+Math.cos(angle)*outer} y2={110+Math.sin(angle)*outer}/>;})}<circle className="execution-timer-ring__track" cx="110" cy="110" r="90"/><circle className="execution-timer-ring__progress" cx="110" cy="110" r="90" style={{strokeDasharray:565.49,strokeDashoffset:565.49*(1-Math.max(0,Math.min(1,remaining/Math.max(1,timer.durationSeconds))))}}/></svg><div className="execution-timer-readout"><span>{timerText}</span><small>{timer.kind==='break'?'BREAK':'DEEP WORK'}</small></div></div>
           <div className="execution-presets">{[['25','25m'],['50','50m'],['80','80m'],['custom','Custom']].map(([value,label])=><button key={value} className={preset===value?'is-active':''} disabled={running} onClick={()=>{setPreset(value);if(value!=='custom'){const seconds=Number(value)*60;setTimer(current=>({...current,remaining:seconds,durationSeconds:seconds,deadline:null,sessionKey:null}));}}}>{label}</button>)}</div>
           {preset==='custom'&&<Field label="Custom focus duration (minutes)"><TextInput type="number" min="1" max="600" value={customMinutes} disabled={running} onChange={event=>{setCustomMinutes(event.target.value);const seconds=Math.max(1,Math.min(600,Number(event.target.value)||1))*60;setTimer(current=>({...current,remaining:seconds,durationSeconds:seconds,deadline:null,sessionKey:null}));}}/></Field>}
           <div className="execution-timer-actions"><Button onClick={()=>running?pause():start('focus')} disabled={timer.kind==='break'&&running?false:running&&timer.kind==='break'}>{running?<><Pause size={15}/> Pause</>:<><Play size={15}/> {timer.remaining===0?'Start next block':'Start focus'}</>}</Button><Button variant="ghost" onClick={reset}><RotateCcw size={14}/> Reset</Button><Button variant="ghost" onClick={finish} disabled={timer.kind!=='focus'||!timer.sessionKey||timer.remaining===0||(!running&&timer.remaining===timer.durationSeconds)}><Check size={14}/> Finish & save</Button></div>
@@ -159,7 +171,7 @@ export function FocusWorkspace() {
         <Card className="execution-history-card"><div className="execution-panel-heading"><div><span className="eyebrow">YOUR ATTENTION, RECORDED</span><h2>Recent sessions</h2><p>{sessions.data?.reduce((sum,item)=>sum+item.minutes,0)||0} {sessions.data?.reduce((sum,item)=>sum+item.minutes,0)===1?'minute':'minutes'} across the latest records.</p></div><Clock3 size={17}/></div>
           {sessions.data?.length?<div className="execution-history-list">{sessions.data.slice(0,8).map(item=><article key={item.id}><span className="execution-history-mark"><Clock3 size={14}/></span><div><b>{item.focus}</b><small>{item.session_date}{item.task_title?' · '+item.task_title:''}{item.lesson_title?' · '+item.path_title+' / '+item.lesson_title:''}{item.project_title?' · '+item.project_title:''}</small>{item.reflection&&<p>{item.reflection}</p>}{item.distractions&&item.distractions.length>0&&<small>{item.distractions.length} distraction notes</small>}</div><strong>{item.minutes}m</strong></article>)}</div>:<EmptyState title="Your focus history starts here." detail="A completed focus block will appear here and update your connected work."/>}
         </Card>
-      </section>
+      </section>}
     </div>
   </Cascade>;
 }

@@ -9,7 +9,7 @@ type Note = { id: number; title: string; body: string; updated_at: string };
 type ReadingItem = { id: number; title: string; item_type: 'book'|'article'|'reference'; url: string; author: string; notes: string; status: 'Queued'|'Active'|'Completed' };
 const typeIcon = { book: BookOpen, article: FileText, reference: Link2 };
 
-export function LibraryPage() {
+export function LibraryPage({ embedded = false }: { embedded?: boolean }) {
   const client = useQueryClient();
   const [title,setTitle]=useState(''),[body,setBody]=useState('');
   const [editing,setEditing]=useState<number|null>(null),[editTitle,setEditTitle]=useState(''),[editBody,setEditBody]=useState('');
@@ -22,7 +22,7 @@ export function LibraryPage() {
   const createItem=useMutation({mutationFn:()=>api('/reading-items',json('POST',{title:resourceTitle,item_type:resourceType,author,url})),onSuccess:()=>{setResourceTitle('');setAuthor('');setUrl('');void client.invalidateQueries({queryKey:['reading-items']});}});
   const status=useMutation({mutationFn:({item,value}:{item:ReadingItem;value:ReadingItem['status']})=>api('/reading-items/'+item.id,json('PATCH',{status:value})),onSuccess:()=>void client.invalidateQueries({queryKey:['reading-items']})});
   return <Cascade className="stack room4-library">
-    <PageHeader eyebrow="KNOWLEDGE / PERSONAL LIBRARY" title="Private library" description="A considered collection of books, articles, references and notes worth returning to." />
+    {!embedded && <PageHeader eyebrow="KNOWLEDGE / PERSONAL LIBRARY" title="Private library" description="A considered collection of books, articles, references and notes worth returning to." />}
     <Card className="room4-card">
       <div className="card-heading"><div><h2>Add to your reading list</h2><p>Capture a resource and decide its place in your reading queue.</p></div><BookMarked size={18}/></div>
       <details className="atlas-add-disclosure"><summary>+ Add resource</summary><form className="form-stack" onSubmit={e=>{e.preventDefault();if(resourceTitle.trim())createItem.mutate();}}>
@@ -38,7 +38,7 @@ export function LibraryPage() {
     </Card>
     <section className="stack">
       <div className="card-heading"><div><span className="eyebrow">READING QUEUE</span><h2>Your resources</h2><p>Move each item forward as your attention changes.</p></div></div>
-      {items.data?.length?<div className="room4-resource-list">{items.data.map(item=>{const Icon=typeIcon[item.item_type];return <Card key={item.id} className="room4-card room4-resource"><span className="session-mark"><Icon size={17}/></span><div className="room4-resource__body"><b>{item.title}</b><small>{item.item_type} {item.author?'· '+item.author:''}</small>{item.url&&<a href={item.url} target="_blank" rel="noreferrer">Open resource ↗</a>}</div><select aria-label={'Reading status for '+item.title} className="status-select" value={item.status} disabled={status.isPending} onChange={e=>status.mutate({item,value:e.target.value as ReadingItem['status']})}><option>Queued</option><option>Active</option><option>Completed</option></select></Card>;})}</div>:<Card><EmptyState title="Your reading queue is clear." detail="Add a book, article or reference when you find something worth studying."/></Card>}
+      {items.data?.length?<div className="room4-resource-list">{items.data.map(item=>{const Icon=typeIcon[item.item_type];return <Card key={item.id} className={"room4-card room4-resource room4-resource--"+item.status.toLowerCase()}><span className="session-mark"><Icon size={17}/></span><div className="room4-resource__body"><b>{item.title}</b><small>{item.item_type} {item.author?'· '+item.author:''}</small>{item.url&&<a href={item.url} target="_blank" rel="noreferrer">Open resource ↗</a>}</div><select aria-label={'Reading status for '+item.title} className="status-select" value={item.status} disabled={status.isPending} onChange={e=>status.mutate({item,value:e.target.value as ReadingItem['status']})}><option>Queued</option><option>Active</option><option>Completed</option></select></Card>;})}</div>:<Card><EmptyState title="Your reading queue is clear." detail="Add a book, article or reference when you find something worth studying."/></Card>}
     </section>
     <Card className="room4-card">
       <div className="card-heading"><div><h2>Capture a note</h2><p>Keep a useful idea or reflection close to its source.</p></div><BookMarked size={18}/></div>

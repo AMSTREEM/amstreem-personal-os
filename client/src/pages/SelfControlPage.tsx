@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Heart, Plus, RotateCcw, ShieldCheck, Trash2 } from 'lucide-react';
+import { Plus, RotateCcw, ShieldCheck, Trash2 } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
 import { Cascade } from '../components/Cascade';
@@ -9,11 +8,10 @@ import { AnimatedMetric } from '../components/AnimatedMetric';
 
 type CheckIn = { id: number; tracker_id: number; log_date: string; outcome: 'clean' | 'slip'; urge_level: number; trigger: string; response: string; note: string; tracker_name: string; tracker_symbol: string };
 type Tracker = { id: number; name: string; symbol: string; start_date: string; streak: number; longest_days: number; last_slip: string | null; today: CheckIn | null };
-type Habit = { id: number; title: string; emoji: string; done: number; goal_title?: string | null };
 type Data = { date: string; summary: Tracker[]; logs: CheckIn[]; history: { date: string; checkins: number; clean: number; slips: number; habits: number }[]; consistency: { days7: number; days30: number; percent7: number; percent30: number } };
 function dateKey() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
 
-export function SelfControlPage() {
+export function SelfControlPage({ embedded = false }: { embedded?: boolean }) {
   const client = useQueryClient();
   const today = dateKey();
   const [name, setName] = useState('');
@@ -27,8 +25,6 @@ export function SelfControlPage() {
   const [response, setResponse] = useState('');
   const [note, setNote] = useState('');
   const data = useQuery({ queryKey: ['self-control', today], queryFn: () => api<Data>('/self-control?date=' + today) });
-  const habits = useQuery({ queryKey: ['habits', today], queryFn: () => api<Habit[]>('/habits?date=' + today) });
-  const toggleHabit = useMutation({ mutationFn: (id: number) => api('/habits/' + id + '/toggle', json('POST', { date: today })), onSuccess: () => { void client.invalidateQueries({ queryKey: ['habits', today] }); void client.invalidateQueries({ queryKey: ['self-control', today] }); void client.invalidateQueries({ queryKey: ['overview'] }); } });
   const create = useMutation({
     mutationFn: () => api('/self-control', json('POST', { name, symbol, start_date: startDate })),
     onSuccess: () => { setName(''); setSymbol('◇'); setShowCreate(false); void client.invalidateQueries({ queryKey: ['self-control'] }); }
@@ -45,7 +41,7 @@ export function SelfControlPage() {
   const totalTrackers = data.data?.summary.length ?? 0;
   const cleanToday = data.data?.summary.filter(item => item.today?.outcome === 'clean').length ?? 0;
   return <Cascade className="stack self-control-page">
-    <PageHeader eyebrow="PERSONAL DEVELOPMENT / PRIVATE" title="Self-Control & Streaks" description="A private space for the commitments you choose to keep or leave behind. Track progress honestly, without turning a difficult day into a verdict." action={<Button onClick={() => setShowCreate(true)}><Plus size={15}/> Add a habit</Button>}/>
+    {!embedded && <PageHeader eyebrow="PERSONAL DEVELOPMENT / PRIVATE" title="Personal Commitments" description="A private space for the commitments you choose to keep or leave behind. Track progress honestly, without turning a difficult day into a verdict." action={<Button onClick={() => setShowCreate(true)}><Plus size={15}/> Add commitment</Button>}/>}
     <div className="self-control-note surface-card"><span className="self-note-mark"><ShieldCheck size={19}/></span><div><strong>Progress is not perfection.</strong><p>A difficult day does not erase your effort. If you slip, record it honestly, notice what led to it, and begin again without punishing yourself. A day without a check-in stays unscored; it is never treated as a slip.</p></div><div className="self-note-stats"><span><b>{totalTrackers}</b><small>TRACKERS</small></span><span><b>{cleanToday}</b><small>CLEAN TODAY</small></span></div></div>
     <section className="self-rhythm-consistency">
       <div className="self-rhythm-metrics">
@@ -57,10 +53,7 @@ export function SelfControlPage() {
         <div className="self-rhythm-legend"><span>Less</span><i/><i/><i/><span>More</span></div>
       </div>
     </section>
-    <Card className="self-positive-habits"><div className="module-panel-head"><div><span className="module-kicker">POSITIVE ROUTINES</span><h2>Habits worth building.</h2><p>Completed routines are counted from actual daily check-ins.</p></div><Link className="text-link" to="/rituals">Manage routines <span>→</span></Link></div>
-      {habits.data?.length ? <div className="self-positive-list">{habits.data.map(habit=><label key={habit.id} className="self-positive-row"><input type="checkbox" checked={!!habit.done} disabled={toggleHabit.isPending} onChange={()=>toggleHabit.mutate(habit.id)}/><span>{habit.emoji||'✦'}</span><b>{habit.title}</b>{habit.goal_title&&<small>{habit.goal_title}</small>}</label>)}</div> : <EmptyState title="No positive routines yet." detail="Add a small repeatable practice in Habits & Streaks."/>}
-    </Card>
-    <div className="self-control-section-head"><div><span className="module-kicker">YOUR PERSONAL COMMITMENTS</span><h2>Your personal commitments.</h2></div><span className="module-count">{totalTrackers} TRACKERS</span></div>
+    <div className="self-control-section-head"><div><span className="module-kicker">YOUR PERSONAL COMMITMENTS</span><h2>Your personal commitments.</h2></div><span className="module-count">{totalTrackers} TRACKERS</span><Button size="sm" onClick={() => setShowCreate(true)}><Plus size={14}/> Add commitment</Button></div>
     <div className="tracker-grid">
       {data.data?.summary.length ? data.data.summary.map(tracker => <Card key={tracker.id} className="tracker-card">
         <div className="tracker-card__top"><span className="tracker-symbol">{tracker.symbol}</span><button className="icon-button" onClick={() => { if (window.confirm('Delete this tracker and its history?')) remove.mutate(tracker.id); }} aria-label={'Delete ' + tracker.name}><Trash2 size={15}/></button></div>

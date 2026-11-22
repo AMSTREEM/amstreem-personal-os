@@ -10,7 +10,7 @@ type Goal = { id: number; title: string };
 type Lesson = { id: number; title: string; status: string; study_minutes: number; notes?: string };
 type Path = { id: number; title: string; subject: string; description: string; status: string; goal_id: number | null; lessons: Lesson[] };
 
-export function LearningPage() {
+export function LearningPage({ embedded = false }: { embedded?: boolean }) {
   const client = useQueryClient();
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('');
@@ -32,7 +32,7 @@ export function LearningPage() {
     onSuccess: () => void client.invalidateQueries({ queryKey: ['learning-paths'] })
   });
   return <Cascade className="stack">
-    <PageHeader eyebrow="PRACTICE / CURIOSITY" title="Learning studio" description="Organise what you are learning into paths, lessons and resources. Keep the next lesson visible." />
+    {!embedded && <PageHeader eyebrow="PRACTICE / CURIOSITY" title="Learning studio" description="Organise what you are learning into paths, lessons and resources. Keep the next lesson visible." />}
     <Card>
       <div className="card-heading"><div><h2>Create a learning path</h2><p>Give a subject or skill a clear place in your workspace.</p></div><BookOpen size={18} /></div>
       <form className="form-row" onSubmit={event => { event.preventDefault(); if (title.trim()) create.mutate(); }}>
@@ -43,7 +43,7 @@ export function LearningPage() {
       </form>
     </Card>
     <div className="stack">
-      {paths.data?.length ? paths.data.map(path => { const done=path.lessons.filter(lesson=>lesson.status==='Completed').length; const progress=path.lessons.length?Math.round(done/path.lessons.length*100):0; return <Card key={path.id} className="room4-card room4-path-card atlas-spotlight">
+      {paths.data?.length ? paths.data.map(path => { const done=path.lessons.filter(lesson=>lesson.status==='Completed').length; const progress=path.lessons.length?Math.round(done/path.lessons.length*100):0; return <Card key={path.id} className={"room4-card room4-path-card atlas-spotlight room4-path-card--"+path.status.toLowerCase().replace(/\s+/g,'-')}>
         <div className="card-heading"><div><span className="eyebrow">{path.subject || 'LEARNING PATH'}</span><h2>{path.title}</h2><p>{path.description || 'Build this path one lesson at a time.'}{path.goal_id ? ' · Linked to a goal' : ''}</p></div><span className="status-pill">{path.status}</span></div>
         <div className="room4-progress"><div><small>PATH PROGRESS</small><b>{done}/{path.lessons.length} lessons · {progress}%</b></div><span><i style={{width:progress+'%'}}/></span></div>
         {path.lessons.length ? <div className="list-stack">{path.lessons.map(lesson => <div className="list-row room4-lesson-row" key={lesson.id}><span className="session-mark"><BookOpen size={16} /></span><div className="list-row__body"><b>{lesson.title}</b><small>{lesson.study_minutes} minutes from linked focus sessions</small><Link className="text-link" to={'/focus?lesson=' + lesson.id}><Timer size={13}/> Start Study Focus</Link><TextArea value={lessonNotes[lesson.id] ?? lesson.notes ?? ''} onChange={event=>setLessonNotes(current=>({...current,[lesson.id]:event.target.value}))} placeholder="Study notes…"/><Button variant="secondary" onClick={()=>updateLesson.mutate({lesson,values:{notes:lessonNotes[lesson.id]??lesson.notes??''}})}>Save notes</Button></div><select className="status-select" value={lesson.status} onChange={event => updateLesson.mutate({ lesson, values:{status:event.target.value} })}><option>Not started</option><option>In progress</option><option>Completed</option></select></div>)}</div> : <EmptyState title="Add the first lesson." detail="Give this learning path its first clear checkpoint." />}
