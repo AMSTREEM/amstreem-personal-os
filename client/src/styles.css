@@ -5034,3 +5034,11 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .atlas-mobile-dock__room span { font-size: 7px; }
   .atlas-mobile-dock__capture { width: 44px; height: 44px; flex-basis: 44px; }
 }
+
+@media (max-width: 767px) {
+  .page-container :where([class*="grid"],[class*="layout"],[class*="split"]):not([class*="atlas-"]):not(.calendar-grid):not(.calendar-weekdays):not(.calendar-dots) {
+    grid-template-columns: minmax(0,1fr) !important;
+    justify-items: stretch;
+    min-width: 0;
+  }
+}
