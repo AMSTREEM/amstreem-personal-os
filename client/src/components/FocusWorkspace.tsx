@@ -76,7 +76,7 @@ export function FocusWorkspace() {
   useEffect(()=>{
     const params=new URLSearchParams(window.location.search);
     const requestedTask=params.get('task'),requestedLesson=params.get('lesson'),requestedFocus=params.get('focus');
-    if(timer.deadline!==null||timer.sessionKey)return;
+    if(timer.deadline!==null||(timer.sessionKey&&timer.remaining>0))return;
     if(requestedTask&&tasks.data?.some(task=>String(task.id)===requestedTask)){
       const task=tasks.data.find(item=>String(item.id)===requestedTask)!;
       setTimer(current=>({...current,taskId:requestedTask,lessonId:'',projectId:task.project_id?String(task.project_id):current.projectId,focus:task.title}));
