@@ -7,6 +7,7 @@ import { AnimatedMetric } from '../components/AnimatedMetric';
 import { MagneticDotField } from '../components/fx/MagneticDotField';
 import { SpatialTiltCard } from '../components/fx/SpatialTiltCard';
 import { OdometerNumber } from '../components/fx/OdometerNumber';
+import { triggerSparkBurst } from '../components/fx/SparkBurst';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, BookOpen, Flame, MoonStar, Plus, Target, Timer, Zap } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -183,7 +184,7 @@ export function TodayPage() {
     const currentIndex = pinnedPriorityTasks.findIndex(task => task.id === selectedPriorityId);
     if (event.key === 'ArrowDown' || event.key === 'j') setSelectedPriorityId(pinnedPriorityTasks[(currentIndex + 1 + pinnedPriorityTasks.length) % pinnedPriorityTasks.length].id);
     else if (event.key === 'ArrowUp' || event.key === 'k') setSelectedPriorityId(pinnedPriorityTasks[(currentIndex <= 0 ? pinnedPriorityTasks.length : currentIndex) - 1].id);
-    else { const task = pinnedPriorityTasks.find(item => item.id === selectedPriorityId) || pinnedPriorityTasks[0]; setSelectedPriorityId(task.id); if (event.key === ' ' && !toggleTask.isPending) toggleTask.mutate(task); if (event.key.toLowerCase() === 'f') navigate('/focus?task=' + task.id); }
+    else { const task = pinnedPriorityTasks.find(item => item.id === selectedPriorityId) || pinnedPriorityTasks[0]; setSelectedPriorityId(task.id); if (event.key === ' ' && !toggleTask.isPending) { if (!task.done) { const rect = event.currentTarget.getBoundingClientRect(); triggerSparkBurst(rect.left + rect.width / 2, rect.top + rect.height / 2); } toggleTask.mutate(task); } if (event.key.toLowerCase() === 'f') navigate('/focus?task=' + task.id); }
   }
 
   useEffect(() => {
