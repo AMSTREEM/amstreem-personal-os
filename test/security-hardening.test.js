@@ -260,3 +260,26 @@ test('Room 3 has a dedicated Focus Room with safe context handoffs and a persist
   assert.match(css, /\.execution-projects-layout \{ grid-template-columns: minmax\(0, 1fr\)/);
   assert.match(css, /\.focus-room-layout/);
 });
+
+
+test('Atlas rooms use distinct spatial layouts, an actionable task inspector and a centered focus chronograph', () => {
+  const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
+  const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
+  const rhythm = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ValuesPage.tsx'), 'utf8');
+  const consolidated = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ConsolidatedViews.tsx'), 'utf8');
+  const goals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'GoalsPage.tsx'), 'utf8');
+  const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
+  assert.match(css, /grid-template-columns:minmax\\(0,1\\.6fr\\) minmax\\(290px,1fr\\)/);
+  assert.match(css, /daily-rhythm-sanctuary\\{width:min\\(100%,840px\\)/);
+  assert.match(css, /execution-split\\.has-task-inspector/);
+  assert.match(css, /execution-timer-ring__progress/);
+  assert.match(css, /growth-horizon-layout/);
+  assert.match(residence, /--pulse-score/);
+  assert.match(rhythm, /daily-rhythm-sanctuary/);
+  assert.match(consolidated, /growth-horizon-layout/);
+  assert.match(goals, /goals-horizon/);
+  assert.match(focus, /TASK INSPECTOR/);
+  assert.match(focus, /inspectedSubtasks/);
+  assert.match(focus, /execution-timer-ring/);
+  assert.match(focus, /session_key:timer\\.sessionKey/);
+});
