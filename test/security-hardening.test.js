@@ -210,3 +210,24 @@ test('Room 4 visual craft uses semantic tokens, responsive spacing, motion and r
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.match(css, /room4-evidence-grid \{ grid-template-columns:repeat\(2/);
 });
+
+
+test('Room 4 presents learning, library, reviews and insights together without moving intelligence into Residence', () => {
+  const consolidated = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ConsolidatedViews.tsx'), 'utf8');
+  const learning = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LearningPage.tsx'), 'utf8');
+  const library = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LibraryPage.tsx'), 'utf8');
+  const reviews = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ReviewsPage.tsx'), 'utf8');
+  const insights = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'InsightsPage.tsx'), 'utf8');
+  const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
+  assert.match(consolidated, /<LearningPage embedded \/>/);
+  assert.match(consolidated, /<LibraryPage embedded \/>/);
+  assert.match(consolidated, /<ReviewsPage embedded \/>/);
+  assert.match(consolidated, /<InsightsPage embedded \/>/);
+  assert.match(learning, /Start Study Focus/);
+  assert.match(library, /reading-items/);
+  assert.match(library, /notes/);
+  assert.match(reviews, /priority_task_ids: priorityIds/);
+  assert.match(insights, /focusLast7Days/);
+  assert.doesNotMatch(residence, /queryKey: \['intelligence'\]/);
+  assert.doesNotMatch(residence, /residence-next-card/);
+});
