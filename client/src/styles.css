@@ -2222,3 +2222,79 @@ input, select, textarea { min-width: 0; }
   .focus-room-only .execution-focus-card > .field,
   .focus-room-only .execution-focus-card > .execution-distractions { grid-column:1/-1; }
 }
+
+
+/* Focus Timer refinement — balanced workspace, grouped controls, cleaner scan path. */
+.focus-room-only .execution-focus-panel {
+  width:100% !important;
+  max-width:1120px !important;
+  margin:0 auto !important;
+  justify-items:stretch;
+  gap:16px;
+}
+.focus-room-only .execution-focus-card {
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  display:grid;
+  grid-template-columns:minmax(0,1.08fr) minmax(280px,.92fr);
+  align-items:start;
+  column-gap:clamp(22px,3.2vw,42px);
+  row-gap:16px;
+  padding:clamp(22px,3vw,34px) !important;
+}
+.focus-room-only .execution-focus-card > .execution-panel-heading {
+  grid-column:1/-1;
+  justify-content:space-between;
+  text-align:left;
+  padding-bottom:4px;
+  border-bottom:1px solid var(--line-soft);
+}
+.focus-room-only .execution-focus-card > .execution-panel-heading > div { width:auto; }
+.focus-room-only .execution-focus-card > .execution-panel-heading > svg { display:block; color:var(--accent-strong); }
+.focus-room-only .execution-focus-context,
+.focus-room-only .execution-timer,
+.focus-room-only .execution-presets,
+.focus-room-only .execution-timer-actions,
+.focus-room-only .execution-break-row,
+.focus-room-only .execution-save-state,
+.focus-room-only .execution-save-error { grid-column:1; }
+.focus-room-only .execution-focus-context { text-align:left; justify-items:start; }
+.focus-room-only .execution-timer { min-height:170px; align-content:center; padding:20px 8px; }
+.focus-room-only .execution-timer>span { font-size:clamp(64px,8vw,94px); }
+.focus-room-only .execution-timer-actions { justify-content:flex-start; flex-wrap:wrap; }
+.focus-room-only .execution-break-row { justify-content:flex-start; }
+.focus-room-only .execution-break-row > div { text-align:left; }
+.focus-room-only .execution-focus-links,
+.focus-room-only .execution-focus-card > .field,
+.focus-room-only .execution-distractions { grid-column:2; }
+.focus-room-only .execution-focus-links { grid-row:2 / span 2; align-self:stretch; align-content:start; gap:14px; padding:14px; border:1px solid var(--line-soft); border-radius:12px; background:var(--surface); }
+.focus-room-only .execution-focus-card > .field { min-width:0; }
+.focus-room-only .execution-distractions { min-width:0; padding:14px; border:1px solid var(--line-soft); border-radius:12px; background:var(--surface); }
+.focus-room-only .execution-history-card { width:100% !important; max-width:none !important; margin:0 !important; }
+@media(max-width:760px) {
+  .focus-room-only .execution-focus-card {
+    grid-template-columns:minmax(0,1fr);
+    padding:18px !important;
+    row-gap:14px;
+  }
+  .focus-room-only .execution-focus-card > .execution-panel-heading,
+  .focus-room-only .execution-focus-context,
+  .focus-room-only .execution-timer,
+  .focus-room-only .execution-presets,
+  .focus-room-only .execution-timer-actions,
+  .focus-room-only .execution-break-row,
+  .focus-room-only .execution-save-state,
+  .focus-room-only .execution-save-error,
+  .focus-room-only .execution-focus-links,
+  .focus-room-only .execution-focus-card > .field,
+  .focus-room-only .execution-distractions { grid-column:1; grid-row:auto; }
+  .focus-room-only .execution-focus-card > .execution-panel-heading { justify-content:center; text-align:center; }
+  .focus-room-only .execution-focus-card > .execution-panel-heading > div { width:100%; }
+  .focus-room-only .execution-focus-card > .execution-panel-heading > svg { display:none; }
+  .focus-room-only .execution-focus-context { text-align:center; justify-items:center; }
+  .focus-room-only .execution-timer { min-height:130px; }
+  .focus-room-only .execution-timer-actions { justify-content:center; }
+  .focus-room-only .execution-break-row { justify-content:center; }
+  .focus-room-only .execution-break-row > div { text-align:center; }
+}
