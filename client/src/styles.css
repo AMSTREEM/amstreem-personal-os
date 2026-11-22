@@ -43,7 +43,7 @@ a { color: inherit; text-decoration: none; }
 .auth-message-block h1 { margin: 24px 0 18px; font: 600 clamp(48px,6vw,82px)/1.04 Manrope,sans-serif; letter-spacing: -.065em; }
 .auth-message-block h1 em { color: var(--accent-strong); font-style: normal; }
 .auth-message-block p { max-width: 430px; color: var(--muted); font-size: 16px; line-height: 1.8; }
-.auth-principle { display: flex; align-items: center; gap: 10px; margin-top: 38px; color: var(--accent-strong); font-size: 13px; }
+.auth-principle { display: flex; align-items: center; gap: 11px; margin-top: 38px; color: var(--accent-strong); font-size: 13px; }
 .auth-principle__icon { display: grid; place-items: center; width: 34px; height: 34px; flex: none; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-raised); color: var(--accent-strong); }
 .auth-principle__icon svg { display: block; }
 .auth-footnote { color: var(--subtle); font: 600 9px Manrope,sans-serif; letter-spacing: .18em; }
@@ -146,7 +146,7 @@ a { color: inherit; text-decoration: none; }
 .stat-card__icon { color: var(--accent); }
 .stat-card strong { display: block; margin-top: 16px; font: 600 28px Manrope,sans-serif; letter-spacing: -.04em; }
 .stat-card small { display: block; margin-top: 4px; color: var(--subtle); font-size: 10px; }
-.empty-state { display: grid; justify-items: center; padding: 28px 12px; text-align: center; }
+.empty-state { display: grid; justify-items: center; padding: 32px 14px; text-align: center; }
 .empty-state__mark { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 14px; background: var(--accent-wash); color: var(--accent-strong); }
 .empty-state__mark svg { display: block; }
 .empty-state h3 { margin: 12px 0 5px; font: 600 13px Manrope,sans-serif; }
@@ -2031,3 +2031,705 @@ time,
 .atlas-onboarding-palette>em { color:var(--accent-strong); font-size:8px; font-style:normal; font-weight:700; }
 @media(max-width:760px) { .atlas-onboarding-palette-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .atlas-onboarding-palette { padding:10px; } }
 @media(prefers-reduced-motion:reduce) { .atlas-onboarding-palette { transition:none; } }
+
+
+/* Atlas mobile experience — safe-area aware, touch-first and layout-stable. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { overscroll-behavior-y: none; }
+#root, .app-frame, .main-area, .room-view-transition { min-width: 0; }
+img, svg, video, canvas { max-width: 100%; }
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+button, [role="button"], a { touch-action: manipulation; }
+input, select, textarea { min-width: 0; }
+@media (max-width: 760px) {
+  :root { --mobile-gutter: clamp(14px, 4.2vw, 20px); }
+  html, body { width: 100%; overflow-x: clip; }
+  .app-frame { min-height: 100svh; }
+  .sidebar { width: min(86vw, 320px); padding: max(22px,env(safe-area-inset-top)) 17px max(18px,env(safe-area-inset-bottom)); }
+  .sidebar-caption { margin-top: 28px; }
+  .primary-nav { gap: 15px; }
+  .nav-link, .room-nav-link { min-height: 48px; }
+  .room-nav-link kbd { display: none; }
+  .main-area { min-height: 100svh; }
+  .topbar { position: sticky; top: 0; z-index: 24; height: 58px; min-height: 58px; padding: 0 var(--mobile-gutter); padding-top: env(safe-area-inset-top); background: color-mix(in srgb,var(--bg) 90%,transparent); backdrop-filter: blur(18px); }
+  .mobile-menu-button { width: 42px; height: 42px; border-radius: 12px; }
+  .mobile-menu-button svg { width: 19px; height: 19px; }
+  .topbar-context { min-width: 0; margin-left: 10px; }
+  .topbar-context b { overflow: hidden; max-width: min(54vw,260px); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+  .topbar-right { min-width: 0; }
+  .global-capture-trigger { width: 38px; min-width: 38px; height: 38px; justify-content: center; padding: 0 !important; border-radius: 11px; }
+  .global-capture-trigger span, .global-capture-trigger kbd, .tour-launcher, .topbar-date { display: none !important; }
+  .page-container { width: 100%; padding: 22px var(--mobile-gutter) calc(112px + env(safe-area-inset-bottom)); }
+  .page-header { gap: 13px; margin-bottom: 20px; }
+  .page-header h1 { font-size: clamp(27px,7vw,34px); line-height: 1.08; }
+  .page-header p { font-size: 12px; line-height: 1.65; }
+  .page-header__action, .page-header__action .button { width: 100%; }
+  .surface-card { padding: 15px; border-radius: 15px; }
+  .card-heading { align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+  .content-grid, .goal-grid, .library-grid { grid-template-columns: minmax(0,1fr); }
+  .stat-grid, .stat-grid--three, .stat-grid--four { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .stat-card { min-height: 0; padding: 13px; border-radius: 13px; }
+  .stat-card strong { margin-top: 11px; font-size: clamp(21px,6vw,25px); }
+  .stat-card__top { align-items: flex-start; font-size: 9px; }
+  .stack { gap: 14px; }
+  .form-stack { gap: 15px; }
+  .field-input, .status-select, input, select, textarea { font-size: 16px; }
+  .field-input { min-height: 48px; }
+  .button { min-height: 46px; }
+  .icon-button { width: 40px; height: 40px; }
+  .form-row { gap: 9px; }
+  .list-row { align-items: flex-start; gap: 9px; }
+  .list-row__meta { white-space: normal; text-align: right; }
+  .module-subnav { display: flex; width: calc(100% + 2 * var(--mobile-gutter)); gap: 6px; overflow-x: auto; overflow-y: hidden; margin: -2px calc(-1 * var(--mobile-gutter)) 20px; padding: 3px var(--mobile-gutter) 10px; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-inline: contain; }
+  .module-subnav::-webkit-scrollbar { display: none; }
+  .module-subnav__link { min-height: 39px; flex: 0 0 auto; padding: 0 13px; white-space: nowrap; }
+  .calendar-head { gap: 8px; margin-bottom: 14px; }
+  .calendar-grid { gap: 3px; }
+  .calendar-weekday { padding: 6px 0; font-size: 8px; }
+  .calendar-cell { min-height: 49px; gap: 7px; padding: 7px 1px; font-size: 10px; }
+  .calendar-legend { gap: 9px; font-size: 9px; }
+  .app-footer { gap: 10px; flex-wrap: wrap; padding: 15px var(--mobile-gutter) calc(18px + env(safe-area-inset-bottom)); }
+  .atlas-command-dock { bottom: max(9px,env(safe-area-inset-bottom)); max-width: calc(100vw - 22px); }
+  .atlas-dock-action { min-width: 42px; min-height: 42px; padding-inline: 10px; }
+  .command-backdrop { align-items: flex-end !important; padding: 10px !important; padding-bottom: max(10px,env(safe-area-inset-bottom)) !important; }
+  .command-panel { width: 100% !important; max-height: min(82svh,720px) !important; overflow-y: auto; border-radius: 20px !important; }
+  .command-search { position: sticky; top: 0; }
+  .atlas-tour { width: calc(100vw - 20px) !important; max-height: calc(100svh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important; overflow-y: auto; }
+  .atlas-onboarding-palettes { max-height: 34svh; }
+  .recovery-card { padding: 25px 20px; }
+  .auth-panel { min-height: 100svh; padding: max(22px,env(safe-area-inset-top)) 20px max(26px,env(safe-area-inset-bottom)); }
+  .auth-mobile-brand { margin-bottom: 28px; }
+  .atlas-install-prompt { left: var(--mobile-gutter); right: var(--mobile-gutter); bottom: calc(76px + env(safe-area-inset-bottom)); width: auto; }
+}
+@media (max-width: 420px) {
+  .page-container { padding-inline: 14px; }
+  .topbar { padding-inline: 14px; }
+  .stat-grid, .stat-grid--three, .stat-grid--four { gap: 7px; }
+  .stat-card { padding: 11px; }
+  .surface-card { padding: 13px; }
+  .workspace-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .workspace-metric { padding: 10px 8px; }
+  .workspace-metric>strong { font-size: 20px; }
+  .workspace-metric>span { font-size: 6.5px; }
+  .execution-timer>span, .timer-display { font-size: clamp(48px,15vw,68px) !important; }
+}
+@media (max-width: 360px) {
+  .topbar-context b { max-width: 48vw; }
+  .atlas-command-dock { gap: 0; padding: 4px; }
+  .atlas-dock-action { min-width: 38px; padding-inline: 7px; }
+  .atlas-dock-focus__detail { max-width: 88px; }
+  .atlas-dock-focus__detail>span { max-width: 36px; }
+  .stat-card__top { font-size: 8px; }
+}
+@media (hover: none) and (pointer: coarse) {
+  .button, .nav-link, .module-subnav__link, .atlas-dock-action { -webkit-user-select: none; user-select: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar { transition: none; }
+  .module-subnav { scroll-behavior: auto; }
+}
+
+/* Install prompt is a lightweight, dismissible nudge — never blocks first use. */
+.atlas-install-prompt { position: fixed; z-index: 70; right: 22px; bottom: 22px; width: min(390px,calc(100vw - 28px)); padding: 15px; border: 1px solid var(--line); border-radius: 17px; background: var(--bg-elevated,var(--surface)); box-shadow: 0 18px 55px rgba(0,0,0,.32); backdrop-filter: blur(20px); }
+.atlas-install-prompt__head { display: flex; align-items: center; gap: 11px; }
+.atlas-install-prompt__mark { display: grid; place-items: center; width: 40px; height: 40px; flex: none; border: 1px solid var(--line); border-radius: 12px; background: var(--accent-wash); color: var(--accent-strong); }
+.atlas-install-prompt__copy { min-width: 0; flex: 1; }
+.atlas-install-prompt__copy b { display: block; color: var(--text); font-size: 12px; }
+.atlas-install-prompt__copy p { margin: 3px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.atlas-install-prompt__dismiss { width: 34px; height: 34px; border: 0; border-radius: 9px; background: transparent; color: var(--subtle); font-size: 19px; }
+.atlas-install-prompt__actions { display: flex; gap: 8px; margin-top: 13px; }
+.atlas-install-prompt__actions button { min-height: 41px; flex: 1; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-raised); color: var(--text); font-size: 10px; font-weight: 700; }
+.atlas-install-prompt__actions button:first-child { border-color: transparent; background: var(--accent); color: #171710; }
+.atlas-install-guide-overlay { position: fixed; z-index: 90; inset: 0; display: grid; place-items: center; padding: 18px; background: rgba(0,0,0,.66); backdrop-filter: blur(10px); }
+.atlas-install-guide-card { position: relative; width: min(100%,430px); max-height: min(88svh,760px); overflow-y: auto; padding: 25px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); box-shadow: 0 24px 80px rgba(0,0,0,.38); }
+.atlas-install-guide-card h2 { margin: 10px 0 8px; color: var(--text); font: 650 25px/1.15 Manrope,sans-serif; letter-spacing: -.045em; }
+.atlas-install-guide-card>p { color: var(--muted); font-size: 12px; line-height: 1.7; }
+.atlas-install-guide-card ol { display: grid; gap: 11px; margin: 18px 0; padding: 0; list-style: none; counter-reset: install-step; }
+.atlas-install-guide-card li { display: flex; align-items: flex-start; gap: 11px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.atlas-install-guide-card li>span:first-child { display: grid; place-items: center; width: 28px; height: 28px; flex: none; border: 1px solid var(--line); border-radius: 9px; color: var(--accent-strong); }
+.atlas-install-guide-card li b { color: var(--text); }
+.atlas-install-guide-card__close { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-raised); color: var(--muted); }
+.atlas-install-guide-card__kicker { color: var(--accent); font: 700 9px Manrope,sans-serif; letter-spacing: .15em; }
+.atlas-install-guide-card__done { width: 100%; min-height: 45px; border: 0; border-radius: 11px; background: var(--accent); color: #171710; font-size: 11px; font-weight: 700; }
+
+
+/* Focus timer: place the timer card and its primary controls on the visual centreline. */
+.focus-room-only .execution-focus-panel { width:100%; max-width:900px; margin-inline:auto; justify-items:center; }
+.focus-room-only .execution-focus-card { width:100%; max-width:680px; margin-inline:auto; }
+.focus-room-only .execution-focus-card > .execution-panel-heading { justify-content:center; text-align:center; }
+.focus-room-only .execution-focus-card > .execution-panel-heading > div { width:100%; }
+.focus-room-only .execution-focus-card > .execution-panel-heading > svg { display:none; }
+.focus-room-only .execution-focus-context { text-align:center; justify-items:center; }
+.focus-room-only .execution-timer { width:100%; justify-items:center; text-align:center; }
+.focus-room-only .execution-timer-actions { justify-content:center; }
+.focus-room-only .execution-break-row { justify-content:center; flex-wrap:wrap; }
+.focus-room-only .execution-break-row > div { flex:0 1 auto; text-align:center; }
+.focus-room-only .execution-focus-links { width:100%; }
+.focus-room-only .execution-focus-card > .field,
+.focus-room-only .execution-focus-card > .execution-distractions { width:100%; }
+.focus-room-only .execution-history-card { width:100%; }
+@media(max-width:600px) {
+  .focus-room-only .execution-focus-card { max-width:100%; }
+  .focus-room-only .execution-focus-card > .execution-panel-heading { text-align:center; }
+  .focus-room-only .execution-timer-actions { display:grid; grid-template-columns:1fr 1fr; }
+  .focus-room-only .execution-timer-actions .button:first-child { grid-column:1/-1; }
+}
+
+
+/* Focus route uses the full workspace canvas; never leave the hidden task column empty. */
+.focus-room-only .execution-split {
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) !important;
+  width:100%;
+}
+.focus-room-only .execution-focus-panel {
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  justify-items:stretch;
+  grid-template-columns:minmax(0,1fr) !important;
+}
+.focus-room-only .execution-focus-card,
+.focus-room-only .execution-history-card {
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+}
+.focus-room-only .execution-focus-card {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  align-items:start;
+  column-gap:clamp(18px,3vw,36px);
+}
+.focus-room-only .execution-focus-card > .execution-panel-heading,
+.focus-room-only .execution-focus-card > .execution-focus-context,
+.focus-room-only .execution-focus-card > .execution-timer,
+.focus-room-only .execution-focus-card > .execution-presets,
+.focus-room-only .execution-focus-card > .execution-timer-actions,
+.focus-room-only .execution-focus-card > .execution-save-state,
+.focus-room-only .execution-focus-card > .execution-save-error,
+.focus-room-only .execution-focus-card > .execution-break-row {
+  grid-column:1/-1;
+}
+.focus-room-only .execution-focus-card > .execution-panel-heading { justify-content:center; }
+.focus-room-only .execution-focus-card > .execution-focus-links,
+.focus-room-only .execution-focus-card > .field,
+.focus-room-only .execution-focus-card > .execution-distractions { grid-column:auto; }
+.focus-room-only .execution-timer { padding-block:clamp(26px,4vw,48px); }
+@media(max-width:700px) {
+  .focus-room-only .execution-focus-card { grid-template-columns:minmax(0,1fr); }
+  .focus-room-only .execution-focus-card > .execution-focus-links,
+  .focus-room-only .execution-focus-card > .field,
+  .focus-room-only .execution-focus-card > .execution-distractions { grid-column:1/-1; }
+}
+
+
+/* Focus Timer refinement — balanced workspace, grouped controls, cleaner scan path. */
+.focus-room-only .execution-focus-panel {
+  width:100% !important;
+  max-width:1120px !important;
+  margin:0 auto !important;
+  justify-items:stretch;
+  gap:16px;
+}
+.focus-room-only .execution-focus-card {
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  display:grid;
+  grid-template-columns:minmax(0,1.08fr) minmax(280px,.92fr);
+  align-items:start;
+  column-gap:clamp(22px,3.2vw,42px);
+  row-gap:16px;
+  padding:clamp(22px,3vw,34px) !important;
+}
+.focus-room-only .execution-focus-card > .execution-panel-heading {
+  grid-column:1/-1;
+  justify-content:space-between;
+  text-align:left;
+  padding-bottom:4px;
+  border-bottom:1px solid var(--line-soft);
+}
+.focus-room-only .execution-focus-card > .execution-panel-heading > div { width:auto; }
+.focus-room-only .execution-focus-card > .execution-panel-heading > svg { display:block; color:var(--accent-strong); }
+.focus-room-only .execution-focus-context,
+.focus-room-only .execution-timer,
+.focus-room-only .execution-presets,
+.focus-room-only .execution-timer-actions,
+.focus-room-only .execution-break-row,
+.focus-room-only .execution-save-state,
+.focus-room-only .execution-save-error { grid-column:1; }
+.focus-room-only .execution-focus-context { text-align:left; justify-items:start; }
+.focus-room-only .execution-timer { min-height:170px; align-content:center; padding:20px 8px; }
+.focus-room-only .execution-timer>span { font-size:clamp(64px,8vw,94px); }
+.focus-room-only .execution-timer-actions { justify-content:flex-start; flex-wrap:wrap; }
+.focus-room-only .execution-break-row { justify-content:flex-start; }
+.focus-room-only .execution-break-row > div { text-align:left; }
+.focus-room-only .execution-focus-links,
+.focus-room-only .execution-focus-card > .field,
+.focus-room-only .execution-distractions { grid-column:2; }
+.focus-room-only .execution-focus-links { grid-row:2 / span 2; align-self:stretch; align-content:start; gap:14px; padding:14px; border:1px solid var(--line-soft); border-radius:12px; background:var(--surface); }
+.focus-room-only .execution-focus-card > .field { min-width:0; }
+.focus-room-only .execution-distractions { min-width:0; padding:14px; border:1px solid var(--line-soft); border-radius:12px; background:var(--surface); }
+.focus-room-only .execution-history-card { width:100% !important; max-width:none !important; margin:0 !important; }
+@media(max-width:760px) {
+  .focus-room-only .execution-focus-card {
+    grid-template-columns:minmax(0,1fr);
+    padding:18px !important;
+    row-gap:14px;
+  }
+  .focus-room-only .execution-focus-card > .execution-panel-heading,
+  .focus-room-only .execution-focus-context,
+  .focus-room-only .execution-timer,
+  .focus-room-only .execution-presets,
+  .focus-room-only .execution-timer-actions,
+  .focus-room-only .execution-break-row,
+  .focus-room-only .execution-save-state,
+  .focus-room-only .execution-save-error,
+  .focus-room-only .execution-focus-links,
+  .focus-room-only .execution-focus-card > .field,
+  .focus-room-only .execution-distractions { grid-column:1; grid-row:auto; }
+  .focus-room-only .execution-focus-card > .execution-panel-heading { justify-content:center; text-align:center; }
+  .focus-room-only .execution-focus-card > .execution-panel-heading > div { width:100%; }
+  .focus-room-only .execution-focus-card > .execution-panel-heading > svg { display:none; }
+  .focus-room-only .execution-focus-context { text-align:center; justify-items:center; }
+  .focus-room-only .execution-timer { min-height:130px; }
+  .focus-room-only .execution-timer-actions { justify-content:center; }
+  .focus-room-only .execution-break-row { justify-content:center; }
+  .focus-room-only .execution-break-row > div { text-align:center; }
+}
+
+/* Room 02 + focus history refinement: give each section breathing room and clear hierarchy. */
+.rhythm-page { gap:28px !important; }
+.rhythm-page > .rhythm-grid { gap:24px !important; }
+.rhythm-grid > .surface-card { display:grid; align-content:start; gap:18px; min-height:100%; padding:26px !important; border-radius:16px; }
+.rhythm-grid .module-panel-head { margin:0 0 2px; }
+.rhythm-grid .module-panel-head h2 { margin-top:5px; font-size:16px; }
+.rhythm-page .rhythm-prayer-list { gap:10px; margin-top:0; }
+.rhythm-page .rhythm-prayer-row { min-height:62px; gap:16px; padding:13px 15px; border:1px solid var(--line); border-radius:11px; background:var(--surface-raised); }
+.rhythm-page .rhythm-prayer-row b { font-size:12px; }
+.rhythm-page .rhythm-prayer-row small { margin-top:2px; font-size:10px; }
+.rhythm-page .rhythm-record-list { gap:10px; margin-top:0; }
+.rhythm-page .rhythm-record-row { min-height:54px; gap:12px; padding:12px 14px; border:1px solid var(--line); border-radius:11px; background:var(--surface-raised); }
+.rhythm-page .rhythm-record-row>div { gap:5px; }
+.rhythm-page .rhythm-record-row b { font-size:11px; line-height:1.45; }
+.rhythm-page .rhythm-record-row small { font-size:10px; line-height:1.6; }
+.rhythm-page .rhythm-record-status { width:30px; height:30px; border-radius:9px; }
+.rhythm-page .rhythm-check-row { gap:16px; padding:14px 2px; font-size:11px; line-height:1.5; }
+.rhythm-page .rhythm-check-row button { min-height:32px; padding:7px 11px; border-radius:8px; font-size:10px; }
+.rhythm-page .rhythm-stats { gap:10px; margin:4px 0 8px; }
+.rhythm-page .rhythm-stats>div { gap:7px; padding:14px; border-radius:11px; }
+.rhythm-page .rhythm-quran-layout { gap:22px; }
+.rhythm-page .rhythm-focus-link { margin-top:4px; padding-top:16px; }
+.rhythm-page .atlas-add-disclosure > form { margin-top:18px; }
+.rhythm-page .field { gap:9px; }
+.rhythm-page .field-input { min-height:46px; }
+.rhythm-page .field-input--area { min-height:112px; }
+.execution-history-list { display:grid; gap:10px !important; }
+.execution-history-list article { display:grid !important; grid-template-columns:36px minmax(0,1fr) auto; align-items:center !important; gap:14px !important; padding:15px 16px !important; border:1px solid var(--line) !important; border-radius:12px; background:var(--surface-raised) !important; }
+.execution-history-mark { width:36px !important; height:36px !important; border:1px solid var(--line); border-radius:10px !important; }
+.execution-history-list article>div { gap:6px !important; }
+.execution-history-list article b { color:var(--text); font-size:12px !important; font-weight:650; line-height:1.45; }
+.execution-history-list article small { color:var(--muted); font-size:10px !important; line-height:1.6 !important; overflow-wrap:anywhere; }
+.execution-history-list article p { margin-top:2px !important; color:var(--muted); font-size:10px !important; line-height:1.65 !important; }
+.execution-history-list article>strong { align-self:center; min-width:42px; padding:7px 9px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--accent-strong); font-size:11px !important; text-align:center; font-variant-numeric:tabular-nums; }
+@media(max-width:760px) {
+  .rhythm-grid > .surface-card { gap:15px; padding:19px !important; }
+  .rhythm-page .rhythm-prayer-row { min-height:56px; padding:11px 12px; }
+  .rhythm-page .rhythm-record-row { padding:11px 12px; }
+  .execution-history-list article { grid-template-columns:32px minmax(0,1fr) auto; gap:10px !important; padding:12px !important; }
+  .execution-history-mark { width:32px !important; height:32px !important; }
+}
+
+
+/* Room 02 vertical rhythm correction: restore real top/bottom breathing room. */
+.rhythm-page > .surface-card,
+.rhythm-page > .rhythm-grid > .surface-card {
+  padding-block: 32px !important;
+}
+.rhythm-page > .surface-card > .module-panel-head,
+.rhythm-page > .rhythm-grid > .surface-card > .module-panel-head {
+  margin-bottom: 4px;
+}
+.rhythm-page > .surface-card > .rhythm-record-list,
+.rhythm-page > .rhythm-grid > .surface-card > .rhythm-record-list,
+.rhythm-page > .surface-card > .rhythm-prayer-list,
+.rhythm-page > .rhythm-grid > .surface-card > .rhythm-prayer-list {
+  margin-block: 6px;
+}
+.rhythm-page > .surface-card > .rhythm-focus-link {
+  margin-top: 12px;
+}
+@media (max-width: 760px) {
+  .rhythm-page > .surface-card,
+  .rhythm-page > .rhythm-grid > .surface-card {
+    padding-block: 25px !important;
+  }
+}
+
+
+/* Daily Rhythm spacing: enforce vertical breathing room inside every panel. */
+.rhythm-page > .surface-card,
+.rhythm-page > .rhythm-grid > .surface-card {
+  box-sizing: border-box !important;
+  padding: 30px 30px !important;
+  display: grid;
+  align-content: start;
+  gap: 20px !important;
+}
+.rhythm-page > .rhythm-grid {
+  align-items: stretch;
+  gap: 26px !important;
+}
+.rhythm-page > .surface-card > .module-panel-head,
+.rhythm-page > .rhythm-grid > .surface-card > .module-panel-head {
+  margin: 0 0 4px !important;
+}
+.rhythm-page .rhythm-prayer-list,
+.rhythm-page .rhythm-record-list {
+  gap: 12px !important;
+  margin-block: 8px !important;
+}
+.rhythm-page .rhythm-prayer-row,
+.rhythm-page .rhythm-record-row {
+  padding-block: 14px !important;
+  min-height: 58px;
+}
+@media (max-width: 760px) {
+  .rhythm-page > .surface-card,
+  .rhythm-page > .rhythm-grid > .surface-card {
+    padding: 24px 20px !important;
+    gap: 16px !important;
+  }
+  .rhythm-page > .rhythm-grid { gap: 18px !important; }
+}
+
+/* Administration: compact, scannable section directory. */
+.admin-section-grid,
+.admin-faith-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.admin-section-link,
+.admin-faith-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+.admin-section-link:hover,
+.admin-faith-option:hover {
+  border-color: var(--accent);
+  background: var(--surface);
+  transform: translateY(-1px);
+}
+.admin-section-link > span:first-child,
+.admin-faith-option { display: grid; gap: 6px; }
+.admin-section-link b,
+.admin-faith-option b { font-size: 12px; font-weight: 650; }
+.admin-section-link small,
+.admin-faith-option small { color: var(--muted); font-size: 10px; line-height: 1.5; }
+.admin-section-link > span:last-child { color: var(--accent-strong); font-size: 16px; }
+.admin-faith-option > span { margin-top: 5px; color: var(--accent-strong); font-size: 10px; font-weight: 650; }
+@media (max-width: 680px) {
+  .admin-section-grid,
+  .admin-faith-grid { grid-template-columns: 1fr; }
+}
+
+
+/* Room 02 — spacious Deen layout pass (staging). */
+.rhythm-page {
+  width: 100%;
+  max-width: 1480px;
+  margin-inline: auto;
+  gap: 30px !important;
+}
+.rhythm-page > .rhythm-grid {
+  width: 100%;
+  gap: 24px !important;
+  align-items: stretch;
+}
+.rhythm-page > .rhythm-grid > .surface-card,
+.rhythm-page > .surface-card {
+  min-width: 0;
+  padding: 28px !important;
+  border-radius: 16px;
+}
+.rhythm-page .module-panel-head {
+  margin-bottom: 6px !important;
+  gap: 14px;
+}
+.rhythm-page .module-intro {
+  margin-bottom: 8px;
+  line-height: 1.7;
+}
+.rhythm-page .rhythm-prayer-list,
+.rhythm-page .rhythm-record-list {
+  display: grid;
+  gap: 12px !important;
+  margin-top: 4px;
+}
+.rhythm-page .rhythm-prayer-row {
+  min-height: 64px;
+  padding: 14px 16px !important;
+  gap: 16px;
+}
+.rhythm-page .rhythm-record-row {
+  min-height: 58px;
+  padding: 14px 16px !important;
+  gap: 14px;
+}
+.rhythm-page .rhythm-check-row {
+  min-height: 56px;
+  padding: 14px 4px !important;
+  gap: 18px;
+  line-height: 1.65;
+}
+.rhythm-page .rhythm-check-row + .rhythm-check-row {
+  border-top: 1px solid var(--line-soft);
+}
+.rhythm-page .rhythm-stats {
+  gap: 14px !important;
+  margin: 8px 0 12px !important;
+}
+.rhythm-page .rhythm-stats > div {
+  min-height: 78px;
+  padding: 16px 18px !important;
+}
+.rhythm-page .rhythm-quran-layout {
+  gap: 24px !important;
+}
+.rhythm-page .rhythm-focus-link {
+  margin-top: 18px !important;
+  padding-top: 18px !important;
+}
+.rhythm-page .atlas-add-disclosure > summary {
+  padding-block: 10px;
+}
+.rhythm-page .rhythm-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+@media (min-width: 1200px) {
+  .rhythm-page > .rhythm-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .rhythm-page { gap: 20px !important; }
+  .rhythm-page > .rhythm-grid { gap: 16px !important; }
+  .rhythm-page > .rhythm-grid > .surface-card,
+  .rhythm-page > .surface-card { padding: 20px !important; }
+  .rhythm-page .rhythm-check-row { align-items: flex-start; }
+}
+
+
+/* Room 02 layout fix: Cascade inserts .atlas-cascade-item between the page
+   stack and each authored section. Use descendant selectors so every nested
+   Deen/Faith card receives the same spacing scale. */
+.rhythm-page {
+  gap: 24px !important;
+}
+.rhythm-page .rhythm-grid {
+  width: 100%;
+  gap: 24px !important;
+  align-items: stretch;
+}
+.rhythm-page .surface-card {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 22px 24px !important;
+  display: grid;
+  align-content: start;
+  gap: 18px !important;
+  border-radius: 16px;
+}
+.rhythm-page .module-panel-head {
+  margin: 0 0 2px !important;
+}
+.rhythm-page .rhythm-prayer-list,
+.rhythm-page .rhythm-record-list {
+  display: grid;
+  gap: 12px !important;
+  margin-block: 4px !important;
+}
+.rhythm-page .rhythm-prayer-row {
+  min-height: 62px;
+  padding: 14px 16px !important;
+  gap: 16px !important;
+}
+.rhythm-page .rhythm-record-row {
+  min-height: 56px;
+  padding: 14px 16px !important;
+  gap: 14px !important;
+}
+.rhythm-page .rhythm-check-row {
+  min-height: 56px;
+  padding: 15px 4px !important;
+  gap: 18px !important;
+  line-height: 1.65;
+}
+.rhythm-page .rhythm-check-row + .rhythm-check-row {
+  border-top: 1px solid var(--line-soft);
+}
+.rhythm-page .rhythm-stats {
+  gap: 14px !important;
+  margin: 8px 0 12px !important;
+}
+.rhythm-page .rhythm-stats > div {
+  min-height: 78px;
+  padding: 16px 18px !important;
+}
+.rhythm-page .rhythm-quran-layout {
+  gap: 20px !important;
+}
+.rhythm-page .form-stack,
+.rhythm-page .rhythm-inline-form {
+  gap: 18px !important;
+}
+.rhythm-page .field-row {
+  gap: 16px !important;
+}
+.rhythm-page .field {
+  gap: 9px !important;
+}
+.rhythm-page .rhythm-focus-link {
+  margin-top: 12px !important;
+  padding-top: 18px !important;
+}
+.rhythm-page .atlas-add-disclosure > form {
+  margin-top: 16px !important;
+}
+@media (max-width: 760px) {
+  .rhythm-page {
+    gap: 20px !important;
+  }
+  .rhythm-page .rhythm-grid {
+    gap: 18px !important;
+  }
+  .rhythm-page .surface-card {
+    padding: 20px !important;
+    gap: 16px !important;
+  }
+  .rhythm-page .rhythm-prayer-row,
+  .rhythm-page .rhythm-record-row {
+    padding: 12px 14px !important;
+  }
+  .rhythm-page .form-stack,
+  .rhythm-page .rhythm-inline-form,
+  .rhythm-page .field-row {
+    gap: 16px !important;
+  }
+}
+
+
+/* Daily Rhythm — Cascade-aware spacing system (staging). */
+.stack:has(> .atlas-cascade-item) {
+  display: flex;
+  flex-direction: column;
+  gap: 24px !important;
+}
+.stack:has(> .atlas-cascade-item) > .atlas-cascade-item {
+  width: 100%;
+  min-width: 0;
+}
+.rhythm-page {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 24px !important;
+  width: 100%;
+}
+.rhythm-page > .atlas-cascade-item {
+  width: 100%;
+  min-width: 0;
+}
+.rhythm-page .rhythm-intro {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  min-width: 0;
+  padding: 24px !important;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(110deg, var(--surface), var(--surface-raised));
+}
+.rhythm-page .rhythm-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)) !important;
+  gap: 24px !important;
+  width: 100%;
+  align-items: stretch;
+}
+.rhythm-page .surface-card {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 24px !important;
+  display: flex;
+  flex-direction: column;
+  align-content: start;
+  gap: 18px !important;
+  border-radius: 16px;
+}
+.rhythm-page .module-panel-head {
+  margin: 0 !important;
+  gap: 14px;
+}
+.rhythm-page .module-intro {
+  margin: 0 !important;
+  line-height: 1.7;
+}
+.rhythm-page .rhythm-prayer-list,
+.rhythm-page .rhythm-record-list {
+  display: grid;
+  gap: 12px !important;
+  margin: 0 !important;
+}
+.rhythm-page .rhythm-prayer-row,
+.rhythm-page .rhythm-record-row {
+  box-sizing: border-box;
+  padding: 12px 14px !important;
+  gap: 14px !important;
+}
+.rhythm-page .rhythm-stats {
+  gap: 16px !important;
+  margin: 16px 0 !important;
+}
+.rhythm-page .rhythm-quran-layout {
+  gap: 16px !important;
+}
+.rhythm-page .rhythm-focus-link {
+  margin-top: 20px !important;
+  padding-top: 16px !important;
+}
+.rhythm-page .rhythm-check-row {
+  padding-block: 14px !important;
+}
+@media (max-width: 760px) {
+  .stack:has(> .atlas-cascade-item) { gap: 20px !important; }
+  .rhythm-page { gap: 20px !important; }
+  .rhythm-page .rhythm-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 18px !important;
+  }
+  .rhythm-page .surface-card { padding: 20px !important; gap: 16px !important; }
+  .rhythm-page .rhythm-intro {
+    align-items: flex-start;
+    padding: 20px !important;
+  }
+  .rhythm-page .rhythm-stats { gap: 12px !important; }
+}

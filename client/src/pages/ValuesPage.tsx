@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, Check, HeartHandshake, MoonStar, Plus, RotateCcw, Sparkles, Timer } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../auth/AuthProvider';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
 import { Cascade } from '../components/Cascade';
@@ -19,6 +20,8 @@ function dateKey() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa
 
 export function ValuesPage() {
   const client = useQueryClient();
+  const { role } = useAuth();
+  const [searchParams] = useSearchParams();
   const date = dateKey();
   const [activity, setActivity] = useState('memorisation');
   const [surah, setSurah] = useState('');
@@ -44,12 +47,14 @@ export function ValuesPage() {
   const [intercessionDetail, setIntercessionDetail] = useState('');
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Settings>('/settings') });
   const religion = settings.data?.faith_tradition || settings.data?.religion || 'none';
-  const tradition = religion === 'islam' || religion === 'christianity' ? religion : 'general';
+  const requestedTradition = searchParams.get('tradition');
+  const adminPreview = role === 'admin' && ['islam','christianity','general'].includes(requestedTradition || '') ? requestedTradition : null;
+  const tradition = adminPreview || (religion === 'islam' || religion === 'christianity' ? religion : 'general');
   const deen = useQuery({ queryKey: ['deen', date], queryFn: () => api<Deen>('/deen/summary?date=' + date), enabled: tradition === 'islam' });
   const quranLogs = useQuery({ queryKey: ['quran-logs'], queryFn: () => api<QuranLog[]>('/deen/quran'), enabled: tradition === 'islam' });
   const records = useQuery({ queryKey: ['rhythm-records', date], queryFn: () => api<RhythmRecord[]>('/rhythm/records?date=' + date) });
   const createRecord = useMutation({
-    mutationFn: (entry: { record_type: string; title: string; detail?: string; status?: RhythmRecord['status']; record_date?: string }) => api<RhythmRecord>('/rhythm/records', json('POST', { record_date: date, status: 'completed', ...entry })),
+    mutationFn: (entry: { record_type: string; title: string; detail?: string; status?: RhythmRecord['status']; record_date?: string }) => api<RhythmRecord>('/rhythm/records', json('POST', { record_date: date, status: 'completed', ...entry, ...(adminPreview ? { admin_tradition: adminPreview } : {}) })),
     onSuccess: () => { void client.invalidateQueries({ queryKey: ['rhythm-records', date] }); void client.invalidateQueries({ queryKey: ['rhythm-summary'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });
   const updateRecord = useMutation({
@@ -78,7 +83,7 @@ export function ValuesPage() {
   return <Cascade className="stack rhythm-page">
     <PageHeader eyebrow="ROOM 02 / DAILY RHYTHM" title={tradition === 'islam' ? 'Deen & Reflection' : tradition === 'christianity' ? 'Faith & Devotion' : 'Clarity & Reflection'} description="A private place to record the practices and reflections that give your day its rhythm."/>
     {tradition === 'islam' && <>
-      <section className="rhythm-intro"><div><span className="eyebrow">DEEN · DAILY PRACTICE</span><h2>Return to what matters.</h2><p>Record the five prayers, Qur’an work and optional acts of worship. A plan is not a completed act; keep the distinction honest.</p></div><div className="rhythm-intro-stat"><b>{prayerCount}/5</b><small>SALAH RECORDED</small></div></section>
+      <section className="rhythm-intro surface-card"><div><span className="eyebrow">DEEN · DAILY PRACTICE</span><h2>Return to what matters.</h2><p>Record the five prayers, Qur’an work and optional acts of worship. A plan is not a completed act; keep the distinction honest.</p></div><div className="rhythm-intro-stat"><b>{prayerCount}/5</b><small>SALAH RECORDED</small></div></section>
       <div className="rhythm-grid">
         <Card><div className="module-panel-head"><div><span className="module-kicker">THE FIVE DAILY PRAYERS</span><h2>Salah record</h2></div><MoonStar size={18}/></div><p className="module-intro">Choose whether each prayer was completed on time, made up (qada), or is not yet recorded.</p>
           <div className="rhythm-prayer-list">{(deen.data?.prayers || prayerNames.map(prayer => ({prayer,completed:0,on_time:0}))).map(item => <div className="rhythm-prayer-row" key={item.prayer}><div><b>{item.prayer}</b><small>{!item.completed ? 'Not recorded' : item.on_time ? 'Completed on time' : 'Completed as qada'}</small></div><select aria-label={item.prayer + ' status'} value={!item.completed ? 'pending' : item.on_time ? 'on_time' : 'qada'} onChange={event => setPrayerStatus(item,event.target.value)}><option value="pending">Not recorded</option><option value="on_time">On time</option><option value="qada">Qada</option></select></div>)}</div>
@@ -111,7 +116,7 @@ export function ValuesPage() {
       </div>
     </>}
     {tradition === 'christianity' && <>
-      <section className="rhythm-intro"><div><span className="eyebrow">FAITH · DAILY PRACTICE</span><h2>Make room for devotion.</h2><p>Plan your prayer rhythm, record Scripture and keep a living list of people and needs you are praying for.</p></div><div className="rhythm-intro-stat"><b>{recordList(['prayer_rhythm','bible_reading','scripture_memory','sermon_note','pray_reflection']).filter(item=>item.status==='completed').length}</b><small>COMPLETED TODAY</small></div></section>
+      <section className="rhythm-intro surface-card"><div><span className="eyebrow">FAITH · DAILY PRACTICE</span><h2>Make room for devotion.</h2><p>Plan your prayer rhythm, record Scripture and keep a living list of people and needs you are praying for.</p></div><div className="rhythm-intro-stat"><b>{recordList(['prayer_rhythm','bible_reading','scripture_memory','sermon_note','pray_reflection']).filter(item=>item.status==='completed').length}</b><small>COMPLETED TODAY</small></div></section>
       <Card><div className="module-panel-head"><div><span className="module-kicker">DAILY PRAYER RHYTHM</span><h2>Pause, pray, return.</h2></div><HeartHandshake size={18}/></div>
         <div className="rhythm-prayer-list">{prayerRhythm.map(title=>{const item=recordsFor('prayer_rhythm').find(row=>row.title===title);return <div className="rhythm-prayer-row" key={title}><div><b>{title}</b><small>{item?.status==='completed'?'Completed':item?.status==='planned'?'Planned':'Not planned'}</small></div>{!item ? <button type="button" onClick={()=>add('prayer_rhythm',title,'', 'planned')}>Plan</button> : <button type="button" className={item.status==='completed'?'is-complete':''} onClick={()=>updateRecord.mutate({id:item.id,status:item.status==='completed'?'planned':'completed'})}>{item.status==='completed'?'Completed · Undo':item.status==='planned'?'Mark complete':'Plan'}</button>}</div>;})}</div>
       </Card>
@@ -130,7 +135,7 @@ export function ValuesPage() {
       <Card><div className="module-panel-head"><div><span className="module-kicker">P-R-A-Y REFLECTION</span><h2>Pause · Rejoice · Ask · Yield</h2></div></div><details className="atlas-add-disclosure"><summary>+ Add record</summary><form className="form-stack" onSubmit={event=>{event.preventDefault();if(pray.trim())add('pray_reflection','P-R-A-Y reflection',pray);setPray('');}}><Field label="TODAY’S REFLECTION"><TextArea value={pray} onChange={event=>setPray(event.target.value)} rows={4} placeholder="What are you rejoicing in, asking for, and yielding today?"/></Field><Button type="submit" disabled={!pray.trim()||createRecord.isPending}>Save reflection</Button></form></details>{recordList(['pray_reflection']).map(item=>recordRow(item))}<div className="rhythm-focus-link"><span>Set aside a quiet devotional block.</span><Link className="button button--secondary" to="/focus?focus=Devotional%20Focus"><Timer size={14}/> Start Devotional Focus</Link></div></Card>
     </>}
     {tradition === 'general' && <>
-      <section className="rhythm-intro"><div><span className="eyebrow">CLARITY · DAILY PRACTICE</span><h2>Choose what deserves your attention.</h2><p>Keep a simple record of intention, useful ideas and an honest evening review.</p></div><div className="rhythm-intro-stat"><b>{recordList(['daily_intention','wisdom_note','evening_reflection']).length}</b><small>RECORDS TODAY</small></div></section>
+      <section className="rhythm-intro surface-card"><div><span className="eyebrow">CLARITY · DAILY PRACTICE</span><h2>Choose what deserves your attention.</h2><p>Keep a simple record of intention, useful ideas and an honest evening review.</p></div><div className="rhythm-intro-stat"><b>{recordList(['daily_intention','wisdom_note','evening_reflection']).length}</b><small>RECORDS TODAY</small></div></section>
       <div className="rhythm-grid">
         <Card><div className="module-panel-head"><div><span className="module-kicker">DAILY INTENTION</span><h2>What matters today?</h2></div></div><details className="atlas-add-disclosure"><summary>+ Add record</summary><form className="form-stack" onSubmit={event=>{event.preventDefault();if(intention.trim())add('daily_intention','Daily intention',intention,'planned');setIntention('');}}><Field label="ONE CLEAR INTENTION"><TextArea value={intention} onChange={event=>setIntention(event.target.value)} rows={3} placeholder="What deserves your best attention today?"/></Field><Button type="submit" disabled={!intention.trim()||createRecord.isPending}>Save intention</Button></form></details>{recordList(['daily_intention']).map(item=>recordRow(item))}</Card>
         <Card><div className="module-panel-head"><div><span className="module-kicker">WISDOM & READING NOTES</span><h2>Keep what you learn.</h2></div><BookOpen size={18}/></div><details className="atlas-add-disclosure"><summary>+ Add record</summary><form className="form-stack" onSubmit={event=>{event.preventDefault();if(wisdom.trim())add('wisdom_note',quickTitle.trim()||'Reading note',wisdom);setWisdom('');setQuickTitle('');}}><Field label="SOURCE / TITLE"><TextInput value={quickTitle} onChange={event=>setQuickTitle(event.target.value)} placeholder="Book, article or idea"/></Field><Field label="NOTE"><TextArea value={wisdom} onChange={event=>setWisdom(event.target.value)} rows={3} placeholder="What is worth remembering?"/></Field><Button type="submit" disabled={!wisdom.trim()||createRecord.isPending}>Save note</Button></form></details>{recordList(['wisdom_note']).map(item=>recordRow(item))}</Card>

@@ -57,7 +57,7 @@ export function AuthPage() {
         <span className="eyebrow">A PRIVATE OPERATING SYSTEM</span>
         <h1>Make room for<br /><em>what matters.</em></h1>
         <p>A quieter place to think clearly, move with intention, and build a life that feels like yours.</p>
-        <div className="auth-principle"><span className="auth-principle__icon"><Compass size={16} strokeWidth={1.8} /></span><span>Direction before distraction.</span></div>
+        <div className="auth-principle"><span className="auth-principle__icon" aria-hidden="true"><Compass size={16} strokeWidth={1.8} /></span><span>Direction before distraction.</span></div>
       </div>
       <div className="auth-footnote">YOUR SPACE. YOUR PACE. YOUR DIRECTION.</div>
     </div>

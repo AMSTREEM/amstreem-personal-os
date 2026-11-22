@@ -47,7 +47,7 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
   return <label className="field"><span className="field__label">{label}</span>{children}{hint && <span className="field__hint">{hint}</span>}</label>;
 }
 export function EmptyState({ title, detail }: { title: string; detail: string }) {
-  return <div className="empty-state"><span className="empty-state__mark"><Inbox size={20} strokeWidth={1.7} /></span><h3>{title}</h3><p>{detail}</p></div>;
+  return <div className="empty-state"><span className="empty-state__mark" aria-hidden="true"><Inbox size={20} strokeWidth={1.7} /></span><h3>{title}</h3><p>{detail}</p></div>;
 }
 export function Stat({ label, value, note, icon }: { label: string; value: string | number; note?: string; icon?: ReactNode }) {
   return <div className="stat-card"><div className="stat-card__top"><span>{label}</span>{icon && <span className="stat-card__icon">{icon}</span>}</div><strong>{value}</strong>{note && <small>{note}</small>}</div>;
