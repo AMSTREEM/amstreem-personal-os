@@ -2851,3 +2851,134 @@ input, select, textarea { min-width: 0; }
 }
 .focus-room-only .execution-focus-card { width: 100%; }
 .focus-room-only .execution-history-card { width: 100%; }
+
+
+/* ATLAS SPATIAL ARCHITECTURE — executive-grade room silhouettes */
+:root{--atlas-room-gap:28px;--atlas-title-size:clamp(28px,2.5vw,32px);--atlas-copy-size:15px}
+.page-header h1,.execution-heading h1,.growth-section-heading h2{font-size:var(--atlas-title-size);letter-spacing:-.025em}
+.page-header p,.execution-heading p,.growth-section-heading p{font-size:var(--atlas-copy-size);line-height:1.7}
+.page-container{padding-top:38px}
+.surface-card,.stat-card{box-shadow:none}
+.surface-card{border-color:color-mix(in srgb,var(--line) 72%,transparent)}
+.stat-card strong,.residence-stat>strong,.execution-heading-stat b{font-variant-numeric:tabular-nums}
+
+/* Room 01 — asymmetric command grid */
+.today-dashboard{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(290px,1fr);align-items:start;gap:var(--atlas-room-gap)}
+.today-dashboard>.residence-band--orientation{grid-column:1;grid-row:1;gap:18px}
+.today-dashboard>.residence-band--overview{grid-column:2;grid-row:1;gap:18px;align-content:start}
+.today-dashboard>.residence-band--execution{grid-column:1/-1;grid-row:2;gap:20px}
+.residence-band--orientation .page-header{align-items:flex-start}
+.residence-band--orientation .page-header h1{font-size:clamp(30px,3vw,38px);letter-spacing:-.04em}
+.residence-rhythm{min-height:150px;display:flex;align-items:flex-end;padding:24px;border:0;border-left:2px solid var(--accent);border-radius:0;background:linear-gradient(115deg,var(--surface),transparent)}
+.residence-rhythm h2{font-size:clamp(24px,2.7vw,34px);letter-spacing:-.045em}
+.residence-rhythm p{font-size:13px;line-height:1.7}
+.residence-rhythm-action,.residence-carryforward{padding:17px 0;border:0;border-top:1px solid var(--line);border-radius:0;background:transparent}
+.residence-band--overview .residence-band-heading{display:block}
+.residence-band--overview .residence-band-heading p{max-width:340px;text-align:left}
+.residence-pillar-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.residence-pillar{border:0;border-bottom:1px solid var(--line-soft);border-radius:0;background:transparent;padding:12px 5px}
+.residence-pulse{display:grid;grid-template-columns:1fr;gap:14px;padding:18px 0;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0;background:transparent!important}
+.residence-pulse__score{position:relative;isolation:isolate;min-height:104px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding-left:124px}
+.residence-pulse__score:before{content:"";position:absolute;z-index:-1;left:0;top:50%;width:96px;aspect-ratio:1;transform:translateY(-50%);border-radius:50%;background:conic-gradient(var(--accent) var(--pulse-score,0%),var(--line-soft) 0);mask:radial-gradient(farthest-side,transparent calc(100% - 5px),#000 calc(100% - 4px))}
+.residence-pulse__score>span:first-child{font-size:clamp(30px,3vw,40px);font-variant-numeric:tabular-nums;letter-spacing:-.05em}
+.residence-pulse__dimensions{gap:13px}
+.residence-dimension{padding:0 0 11px;border-bottom:1px solid var(--line-soft)}
+.residence-dimension b{font-variant-numeric:tabular-nums}
+.residence-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.residence-stat{min-height:0;border:0;border-top:1px solid var(--line);border-radius:0;background:transparent;padding:14px 4px}
+.residence-grid{grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr);gap:var(--atlas-room-gap)}
+.residence-main-column,.residence-side-column{gap:var(--atlas-room-gap)}
+.residence-pinned-priorities,.residence-faith-card,.today-habits-card,.today-tasks-card,.residence-focus-card,.residence-goals-card,.residence-shutdown-card{border:0;border-top:1px solid var(--line);border-radius:0;background:transparent;padding:22px 0}
+.residence-pinned-row{border-bottom:1px solid var(--line-soft)}
+.residence-side-column .residence-focus-card{border-top:0;padding-top:0}
+.residence-band--execution>#evening-shutdown{grid-column:1/-1}
+.residence-shutdown-card{border-bottom:1px solid var(--line)}
+@media(max-width:1050px){.today-dashboard{grid-template-columns:minmax(0,1fr)}.today-dashboard>.residence-band--orientation,.today-dashboard>.residence-band--overview,.today-dashboard>.residence-band--execution{grid-column:1;grid-row:auto}.residence-band--overview{grid-template-columns:repeat(2,minmax(0,1fr))}.residence-band--overview>.residence-band-heading{grid-column:1/-1}}
+@media(max-width:760px){.today-dashboard{gap:20px}.residence-grid{grid-template-columns:1fr}.residence-band--overview{grid-template-columns:1fr}.residence-pillar-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Room 02 — centered editorial sanctuary */
+.daily-rhythm-sanctuary{width:min(100%,840px);margin:0 auto;gap:28px}
+.daily-rhythm-sanctuary>.page-header{margin-bottom:0;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.daily-rhythm-sanctuary .surface-card,.daily-rhythm-sanctuary .module-card{border:0;border-bottom:1px solid var(--line-soft);border-radius:0;background:transparent;box-shadow:none;padding:22px 0}
+.daily-rhythm-sanctuary .module-panel-head h2,.daily-rhythm-sanctuary .card-heading h2{font-size:18px;letter-spacing:-.025em}
+.daily-rhythm-sanctuary p,.daily-rhythm-sanctuary label{font-size:13px;line-height:1.7}
+.daily-rhythm-sanctuary .rhythm-grid,.daily-rhythm-sanctuary .rhythm-practice-grid{gap:28px}
+.daily-rhythm-sanctuary .atlas-add-disclosure{border-top:1px solid var(--line-soft)}
+.daily-rhythm-sanctuary .atlas-add-disclosure>summary{padding:14px 0}
+
+/* Room 03 — Linear-inspired master/detail task workspace */
+.execution-projects-layout{grid-template-columns:minmax(0,1fr)}
+.execution-projects-panel{min-width:0}
+.execution-projects-panel>.execution-panel-card{border:0;border-radius:0;background:transparent;padding:0}
+.execution-task-list{border-top:1px solid var(--line)}
+.execution-task{padding:15px 4px;border:0;border-bottom:1px solid var(--line-soft);border-radius:0;background:transparent;transition:background .16s}
+.execution-task:hover,.execution-task.is-selected{background:color-mix(in srgb,var(--surface-raised) 62%,transparent)}
+.execution-task-main{gap:13px}
+.execution-task-copy b{font-size:13px}
+.execution-task-meta{font-size:10px}
+.execution-task-inspector{position:sticky;top:22px;align-self:start;min-width:0;padding:22px;border-left:1px solid var(--line);background:linear-gradient(150deg,var(--surface),transparent 85%);min-height:420px}
+.execution-split.has-task-inspector{grid-template-columns:minmax(0,1.45fr) minmax(300px,.75fr);gap:24px}
+.execution-inspector-top,.execution-inspector-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.execution-inspector-title{padding:24px 0 18px;border-bottom:1px solid var(--line-soft)}
+.execution-inspector-title h2{margin:12px 0 8px;font:650 23px/1.2 Manrope,sans-serif;letter-spacing:-.04em;overflow-wrap:anywhere}
+.execution-inspector-title p{margin:0;color:var(--muted);font-size:13px;line-height:1.7}
+.execution-inspector-meta{display:flex;flex-wrap:wrap;gap:7px;padding:14px 0;border-bottom:1px solid var(--line-soft)}
+.execution-inspector-meta span{color:var(--muted);font-size:10px}
+.execution-inspector-meta span+span:before{content:"·";margin-right:7px;color:var(--subtle)}
+.execution-inspector-section{padding:20px 0}
+.execution-inspector-heading b{font-size:13px}
+.execution-inspector-heading small{color:var(--muted);font-size:10px}
+.execution-inspector-subtask{display:flex;align-items:center;gap:9px;padding:11px 0;border-bottom:1px solid var(--line-soft);color:var(--text);font-size:12px}
+.execution-inspector-subtask input{accent-color:var(--accent)}
+.execution-inspector-add{margin-top:14px}
+.execution-inspector-actions{display:grid;gap:9px}
+.execution-project-metrics{margin-top:16px}
+@media(max-width:900px){.execution-split.has-task-inspector{grid-template-columns:1fr}.execution-task-inspector{position:relative;top:auto;border-left:0;border-top:1px solid var(--line);min-height:0}}
+@media(max-width:560px){.execution-task-inspector{padding:18px 0}.execution-inspector-title h2{font-size:20px}}
+
+/* Focus Room — minimalist chronograph */
+.focus-room-layout{grid-template-columns:minmax(0,1fr);justify-items:center}
+.focus-room-layout>.execution-focus-panel{width:min(100%,880px);display:grid;grid-template-columns:minmax(0,1fr);gap:22px}
+.execution-focus-card{border:0;border-radius:0;background:transparent;padding:0}
+.execution-focus-card>.execution-panel-heading{justify-content:center;text-align:center}
+.execution-focus-card>.execution-panel-heading>svg{display:none}
+.execution-focus-context{text-align:center;border:0;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);border-radius:0;background:transparent;padding:16px}
+.execution-focus-context b{font-size:15px}
+.execution-timer{position:relative;width:min(100%,340px);aspect-ratio:1;margin:24px auto 20px;display:grid;place-items:center}
+.execution-timer-ring{position:absolute;inset:0;width:100%;height:100%;overflow:visible;transform:rotate(-90deg)}
+.execution-timer-ring circle{fill:none;stroke-width:2}
+.execution-timer-ring__track{stroke:var(--line)}
+.execution-timer-ring__progress{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset .4s linear}
+.execution-timer-readout{display:grid;justify-items:center;gap:8px}
+.execution-timer-readout>span{font:500 clamp(64px,9vw,88px)/1 "JetBrains Mono",monospace;font-variant-numeric:tabular-nums;letter-spacing:-.075em}
+.execution-timer-readout>small{color:var(--accent);font:600 9px Manrope,sans-serif;letter-spacing:.2em}
+.execution-presets{justify-content:center;gap:9px}
+.execution-timer-actions{justify-content:center;gap:10px}
+.execution-break-row,.execution-focus-links,.execution-distractions{max-width:720px;margin:18px auto}
+.execution-focus-links{width:100%}
+.execution-focus-card>.field{max-width:720px;margin:18px auto}
+.execution-history-card{width:100%;border:0;border-top:1px solid var(--line);border-radius:0;background:transparent;padding:22px 0}
+.execution-history-list article{border-bottom:1px solid var(--line-soft)}
+@media(max-width:560px){.execution-timer{width:min(100%,280px)}.execution-timer-readout>span{font-size:64px}.execution-timer-actions{flex-wrap:wrap}}
+
+/* Room 04 — executive horizon, two-column evidence surfaces */
+.growth-horizon-layout{gap:30px}
+.growth-horizon-layout .growth-view-section{min-width:0}
+.growth-horizon-layout .growth-section-heading{margin-bottom:20px}
+.growth-horizon-layout .growth-section-heading h2{font-size:25px;letter-spacing:-.035em}
+.growth-horizon-layout .growth-view-section:first-child .stack{gap:16px}
+.growth-horizon-layout .growth-view-section:first-child .stack>.surface-card,.growth-horizon-layout .growth-view-section:first-child .stack>.room4-card{border:0;border-bottom:1px solid var(--line-soft);border-radius:0;background:transparent;box-shadow:none;padding:20px 0}
+.growth-horizon-layout .goal-grid,.growth-horizon-layout .library-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.growth-horizon-layout .goal-card,.growth-horizon-layout .note-card{border:0;border-top:1px solid var(--line);border-radius:0;background:transparent;padding:20px 0}
+.growth-horizon-layout .goal-progress-track,.growth-horizon-layout .room4-progress>span{height:6px;border-radius:0;background:var(--line-soft)}
+.growth-horizon-layout .goal-progress-track>span,.growth-horizon-layout .room4-progress i{border-radius:0}
+.growth-horizon-layout .room4-resource-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 22px}
+.growth-horizon-layout .room4-resource{border:0;border-top:1px solid var(--line-soft);border-radius:0;background:transparent;padding:16px 0}
+.growth-horizon-layout .room4-path-card{border:0;border-top:1px solid var(--line);border-radius:0;background:transparent;padding:20px 0}
+@media(min-width:1100px){.growth-horizon-layout .growth-view-section:first-child .stack{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.growth-horizon-layout .growth-view-section:first-child .stack>.surface-card:first-child{grid-column:1/-1}}
+@media(max-width:760px){.growth-horizon-layout .goal-grid,.growth-horizon-layout .library-grid,.growth-horizon-layout .room4-resource-list{grid-template-columns:1fr}.growth-horizon-layout{gap:24px}}
+
+/* Shared typography, whitespace and interaction polish */
+.card-heading h2,.module-panel-head h2{font-size:16px;letter-spacing:-.02em}
+.list-row{border-color:var(--line-soft)}
+@media(prefers-reduced-motion:reduce){.execution-timer-ring__progress{transition:none}}
