@@ -1813,7 +1813,7 @@ body,.app-frame,.main-area { background: var(--bg-canvas); }
 .atlas-dock-action:hover { color: var(--text); background: var(--accent-wash); border-color: var(--line); }
 .atlas-dock-action kbd { padding: 3px 5px; border: 1px solid var(--line); border-radius: 5px; color: var(--subtle); font: 500 9px "JetBrains Mono",monospace; }
 .atlas-dock-focus { display: flex; align-items: center; min-width: 0; border-radius: 11px; }
-.atlas-dock-focus.is-expanded { padding-left: 2px; background: var(--accent-wash); }
+.atlas-dock-focus.is-expanded { padding-left: 2px; background: transparent; }
 .atlas-dock-focus__open strong { color: var(--accent-strong); font: 600 10px "JetBrains Mono",monospace; font-variant-numeric: tabular-nums; }
 .atlas-dock-focus__detail { min-width: 0; max-width: 250px; display: flex; align-items: center; gap: 9px; padding: 0 8px 0 2px; }
 .atlas-dock-focus__detail>span { overflow: hidden; max-width: 150px; color: var(--muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
@@ -3711,7 +3711,7 @@ input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
 .atlas-odometer-number__stack { display:flex; flex-direction:column; line-height:1; will-change:transform; }
 .atlas-odometer-number__stack > span { height:1em; flex:none; }
 .atlas-command-dock { position:relative; isolation:isolate; }
-.atlas-command-dock::before { content:""; position:absolute; inset:0; z-index:0; pointer-events:none; border-radius:inherit; background:var(--surface); opacity:.9; filter:url(#atlas-gooey); }
+.atlas-command-dock::before { content:""; position:absolute; inset:-3px; z-index:0; pointer-events:none; border-radius:inherit; opacity:.9; background:radial-gradient(ellipse 19% 74% at 12% 50%,var(--bg-elevated,var(--surface)) 0 68%,transparent 75%),radial-gradient(ellipse 19% 74% at 37% 50%,var(--bg-elevated,var(--surface)) 0 68%,transparent 75%),radial-gradient(ellipse 31% 74% at 64% 50%,color-mix(in srgb,var(--accent-wash) 78%,var(--bg-elevated,var(--surface))) 0 68%,transparent 75%),radial-gradient(ellipse 19% 74% at 89% 50%,var(--bg-elevated,var(--surface)) 0 68%,transparent 75%); filter:url(#atlas-gooey); }
 .atlas-command-dock > * { position:relative; z-index:1; }
 .atlas-gooey-defs { position:absolute; pointer-events:none; }
 .atlas-spark-burst { position:fixed; inset:0; width:100vw; height:100vh; z-index:9999; pointer-events:none; }
