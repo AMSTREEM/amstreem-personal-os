@@ -87,7 +87,7 @@ export function GoalsPage() {
     <div className="goal-grid">
       {goals.data?.length ? goals.data.map(goal => {
         const work = workByGoal.get(goal.id);
-        return <SpatialTiltCard key={goal.id} className="goal-spatial-wrap"><Card className="goal-card goal-card--connected atlas-spotlight">
+        return <SpatialTiltCard key={goal.id} id={'atlas-goal-'+goal.id} className="goal-spatial-wrap atlas-constellation-target"><Card className="goal-card goal-card--connected atlas-spotlight">
           <div className="goal-card__top"><span className="status-pill">{goal.category || 'Personal'} · {goal.horizon || 'long-term'}</span><Target size={17}/></div>
           <h2>{goal.title}</h2><p>{goal.detail || 'No additional context yet.'}</p>
           <div className="goal-work-summary">
