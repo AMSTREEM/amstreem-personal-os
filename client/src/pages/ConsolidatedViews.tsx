@@ -5,6 +5,7 @@ import { ReviewsPage } from './ReviewsPage';
 import { InsightsPage } from './InsightsPage';
 import { RitualsPage } from './RitualsPage';
 import { SelfControlPage } from './SelfControlPage';
+import { PageHeader } from '../components/ui';
 
 function ViewTabs({ items, value, onChange }: { items: { id: string; label: string }[]; value: string; onChange: (value: string) => void }) {
   return <div className="review-switch" role="tablist" aria-label="View sections">
@@ -13,10 +14,10 @@ function ViewTabs({ items, value, onChange }: { items: { id: string; label: stri
 }
 
 export function HabitsSelfControlView() {
-  const [tab, setTab] = useState('habits');
-  return <div className="stack">
-    <ViewTabs value={tab} onChange={setTab} items={[{ id: 'habits', label: 'Habits & Routines' }, { id: 'discipline', label: 'Self-Control & Recovery' }]} />
-    {tab === 'habits' ? <RitualsPage /> : <SelfControlPage />}
+  return <div className="stack habits-self-control-view">
+    <PageHeader eyebrow="ROOM 02 / DAILY RHYTHM" title="Habits & Self-Control" description="Build the routines you want to keep, honour your personal commitments, and learn from the days that do not go to plan." />
+    <SelfControlPage embedded />
+    <RitualsPage embedded />
   </div>;
 }
 

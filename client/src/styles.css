@@ -2759,3 +2759,18 @@ input, select, textarea { min-width: 0; }
   min-width: 0;
   align-self: stretch;
 }
+
+
+/* Daily Rhythm — one unified Habits & Self-Control workspace. */
+.habits-self-control-view { gap: 24px !important; }
+.habits-self-control-view > .self-control-page,
+.habits-self-control-view > .rituals-page { width: 100%; min-width: 0; gap: 24px !important; }
+.rituals-edit-form { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(120px, .8fr) auto auto; align-items: center; gap: 8px; min-width: 0; }
+.rituals-edit-form .field-input { min-width: 0; }
+@media (max-width: 760px) {
+  .habits-self-control-view { gap: 20px !important; }
+  .habits-self-control-view > .self-control-page,
+  .habits-self-control-view > .rituals-page { gap: 20px !important; }
+  .rituals-edit-form { grid-template-columns: minmax(0,1fr) auto auto; }
+  .rituals-edit-form .field-input { grid-column: 1 / -1; }
+}
