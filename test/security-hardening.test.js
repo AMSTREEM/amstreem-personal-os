@@ -343,7 +343,7 @@ test('Atlas inner rooms use bespoke faith, task, chronograph, milestone and libr
   assert.match(values, /rhythm-prayer-segments/);
   assert.match(values, /aria-pressed=\{value===option\.value\}/);
   assert.match(values, /rhythm-prayer-progress/);
-  assert.match(values, /Not recorded/);
+  assert.match(values, /Unrecorded/);
   assert.match(selfControl, /self-rhythm-heatmap/);
   assert.match(focus, /execution-timer-tick/);
   assert.match(focus, /is-running/);
