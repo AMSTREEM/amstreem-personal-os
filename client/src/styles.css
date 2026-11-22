@@ -4353,7 +4353,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .atlas-constellation__legend i.is-project { background:#6dc8d6; color:#6dc8d6; }
 .atlas-constellation__legend i.is-learning { background:#d2b3ff; color:#d2b3ff; }
 .atlas-constellation__legend small { margin-left:auto; color:var(--subtle); font-size:9px; }
-.goals-horizon .atlas-constellation canvas { display:block; width:100%; height:260px; margin-top:4px; border-radius:12px; touch-action:pan-y; cursor:grab; }
+.goals-horizon .atlas-constellation canvas { display:block; width:100%; height:260px; margin-top:4px; border-radius:12px; touch-action:none; cursor:grab; }
 .atlas-constellation__selection { display:flex; align-items:center; gap:9px; min-height:30px; padding-top:8px; border-top:1px solid var(--line-soft); color:var(--subtle); font-size:10px; }
 .atlas-constellation__selection b { color:var(--text); font-size:11px; }
 .atlas-constellation__selection span { color:var(--muted); }
