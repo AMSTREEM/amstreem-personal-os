@@ -17,6 +17,7 @@ import { SparkBurst } from './fx/SparkBurst';
 import { CursorAura } from './fx/CursorAura';
 import { DockGooeyFilter } from './fx/DockGooeyFilter';
 import { MagneticButton } from './fx/MagneticButton';
+import { useSpotlightGrid } from './fx/useSpotlightGrid';
 
 const MotionNavLink = motion.create(NavLink);
 
@@ -52,32 +53,8 @@ export function AppShell() {
     document.addEventListener('change', celebrate, true);
     return () => document.removeEventListener('change', celebrate, true);
   }, []);
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-    let frame = 0; let pointerX = 0; let pointerY = 0; let activeCards: HTMLElement[] = [];
-    const update = () => {
-      frame = 0;
-      const target = document.elementFromPoint(pointerX, pointerY);
-      const card = target?.closest<HTMLElement>('.atlas-card');
-      const grid = card?.closest<HTMLElement>('.residence-overview, .residence-pulse, .execution-workspace, .execution-focus-panel, .growth-horizon-layout, .daily-rhythm-sanctuary, .content-grid, .goal-grid, .stat-grid, .residence-pillar-grid');
-      const cards = grid ? Array.from(grid.querySelectorAll<HTMLElement>('.atlas-card')) : card ? [card] : [];
-      activeCards.forEach(item => { if (!cards.includes(item)) item.style.setProperty('--spotlight-opacity', '0'); });
-      activeCards = cards;
-      cards.forEach(item => {
-        const rect = item.getBoundingClientRect();
-        const x = pointerX - rect.left; const y = pointerY - rect.top;
-        const distance = Math.hypot(pointerX - (rect.left + rect.width / 2), pointerY - (rect.top + rect.height / 2));
-        item.style.setProperty('--spotlight-x', x + 'px');
-        item.style.setProperty('--spotlight-y', y + 'px');
-        item.style.setProperty('--spotlight-opacity', String(Math.max(0, 1 - distance / 520) * 0.9));
-      });
-    };
-    const move = (event: PointerEvent) => { pointerX = event.clientX; pointerY = event.clientY; if (!frame) frame = window.requestAnimationFrame(update); };
-    const clear = () => { if (frame) window.cancelAnimationFrame(frame); frame = 0; activeCards.forEach(item => item.style.setProperty('--spotlight-opacity', '0')); activeCards = []; };
-    document.addEventListener('pointermove', move, { passive: true });
-    window.addEventListener('blur', clear, { passive: true });
-    return () => { document.removeEventListener('pointermove', move); window.removeEventListener('blur', clear); clear(); };
-  }, []);
+  const workspaceRef = useRef<HTMLDivElement>(null);
+  useSpotlightGrid(workspaceRef);
 
   const navigate = useNavigate();
   const { user, role, signOut, session, completeOnboarding } = useAuth();
@@ -239,7 +216,7 @@ export function AppShell() {
         <div className="topbar-right"><button className="global-capture-trigger" type="button" onClick={() => {setCommandOpen(true);setCommandQuery('');}}><Search size={14}/><span>Quick capture</span><kbd>⌘ K</kbd></button><button className="tour-launcher" type="button" onClick={() => setTourOpen(true)}><Compass size={14} /> Guided tour</button><span className="privacy-indicator"><span /> PRIVATE BY DESIGN</span><span className="topbar-date">{new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric'}).format(new Date())}</span></div>
       </motion.header>
 
-      <div className="page-container">
+      <div className="page-container" ref={workspaceRef}>
         {activeTabs.length > 0 && <nav className="module-subnav" aria-label="Module sections">{activeTabs.map(tab => <MotionNavLink key={tab.to} to={tab.to} onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={({ isActive }) => 'module-subnav__link ' + (isActive ? 'module-subnav__link--active' : '')}>{({isActive}) => <>{isActive && <motion.span className="module-subnav-indicator" layoutId={'atlas-subnav-' + current?.id} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}{tab.label}</>}</MotionNavLink>)}</nav>}
         <EntrancePresetContext.Provider value={entrancePreset}>
           <PortalTransition>
