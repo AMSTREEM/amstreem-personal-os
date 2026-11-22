@@ -227,16 +227,26 @@ test('Web Audio micro-feedback is zero-dependency, opt-in, quiet and tied to che
   assert.match(read('client/src/pages/ValuesPage.tsx'), /playAtlasFeedback\('tick'\)/);
 });
 
-test('first-run walkthrough previews and saves a palette before explaining the updated room navigation', () => {
+test('first-run walkthrough explains the five current Atlas rooms and follows canonical routes', () => {
   const tour = read('client/src/components/AtlasWalkthrough.tsx');
   const shell = read('client/src/components/AppShell.tsx');
   const residence = read('client/src/pages/TodayPage.tsx');
-  assert.match(tour, /Choose the colour of your space/);
-  assert.match(tour, /previewPalette\(item\.id\)/);
-  assert.match(tour, /theme: selectedTheme/);
-  assert.match(tour, /Strategic direction lives in Growth & Direction/);
-  assert.match(tour, /Focus Chronograph/);
-  assert.match(tour, /optional Calendar/);
-  assert.match(shell, /navigate\('\/focus'\)/);
+  assert.equal((tour.match(/title: '/g) || []).length, 5);
+  assert.match(tour, /Welcome to Residence/);
+  assert.match(tour, /Morning Intention/);
+  assert.match(tour, /Top 3 Priorities/);
+  assert.match(tour, /Activity Pulse/);
+  assert.match(tour, /Ferrofluid Core/);
+  assert.match(tour, /Islam, Christianity, or general reflection/);
+  assert.match(tour, /30-Day Rhythm Constellation/);
+  assert.match(tour, /25m, 50m, 80m/);
+  assert.match(tour, /Life Constellation/);
+  assert.match(tour, /pill switcher/);
+  assert.match(tour, /Private Library/);
+  assert.match(tour, /Reviews & Insights/);
+  assert.match(tour, /10 curated themes/);
+  assert.match(tour, /navigate\(stepRoutes\[index\]\)/);
+  assert.match(tour, /onOpenCommand\?\.\(\)/);
+  assert.match(shell, /onOpenCommand=\{\(\) => \{ setCommandOpen\(true\);/);
   assert.match(residence, /Good \$\{rhythm/);
 });
