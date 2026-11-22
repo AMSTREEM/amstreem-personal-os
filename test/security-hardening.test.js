@@ -98,7 +98,13 @@ test('Self-Control consistency uses dated records and positive habit check-ins, 
   assert.match(server, /let best=0,run=0,previous=null/);
   assert.match(selfControl, /ROLLING CONSISTENCY/);
   assert.match(selfControl, /LAST 30 DAYS/);
-  assert.match(selfControl, /habits\.data\?\.length/);
+  assert.doesNotMatch(selfControl, /habits\.data\?\.length/);
+  assert.match(rituals, /habit\.streak/);
+  assert.match(rituals, /Pencil/);
+  const consolidated = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ConsolidatedViews.tsx'), 'utf8');
+  assert.match(consolidated, /<SelfControlPage embedded \/>/);
+  assert.match(consolidated, /<RitualsPage embedded \/>/);
+  assert.match(server, /return \{\.\.\.habit,streak\}/);
   assert.match(selfControl, /verified clean check-ins/);
   assert.match(rituals, /invalidateQueries\(\{ queryKey: \['self-control'\] \}\)/);
   assert.match(shell, /Deen & Reflection/);
