@@ -16,11 +16,6 @@ export function PortalTransition({ children }: { children: ReactNode }) {
       initial={reduce ? false : { opacity: 0, scale: 0.985, y: 10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={reduce ? { duration: 0 } : { duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-      style={{ willChange: reduce ? 'auto' : 'transform, opacity' }}
-      onAnimationComplete={event => {
-        const target = event?.target;
-        if (target instanceof HTMLElement) target.style.willChange = 'auto';
-      }}
     >
       {children}
     </motion.div>
