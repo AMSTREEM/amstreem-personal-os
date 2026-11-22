@@ -25,7 +25,6 @@ type DailyReview = { id: number; period_type: 'daily' | 'weekly'; period_start: 
 type AnnouncementFeed = { items: Announcement[]; readIds: number[] };
 type CalendarSummary = { streaks: Record<string, { current: number; best: number }> };
 type SelfControlSummary = { summary: { id: number; name: string; symbol: string; streak: number; longest_days: number; last_slip: string | null }[] };
-type Insight = { recommendation: { title: string; detail: string; reason: string; action: string; destination: string; priority: string }; pattern: string; rhythm: string | null };
 type StoredTimer = { remaining: number; deadline: number | null; taskId?: string; lessonId?: string; projectId?: string };
 type FocusSession = { session_date: string; minutes: number; focus: string };
 const TIMER_KEY = 'atlas-focus-timer-v1';
@@ -93,7 +92,6 @@ export function TodayPage() {
   const goals = useQuery({ queryKey: ['goals'], queryFn: () => api<Goal[]>('/goals') });
   const calendarSummary = useQuery({ queryKey: ['calendar-summary', today.slice(0, 7)], queryFn: () => api<CalendarSummary>('/calendar?month=' + today.slice(0, 7)) });
   const selfControl = useQuery({ queryKey: ['self-control', today], queryFn: () => api<SelfControlSummary>('/self-control?date=' + today) });
-  const insight = useQuery({ queryKey: ['intelligence'], queryFn: () => api<Insight>('/intelligence') });
   const announcements = useQuery({ queryKey: ['announcements'], queryFn: () => api<AnnouncementFeed>('/announcements') });
 
   const saveDaily = useMutation({
@@ -218,7 +216,6 @@ export function TodayPage() {
     return values;
   }, [religion, deen.data, prayerCount, faith.data, faithCount, rhythmSummary.data, habitList.length, completedHabits, overview.data, focusPercent, target, todayTasks]);
   const activityPulse = scoreDimensions.length ? Math.round(scoreDimensions.reduce((sum, item) => sum + item.score, 0) / scoreDimensions.length) : null;
-  const nextDestination = insight.data?.recommendation.destination === 'habit' ? '/rituals' : '/' + (insight.data?.recommendation.destination || 'tasks');
 
   return <Cascade className="stack today-dashboard">
     <section className="residence-band residence-band--orientation" aria-label="Today's orientation">
@@ -352,11 +349,6 @@ export function TodayPage() {
           {focusRunning ? <div className="residence-active-timer"><strong>{timerText}</strong><span>{activeFocusContext}</span></div> : <p className="residence-focus-copy">You've invested {formatMinutes(overview.data?.todayMin ?? 0)} in focused work today.</p>}
           <Link className="button button--secondary residence-focus-link" to="/execution">{focusRunning ? 'Return to focus room' : 'Start a focus session'} <ArrowRight size={14}/></Link>
           <div className="residence-week-focus"><span>Focus streak</span><b>{overview.data?.streak ?? 0} days</b></div><div className="residence-week-focus"><span>This week</span><b>{formatMinutes(overview.data?.weekMin ?? 0)}</b></div>
-        </Card>
-
-        <Card className="residence-next-card">
-          <div className="residence-section-heading"><div><span className="eyebrow">A USEFUL NEXT STEP</span><h2>Keep moving</h2></div><Zap size={16}/></div>
-          {insight.data?.recommendation ? <div className="today-recommendation"><b>{insight.data.recommendation.title}</b><p>{insight.data.recommendation.detail}</p><Link className="text-link" to={nextDestination}>{insight.data.recommendation.action} <ArrowRight size={13}/></Link></div> : <p className="muted">As you build a record of consistency, Atlas will surface a useful next step.</p>}
         </Card>
 
         {announcements.data?.items?.filter(item => !announcements.data?.readIds.includes(item.id)).length ? <Card className="today-announcements">
