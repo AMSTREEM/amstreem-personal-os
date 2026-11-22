@@ -2150,7 +2150,10 @@ input, select, textarea { min-width: 0; }
 .atlas-install-guide-card li b { color: var(--text); }
 .atlas-install-guide-card__close { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-raised); color: var(--muted); }
 .atlas-install-guide-card__kicker { color: var(--accent); font: 700 9px Manrope,sans-serif; letter-spacing: .15em; }
-.atlas-install-guide-card__done { width: 100%; min-height: 45px; border: 0; border-radius: 11px; backgr/* Administration: compact, scannable section directory. */
+.atlas-install-guide-card__done { width: 100%; min-height: 45px; border: 0; border-radius: 11px; background: var(--accent); color: #171710; font-size: 11px; font-weight: 700; }
+
+
+/* Administration: compact, scannable section directory. */
 .admin-section-grid,
 .admin-faith-grid {
   display: grid;
