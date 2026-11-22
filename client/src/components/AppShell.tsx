@@ -17,7 +17,7 @@ const MotionNavLink = motion.create(NavLink);
 const rooms = [
   { id: 'residence', label: 'Residence', to: '/residence', icon: House, paths: ['/residence'] },
   { id: 'rhythm', label: 'Daily Rhythm', to: '/values', icon: MoonStar, paths: ['/values', '/habits'] },
-  { id: 'execution', label: 'Execution & Focus', to: '/execution', icon: Compass, paths: ['/execution', '/calendar'] },
+  { id: 'execution', label: 'Execution & Focus', to: '/execution', icon: Compass, paths: ['/execution', '/focus', '/calendar'] },
   { id: 'growth', label: 'Growth & Direction', to: '/goals', icon: GraduationCap, paths: ['/goals', '/learning-library', '/reviews-insights'] }
 ];
 
@@ -156,7 +156,7 @@ export function AppShell() {
   const tabsByRoom = {
     residence: [],
     rhythm: [{ label: faithTabLabel, to: '/values' }, { label: 'Habits & Self-Control', to: '/habits' }],
-    execution: [{ label: 'Projects & Tasks', to: '/execution' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
+    execution: [{ label: 'Projects & Tasks', to: '/execution' }, { label: 'Focus Room', to: '/focus' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
     growth: [{ label: 'Goals & Milestones', to: '/goals' }, { label: 'Learning & Library', to: '/learning-library' }, { label: 'Reviews & Insights', to: '/reviews-insights' }]
   };
   const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => role === 'admin' || !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
@@ -246,7 +246,7 @@ export function AppShell() {
         <motion.button type="button" whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className="atlas-dock-action" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={15}/><span>Command</span><kbd>⌘ K</kbd></motion.button>
         <motion.button type="button" whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className="atlas-dock-action" onClick={() => { setCommandOpen(true); setCommandQuery('add a task'); }}><Plus size={15}/><span>Quick Capture</span></motion.button>
         <motion.div className={'atlas-dock-focus ' + (focusSessionVisible ? 'is-expanded' : '')} layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }}>
-          <motion.button type="button" whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className="atlas-dock-action atlas-dock-focus__open" onClick={() => navigate('/execution')}><Timer size={15}/><span>Focus Timer</span>{focusSessionVisible && <strong>{focusClock}</strong>}</motion.button>
+          <motion.button type="button" whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className="atlas-dock-action atlas-dock-focus__open" onClick={() => navigate('/focus')}><Timer size={15}/><span>Focus Timer</span>{focusSessionVisible && <strong>{focusClock}</strong>}</motion.button>
           {focusSessionVisible && <motion.div className="atlas-dock-focus__detail" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.18 }}><span title={focusContext}>{focusContext}</span><motion.button type="button" whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} onClick={toggleTimer} aria-label={focusActive ? 'Pause focus timer' : 'Resume focus timer'}>{focusActive ? <Pause size={13}/> : <Play size={13}/>}<small>{focusActive ? 'Pause' : 'Resume'}</small></motion.button></motion.div>}
         </motion.div>
         <motion.button type="button" whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className="atlas-dock-action" onClick={() => { navigate('/residence'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></motion.button>
