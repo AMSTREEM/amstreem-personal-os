@@ -3692,7 +3692,6 @@ input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
 .auth-screen > :not(.atlas-auth-shader) { position:relative; z-index:1; }
 .atlas-auth-shader { opacity:.92; }
 .execution-timer { position:relative; isolation:isolate; overflow:hidden; }
-.execution-timer > :not(.atlas-focus-shader) { position:relative; z-index:2; }
 .atlas-dot-field { position:absolute; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; mask-image:radial-gradient(ellipse 85% 80% at 50% 45%,#000 55%,transparent 100%); -webkit-mask-image:radial-gradient(ellipse 85% 80% at 50% 45%,#000 55%,transparent 100%); }
 .residence-band--overview { position:relative; isolation:isolate; }
 .residence-band--overview > :not(.atlas-dot-field) { position:relative; z-index:1; }
@@ -3710,9 +3709,8 @@ input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
 .atlas-odometer-number__stack { display:flex; flex-direction:column; line-height:1; will-change:transform; }
 .atlas-odometer-number__stack > span { height:1em; flex:none; }
 .atlas-command-dock { position:relative; isolation:isolate; }
-.atlas-command-dock::before { content:""; position:absolute; inset:-3px; z-index:0; pointer-events:none; border-radius:inherit; opacity:.9; background:radial-gradient(ellipse 19% 74% at 12% 50%,var(--bg-elevated,var(--surface)) 0 68%,transparent 75%),radial-gradient(ellipse 19% 74% at 37% 50%,var(--bg-elevated,var(--surface)) 0 68%,transparent 75%),radial-gradient(ellipse 31% 74% at 64% 50%,color-mix(in srgb,var(--accent-wash) 78%,var(--bg-elevated,var(--surface))) 0 68%,transparent 75%),radial-gradient(ellipse 19% 74% at 89% 50%,var(--bg-elevated,var(--surface)) 0 68%,transparent 75%); filter:url(#atlas-gooey); }
+.atlas-command-dock::before { content:""; position:absolute; inset:-2px; z-index:0; pointer-events:none; border-radius:inherit; opacity:.9; background:linear-gradient(135deg,color-mix(in srgb,var(--accent-wash) 35%,var(--bg-elevated,var(--surface))),var(--bg-elevated,var(--surface)) 52%,color-mix(in srgb,var(--accent-wash) 22%,var(--bg-elevated,var(--surface)))); box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 12%,transparent); }
 .atlas-command-dock > * { position:relative; z-index:1; }
-.atlas-gooey-defs { position:absolute; pointer-events:none; }
 .atlas-spark-burst { position:fixed; inset:0; width:100vw; height:100vh; z-index:9999; pointer-events:none; }
 .atlas-cursor-aura { position:fixed; left:0; top:0; width:280px; height:280px; border-radius:50%; pointer-events:none; z-index:0; background:radial-gradient(circle, color-mix(in srgb,var(--accent-primary) 4%,transparent),transparent 70%); will-change:transform; }
 .atlas-focus-sonar { position:absolute; inset:0; z-index:4; display:grid; place-items:center; pointer-events:none; }
