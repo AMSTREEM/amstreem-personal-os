@@ -61,7 +61,7 @@ test('the four primary rooms stay visible while secondary views remain optional'
 });
 
 test('canonical eight-view routes and legacy compatibility redirects cover the personal operating system', () => {
-  for (const route of ['/today', '/values', '/habits', '/execution', '/calendar', '/goals', '/learning-library', '/reviews-insights', '/projects', '/tasks', '/focus', '/rituals', '/self-control', '/learning', '/library', '/reviews', '/insights', '/settings', '/admin']) {
+  for (const route of ['/residence', '/today', '/values', '/habits', '/execution', '/calendar', '/goals', '/learning-library', '/reviews-insights', '/projects', '/tasks', '/focus', '/rituals', '/self-control', '/learning', '/library', '/reviews', '/insights', '/settings', '/admin']) {
     assert.ok(app.includes('path="' + route + '"'), 'Missing route ' + route);
   }
 });
