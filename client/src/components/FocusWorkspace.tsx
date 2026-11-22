@@ -38,6 +38,7 @@ export function FocusWorkspace() {
   const [projectFilter,setProjectFilter]=useState('all');
   const [goalFilter,setGoalFilter]=useState('all');
   const [selectedTaskId,setSelectedTaskId]=useState<number|null>(null);
+  const [hoverTaskId,setHoverTaskId]=useState<number|null>(null);
   const [taskFilter,setTaskFilter]=useState<'open'|'all'|'done'>('open');
   const [newTask,setNewTask]=useState('');
   const [newTaskProject,setNewTaskProject]=useState('');
