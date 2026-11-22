@@ -15,7 +15,6 @@ import { OdometerNumber } from './fx/OdometerNumber';
 import { PortalTransition, setPortalOrigin } from './fx/PortalTransition';
 import { SparkBurst } from './fx/SparkBurst';
 import { CursorAura } from './fx/CursorAura';
-import { DockGooeyFilter } from './fx/DockGooeyFilter';
 import { MagneticButton } from './fx/MagneticButton';
 import { useSpotlightGrid } from './fx/useSpotlightGrid';
 
@@ -185,7 +184,7 @@ export function AppShell() {
   };
   const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => role === 'admin' || !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
   return <div className={"app-frame" + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
-    <CursorAura/><SparkBurst/><DockGooeyFilter/>
+    <CursorAura/><SparkBurst/>
     <MobileInstallPrompt />
     <AnimatePresence initial={false}>{tourOpen && <AtlasWalkthrough onClose={closeTour} />}</AnimatePresence>
     {mobileOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
@@ -226,9 +225,9 @@ export function AppShell() {
           <motion.div
             key={location.pathname}
             className="room-view-transition"
-            initial={reduceMotion || !hasMountedRoom.current ? false : entranceFrame(entrancePreset, 0, compactMotionViewport).initial}
-            animate={entranceFrame(entrancePreset, 0, compactMotionViewport).animate}
-            transition={reduceMotion ? { duration: 0 } : entranceFrame(entrancePreset, 0, compactMotionViewport).transition}
+            initial={false}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0 }}
             style={{ willChange: reduceMotion ? 'auto' : 'transform, opacity' }}
           >
             <Outlet />
