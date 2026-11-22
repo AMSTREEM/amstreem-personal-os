@@ -82,7 +82,7 @@ export function ValuesPage() {
 
   return <Cascade className="stack rhythm-page daily-rhythm-sanctuary">
     <PageHeader eyebrow="ROOM 02 / DAILY RHYTHM" title={tradition === 'islam' ? 'Deen & Reflection' : tradition === 'christianity' ? 'Faith & Devotion' : 'Clarity & Reflection'} description="A private place to record the practices and reflections that give your day its rhythm."/>
-    {tradition === 'islam' && <>
+    {tradition === 'islam' && <div className="rhythm-branch">
       <section className="rhythm-intro surface-card"><div><span className="eyebrow">DEEN · DAILY PRACTICE</span><h2>Return to what matters.</h2><p>Record the five prayers, Qur’an work and optional acts of worship. A plan is not a completed act; keep the distinction honest.</p></div><div className="rhythm-intro-stat"><b>{prayerCount}/5</b><small>SALAH RECORDED</small></div></section>
       <div className="rhythm-grid">
         <Card><div className="module-panel-head"><div><span className="module-kicker">THE FIVE DAILY PRAYERS</span><h2>Salah record</h2></div><MoonStar size={18}/></div><p className="module-intro">Choose whether each prayer was completed on time, made up (qada), or is not yet recorded.</p>
@@ -115,8 +115,8 @@ export function ValuesPage() {
           {recordList(['muhasabah']).map(item=>recordRow(item))}
         </Card>
       </div>
-    </>}
-    {tradition === 'christianity' && <>
+    </div>}
+    {tradition === 'christianity' && <div className="rhythm-branch">
       <section className="rhythm-intro surface-card"><div><span className="eyebrow">FAITH · DAILY PRACTICE</span><h2>Make room for devotion.</h2><p>Plan your prayer rhythm, record Scripture and keep a living list of people and needs you are praying for.</p></div><div className="rhythm-intro-stat"><b>{recordList(['prayer_rhythm','bible_reading','scripture_memory','sermon_note','pray_reflection']).filter(item=>item.status==='completed').length}</b><small>COMPLETED TODAY</small></div></section>
       <Card><div className="module-panel-head"><div><span className="module-kicker">DAILY PRAYER RHYTHM</span><h2>Pause, pray, return.</h2></div><HeartHandshake size={18}/></div>
         <div className="rhythm-prayer-progress" role="progressbar" aria-label="Daily prayer rhythm completed" aria-valuemin={0} aria-valuemax={prayerRhythm.length} aria-valuenow={recordList(['prayer_rhythm']).filter(item=>item.status==='completed').length}><span style={{width:(recordList(['prayer_rhythm']).filter(item=>item.status==='completed').length/prayerRhythm.length*100)+'%'}}/></div>
@@ -135,15 +135,15 @@ export function ValuesPage() {
         <Card><div className="module-panel-head"><div><span className="module-kicker">SUNDAY SERMON NOTES</span><h2>Listen, notice, apply.</h2></div></div><details className="atlas-add-disclosure"><summary>+ Add record</summary><form className="form-stack" onSubmit={event=>{event.preventDefault();if(sermon.trim())add('sermon_note','Sunday sermon',sermon);setSermon('');}}><Field label="NOTES"><TextArea value={sermon} onChange={event=>setSermon(event.target.value)} rows={3} placeholder="Key passage, insight and one application"/></Field><Button type="submit" disabled={!sermon.trim()||createRecord.isPending}>Save sermon notes</Button></form></details>{recordList(['sermon_note']).map(item=>recordRow(item))}</Card>
       </div>
       <Card><div className="module-panel-head"><div><span className="module-kicker">P-R-A-Y REFLECTION</span><h2>Pause · Rejoice · Ask · Yield</h2></div></div><details className="atlas-add-disclosure"><summary>+ Add record</summary><form className="form-stack" onSubmit={event=>{event.preventDefault();if(pray.trim())add('pray_reflection','P-R-A-Y reflection',pray);setPray('');}}><Field label="TODAY’S REFLECTION"><TextArea value={pray} onChange={event=>setPray(event.target.value)} rows={4} placeholder="What are you rejoicing in, asking for, and yielding today?"/></Field><Button type="submit" disabled={!pray.trim()||createRecord.isPending}>Save reflection</Button></form></details>{recordList(['pray_reflection']).map(item=>recordRow(item))}<div className="rhythm-focus-link"><span>Set aside a quiet devotional block.</span><Link className="button button--secondary" to="/focus?focus=Devotional%20Focus"><Timer size={14}/> Start Devotional Focus</Link></div></Card>
-    </>}
-    {tradition === 'general' && <>
+    </div>}
+    {tradition === 'general' && <div className="rhythm-branch">
       <section className="rhythm-intro surface-card"><div><span className="eyebrow">CLARITY · DAILY PRACTICE</span><h2>Choose what deserves your attention.</h2><p>Keep a simple record of intention, useful ideas and an honest evening review.</p></div><div className="rhythm-intro-stat"><b>{recordList(['daily_intention','wisdom_note','evening_reflection']).length}</b><small>RECORDS TODAY</small></div></section>
       <div className="rhythm-grid">
         <Card><div className="module-panel-head"><div><span className="module-kicker">DAILY INTENTION</span><h2>What matters today?</h2></div></div><details className="atlas-add-disclosure"><summary>+ Add record</summary><form className="form-stack" onSubmit={event=>{event.preventDefault();if(intention.trim())add('daily_intention','Daily intention',intention,'planned');setIntention('');}}><Field label="ONE CLEAR INTENTION"><TextArea value={intention} onChange={event=>setIntention(event.target.value)} rows={3} placeholder="What deserves your best attention today?"/></Field><Button type="submit" disabled={!intention.trim()||createRecord.isPending}>Save intention</Button></form></details>{recordList(['daily_intention']).map(item=>recordRow(item))}</Card>
         <Card><div className="module-panel-head"><div><span className="module-kicker">WISDOM & READING NOTES</span><h2>Keep what you learn.</h2></div><BookOpen size={18}/></div><details className="atlas-add-disclosure"><summary>+ Add record</summary><form className="form-stack" onSubmit={event=>{event.preventDefault();if(wisdom.trim())add('wisdom_note',quickTitle.trim()||'Reading note',wisdom);setWisdom('');setQuickTitle('');}}><Field label="SOURCE / TITLE"><TextInput value={quickTitle} onChange={event=>setQuickTitle(event.target.value)} placeholder="Book, article or idea"/></Field><Field label="NOTE"><TextArea value={wisdom} onChange={event=>setWisdom(event.target.value)} rows={3} placeholder="What is worth remembering?"/></Field><Button type="submit" disabled={!wisdom.trim()||createRecord.isPending}>Save note</Button></form></details>{recordList(['wisdom_note']).map(item=>recordRow(item))}</Card>
       </div>
       <Card><div className="module-panel-head"><div><span className="module-kicker">EVENING REFLECTION</span><h2>Close the day with clarity.</h2></div><MoonStar size={18}/></div><details className="atlas-add-disclosure"><summary>+ Add record</summary><form className="form-stack" onSubmit={event=>{event.preventDefault();if(evening.trim())add('evening_reflection','Evening reflection',evening);setEvening('');}}><Field label="WHAT MOVED FORWARD, WHAT DID YOU LEARN, AND WHAT COMES NEXT?"><TextArea value={evening} onChange={event=>setEvening(event.target.value)} rows={4} placeholder="Notice the day without judgement. Name one meaningful next step."/></Field><Button type="submit" disabled={!evening.trim()||createRecord.isPending}>Save reflection</Button></form></details>{recordList(['evening_reflection']).map(item=>recordRow(item))}</Card>
-    </>}
+    </div>}
     {createRecord.isError && <p className="inline-error">{createRecord.error.message}</p>}
     {quran.isError && <p className="inline-error">{quran.error.message}</p>}
     {prayer.isError && <p className="inline-error">{prayer.error.message}</p>}
