@@ -37,6 +37,7 @@ export function App() {
       <Route path="/values" element={<ValuesPage />} />
       <Route path="/habits" element={<HabitsSelfControlView />} />
       <Route path="/execution" element={<FocusWorkspace />} />
+      <Route path="/focus" element={<FocusWorkspace />} />
       <Route path="/calendar" element={<CalendarPage />} />
       <Route path="/goals" element={<GoalsPage />} />
       <Route path="/learning-library" element={<LearningLibraryView />} />
@@ -48,7 +49,6 @@ export function App() {
       <Route path="/self-control" element={<LegacyRedirect to="/habits" />} />
       <Route path="/projects" element={<LegacyRedirect to="/execution" />} />
       <Route path="/tasks" element={<LegacyRedirect to="/execution" />} />
-      <Route path="/focus" element={<LegacyRedirect to="/execution" />} />
       <Route path="/learning" element={<LegacyRedirect to="/learning-library" />} />
       <Route path="/library" element={<LegacyRedirect to="/learning-library" />} />
       <Route path="/settings" element={<SettingsPage />} />
