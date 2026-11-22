@@ -318,7 +318,7 @@ test('Atlas inner rooms use bespoke faith, task, chronograph, milestone and libr
   const library = read('client/src/pages/LibraryPage.tsx');
   const css = read('client/src/styles.css');
   assert.match(values, /rhythm-prayer-segments/);
-  assert.match(values, /aria-pressed=\\{value===option\\.value\\}/);
+  assert.match(values, /aria-pressed=\{value===option\.value\}/);
   assert.match(values, /rhythm-prayer-progress/);
   assert.match(values, /Not recorded/);
   assert.match(selfControl, /self-rhythm-heatmap/);
@@ -329,10 +329,10 @@ test('Atlas inner rooms use bespoke faith, task, chronograph, milestone and libr
   assert.match(goals, /goal-meta-chip/);
   assert.match(learning, /room4-path-card--/);
   assert.match(library, /room4-resource--/);
-  assert.match(css, /--accent-soft:var\\(--accent-wash\\)/);
-  assert.match(css, /--bg-elevated:var\\(--surface-raised\\)/);
+  assert.match(css, /--accent-soft:var\(/--accent-wash\\)/);
+  assert.match(css, /--bg-elevated:var\(/--surface-raised\\)/);
   assert.match(css, /appearance:none/);
-  assert.match(css, /grid-template-columns:repeat\\(10,minmax\\(0,1fr\\)\\);gap:3px/);
+  assert.match(css, /grid-template-columns:repeat\(10,minmax\(0,1fr\)\);gap:3px/);
   assert.match(css, /border-radius:4px/);
   assert.match(css, /execution-timer-tick--major/);
   assert.match(css, /room4-resource--completed/);
