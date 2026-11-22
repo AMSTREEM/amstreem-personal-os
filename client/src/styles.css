@@ -3264,3 +3264,71 @@ input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
   .daily-rhythm-sanctuary .card,
   .daily-rhythm-sanctuary .surface-card { transition: none !important; }
 }
+
+
+/* Atlas shared Card primitive — consistent flagship surface across all rooms. */
+:root {
+  --border-strong: color-mix(in srgb,var(--text-primary,var(--text)) 22%,var(--border-hairline,var(--line)));
+  --atlas-card-specular: rgba(255,255,255,.08);
+}
+:root[data-theme^="light-"] { --atlas-card-specular: rgba(255,255,255,.9); }
+.atlas-card,
+.surface-card.atlas-card {
+  position: relative;
+  min-width: 0;
+  padding: 24px;
+  border: 1px solid var(--border-hairline,var(--line));
+  border-radius: 14px;
+  background:
+    linear-gradient(145deg,color-mix(in srgb,var(--accent-primary,var(--accent)) 4%,var(--bg-surface,var(--surface))),var(--bg-surface,var(--surface)) 54%);
+  box-shadow: inset 0 1px 0 0 var(--atlas-card-specular), 0 8px 24px rgba(0,0,0,.055);
+  transition: border-color 180ms ease,box-shadow 180ms ease,background-color 180ms ease;
+}
+.atlas-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: inset 0 1px 0 0 var(--atlas-card-specular),0 10px 28px rgba(0,0,0,.075);
+}
+:root[data-theme^="light-"] .atlas-card {
+  box-shadow: inset 0 1px 0 0 var(--atlas-card-specular),0 8px 24px rgba(35,39,30,.045);
+}
+:root[data-theme^="light-"] .atlas-card:hover {
+  box-shadow: inset 0 1px 0 0 var(--atlas-card-specular),0 10px 28px rgba(35,39,30,.065);
+}
+
+/* Daily Rhythm: branch wrappers keep Cascade's child spacing intact. */
+.daily-rhythm-sanctuary .rhythm-branch {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+.daily-rhythm-sanctuary .rhythm-intro {
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--border-hairline) !important;
+  border-left: 3px solid var(--accent-primary) !important;
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 var(--atlas-card-specular),0 6px 20px rgba(0,0,0,.045);
+}
+.daily-rhythm-sanctuary .rhythm-prayer-row {
+  gap: 12px !important;
+  margin-block: 6px;
+  padding: 12px !important;
+  border: 1px solid var(--border-hairline) !important;
+  border-radius: 10px !important;
+  background: var(--bg-elevated) !important;
+}
+.daily-rhythm-sanctuary .rhythm-prayer-row:last-child { border-bottom: 1px solid var(--border-hairline) !important; }
+.daily-rhythm-sanctuary .rhythm-prayer-list { display: grid; gap: 8px; }
+.daily-rhythm-sanctuary .rhythm-check-row {
+  gap: 12px !important;
+  margin-block: 6px;
+  padding: 12px !important;
+  border: 1px solid var(--border-hairline) !important;
+  border-radius: 10px !important;
+  background: var(--bg-elevated) !important;
+}
+.daily-rhythm-sanctuary .rhythm-check-row:last-child { border-bottom: 1px solid var(--border-hairline) !important; }
+@media(max-width:760px) {
+  .atlas-card { padding: 19px; }
+  .daily-rhythm-sanctuary .rhythm-branch { gap: 20px; }
+}
