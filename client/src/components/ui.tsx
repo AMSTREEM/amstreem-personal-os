@@ -4,6 +4,7 @@ import { cn } from '../lib/utils';
 import { motion } from 'motion/react';
 import { Inbox } from 'lucide-react';
 import { KineticText } from './fx/KineticText';
+import { MagneticButton } from './fx/MagneticButton';
 
 const buttonVariants = cva('button', {
   variants: {
@@ -25,10 +26,10 @@ const buttonVariants = cva('button', {
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof buttonVariants> & { loading?: boolean };
 export function Button({ children, className, variant, size, loading = false, disabled, ...props }: ButtonProps) {
-  return <motion.button whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={buttonVariants({ variant, size, className })} disabled={disabled || loading} aria-busy={loading || undefined} {...(props as any)}>
-    {loading && <span className="button__spinner" aria-hidden="true" />}
-    {children}
-  </motion.button>;
+  const classes = buttonVariants({ variant, size, className });
+  const content = <>{loading && <span className="button__spinner" aria-hidden="true" />}{children}</>;
+  if (variant === undefined || variant === 'primary') return <MagneticButton className={classes} disabled={disabled || loading} aria-busy={loading || undefined} {...(props as any)}>{content}</MagneticButton>;
+  return <motion.button whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={classes} disabled={disabled || loading} aria-busy={loading || undefined} {...(props as any)}>{content}</motion.button>;
 }
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
   return <section className={cn('surface-card atlas-card', className)}>{children}</section>;
