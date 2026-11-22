@@ -133,17 +133,18 @@ test('Room 3 records focus completion once and derives linked work metrics from 
   assert.match(goals, /focus invested/);
 });
 
-test('Room 3 routes the execution workspace through the four-room shell without replacing existing project and task routes', () => {
+test('Room 3 uses the unified FocusWorkspace route and preserves project/task bookmarks through redirects', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'App.tsx'), 'utf8');
   const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
-  assert.match(app, /path="\/execution" element={<ExecutionFocusPage \/>}/);
-  assert.match(app, /path="\/projects" element={<ProjectsPage \/>}/);
-  assert.match(app, /path="\/tasks" element={<TasksPage \/>}/);
+  assert.match(app, /path="\/execution" element={<FocusWorkspace \/>}/);
+  assert.match(app, /path="\/projects" element={<LegacyRedirect to="\/execution" \/>}/);
+  assert.match(app, /path="\/tasks" element={<LegacyRedirect to="\/execution" \/>}/);
+  assert.match(app, /path="\/focus" element={<LegacyRedirect to="\/execution" \/>}/);
   assert.match(shell, /to: '\/execution'/);
-  assert.match(shell, /label: 'Workspace', to: '\/execution'/);
+  assert.match(shell, /label: 'Projects & Tasks', to: '\/execution'/);
   assert.match(css, /\.execution-heading/);
-  assert.match(fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ExecutionFocusPage.tsx'), 'utf8'), /Projects/);
+  assert.match(fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8'), /Projects/);
 });
 
 
