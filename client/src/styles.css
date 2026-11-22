@@ -2982,3 +2982,16 @@ input, select, textarea { min-width: 0; }
 .card-heading h2,.module-panel-head h2{font-size:16px;letter-spacing:-.02em}
 .list-row{border-color:var(--line-soft)}
 @media(prefers-reduced-motion:reduce){.execution-timer-ring__progress{transition:none}}
+
+
+/* Executive horizon refinements for standalone Goals and nested learning paths */
+.goals-horizon .goal-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+.goals-horizon .goal-card{border:0;border-top:1px solid var(--line);border-radius:0;background:transparent;padding:22px 0}
+.goals-horizon .goal-card h2{font-size:21px;letter-spacing:-.035em}
+.goals-horizon .goal-card p{font-size:13px;line-height:1.75}
+.goals-horizon .goal-work-summary{grid-template-columns:repeat(5,minmax(0,1fr));border:0;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);padding:15px 0}
+.goals-horizon .goal-work-summary b{font-size:16px;font-variant-numeric:tabular-nums}
+.goals-horizon .goal-progress-track{height:7px;border-radius:0;background:var(--line-soft)}
+.goals-horizon .goal-progress-track>span{border-radius:0}
+@media(min-width:1100px){.growth-horizon-layout .stack:has(>.room4-path-card){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 26px}}
+@media(max-width:760px){.goals-horizon .goal-grid{grid-template-columns:1fr}.goals-horizon .goal-work-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
