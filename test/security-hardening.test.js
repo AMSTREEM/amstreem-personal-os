@@ -146,7 +146,7 @@ test('Room 3 uses the unified FocusWorkspace route and preserves project/task bo
   assert.match(app, /path="\/execution" element={<FocusWorkspace \/>}/);
   assert.match(app, /path="\/projects" element={<LegacyRedirect to="\/execution" \/>}/);
   assert.match(app, /path="\/tasks" element={<LegacyRedirect to="\/execution" \/>}/);
-  assert.match(app, /path="\/focus" element={<LegacyRedirect to="\/execution" \/>}/);
+  assert.match(app, /path="\/focus" element={<FocusWorkspace \/>}/);
   assert.match(shell, /to: '\/execution'/);
   assert.match(shell, /label: 'Projects & Tasks', to: '\/execution'/);
   assert.match(css, /\.execution-heading/);
@@ -230,4 +230,33 @@ test('Room 4 presents learning, library, reviews and insights together without m
   assert.match(insights, /focusLast7Days/);
   assert.doesNotMatch(residence, /queryKey: \['intelligence'\]/);
   assert.doesNotMatch(residence, /residence-next-card/);
+});
+
+
+test('Room 3 has a dedicated Focus Room with safe context handoffs and a persistent global timer dock', () => {
+  const app = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'App.tsx'), 'utf8');
+  const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
+  const workspace = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
+  const values = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ValuesPage.tsx'), 'utf8');
+  const learning = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LearningPage.tsx'), 'utf8');
+  const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
+  const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
+  assert.match(app, /path="\/execution" element={<FocusWorkspace \/>}/);
+  assert.match(app, /path="\/focus" element={<FocusWorkspace \/>}/);
+  assert.match(shell, /paths: \['\/execution', '\/focus', '\/calendar'\]/);
+  assert.match(shell, /label: 'Focus Room', to: '\/focus'/);
+  assert.match(shell, /navigate\('\/focus'\)/);
+  assert.match(shell, /className="atlas-command-dock"/);
+  assert.match(workspace, /!isFocusRoute && <section className="execution-projects-panel">/);
+  assert.match(workspace, /\{isFocusRoute && <section className="execution-focus-panel">/);
+  assert.match(workspace, /navigate\('\/focus'\)/);
+  assert.match(workspace, /sessionKey&&timer\.remaining>0/);
+  assert.match(workspace, /session_key:timer\.sessionKey/);
+  assert.match(workspace, /savedKeys\.current\.has\(timer\.sessionKey\)/);
+  assert.match(values, /to="\/focus\?focus=Qur/);
+  assert.match(values, /to="\/focus\?focus=Devotional%20Focus"/);
+  assert.match(learning, /to=\{'\/focus\?lesson=' \+ lesson\.id\}/);
+  assert.match(residence, /to=\{'\/focus\?task=' \+ task\.id\}/);
+  assert.match(css, /\.execution-projects-layout \{ grid-template-columns: minmax\(0, 1fr\)/);
+  assert.match(css, /\.focus-room-layout/);
 });
