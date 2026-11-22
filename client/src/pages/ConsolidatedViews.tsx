@@ -1,17 +1,9 @@
-import { useState } from 'react';
 import { LibraryPage } from './LibraryPage';
 import { LearningPage } from './LearningPage';
 import { ReviewsPage } from './ReviewsPage';
 import { InsightsPage } from './InsightsPage';
 import { RitualsPage } from './RitualsPage';
 import { SelfControlPage } from './SelfControlPage';
-import { PageHeader } from '../components/ui';
-
-function ViewTabs({ items, value, onChange }: { items: { id: string; label: string }[]; value: string; onChange: (value: string) => void }) {
-  return <div className="review-switch" role="tablist" aria-label="View sections">
-    {items.map(item => <button key={item.id} type="button" role="tab" aria-selected={value === item.id} className={value === item.id ? 'review-switch__active' : ''} onClick={() => onChange(item.id)}>{item.label}</button>)}
-  </div>;
-}
 
 export function HabitsSelfControlView() {
   return <div className="stack habits-self-control-view">
@@ -21,18 +13,29 @@ export function HabitsSelfControlView() {
   </div>;
 }
 
+ 
 export function LearningLibraryView() {
-  const [tab, setTab] = useState('learning');
-  return <div className="stack">
-    <ViewTabs value={tab} onChange={setTab} items={[{ id: 'learning', label: 'Learning Paths' }, { id: 'library', label: 'Private Library' }]} />
-    {tab === 'learning' ? <LearningPage /> : <LibraryPage />}
+  return <div className="stack growth-combined-view">
+    <section className="growth-view-section" aria-labelledby="growth-learning-heading">
+      <div className="growth-section-heading"><span className="eyebrow">KNOWLEDGE / LEARNING STUDIO</span><h2 id="growth-learning-heading">Learning paths</h2><p>Build skills through structured paths, lessons, study notes and focused sessions.</p></div>
+      <LearningPage embedded />
+    </section>
+    <section className="growth-view-section" aria-labelledby="growth-library-heading">
+      <div className="growth-section-heading"><span className="eyebrow">KNOWLEDGE / PRIVATE LIBRARY</span><h2 id="growth-library-heading">Reading & reference</h2><p>Keep books, articles, references and private notes close without mixing them into lesson plans.</p></div>
+      <LibraryPage embedded />
+    </section>
   </div>;
 }
 
 export function ReviewsInsightsView() {
-  const [tab, setTab] = useState('reviews');
-  return <div className="stack">
-    <ViewTabs value={tab} onChange={setTab} items={[{ id: 'reviews', label: 'Daily & Weekly Reviews' }, { id: 'insights', label: 'Insights & Trends' }]} />
-    {tab === 'reviews' ? <ReviewsPage /> : <InsightsPage />}
+  return <div className="stack growth-combined-view">
+    <section className="growth-view-section" aria-labelledby="growth-reviews-heading">
+      <div className="growth-section-heading"><span className="eyebrow">REFLECT / DAILY & WEEKLY</span><h2 id="growth-reviews-heading">Reviews</h2><p>Reflect on wins, challenges and lessons, then choose the priorities that deserve attention.</p></div>
+      <ReviewsPage embedded />
+    </section>
+    <section className="growth-view-section" aria-labelledby="growth-insights-heading">
+      <div className="growth-section-heading"><span className="eyebrow">REFLECT / PERSONAL INTELLIGENCE</span><h2 id="growth-insights-heading">Insights & activity trends</h2><p>Notice comparable focus patterns and evidence-based next steps from your recorded workspace activity.</p></div>
+      <InsightsPage embedded />
+    </section>
   </div>;
 }
