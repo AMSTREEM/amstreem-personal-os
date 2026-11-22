@@ -4500,3 +4500,12 @@ html, body, #root, .app-frame, .main-area, .page-container {
 @media(prefers-reduced-motion:reduce){
  .atlas-astrolabe-rings.is-active g,.focus-charge-launch:before,.residence-pinned-priorities.is-harmonically-locked:after{animation:none !important;}
 }
+
+
+.atlas-ritual-final-fields{display:grid;gap:10px;margin-top:16px;}
+.atlas-ritual-final-fields label{display:grid;gap:5px;color:var(--muted);font-size:10px;}
+.atlas-ritual-final-fields textarea{min-height:56px;margin:0;padding:9px;font-size:11px;}
+.execution-task{background:transparent;}
+.execution-task-hover-pill{z-index:0;}
+.execution-task-main,.execution-subtasks,.execution-task>.atlas-add-disclosure{z-index:1;}
+@media(prefers-reduced-motion:reduce){.atlas-ritual-backdrop,.atlas-artifact-backdrop{backdrop-filter:none;-webkit-backdrop-filter:none;}}
