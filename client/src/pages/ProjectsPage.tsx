@@ -40,8 +40,10 @@ export function ProjectsPage({ embedded = false }: { embedded?: boolean }) {
   return <Cascade className="stack">
     {!embedded && <PageHeader eyebrow="PLAN / BUILD" title="Projects" description="Give meaningful goals a body of work. Projects turn direction into milestones and finishable actions." />}
     <Card>
-      <div className="card-heading"><div><h2>{embedded ? 'Create a project' : 'Start a project'}</h2><p>Keep the outcome clear and the scope manageable.</p></div></div>
-      <form className="form-stack" onSubmit={event => { event.preventDefault(); if (title.trim()) create.mutate(); }}>
+      <details className="atlas-add-disclosure atlas-create-disclosure">
+        <summary>+ Add project</summary>
+        <div className="card-heading"><div><h2>{embedded ? 'Create a project' : 'Start a project'}</h2><p>Define the outcome and scope.</p></div></div>
+        <form className="form-stack" onSubmit={event => { event.preventDefault(); if (title.trim()) create.mutate(); }}>
         <Field label="Project name"><TextInput value={title} onChange={event => setTitle(event.target.value)} placeholder="What are you building or changing?" required /></Field>
         <Field label="Description"><TextArea value={description} onChange={event => setDescription(event.target.value)} placeholder="What does done look like?" /></Field>
         <div className="field-row">
@@ -49,7 +51,8 @@ export function ProjectsPage({ embedded = false }: { embedded?: boolean }) {
           <Field label="Target date"><TextInput type="date" value={targetDate} onChange={event => setTargetDate(event.target.value)} /></Field>
         </div>
         <div><Button type="submit" disabled={create.isPending || !title.trim()}><Plus size={16} /> Create project</Button></div>
-      </form>
+        </form>
+      </details>
       {create.isError && <p className="inline-error">{create.error.message}</p>}
     </Card>
     <div className="stack">
@@ -61,10 +64,12 @@ export function ProjectsPage({ embedded = false }: { embedded?: boolean }) {
         <div className="milestone-section">
           <div className="card-heading"><div><h3>Milestones</h3><p>Checkpoints that show the work moving forward.</p></div><small>{project.milestones.filter(item => item.completed).length}/{project.milestones.length}</small></div>
           {project.milestones.length ? <div className="list-stack">{project.milestones.map(item => <div className="list-row" key={item.id}><input className="check-control" type="checkbox" checked={!!item.completed} onChange={() => toggleMilestone.mutate(item)} aria-label={'Complete milestone ' + item.title} /><div className="list-row__body"><b className={item.completed ? 'is-complete' : ''}>{item.title}</b></div><span className="list-row__meta">{item.target_date || ''}</span></div>)}</div> : <p className="muted">No milestones yet.</p>}
-          <form className="form-row milestone-form" onSubmit={event => { event.preventDefault(); const value = milestoneDrafts[project.id]?.trim(); if (value) addMilestone.mutate({ projectId: project.id, value, targetDate: milestoneDateDrafts[project.id] || '' }); }}>
-            <Field label="Add a milestone"><TextInput value={milestoneDrafts[project.id] || ''} onChange={event => setMilestoneDrafts(current => ({ ...current, [project.id]: event.target.value }))} placeholder="A meaningful checkpoint" /></Field><Field label="Target date"><TextInput type="date" value={milestoneDateDrafts[project.id] || ""} onChange={event => setMilestoneDateDrafts(current => ({ ...current, [project.id]: event.target.value }))} /></Field>
-            <Button type="submit" variant="secondary" disabled={addMilestone.isPending || !milestoneDrafts[project.id]?.trim()}><Plus size={15} /> Add</Button>
-          </form>
+          <details className="atlas-add-disclosure atlas-inline-add"><summary>+ Add milestone</summary>
+            <form className="form-row milestone-form" onSubmit={event => { event.preventDefault(); const value = milestoneDrafts[project.id]?.trim(); if (value) addMilestone.mutate({ projectId: project.id, value, targetDate: milestoneDateDrafts[project.id] || '' }); }}>
+              <Field label="Milestone"><TextInput value={milestoneDrafts[project.id] || ''} onChange={event => setMilestoneDrafts(current => ({ ...current, [project.id]: event.target.value }))} placeholder="A meaningful checkpoint" /></Field><Field label="Target date"><TextInput type="date" value={milestoneDateDrafts[project.id] || ""} onChange={event => setMilestoneDateDrafts(current => ({ ...current, [project.id]: event.target.value }))} /></Field>
+              <Button type="submit" variant="secondary" disabled={addMilestone.isPending || !milestoneDrafts[project.id]?.trim()}><Plus size={15} /> Add</Button>
+            </form>
+          </details>
         </div>
         <div className="project-card__actions"><Button variant="ghost" onClick={() => update.mutate({ project, status: project.status === 'completed' ? 'active' : 'completed' })}>{project.status === 'completed' ? 'Reopen project' : <><CheckCircle2 size={15} /> Mark complete</>}</Button></div>
       </Card></div>) : <Card><EmptyState title="No projects yet." detail="Create a project to connect a goal to milestones and tasks. Your standalone tasks still work without one." /></Card>}
