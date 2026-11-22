@@ -56,12 +56,12 @@ test('the four primary rooms stay visible while secondary views remain optional'
   assert.match(shell, /const rooms = \[/);
   assert.match(shell, /tabsByRoom/);
   assert.match(shell, /feature: 'calendar'/);
-  assert.match(shell, /feature: 'library'/);
+  assert.match(shell, /label: 'Learning & Library', to: '\/learning-library'/);
   assert.match(settings, /Optional workspace views/);
 });
 
-test('new frontend routes cover the core personal operating system areas', () => {
-  for (const route of ['/today', '/goals', '/projects', '/tasks', '/calendar', '/focus', '/rituals', '/self-control', '/learning', '/library', '/values', '/reviews', '/insights', '/settings', '/admin']) {
+test('canonical eight-view routes and legacy compatibility redirects cover the personal operating system', () => {
+  for (const route of ['/today', '/values', '/habits', '/execution', '/calendar', '/goals', '/learning-library', '/reviews-insights', '/projects', '/tasks', '/focus', '/rituals', '/self-control', '/learning', '/library', '/reviews', '/insights', '/settings', '/admin']) {
     assert.ok(app.includes('path="' + route + '"'), 'Missing route ' + route);
   }
 });
