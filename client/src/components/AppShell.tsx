@@ -11,7 +11,6 @@ import { MobileInstallPrompt } from './MobileInstallPrompt';
 import { EntrancePresetContext, entranceFrame, useCompactMotionViewport, useEntrancePreset } from './EntranceMotion';
 import { playAtlasFeedback } from '../lib/microFeedback';
 import { useFocusTimer, updateFocusTimer } from '../lib/focusTimerStore';
-import { OdometerText } from './AnimatedMetric';
 import { OdometerNumber } from './fx/OdometerNumber';
 import { PortalTransition, setPortalOrigin } from './fx/PortalTransition';
 import { SparkBurst } from './fx/SparkBurst';
@@ -46,7 +45,7 @@ export function AppShell() {
   useEffect(() => {
     const celebrate = (event: Event) => {
       const target = event.target as HTMLInputElement | null;
-      if (!target?.matches?.('input[type="checkbox"]') || !target.checked) return;
+      if (!target?.matches?.('input[type="checkbox"]') || !target.checked || !target.closest('.execution-task, .execution-subtasks, .execution-inspector-subtask, .rhythm-prayer-row, .rhythm-check-row, .today-habit-row, .room4-goal-milestone, .residence-prayer')) return;
       const rect = target.getBoundingClientRect();
       window.dispatchEvent(new CustomEvent('atlas:spark-burst', { detail: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } }));
     };
