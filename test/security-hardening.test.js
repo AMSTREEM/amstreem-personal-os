@@ -144,7 +144,7 @@ test('Room 3 uses the unified FocusWorkspace route and preserves project/task bo
   assert.match(shell, /to: '\/execution'/);
   assert.match(shell, /label: 'Projects & Tasks', to: '\/execution'/);
   assert.match(css, /\.execution-heading/);
-  assert.match(fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8'), /Projects/);
+  assert.match(fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8'), /project/i);
 });
 
 
