@@ -2174,3 +2174,51 @@ input, select, textarea { min-width: 0; }
   .focus-room-only .execution-timer-actions { display:grid; grid-template-columns:1fr 1fr; }
   .focus-room-only .execution-timer-actions .button:first-child { grid-column:1/-1; }
 }
+
+
+/* Focus route uses the full workspace canvas; never leave the hidden task column empty. */
+.focus-room-only .execution-split {
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) !important;
+  width:100%;
+}
+.focus-room-only .execution-focus-panel {
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  justify-items:stretch;
+  grid-template-columns:minmax(0,1fr) !important;
+}
+.focus-room-only .execution-focus-card,
+.focus-room-only .execution-history-card {
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+}
+.focus-room-only .execution-focus-card {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  align-items:start;
+  column-gap:clamp(18px,3vw,36px);
+}
+.focus-room-only .execution-focus-card > .execution-panel-heading,
+.focus-room-only .execution-focus-card > .execution-focus-context,
+.focus-room-only .execution-focus-card > .execution-timer,
+.focus-room-only .execution-focus-card > .execution-presets,
+.focus-room-only .execution-focus-card > .execution-timer-actions,
+.focus-room-only .execution-focus-card > .execution-save-state,
+.focus-room-only .execution-focus-card > .execution-save-error,
+.focus-room-only .execution-focus-card > .execution-break-row {
+  grid-column:1/-1;
+}
+.focus-room-only .execution-focus-card > .execution-panel-heading { justify-content:center; }
+.focus-room-only .execution-focus-card > .execution-focus-links,
+.focus-room-only .execution-focus-card > .field,
+.focus-room-only .execution-focus-card > .execution-distractions { grid-column:auto; }
+.focus-room-only .execution-timer { padding-block:clamp(26px,4vw,48px); }
+@media(max-width:700px) {
+  .focus-room-only .execution-focus-card { grid-template-columns:minmax(0,1fr); }
+  .focus-room-only .execution-focus-card > .execution-focus-links,
+  .focus-room-only .execution-focus-card > .field,
+  .focus-room-only .execution-focus-card > .execution-distractions { grid-column:1/-1; }
+}
