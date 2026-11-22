@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowRight, Compass, Eye, EyeOff, LockKeyhole } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { Button, Field, TextInput } from './ui';
-import { ShaderBackdrop } from './fx/ShaderBackdrop';
+import { AuthFluidInk } from './fx/AtlasEngines';
 
 const loginSchema = z.object({ identifier: z.string().min(3, 'Enter your email or username.'), password: z.string().min(1, 'Enter your password.') });
 const signupSchema = z.object({
@@ -51,7 +51,7 @@ export function AuthPage() {
     finally { setBusy(false); }
   }
 
-  return <main className="auth-screen"><ShaderBackdrop fixed className="atlas-auth-shader"/>
+  return <main className="auth-screen"><AuthFluidInk/>
     <div className="auth-visual">
       <div className="auth-brand"><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><span>AMSTREEM <b>ATLAS</b></span></div>
       <div className="auth-message-block">

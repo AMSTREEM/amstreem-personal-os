@@ -14,6 +14,7 @@ import { useFocusTimer, updateFocusTimer } from '../lib/focusTimerStore';
 import { OdometerNumber } from './fx/OdometerNumber';
 import { PortalTransition, setPortalOrigin } from './fx/PortalTransition';
 import { SparkBurst } from './fx/SparkBurst';
+import { EnergyVortex } from './fx/AtlasEngines';
 import { CursorAura } from './fx/CursorAura';
 import { MagneticButton } from './fx/MagneticButton';
 import { useSpotlightGrid } from './fx/useSpotlightGrid';
@@ -181,7 +182,7 @@ export function AppShell() {
   };
   const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => role === 'admin' || !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
   return <div className={"app-frame" + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
-    <CursorAura/><SparkBurst/>
+    <CursorAura/><SparkBurst/><EnergyVortex/>
     <MobileInstallPrompt />
     <AnimatePresence initial={false}>{tourOpen && <AtlasWalkthrough onClose={closeTour} />}</AnimatePresence>
     {mobileOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
