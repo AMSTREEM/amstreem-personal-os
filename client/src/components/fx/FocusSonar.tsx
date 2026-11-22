@@ -1,0 +1,2 @@
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+export function FocusSonar({active}:{active:boolean}){const reduce=useReducedMotion();return <AnimatePresence>{active&&!reduce&&<motion.span className="atlas-focus-sonar" initial={{opacity:1}} animate={{opacity:0}} exit={{opacity:0}} aria-hidden="true"><i/><i/></motion.span>}</AnimatePresence>;}
