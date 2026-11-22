@@ -71,7 +71,7 @@ export function GoalsPage() {
     target.classList.remove('atlas-constellation-highlight');
     void target.offsetWidth;
     target.classList.add('atlas-constellation-highlight');
-    const timeout = window.setTimeout(() => target.classList.remove('atlas-constellation-highlight'), 1900);
+    window.setTimeout(() => target.classList.remove('atlas-constellation-highlight'), 1900);
     setPendingConstellationTarget(null);
   }, [activeWorkspace,pendingConstellationTarget]);
 
