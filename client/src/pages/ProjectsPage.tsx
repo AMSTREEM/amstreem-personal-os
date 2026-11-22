@@ -52,7 +52,7 @@ export function ProjectsPage({ embedded = false }: { embedded?: boolean }) {
       {create.isError && <p className="inline-error">{create.error.message}</p>}
     </Card>
     <div className="stack">
-      {projects.data?.length ? projects.data.map(project => <Card key={project.id} className="project-card">
+      {projects.data?.length ? projects.data.map(project => <div id={'atlas-project-'+project.id} className="atlas-constellation-target" key={project.id}><Card className="project-card">
         <div className="project-card__top"><span className="status-pill">{project.status}</span><span className="project-card__target">{project.target_date ? 'Target ' + project.target_date : 'No target date'}</span></div>
         <h2>{project.title}</h2>
         <p className="project-description">{project.description || 'Add a description when you want to make the outcome more specific.'}</p>
@@ -66,7 +66,7 @@ export function ProjectsPage({ embedded = false }: { embedded?: boolean }) {
           </form>
         </div>
         <div className="project-card__actions"><Button variant="ghost" onClick={() => update.mutate({ project, status: project.status === 'completed' ? 'active' : 'completed' })}>{project.status === 'completed' ? 'Reopen project' : <><CheckCircle2 size={15} /> Mark complete</>}</Button></div>
-      </Card>) : <Card><EmptyState title="No projects yet." detail="Create a project to connect a goal to milestones and tasks. Your standalone tasks still work without one." /></Card>}
+      </Card></div>) : <Card><EmptyState title="No projects yet." detail="Create a project to connect a goal to milestones and tasks. Your standalone tasks still work without one." /></Card>}
     </div>
   </Cascade>;
 }
