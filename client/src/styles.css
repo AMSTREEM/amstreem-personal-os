@@ -5268,3 +5268,98 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .atlas-segmented-switcher button { flex: 0 0 auto; white-space: nowrap; }
   .page-container { margin-inline: auto; }
 }
+
+
+/* Metric tiles and unclassed stat children — explicit edge clearance.
+   Keep these rules last so earlier responsive/legacy declarations cannot
+   collapse their padding back to near-zero. */
+.rhythm-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+  margin: 14px 0;
+  box-sizing: border-box;
+}
+.rhythm-stats > div {
+  min-width: 0;
+  min-height: 76px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 4px;
+  border: 1px solid var(--border-hairline);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  box-sizing: border-box;
+}
+.rhythm-stats b,
+.rhythm-stats small {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.self-rhythm-metrics > div,
+.goal-work-summary > div,
+.room4-evidence-grid > div,
+.residence-dimension {
+  min-width: 0;
+  min-height: 0;
+  padding: 14px 16px;
+  box-sizing: border-box;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+}
+.self-rhythm-metrics > div {
+  display: grid;
+  gap: 5px;
+  border: 1px solid var(--border-hairline);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+}
+.goal-work-summary > div {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+  border: 1px solid var(--border-hairline);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+}
+.goal-work-summary svg { grid-row: auto; }
+.room4-evidence-grid > div {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--border-hairline);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+}
+.residence-dimension {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--border-hairline);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+}
+.residence-dimension__heading { width: 100%; justify-content: center; gap: 8px; }
+.residence-dimension > i { margin-top: 2px; }
+.workspace-metric {
+  box-sizing: border-box;
+  padding: 14px 16px;
+}
+.atlas-add-disclosure > summary {
+  box-sizing: border-box;
+  min-height: 38px;
+  padding: 8px 14px;
+  line-height: 1.25;
+}
+@media (max-width: 479px) {
+  .rhythm-stats { grid-template-columns: minmax(0, 1fr); }
+  .rhythm-stats > div { min-height: 68px; }
+}
