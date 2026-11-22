@@ -2366,3 +2366,40 @@ input, select, textarea { min-width: 0; }
     padding-block: 25px !important;
   }
 }
+
+
+/* Daily Rhythm spacing: enforce vertical breathing room inside every panel. */
+.rhythm-page > .surface-card,
+.rhythm-page > .rhythm-grid > .surface-card {
+  box-sizing: border-box !important;
+  padding: 30px 30px !important;
+  display: grid;
+  align-content: start;
+  gap: 20px !important;
+}
+.rhythm-page > .rhythm-grid {
+  align-items: stretch;
+  gap: 26px !important;
+}
+.rhythm-page > .surface-card > .module-panel-head,
+.rhythm-page > .rhythm-grid > .surface-card > .module-panel-head {
+  margin: 0 0 4px !important;
+}
+.rhythm-page .rhythm-prayer-list,
+.rhythm-page .rhythm-record-list {
+  gap: 12px !important;
+  margin-block: 8px !important;
+}
+.rhythm-page .rhythm-prayer-row,
+.rhythm-page .rhythm-record-row {
+  padding-block: 14px !important;
+  min-height: 58px;
+}
+@media (max-width: 760px) {
+  .rhythm-page > .surface-card,
+  .rhythm-page > .rhythm-grid > .surface-card {
+    padding: 24px 20px !important;
+    gap: 16px !important;
+  }
+  .rhythm-page > .rhythm-grid { gap: 18px !important; }
+}
