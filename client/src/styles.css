@@ -3657,3 +3657,31 @@ input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
   .atlas-card::before,
   .atlas-card::after { transition: none !important; }
 }
+
+
+/* Signature entrance choreography: boot shell, editorial title masks and activity sweep. */
+.page-header__title { overflow: visible; }
+.page-header__title-mask {
+  display: block;
+  overflow: hidden;
+  padding: 0.04em 0 0.12em;
+  margin: -0.04em 0 -0.12em;
+}
+.page-header__title-mask > span { display: inline-block; will-change: transform, opacity; }
+.residence-rhythm-title-mask {
+  display: block;
+  overflow: hidden;
+  padding: 0.04em 0 0.12em;
+  margin: -0.04em 0 -0.12em;
+}
+.residence-rhythm-title-mask h2 { will-change: transform, opacity; }
+.residence-pulse__track > span,
+.residence-dimension i > span { transition: width 680ms cubic-bezier(0.16, 1, 0.3, 1); }
+.atlas-booting .sidebar,
+.atlas-booting .topbar { will-change: transform, opacity; }
+@media (prefers-reduced-motion: reduce) {
+  .page-header__title-mask > span,
+  .residence-rhythm-title-mask h2 { will-change: auto !important; }
+  .residence-pulse__track > span,
+  .residence-dimension i > span { transition: none !important; }
+}
