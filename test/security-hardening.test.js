@@ -235,6 +235,27 @@ test('Room 4 presents learning, library, reviews and insights together without m
 });
 
 
+
+test('Growth & Direction unifies constellation targets while Execution remains task-only', () => {
+  const goals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'GoalsPage.tsx'), 'utf8');
+  const projects = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ProjectsPage.tsx'), 'utf8');
+  const learning = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LearningPage.tsx'), 'utf8');
+  const constellation = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'fx', 'AtlasEngines.tsx'), 'utf8');
+  const execution = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
+  assert.ok(goals.indexOf('<LifeConstellation') < goals.indexOf('id="goals-workspace"'));
+  assert.ok(goals.indexOf('id="goals-workspace"') < goals.indexOf('id="projects-workspace"'));
+  assert.ok(goals.indexOf('id="projects-workspace"') < goals.indexOf('id="learning-workspace"'));
+  assert.match(goals, /atlas:constellation-select/);
+  assert.match(constellation, /atlas:constellation-select/);
+  assert.match(goals, /atlas-goal-/);
+  assert.match(projects, /atlas-project-/);
+  assert.match(learning, /atlas-learning-/);
+  assert.doesNotMatch(execution, /ProjectsPage|execution-project-manager/);
+  assert.match(execution, /execution-goal-filter-rail/);
+  assert.match(execution, /TASK INSPECTOR/);
+});
+
+
 test('Room 3 has a dedicated Focus Room with safe context handoffs and a persistent global timer dock', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'App.tsx'), 'utf8');
   const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
