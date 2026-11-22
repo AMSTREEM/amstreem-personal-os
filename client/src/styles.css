@@ -4748,3 +4748,21 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .rhythm-prayer-segments button { flex:1; padding-inline:7px; }
   .tracker-actions { flex-wrap:wrap; }
 }
+
+.habits-module-section { display:grid; gap:14px; width:100%; min-width:0; }
+.habits-module-heading { display:grid; gap:5px; padding:4px 2px 2px; }
+.habits-module-heading h2 { margin:0; font:650 clamp(18px,2vw,22px) Manrope,sans-serif; letter-spacing:-.035em; }
+.habits-module-heading p { margin:0; color:var(--muted); font-size:12px; line-height:1.6; }
+.habits-module-section--self-control { padding-bottom:22px; border-bottom:1px solid var(--line-soft); }
+.habits-module-section--positive { padding-top:2px; }
+.rituals-check { border-radius:50% !important; }
+.rituals-row.is-done { border-color:color-mix(in srgb,var(--success) 30%,var(--line)); background:color-mix(in srgb,var(--success) 6%,var(--surface)); }
+.rhythm-quran-layout > *, .rhythm-grid > *, .calendar-workspace-grid > * { min-width:0; }
+.calendar-day-agenda > .button { align-self:flex-start; margin-top:auto; }
+.execution-focus-context { width:100%; max-width:560px; margin-inline:auto; text-align:center; }
+.execution-timer-tilt .execution-timer { display:grid; place-items:center; margin-inline:auto; }
+@media(max-width:760px) {
+  .habits-module-heading h2 { font-size:18px; }
+  .habits-module-section--self-control { padding-bottom:16px; }
+  .tracker-slip-disclosure[open] { flex:1 1 100%; }
+}
