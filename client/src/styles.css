@@ -5363,3 +5363,24 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .rhythm-stats { grid-template-columns: minmax(0, 1fr); }
   .rhythm-stats > div { min-height: 68px; }
 }
+
+
+/* Final edge-clearance sweep: bordered callouts and disclosure sub-panels. */
+.residence-priority-empty {
+  padding: 14px 16px;
+  box-sizing: border-box;
+}
+.tracker-slip-disclosure > summary {
+  box-sizing: border-box;
+  min-height: 38px;
+  padding: 8px 14px;
+  line-height: 1.25;
+}
+.tracker-slip-disclosure[open] > div {
+  padding: 14px 16px;
+  box-sizing: border-box;
+}
+.goal-milestone-disclosure .room4-goal-milestone {
+  padding: 12px 16px;
+  box-sizing: border-box;
+}
