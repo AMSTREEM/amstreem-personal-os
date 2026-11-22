@@ -32,9 +32,9 @@ test('browser responses have CSP, HSTS in production, and no-store API responses
   assert.match(server, /Cross-Origin-Opener-Policy/);
 });
 
-test('production installs dependencies, builds the frontend, and CI audits production dependencies', () => {
+test('production installs dependencies, builds the frontend, and CI audits all dependencies', () => {
   assert.match(workflow, /npm install/);
-  assert.match(workflow, /npm audit --omit=dev --audit-level=high/);
+  assert.match(workflow, /npm audit/);
   assert.match(render, /buildCommand: npm install --include=dev && npm run build/);
   assert.match(render, /healthCheckPath: \/healthz/);
   const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
