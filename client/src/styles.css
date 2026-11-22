@@ -4013,3 +4013,134 @@ canvas:not(.atlas-fluid-ink):not(.atlas-energy-vortex) {
   .focus-room-only .execution-focus-panel,
   .focus-room-only .execution-history-card { max-width:100%; }
 }
+
+
+/* Dock viewport containment and independent module-card rhythm. */
+html, body {
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+.atlas-command-dock {
+  position:fixed !important;
+  left:50% !important;
+  right:auto !important;
+  bottom:max(16px,env(safe-area-inset-bottom)) !important;
+  transform:translateX(-50%) !important;
+  width:fit-content !important;
+  max-width:calc(100vw - 24px) !important;
+  min-width:0;
+  box-sizing:border-box;
+  overflow:hidden;
+  gap:6px;
+  padding:6px;
+}
+.atlas-command-dock > * { min-width:0; max-width:100%; box-sizing:border-box; }
+.atlas-dock-action {
+  min-width:0;
+  min-height:38px;
+  flex:0 1 auto;
+  gap:6px;
+  padding:8px 12px;
+  font-size:13px;
+  box-sizing:border-box;
+}
+.atlas-dock-focus { min-width:0; max-width:100%; flex:0 1 auto; }
+.atlas-dock-focus__detail {
+  min-width:0;
+  max-width:180px;
+  flex:0 1 auto;
+  gap:6px;
+}
+.atlas-dock-focus__detail > span {
+  display:block;
+  min-width:0;
+  max-width:140px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.atlas-dock-focus__detail > button { flex:0 0 auto; }
+@media (max-width: 640px) {
+  .atlas-command-dock {
+    gap:5px;
+    padding:5px;
+    max-width:calc(100vw - 24px) !important;
+  }
+  .atlas-dock-action {
+    min-width:38px;
+    min-height:38px;
+    padding:8px 10px;
+    gap:5px;
+  }
+  .atlas-dock-action > span { font-size:0; }
+  .atlas-dock-action kbd { display:none; }
+  .atlas-dock-focus__detail { max-width:120px; }
+  .atlas-dock-focus__detail > span { max-width:70px; }
+  .atlas-dock-focus__detail > button { padding-inline:7px; }
+}
+@media (max-width: 380px) {
+  .atlas-command-dock { gap:3px; padding:4px; }
+  .atlas-dock-action { min-width:34px; padding-inline:8px; }
+  .atlas-dock-focus__detail { max-width:96px; gap:3px; }
+  .atlas-dock-focus__detail > span { max-width:42px; }
+}
+
+/* Keep each Residence module visually independent. */
+.residence-pulse-tilt { width:100%; min-width:0; }
+.residence-pulse-card {
+  width:100%;
+  min-width:0;
+  height:100%;
+  padding:20px;
+}
+.residence-pulse-card > .residence-pulse { height:100%; min-width:0; }
+
+/* Habits & Self-Control: summary, tracker and private history are distinct cards. */
+.self-control-page .self-rhythm-consistency,
+.rituals-page .rituals-summary,
+.rituals-page .rituals-list {
+  min-width:0;
+  padding:20px;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:var(--surface);
+  box-shadow:var(--surface-specular);
+}
+.rituals-page .atlas-add-disclosure {
+  padding:18px 20px;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:var(--surface);
+}
+.rituals-page .rituals-summary-card,
+.rituals-page .rituals-list-card,
+.rituals-page .rituals-add-card,
+.self-control-page .self-rhythm-consistency { margin:0; }
+.rituals-summary-card .rituals-summary,
+.rituals-list-card .rituals-list {
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.rituals-add-card > .atlas-add-disclosure {
+  padding:0;
+  border:0;
+  background:transparent;
+}
+.self-control-page .tracker-grid { gap:24px; }
+.self-control-page .self-control-history { margin-top:0; }
+
+/* Growth sections remain independent, with a consistent 24px separation. */
+.growth-combined-view,
+.growth-horizon-layout,
+.growth-view-section,
+.room4-library {
+  min-width:0;
+  gap:24px;
+}
+.growth-view-section + .growth-view-section { margin-top:0; padding-top:0; border-top:0; }
+.growth-view-section > .growth-section-heading { margin-bottom:0; }
+.growth-view-section > .stack { gap:24px; }

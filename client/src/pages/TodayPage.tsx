@@ -279,7 +279,7 @@ export function TodayPage() {
         {title:'Goals',detail:'Keep long-term direction visible',to:'/goals',symbol:'◎',tone:'goals'}
       ].map(pillar=><Link className={'residence-pillar atlas-spotlight residence-pillar--'+pillar.tone} to={pillar.to} key={pillar.to}><span>{pillar.symbol}</span><div><b>{pillar.title}</b><small>{pillar.detail}</small></div><ArrowRight size={14}/></Link>)}
     </section>
-    <SpatialTiltCard className="residence-pulse-tilt"><section className="residence-pulse" aria-label="Your daily activity pulse" style={{position:"relative"}}>
+    <SpatialTiltCard className="residence-pulse-tilt"><Card className="residence-pulse-card"><section className="residence-pulse" aria-label="Your daily activity pulse" style={{position:"relative"}}>
       <div className="residence-pulse__main">
         <div aria-hidden="true" style={{position:"absolute",right:8,top:8,width:200,height:200,opacity:.48,pointerEvents:"none",zIndex:0}}><FerrofluidCore active={focusRunning}/></div>
         <div className="residence-pulse__heading"><span className="eyebrow">TODAY'S ACTIVITY PULSE</span><span className="residence-pulse__date">{today}</span></div>
@@ -290,7 +290,7 @@ export function TodayPage() {
       <div className="residence-pulse__dimensions">
         {scoreDimensions.length ? scoreDimensions.map(item => <div className="residence-dimension" key={item.label}><span>{item.label}</span><b>{Math.round(item.score)}%</b><small>{item.detail}</small><i><span style={{ width: Math.max(0, Math.min(100, item.score)) + '%' }} /></i></div>) : <div className="residence-dimension residence-dimension--empty"><span>YOUR DAILY RHYTHM</span><b>Start small</b><small>Activity appears here as you use Atlas.</small></div>}
       </div>
-    </section></SpatialTiltCard>
+    </section></Card></SpatialTiltCard>
 
     <div className="residence-stat-grid">
       <Card className="residence-stat atlas-spotlight"><span className="eyebrow">FOCUS TODAY</span><strong><AnimatedMetric value={overview.data?.todayMin ?? 0} format="minutes" /></strong><small>{focusPercent}% of your {target}m intention</small></Card>
