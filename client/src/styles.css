@@ -2031,3 +2031,41 @@ time,
 .atlas-onboarding-palette>em { color:var(--accent-strong); font-size:8px; font-style:normal; font-weight:700; }
 @media(max-width:760px) { .atlas-onboarding-palette-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .atlas-onboarding-palette { padding:10px; } }
 @media(prefers-reduced-motion:reduce) { .atlas-onboarding-palette { transition:none; } }
+
+/* Room 02: balanced vertical breathing room for every faith tradition. */
+.rhythm-page > .surface-card,
+.rhythm-page > .rhythm-grid > .surface-card {
+  padding-top: 28px !important;
+  padding-bottom: 28px !important;
+}
+.rhythm-page > .rhythm-grid > .surface-card {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+}
+.rhythm-page .module-panel-head {
+  margin-bottom: 4px;
+}
+.rhythm-page .rhythm-prayer-list,
+.rhythm-page .rhythm-record-list {
+  gap: 10px;
+  margin-block: 4px;
+}
+.rhythm-page .rhythm-prayer-row {
+  min-height: 60px;
+  padding-block: 12px;
+}
+.rhythm-page .rhythm-record-row {
+  min-height: 54px;
+  padding-block: 12px;
+}
+@media (max-width: 760px) {
+  .rhythm-page > .surface-card,
+  .rhythm-page > .rhythm-grid > .surface-card {
+    padding-top: 22px !important;
+    padding-bottom: 22px !important;
+  }
+  .rhythm-page > .rhythm-grid > .surface-card {
+    gap: 14px;
+  }
+}
