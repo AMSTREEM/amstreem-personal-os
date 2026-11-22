@@ -306,3 +306,34 @@ test('Atlas flagship CSS has one shared frame, consolidated room geometry and th
   assert.ok(!css.includes('ATLAS SPATIAL ARCHITECTURE — executive-grade room silhouettes'));
   assert.ok(!css.includes('Room 02 — spacious Deen layout pass (staging).'));
 });
+
+
+test('Atlas inner rooms use bespoke faith, task, chronograph, milestone and library interactions', () => {
+  const read = file => fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
+  const values = read('client/src/pages/ValuesPage.tsx');
+  const selfControl = read('client/src/pages/SelfControlPage.tsx');
+  const focus = read('client/src/components/FocusWorkspace.tsx');
+  const goals = read('client/src/pages/GoalsPage.tsx');
+  const learning = read('client/src/pages/LearningPage.tsx');
+  const library = read('client/src/pages/LibraryPage.tsx');
+  const css = read('client/src/styles.css');
+  assert.match(values, /rhythm-prayer-segments/);
+  assert.match(values, /aria-pressed=\\{value===option\\.value\\}/);
+  assert.match(values, /rhythm-prayer-progress/);
+  assert.match(values, /Not recorded/);
+  assert.match(selfControl, /self-rhythm-heatmap/);
+  assert.match(focus, /execution-timer-tick/);
+  assert.match(focus, /is-running/);
+  assert.match(focus, /execution-task-check--/);
+  assert.match(goals, /goal-milestone-disclosure/);
+  assert.match(goals, /goal-meta-chip/);
+  assert.match(learning, /room4-path-card--/);
+  assert.match(library, /room4-resource--/);
+  assert.match(css, /--accent-soft:var\\(--accent-wash\\)/);
+  assert.match(css, /--bg-elevated:var\\(--surface-raised\\)/);
+  assert.match(css, /appearance:none/);
+  assert.match(css, /grid-template-columns:repeat\\(10,minmax\\(0,1fr\\)\\);gap:3px/);
+  assert.match(css, /border-radius:4px/);
+  assert.match(css, /execution-timer-tick--major/);
+  assert.match(css, /room4-resource--completed/);
+});
