@@ -177,7 +177,7 @@ export function AppShell() {
   const tabsByRoom = {
     residence: [],
     rhythm: [{ label: faithTabLabel, to: '/values' }, { label: 'Habits & Self-Control', to: '/habits' }],
-    execution: [{ label: 'Projects & Tasks', to: '/execution' }, { label: 'Focus Room', to: '/focus' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
+    execution: [{ label: 'Tasks', to: '/execution' }, { label: 'Focus Room', to: '/focus' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
     growth: [{ label: 'Goals · Projects · Learning', to: '/goals' }, { label: 'Private Library', to: '/learning-library' }, { label: 'Reviews & Insights', to: '/reviews-insights' }]
   };
   const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => role === 'admin' || !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
