@@ -56,7 +56,8 @@ test('the four primary rooms stay visible while secondary views remain optional'
   assert.match(shell, /const rooms = \[/);
   assert.match(shell, /tabsByRoom/);
   assert.match(shell, /feature: 'calendar'/);
-  assert.match(shell, /label: 'Learning & Library', to: '\/learning-library'/);
+  assert.match(shell, /label: 'Goals · Projects · Learning', to: '\/goals'/);
+  assert.match(shell, /label: 'Private Library', to: '\/learning-library'/);
   assert.match(settings, /Optional workspace views/);
 });
 
@@ -217,7 +218,7 @@ test('Web Audio micro-feedback is zero-dependency, opt-in, quiet and tied to che
   const audio = read('client/src/lib/microFeedback.ts');
   assert.match(audio, /atlas-sound-feedback/);
   assert.match(audio, /localStorage\.getItem\(FEEDBACK_KEY\) !== 'on'/);
-  assert.match(audio, /0\.015/);
+  assert.match(audio, /notes=\[523\.25,659\.25,783\.99\]/);
   assert.match(audio, /tone\(660/);
   assert.match(audio, /tone\(880/);
   assert.match(read('client/src/pages/SettingsPage.tsx'), /Subtle sound cues/);
@@ -233,9 +234,9 @@ test('first-run walkthrough previews and saves a palette before explaining the u
   assert.match(tour, /Choose the colour of your space/);
   assert.match(tour, /previewPalette\(item\.id\)/);
   assert.match(tour, /theme: selectedTheme/);
-  assert.match(tour, /Workspace gives you the overview/);
-  assert.match(tour, /Focus Timer protects your attention/);
-  assert.match(tour, /Calendar keeps commitments/);
+  assert.match(tour, /Strategic direction lives in Growth & Direction/);
+  assert.match(tour, /Focus Chronograph/);
+  assert.match(tour, /optional Calendar/);
   assert.match(shell, /navigate\('\/focus'\)/);
   assert.match(residence, /Good \$\{rhythm/);
 });

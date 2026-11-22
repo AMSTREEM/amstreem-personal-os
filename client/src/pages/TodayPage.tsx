@@ -8,6 +8,9 @@ import { MagneticDotField } from '../components/fx/MagneticDotField';
 import { OdometerNumber } from '../components/fx/OdometerNumber';
 import { triggerSparkBurst } from '../components/fx/SparkBurst';
 import { FerrofluidCore } from '../components/fx/AtlasEngines';
+import { CelestialHorizon } from '../components/fx/FlagshipInstruments';
+import { RitualDeck } from '../components/fx/RitualDeck';
+import { DailyArtifact } from '../components/fx/DailyArtifact';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, BookOpen, Flame, MoonStar, Plus, Target, Timer, Zap } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -57,6 +60,8 @@ export function TodayPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedPriorityId, setSelectedPriorityId] = useState<number | null>(null);
+  const [ritualMode,setRitualMode]=useState<'morning'|'evening'|null>(null);
+  const [artifactOpen,setArtifactOpen]=useState(false);
   const [wallClock, setWallClock] = useState(() => Date.now());
   const today = todayKey();
   const localHour = Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',hourCycle:'h23'}).format(new Date()));
@@ -113,7 +118,7 @@ export function TodayPage() {
   const toggleTask = useMutation({
     mutationFn: (task: Task) => api<Task>('/tasks/' + task.id, json('PATCH', { done: !task.done })),
     onMutate: async task => {
-      if (!task.done) playAtlasFeedback('tick');
+      if (!task.done) { playAtlasFeedback('tick'); triggerSparkBurst(window.innerWidth/2, window.innerHeight*.44); }
       await client.cancelQueries({ queryKey: ['tasks'] });
       const previous = client.getQueryData<Task[]>(['tasks']);
       client.setQueryData<Task[]>(['tasks'], current => current?.map(item => item.id === task.id ? { ...item, done: task.done ? 0 : 1 } : item));
@@ -123,15 +128,17 @@ export function TodayPage() {
     onSettled: () => { void client.invalidateQueries({ queryKey: ['tasks'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });
   const toggleHabit = useMutation({
+    onMutate: habit => { if (!habit.done) { playAtlasFeedback('tick'); triggerSparkBurst(window.innerWidth/2, window.innerHeight*.44); } },
     mutationFn: (habit: Habit) => api('/habits/' + habit.id + '/toggle', json('POST', { date: today })),
     onSuccess: () => { void client.invalidateQueries({ queryKey: ['habits', today] }); void client.invalidateQueries({ queryKey: ['self-control'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });
   const togglePrayer = useMutation({
-    onMutate: item => { if (!item.completed) playAtlasFeedback('tick'); },
+    onMutate: item => { if (!item.completed) { playAtlasFeedback('tick'); triggerSparkBurst(window.innerWidth/2, window.innerHeight*.44); } },
     mutationFn: (item: Prayer) => api('/deen/prayer', json('PATCH', { date: today, prayer: item.prayer, completed: !item.completed })),
     onSuccess: () => void client.invalidateQueries({ queryKey: ['deen', today] })
   });
   const toggleFaith = useMutation({
+    onMutate: item => { if (!item.completed) { playAtlasFeedback('tick'); triggerSparkBurst(window.innerWidth/2, window.innerHeight*.44); } },
     mutationFn: (item: Faith) => api('/faith', json('PATCH', { date: today, activity: item.activity, completed: !item.completed })),
     onSuccess: () => void client.invalidateQueries({ queryKey: ['faith', today] })
   });
@@ -184,7 +191,7 @@ export function TodayPage() {
     const currentIndex = pinnedPriorityTasks.findIndex(task => task.id === selectedPriorityId);
     if (event.key === 'ArrowDown' || event.key === 'j') setSelectedPriorityId(pinnedPriorityTasks[(currentIndex + 1 + pinnedPriorityTasks.length) % pinnedPriorityTasks.length].id);
     else if (event.key === 'ArrowUp' || event.key === 'k') setSelectedPriorityId(pinnedPriorityTasks[(currentIndex <= 0 ? pinnedPriorityTasks.length : currentIndex) - 1].id);
-    else { const task = pinnedPriorityTasks.find(item => item.id === selectedPriorityId) || pinnedPriorityTasks[0]; setSelectedPriorityId(task.id); if (event.key === ' ' && !toggleTask.isPending) { if (!task.done) { const rect = event.currentTarget.getBoundingClientRect(); triggerSparkBurst(rect.left + rect.width / 2, rect.top + rect.height / 2); } toggleTask.mutate(task); } if (event.key.toLowerCase() === 'f') navigate('/focus?task=' + task.id); }
+    else { const task = pinnedPriorityTasks.find(item => item.id === selectedPriorityId) || pinnedPriorityTasks[0]; setSelectedPriorityId(task.id); if (event.key === ' ' && !toggleTask.isPending) { toggleTask.mutate(task); } if (event.key.toLowerCase() === 'f') navigate('/focus?task=' + task.id); }
   }
 
   useEffect(() => {
@@ -236,9 +243,13 @@ export function TodayPage() {
   }, [religion, deen.data, prayerCount, faithCount, rhythmSummary.data, habitList.length, completedHabits, focusPercent, overview.data?.todayMin, target]);
   const activityPulse = Math.round(scoreDimensions.reduce((sum, item) => sum + item.score, 0) / 3);
 
+  const dailyStreak=Math.max(habitStreak,calendarSummary.data?.streaks.faith.current??0,calendarSummary.data?.streaks.habits.current??0);
+  const finishRitual=(values:{first:string;second:string;third:string;fourth:string})=>{if(ritualMode==='morning'){setDailyIntention(values.first);saveDaily.mutate({intention:values.first,priority_task_ids:priorityTaskIds,alignment_complete:1},{onSuccess:()=>{playAtlasFeedback('complete');triggerSparkBurst(window.innerWidth/2,window.innerHeight*.42);setRitualMode(null);navigate('/focus');}});}else{setShutdownWins(values.first);setShutdownLessons(values.second);setShutdownChallenges(values.third);setShutdownNextFocus(values.fourth);saveDaily.mutate({wins:values.first,lessons:values.second,challenges:values.third,next_focus:values.fourth,shutdown_complete:[values.first,values.third,values.second,values.fourth].every(v=>v.trim())?1:0},{onSuccess:()=>{playAtlasFeedback('complete');triggerSparkBurst(window.innerWidth/2,window.innerHeight*.42);setRitualMode(null);}});}};
   return <Cascade className="stack today-dashboard">
     <section className="residence-band residence-band--orientation" aria-label="Today's orientation">
       <PageHeader eyebrow={new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()).toUpperCase()} title={`Good ${rhythm === 'day' ? 'afternoon' : rhythm}, ${settings.data?.display_name?.trim() || user?.name || user?.username || 'there'}`} description="Your Residence: a clear view of today’s priorities, routines, focus and progress." action={showCalendar ? <Link className="button button--secondary" to="/calendar">View calendar <ArrowRight size={14} /></Link> : undefined} />
+      <CelestialHorizon/>
+      <div className="atlas-ritual-launchers"><button type="button" className="button button--secondary" onClick={()=>setRitualMode('morning')}>✧ Start Morning Kickoff</button><button type="button" className="button button--ghost" onClick={()=>setRitualMode('evening')}>☾ Evening Shutdown</button>{(prioritiesCompleted||completedFocusBlocks>0)&&<button type="button" className="button button--artifact" onClick={()=>setArtifactOpen(true)}>✦ Daily Artifact</button>}</div>
       <section className="residence-rhythm"><div><span className="eyebrow">{rhythmCopy.eyebrow}</span><span className="residence-rhythm-title-mask"><motion.h2 initial={reduceMotion ? false : { y: "105%", opacity: 0 }} animate={{ y: "0%", opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.28, delay: 0.07, ease: [0.16, 1, 0.3, 1] }}>{rhythmCopy.title}</motion.h2></span><p>{rhythmCopy.detail}</p></div><span className="residence-rhythm-time">{new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',minute:'2-digit'}).format(new Date())} WAT</span></section>
       {yesterdayReview?.shutdown_complete && yesterdayReview.next_focus?.trim() && <div className="residence-carryforward"><span className="eyebrow">YOUR FIRST MEANINGFUL STEP</span><p>{yesterdayReview.next_focus}</p><small>Carried forward from yesterday’s shutdown</small></div>}
     <section className="residence-rhythm-action" aria-live="polite">
@@ -300,7 +311,7 @@ export function TodayPage() {
             <div className="residence-pulse__score" style={{ "--pulse-score": activityPulse + "%" } as CSSProperties & { "--pulse-score": string }}><OdometerNumber value={activityPulse} suffix="%"/><span>across 3 active areas</span></div>
             <p>A clear snapshot of today's Deen, habits and focused work — based only on activity you choose to track.</p>
           </div>
-          <div className="residence-pulse__core" aria-hidden="true"><FerrofluidCore active={focusRunning}/></div>
+          <div className="residence-pulse__core" aria-hidden="true"><FerrofluidCore active={focusRunning || prioritiesCompleted}/></div>
         </div>
         <div className="residence-pulse__dimensions">
           {scoreDimensions.map(item => <div className="residence-dimension" key={item.label}>
@@ -324,8 +335,9 @@ export function TodayPage() {
       <div className="residence-band-heading"><span className="eyebrow">03 / MOVE TODAY FORWARD</span><p>Turn today's direction into deliberate action.</p></div>
       <div className="residence-grid">
       <section className="residence-main-column">
-        <Card className="residence-pinned-priorities">
-          <div className="residence-section-heading"><div><span className="eyebrow">YOUR PINNED TOP 3</span><h2>Today’s execution</h2><p>{pinnedPriorityTasks.filter(task => !!task.done).length} of {priorityTaskIds.length} priorities complete</p></div><button type="button" className="text-link" onClick={() => setEditingAlignment(true)}>Edit plan <ArrowRight size={13}/></button></div>
+        <Card className={"residence-pinned-priorities"+(prioritiesCompleted?" is-harmonically-locked":"")}>
+          <div className="residence-section-heading"><div><span className="eyebrow">YOUR PINNED TOP 3</span><h2>Today’s execution</h2><p>{pinnedPriorityTasks.filter(task => !!task.done).length}/3 Harmonic Lock-In · {pinnedPriorityTasks.filter(task => !!task.done).length} priorities complete</p>{prioritiesCompleted && <span className="residence-day-secured">Day Secured · Come back tomorrow for Evening Shutdown</span>}</div><button type="button" className="text-link" onClick={() => setEditingAlignment(true)}>Edit plan <ArrowRight size={13}/></button></div>
+          {prioritiesCompleted&&<button type="button" className="atlas-artifact-trigger" onClick={()=>setArtifactOpen(true)}>✦ View today’s proof-of-work artifact <ArrowRight size={13}/></button>}
           {pinnedPriorityTasks.length ? <div className="residence-pinned-list atlas-keyboard-list" tabIndex={0} aria-label="Today priorities. Use arrow keys or J and K to select, Space to complete, F to focus." onKeyDown={handlePriorityKeys}><AnimatePresence initial={false}>{pinnedPriorityTasks.map((task,index) => <motion.div layout initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0, scale: task.done ? 1.008 : 1 }} exit={{ opacity: 0, y: -5 }} transition={{ layout: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 }, opacity: { duration: 0.14 }, scale: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 } }} whileTap={{ scale: 0.985 }} onClick={() => setSelectedPriorityId(task.id)} className={'residence-pinned-row ' + (task.done ? 'is-complete' : '') + (selectedPriorityId === task.id ? ' is-keyboard-selected' : '')} key={task.id}>
             <span className="residence-pinned-rank">#{index+1}</span>
             <motion.span whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }}><input type="checkbox" checked={!!task.done} disabled={toggleTask.isPending} onChange={() => toggleTask.mutate(task)} aria-label={(task.done ? 'Reopen ' : 'Complete ') + task.title} /></motion.span>
@@ -407,5 +419,7 @@ export function TodayPage() {
         </form>
       </Card></div>
     </section>
+    <AnimatePresence>{ritualMode&&<RitualDeck mode={ritualMode} initial={{intention:dailyIntention,wins:shutdownWins,lessons:shutdownLessons,challenges:shutdownChallenges,nextFocus:shutdownNextFocus}} priorityCount={priorityTaskIds.length} activityPulse={activityPulse} onClose={()=>setRitualMode(null)} onComplete={finishRitual}/>}</AnimatePresence>
+    {artifactOpen&&<DailyArtifact date={today} pulse={activityPulse} focusMinutes={overview.data?.todayMin||0} streak={dailyStreak} onClose={()=>setArtifactOpen(false)}/>}
   </Cascade>;
 }

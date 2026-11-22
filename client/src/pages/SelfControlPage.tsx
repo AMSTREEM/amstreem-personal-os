@@ -5,6 +5,8 @@ import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
 import { Cascade } from '../components/Cascade';
 import { AnimatedMetric } from '../components/AnimatedMetric';
+import { triggerSparkBurst } from '../components/fx/SparkBurst';
+import { playAtlasFeedback } from '../lib/microFeedback';
 
 type CheckIn = { id: number; tracker_id: number; log_date: string; outcome: 'clean' | 'slip'; urge_level: number; trigger: string; response: string; note: string; tracker_name: string; tracker_symbol: string };
 type Tracker = { id: number; name: string; symbol: string; start_date: string; streak: number; longest_days: number; last_slip: string | null; today: CheckIn | null };
@@ -30,6 +32,7 @@ export function SelfControlPage({ embedded = false }: { embedded?: boolean }) {
     onSuccess: () => { setName(''); setSymbol('◇'); setShowCreate(false); void client.invalidateQueries({ queryKey: ['self-control'] }); }
   });
   const checkin = useMutation({
+    onMutate: entry => { if(entry.outcome==='clean'){playAtlasFeedback('tick');triggerSparkBurst(window.innerWidth/2,window.innerHeight*.44);} },
     mutationFn: (entry: { trackerId: number; outcome: 'clean' | 'slip'; urge?: number; trigger?: string; response?: string; note?: string }) => api('/self-control/' + entry.trackerId + '/checkin', json('POST', { date: today, outcome: entry.outcome, urge_level: entry.urge ?? 0, trigger: entry.trigger ?? '', response: entry.response ?? '', note: entry.note ?? '' })),
     onSuccess: () => { setActiveTracker(null); setTrigger(''); setResponse(''); setNote(''); setUrge('0'); void client.invalidateQueries({ queryKey: ['self-control', today] }); }
   });

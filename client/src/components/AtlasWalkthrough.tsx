@@ -68,15 +68,15 @@ const steps = [
   {
     eyebrow: 'SEE HOW YOUR WORK CONNECTS',
     title: 'Your Life Constellation makes direction visible.',
-    description: 'The constellation is a living map of the outcomes you care about and the work supporting them. Goals are the anchors; projects and learning paths become connected when you link them to a goal.',
-    rows: ['Each point represents a goal, project or learning path.', 'Connect a project or learning path to a goal to create a visible link.', 'Drag points to explore the map; select one to see its name.', 'The map grows as your real workspace grows—nothing is fabricated.'],
+    description: 'The constellation is a living map of your goals, projects and learning paths. Select any point to jump directly to its workspace below the map, where you can create, connect and update the work.',
+    rows: ['Each point represents a goal, project or learning path.', 'Connect a project or learning path to a goal to create a visible link.', 'Drag points to explore the map; select one to jump to that exact item below.', 'The map grows as your real workspace grows—nothing is fabricated.'],
     label: 'GOALS · PROJECTS · LEARNING'
   },
   {
     eyebrow: 'MAKE THE NEXT MOVE CLEAR',
-    title: 'Execution & Focus keeps work in one place.',
-    description: 'Workspace gives you the overview. Projects and Tasks organise the work, Focus Timer protects your attention, and Calendar keeps commitments in time.',
-    rows: ['Start from Workspace to see what needs attention.', 'Move between Projects, Tasks, Focus Timer and Calendar.', 'Start a timer from a task or run a standalone deep-work session.'],
+    title: 'Execution & Focus is for daily action.',
+    description: 'Strategic direction lives in Growth & Direction. Room 03 stays focused on tasks, the Task Inspector, the Focus Chronograph and your optional Calendar.',
+    rows: ['Filter tasks by project or goal.', 'Open a task to inspect its details and subtasks.', 'Protect attention in the separate Focus Room.'],
     label: 'EXECUTION & FOCUS'
   },
   {
@@ -89,8 +89,8 @@ const steps = [
   {
     eyebrow: 'KEEP GETTING BETTER',
     title: 'Learning becomes a path, not a pile.',
-    description: 'Organise subjects into learning paths, lessons and checkpoints. Save useful material in your Library so ideas and references remain close to the work they support.',
-    rows: ['Create a learning path around a skill or subject.', 'Break it into lessons and checkpoints.', 'Keep notes and resources in your personal Library.'],
+    description: 'Learning paths now sit alongside Goals and Projects directly below Life Constellation in Growth & Direction. Keep books, articles and references in the separate Private Library tab.',
+    rows: ['Create a learning path around a skill or subject.', 'Break it into lessons and connect it to a goal.', 'Keep saved resources in the companion Private Library.'],
     label: 'LEARNING / KNOWLEDGE'
   },
   {
