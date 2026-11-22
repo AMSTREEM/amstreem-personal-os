@@ -4141,6 +4141,6 @@ html, body {
   min-width:0;
   gap:24px;
 }
-.growth-view-section + .growth-view-section { margin-top:0; }
+.growth-view-section + .growth-view-section { margin-top:0; padding-top:0; border-top:0; }
 .growth-view-section > .growth-section-heading { margin-bottom:0; }
 .growth-view-section > .stack { gap:24px; }
