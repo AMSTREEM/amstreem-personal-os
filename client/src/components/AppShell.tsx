@@ -31,10 +31,10 @@ const rooms = [
 const commandDestinations = [
   { label: 'Faith / Deen', detail: 'Open your tradition-specific daily practice', to: '/values', icon: MoonStar },
   { label: 'Habits & Self-Control', detail: 'Manage routines, commitments and recovery', to: '/habits', icon: Heart },
-  { label: 'Projects & Tasks', detail: 'Plan work and launch a focus session', to: '/execution', icon: Compass },
+  { label: 'Tasks', detail: 'Choose and complete your next actions', to: '/execution', icon: Compass },
   { label: 'Calendar', detail: 'Review scheduled commitments and activity', to: '/calendar', icon: Compass },
-  { label: 'Goals & Milestones', detail: 'Review long-term direction and progress', to: '/goals', icon: Target },
-  { label: 'Learning & Library', detail: 'Continue learning and saved resources', to: '/learning-library', icon: GraduationCap },
+  { label: 'Goals · Projects · Learning', detail: 'Shape direction, build projects and develop skills', to: '/goals', icon: Target },
+  { label: 'Private Library', detail: 'Keep saved reading and reference material', to: '/learning-library', icon: BookOpen },
   { label: 'Reviews & Insights', detail: 'Reflect on activity and evidence', to: '/reviews-insights', icon: Heart }
 ];
 
@@ -178,7 +178,7 @@ export function AppShell() {
     residence: [],
     rhythm: [{ label: faithTabLabel, to: '/values' }, { label: 'Habits & Self-Control', to: '/habits' }],
     execution: [{ label: 'Projects & Tasks', to: '/execution' }, { label: 'Focus Room', to: '/focus' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
-    growth: [{ label: 'Goals & Milestones', to: '/goals' }, { label: 'Learning & Library', to: '/learning-library' }, { label: 'Reviews & Insights', to: '/reviews-insights' }]
+    growth: [{ label: 'Goals · Projects · Learning', to: '/goals' }, { label: 'Private Library', to: '/learning-library' }, { label: 'Reviews & Insights', to: '/reviews-insights' }]
   };
   const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => role === 'admin' || !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
   return <div className={"app-frame" + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
