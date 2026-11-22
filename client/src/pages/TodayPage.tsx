@@ -280,7 +280,8 @@ export function TodayPage() {
       ].map(pillar=><Link className={'residence-pillar atlas-spotlight residence-pillar--'+pillar.tone} to={pillar.to} key={pillar.to}><span>{pillar.symbol}</span><div><b>{pillar.title}</b><small>{pillar.detail}</small></div><ArrowRight size={14}/></Link>)}
     </section>
     <SpatialTiltCard className="residence-pulse-tilt"><section className="residence-pulse" aria-label="Your daily activity pulse" style={{position:"relative"}}>
-      <div className="residence-pulse__main">\n        <div aria-hidden="true" style={{position:"absolute",right:8,top:8,width:240,height:240,opacity:.48,pointerEvents:"none",zIndex:0}}><FerrofluidCore active={focusRunning}/></div>
+      <div className="residence-pulse__main">
+        <div aria-hidden="true" style={{position:"absolute",right:8,top:8,width:240,height:240,opacity:.48,pointerEvents:"none",zIndex:0}}><FerrofluidCore active={focusRunning}/></div>
         <div className="residence-pulse__heading"><span className="eyebrow">TODAY'S ACTIVITY PULSE</span><span className="residence-pulse__date">{today}</span></div>
         <div className="residence-pulse__score" style={{ '--pulse-score': (activityPulse ?? 0) + '%' } as CSSProperties & { '--pulse-score': string }}>{activityPulse === null ? '—' : <OdometerNumber value={activityPulse} suffix="%"/>}<span>{activityPulse === null ? 'Build your first signal' : 'across ' + scoreDimensions.length + ' active areas'}</span></div>
         <div className="residence-pulse__track"><span style={{ width: (activityPulse ?? 0) + '%' }} /></div>
