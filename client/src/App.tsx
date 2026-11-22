@@ -49,7 +49,7 @@ export function App() {
       <Route path="/self-control" element={<LegacyRedirect to="/habits" />} />
       <Route path="/projects" element={<LegacyRedirect to="/goals" />} />
       <Route path="/tasks" element={<LegacyRedirect to="/execution" />} />
-      <Route path="/learning" element={<LegacyRedirect to="/learning-library" />} />
+      <Route path="/learning" element={<LegacyRedirect to="/goals" />} />
       <Route path="/library" element={<LegacyRedirect to="/learning-library" />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/admin" element={role === "admin" ? <AdminPage /> : <Navigate to="/today" replace />} />
