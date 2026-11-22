@@ -2774,3 +2774,40 @@ input, select, textarea { min-width: 0; }
   .rituals-edit-form { grid-template-columns: minmax(0,1fr) auto auto; }
   .rituals-edit-form .field-input { grid-column: 1 / -1; }
 }
+
+
+/* Phase 3 — Projects & Tasks with an always-available, collapsible Focus Dock. */
+.execution-project-choice { display:flex; align-items:center; flex:none; max-width:240px; border:1px solid var(--line); border-radius:9px; background:var(--surface); overflow:hidden; }
+.execution-project-choice.is-active { border-color:color-mix(in srgb,var(--accent-strong) 48%,var(--line)); background:var(--accent-wash); }
+.execution-project-choice__select,.execution-project-choice__focus { display:flex; align-items:center; gap:8px; min-height:34px; padding:7px 9px; border:0; background:transparent; color:var(--muted); font-size:9px; white-space:nowrap; }
+.execution-project-choice__select { min-width:0; }
+.execution-project-choice__select small { display:grid; place-items:center; min-width:17px; height:17px; padding:0 4px; border-radius:5px; background:var(--surface-raised); color:var(--subtle); font-size:8px; }
+.execution-project-choice__focus { justify-content:center; border-left:1px solid var(--line); color:var(--accent-strong); }
+.execution-project-choice__focus:disabled { opacity:.35; }
+.execution-project-manager { border:1px solid var(--line); border-radius:10px; background:var(--surface-raised); }
+.execution-project-manager > summary { display:flex; align-items:center; gap:8px; padding:11px 13px; color:var(--accent-strong); font-size:10px; font-weight:650; cursor:pointer; list-style:none; }
+.execution-project-manager > summary::-webkit-details-marker { display:none; }
+.execution-project-manager[open] > .atlas-cascade-item { padding:0 12px 12px; }
+.execution-project-manager .project-card { padding:16px; }
+.execution-project-manager .stack { gap:12px; }
+.execution-project-manager .project-meta { flex-wrap:wrap; }
+.execution-quick-add { grid-template-columns:minmax(0,1fr) 105px 82px minmax(120px,145px) auto; }
+.execution-focus-dock { min-width:0; }
+.execution-focus-dock > summary { display:none; }
+.execution-focus-dock > .execution-focus-panel { min-width:0; }
+@media(max-width:900px) {
+  .execution-split { grid-template-columns:minmax(0,1fr) !important; }
+  .execution-focus-dock > summary { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 16px; border:1px solid var(--line); border-radius:11px; background:var(--surface); color:var(--text); cursor:pointer; list-style:none; }
+  .execution-focus-dock > summary::-webkit-details-marker { display:none; }
+  .execution-focus-dock > summary > span { display:flex; align-items:center; gap:8px; color:var(--accent-strong); font-size:11px; font-weight:650; }
+  .execution-focus-dock > summary > strong { font-variant-numeric:tabular-nums; font-size:12px; }
+  .execution-focus-dock[open] > .execution-focus-panel { margin-top:12px; }
+  .execution-quick-add { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  .execution-quick-add > :first-child { grid-column:1/-1; }
+  .execution-quick-add .button { justify-content:center; }
+}
+@media(max-width:480px) {
+  .execution-project-choice { max-width:210px; }
+  .execution-quick-add { grid-template-columns:minmax(0,1fr); }
+  .execution-quick-add > :first-child { grid-column:auto; }
+}
