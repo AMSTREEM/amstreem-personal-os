@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Cascade } from '../components/Cascade';
 import { playAtlasFeedback } from '../lib/microFeedback';
 import { AnimatedMetric } from '../components/AnimatedMetric';
 import { MagneticDotField } from '../components/fx/MagneticDotField';
-import { SpatialTiltCard } from '../components/fx/SpatialTiltCard';
 import { OdometerNumber } from '../components/fx/OdometerNumber';
 import { triggerSparkBurst } from '../components/fx/SparkBurst';
 import { FerrofluidCore } from '../components/fx/AtlasEngines';
@@ -212,16 +211,30 @@ export function TodayPage() {
   }, [timer.deadline, remaining]);
 
   const scoreDimensions = useMemo(() => {
-    const values: { label: string; score: number; detail: string }[] = [];
-    if (religion === 'islam' && deen.data) { const quranSessions = deen.data.quran.reduce((sum,item)=>sum+item.entries,0); const total = 5 + (rhythmSummary.data?.total || 0) + quranSessions; values.push({ label: 'Deen', score: total ? (prayerCount + (rhythmSummary.data?.completed || 0) + quranSessions) / total * 100 : 0, detail: prayerCount + '/5 salah · ' + quranSessions + ' Qur’an sessions · ' + (rhythmSummary.data?.completed || 0) + ' practices' }); }
-    if (religion === 'christianity' && faith.data) { const total = faithPractices.length + 3 + (rhythmSummary.data?.total || 0); values.push({ label: 'Faith', score: total ? (faithCount + (rhythmSummary.data?.completed || 0)) / total * 100 : 0, detail: faithCount + ' legacy practices · ' + (rhythmSummary.data?.completed || 0) + ' completed activities' }); }
-    if (religion !== 'islam' && religion !== 'christianity') { const total = Math.max(3, rhythmSummary.data?.total || 0); values.push({ label: 'Clarity', score: (rhythmSummary.data?.completed || 0) / total * 100, detail: (rhythmSummary.data?.completed || 0) + ' completed · ' + (rhythmSummary.data?.planned || 0) + ' planned' }); }
-    if (habitList.length) values.push({ label: 'Habits', score: completedHabits / habitList.length * 100, detail: completedHabits + '/' + habitList.length + ' today' });
-    if (overview.data && ((overview.data.todayMin || 0) > 0 || (overview.data.weekMin || 0) > 0)) values.push({ label: 'Focus', score: focusPercent, detail: formatMinutes(overview.data.todayMin) + ' / ' + formatMinutes(target) });
-    if (todayTasks.length) values.push({ label: 'Tasks', score: todayTasks.filter(task => !!task.done).length / todayTasks.length * 100, detail: todayTasks.filter(task => !!task.done).length + '/' + todayTasks.length + ' due today' });
-    return values;
-  }, [religion, deen.data, prayerCount, faith.data, faithCount, rhythmSummary.data, habitList.length, completedHabits, overview.data, focusPercent, target, todayTasks]);
-  const activityPulse = scoreDimensions.length ? Math.round(scoreDimensions.reduce((sum, item) => sum + item.score, 0) / scoreDimensions.length) : null;
+    let faithScore = 0;
+    let faithDetail = 'No faith activity recorded yet';
+    const completedPractices = rhythmSummary.data?.completed || 0;
+    const plannedPractices = rhythmSummary.data?.total || 0;
+    if (religion === 'islam') {
+      const quranSessions = deen.data?.quran.reduce((sum, item) => sum + item.entries, 0) || 0;
+      const total = 5 + plannedPractices + quranSessions;
+      faithScore = total ? (prayerCount + completedPractices + quranSessions) / total * 100 : 0;
+      faithDetail = prayerCount + '/5 salah · ' + quranSessions + ' Qur’an sessions · ' + completedPractices + ' practices';
+    } else if (religion === 'christianity') {
+      const total = faithPractices.length + 3 + plannedPractices;
+      faithScore = total ? (faithCount + completedPractices) / total * 100 : 0;
+      faithDetail = faithCount + ' faith practices · ' + completedPractices + ' completed activities';
+    } else {
+      faithScore = completedPractices / Math.max(3, plannedPractices) * 100;
+      faithDetail = completedPractices + ' completed · ' + (rhythmSummary.data?.planned || 0) + ' planned';
+    }
+    return [
+      { label: religion === 'islam' ? 'Deen' : religion === 'christianity' ? 'Faith' : 'Clarity', score: faithScore, detail: faithDetail },
+      { label: 'Habits', score: habitList.length ? completedHabits / habitList.length * 100 : 0, detail: completedHabits + '/' + habitList.length + ' completed today' },
+      { label: 'Focus', score: focusPercent, detail: formatMinutes(overview.data?.todayMin || 0) + ' / ' + formatMinutes(target) + ' intention' }
+    ];
+  }, [religion, deen.data, prayerCount, faithCount, rhythmSummary.data, habitList.length, completedHabits, focusPercent, overview.data?.todayMin, target]);
+  const activityPulse = Math.round(scoreDimensions.reduce((sum, item) => sum + item.score, 0) / 3);
 
   return <Cascade className="stack today-dashboard">
     <section className="residence-band residence-band--orientation" aria-label="Today's orientation">
@@ -279,18 +292,25 @@ export function TodayPage() {
         {title:'Goals',detail:'Keep long-term direction visible',to:'/goals',symbol:'◎',tone:'goals'}
       ].map(pillar=><Link className={'residence-pillar atlas-spotlight residence-pillar--'+pillar.tone} to={pillar.to} key={pillar.to}><span>{pillar.symbol}</span><div><b>{pillar.title}</b><small>{pillar.detail}</small></div><ArrowRight size={14}/></Link>)}
     </section>
-    <SpatialTiltCard className="residence-pulse-tilt"><Card className="residence-pulse-card"><section className="residence-pulse" aria-label="Your daily activity pulse" style={{position:"relative"}}>
-      <div className="residence-pulse__main">
-        <div aria-hidden="true" style={{position:"absolute",right:8,top:8,width:200,height:200,opacity:.48,pointerEvents:"none",zIndex:0}}><FerrofluidCore active={focusRunning}/></div>
-        <div className="residence-pulse__heading"><span className="eyebrow">TODAY'S ACTIVITY PULSE</span><span className="residence-pulse__date">{today}</span></div>
-        <div className="residence-pulse__score" style={{ '--pulse-score': (activityPulse ?? 0) + '%' } as CSSProperties & { '--pulse-score': string }}>{activityPulse === null ? '—' : <OdometerNumber value={activityPulse} suffix="%"/>}<span>{activityPulse === null ? 'Build your first signal' : 'across ' + scoreDimensions.length + ' active areas'}</span></div>
-        <div className="residence-pulse__track"><span style={{ width: (activityPulse ?? 0) + '%' }} /></div>
-        <p>{activityPulse === null ? 'Choose a habit, set a focus intention, or add a priority to begin. This snapshot only reflects areas you actively use.' : 'A snapshot of activity recorded today, not a rolling consistency score or a judgement. It only includes areas you actively use.'}</p>
-      </div>
-      <div className="residence-pulse__dimensions">
-        {scoreDimensions.length ? scoreDimensions.map(item => <div className="residence-dimension" key={item.label}><span>{item.label}</span><b>{Math.round(item.score)}%</b><small>{item.detail}</small><i><span style={{ width: Math.max(0, Math.min(100, item.score)) + '%' }} /></i></div>) : <div className="residence-dimension residence-dimension--empty"><span>YOUR DAILY RHYTHM</span><b>Start small</b><small>Activity appears here as you use Atlas.</small></div>}
-      </div>
-    </section></Card></SpatialTiltCard>
+    <Card className="residence-pulse-card">
+      <section className="residence-pulse" aria-label="Your daily activity pulse">
+        <div className="residence-pulse__top">
+          <div className="residence-pulse__main">
+            <div className="residence-pulse__heading"><span className="eyebrow">TODAY'S ACTIVITY PULSE</span><span className="residence-pulse__date">{today}</span></div>
+            <div className="residence-pulse__score"><OdometerNumber value={activityPulse} suffix="%"/><span>across 3 active areas</span></div>
+            <p>A clear snapshot of today's Deen, habits and focused work — based only on activity you choose to track.</p>
+          </div>
+          <div className="residence-pulse__core" aria-hidden="true"><FerrofluidCore active={focusRunning}/></div>
+        </div>
+        <div className="residence-pulse__dimensions">
+          {scoreDimensions.map(item => <div className="residence-dimension" key={item.label}>
+            <div className="residence-dimension__heading"><span>{item.label}</span><b>{Math.round(item.score)}%</b></div>
+            <small>{item.detail}</small>
+            <i><span style={{ width: Math.max(0, Math.min(100, item.score)) + '%' }} /></i>
+          </div>)}
+        </div>
+      </section>
+    </Card>
 
     <div className="residence-stat-grid">
       <Card className="residence-stat atlas-spotlight"><span className="eyebrow">FOCUS TODAY</span><strong><AnimatedMetric value={overview.data?.todayMin ?? 0} format="minutes" /></strong><small>{focusPercent}% of your {target}m intention</small></Card>
