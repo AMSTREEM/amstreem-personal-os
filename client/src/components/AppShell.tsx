@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { FormEvent, ReactNode } from 'react';
-import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring } from 'motion/react';
+import type { FormEvent } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, json } from '../lib/api';
 import { ArrowRight, BookOpen, Check, Compass, GraduationCap, Heart, House, LogOut, Menu, MoonStar, Pause, Play, Plus, Search, Settings, SlidersHorizontal, Target, Timer, X, Zap } from 'lucide-react';
@@ -12,6 +12,11 @@ import { EntrancePresetContext, entranceFrame, useCompactMotionViewport, useEntr
 import { playAtlasFeedback } from '../lib/microFeedback';
 import { useFocusTimer, updateFocusTimer } from '../lib/focusTimerStore';
 import { OdometerText } from './AnimatedMetric';
+import { PortalTransition, setPortalOrigin } from './fx/PortalTransition';
+import { SparkBurst } from './fx/SparkBurst';
+import { CursorAura } from './fx/CursorAura';
+import { DockGooeyFilter } from './fx/DockGooeyFilter';
+import { MagneticButton } from './fx/MagneticButton';
 
 const MotionNavLink = motion.create(NavLink);
 
@@ -36,34 +41,6 @@ type QuickPrayer = { prayer: string; completed: number; on_time: number };
 type QuickDeen = { prayers: QuickPrayer[] };
 type QuickHabit = { id: number; title: string; emoji: string; done: number };
 function atlasDate() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
-function MagneticDockButton({ children, onClick, className }: { children: ReactNode; onClick: () => void; className?: string }) {
-  const ref = useRef<HTMLButtonElement>(null);
-  const reduceMotion = useReducedMotion();
-  const rawX = useMotionValue(0);
-  const rawY = useMotionValue(0);
-  const x = useSpring(rawX, { stiffness: 280, damping: 24, mass: 0.22 });
-  const y = useSpring(rawY, { stiffness: 280, damping: 24, mass: 0.22 });
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || reduceMotion || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-    let frame = 0; let pointerX = 0; let pointerY = 0;
-    const move = (event: PointerEvent) => {
-      pointerX = event.clientX; pointerY = event.clientY;
-      if (frame) return;
-      frame = window.requestAnimationFrame(() => {
-        frame = 0; const rect = node.getBoundingClientRect();
-        rawX.set(Math.max(-3, Math.min(3, ((pointerX - rect.left - rect.width / 2) / Math.max(1, rect.width / 2)) * 3)));
-        rawY.set(Math.max(-3, Math.min(3, ((pointerY - rect.top - rect.height / 2) / Math.max(1, rect.height / 2)) * 3)));
-      });
-    };
-    const reset = () => { if (frame) window.cancelAnimationFrame(frame); frame = 0; rawX.set(0); rawY.set(0); };
-    node.addEventListener('pointermove', move, { passive: true });
-    node.addEventListener('pointerleave', reset, { passive: true });
-    return () => { node.removeEventListener('pointermove', move); node.removeEventListener('pointerleave', reset); reset(); };
-  }, [rawX, rawY, reduceMotion]);
-  return <motion.button ref={ref} type="button" className={className} style={{ x, y }} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} onClick={onClick}>{children}</motion.button>;
-}
-
 export function AppShell() {
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
@@ -218,7 +195,8 @@ export function AppShell() {
     growth: [{ label: 'Goals & Milestones', to: '/goals' }, { label: 'Learning & Library', to: '/learning-library' }, { label: 'Reviews & Insights', to: '/reviews-insights' }]
   };
   const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => role === 'admin' || !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
-  return <div className={"app-frame" + (booting ? " atlas-booting" : "")}>
+  return <div className={"app-frame" + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
+    <CursorAura/><SparkBurst/><DockGooeyFilter/>
     <MobileInstallPrompt />
     <AnimatePresence initial={false}>{tourOpen && <AtlasWalkthrough onClose={closeTour} />}</AnimatePresence>
     {mobileOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
@@ -254,6 +232,7 @@ export function AppShell() {
       <div className="page-container">
         {activeTabs.length > 0 && <nav className="module-subnav" aria-label="Module sections">{activeTabs.map(tab => <MotionNavLink key={tab.to} to={tab.to} onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={({ isActive }) => 'module-subnav__link ' + (isActive ? 'module-subnav__link--active' : '')}>{({isActive}) => <>{isActive && <motion.span className="module-subnav-indicator" layoutId={'atlas-subnav-' + current?.id} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}{tab.label}</>}</MotionNavLink>)}</nav>}
         <EntrancePresetContext.Provider value={entrancePreset}>
+          <PortalTransition>
           <motion.div
             key={location.pathname}
             className="room-view-transition"
@@ -264,6 +243,7 @@ export function AppShell() {
           >
             <Outlet />
           </motion.div>
+          </PortalTransition>
         </EntrancePresetContext.Provider>
       </div>
       <AnimatePresence initial={false}>{commandOpen && <motion.div className="command-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} onMouseDown={event => {if(event.target===event.currentTarget)setCommandOpen(false);}}><motion.section className="command-panel" role="dialog" aria-modal="true" aria-label="Atlas quick capture" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
@@ -276,13 +256,13 @@ export function AppShell() {
         <div className="command-footer"><span>Navigate between rooms</span><span>⌘ 1 — 4</span></div>
       </motion.section></motion.div>}</AnimatePresence>
       <motion.nav className="atlas-command-dock" layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }} aria-label="Atlas command dock">
-        <MagneticDockButton className="atlas-dock-action" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={15}/><span>Command</span><kbd>⌘ K</kbd></MagneticDockButton>
-        <MagneticDockButton className="atlas-dock-action" onClick={() => { setCommandOpen(true); setCommandQuery('add a task'); }}><Plus size={15}/><span>Quick Capture</span></MagneticDockButton>
+        <MagneticButton className="atlas-dock-action" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={15}/><span>Command</span><kbd>⌘ K</kbd></MagneticButton>
+        <MagneticButton className="atlas-dock-action" onClick={() => { setCommandOpen(true); setCommandQuery('add a task'); }}><Plus size={15}/><span>Quick Capture</span></MagneticButton>
         <motion.div className={'atlas-dock-focus ' + (focusSessionVisible ? 'is-expanded' : '')} layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }}>
-          <MagneticDockButton className="atlas-dock-action atlas-dock-focus__open" onClick={() => navigate('/focus')}><Timer size={15}/><span>Focus Timer</span>{focusSessionVisible && <strong><OdometerText value={focusClock}/></strong>}</MagneticDockButton>
-          {focusSessionVisible && <motion.div className="atlas-dock-focus__detail" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.18 }}><span title={focusContext}>{focusContext}</span><MagneticDockButton className="atlas-dock-action atlas-dock-focus__toggle" onClick={toggleTimer}>{focusActive ? <Pause size={13}/> : <Play size={13}/>}<small>{focusActive ? "Pause" : "Resume"}</small></MagneticDockButton></motion.div>}
+          <MagneticDockButton className="atlas-dock-action atlas-dock-focus__open" onClick={() => navigate('/focus')}><Timer size={15}/><span>Focus Timer</span>{focusSessionVisible && <strong><OdometerText value={focusClock}/></strong>}</MagneticButton>
+          {focusSessionVisible && <motion.div className="atlas-dock-focus__detail" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.18 }}><span title={focusContext}>{focusContext}</span><MagneticDockButton className="atlas-dock-action atlas-dock-focus__toggle" onClick={toggleTimer}>{focusActive ? <Pause size={13}/> : <Play size={13}/>}<small>{focusActive ? "Pause" : "Resume"}</small></MagneticButton></motion.div>}
         </motion.div>
-        <MagneticDockButton className="atlas-dock-action" onClick={() => { navigate('/residence'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></MagneticDockButton>
+        <MagneticButton className="atlas-dock-action" onClick={() => { navigate('/residence'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></MagneticButton>
       </motion.nav>
       <footer className="app-footer"><span>AMSTREEM ATLAS</span><span>Make room for what matters.</span></footer>
     </main>
