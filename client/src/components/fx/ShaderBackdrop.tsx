@@ -200,9 +200,9 @@ export function ShaderBackdrop({ className = '', fixed = false, intensity = 1 }:
     };
 
     const themeObserver = new MutationObserver(readTheme);
-    const resizeObserver = new ResizeObserver(resize);
+    const resizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(resize) : null;
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-    if (node.parentElement) resizeObserver.observe(node.parentElement);
+    if (node.parentElement) resizeObserver?.observe(node.parentElement);
     node.addEventListener('webglcontextlost', lost, false);
     window.addEventListener('resize', resize, { passive: true });
     window.addEventListener('pointermove', pointer, { passive: true });
@@ -215,7 +215,7 @@ export function ShaderBackdrop({ className = '', fixed = false, intensity = 1 }:
       disposed = true;
       if (raf) cancelAnimationFrame(raf);
       themeObserver.disconnect();
-      resizeObserver.disconnect();
+      resizeObserver?.disconnect();
       node.removeEventListener('webglcontextlost', lost);
       window.removeEventListener('resize', resize);
       window.removeEventListener('pointermove', pointer);
