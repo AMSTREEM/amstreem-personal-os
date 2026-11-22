@@ -2298,3 +2298,45 @@ input, select, textarea { min-width: 0; }
   .focus-room-only .execution-break-row { justify-content:center; }
   .focus-room-only .execution-break-row > div { text-align:center; }
 }
+
+/* Room 02 + focus history refinement: give each section breathing room and clear hierarchy. */
+.rhythm-page { gap:28px !important; }
+.rhythm-page > .rhythm-grid { gap:24px !important; }
+.rhythm-grid > .surface-card { display:grid; align-content:start; gap:18px; min-height:100%; padding:26px !important; border-radius:16px; }
+.rhythm-grid .module-panel-head { margin:0 0 2px; }
+.rhythm-grid .module-panel-head h2 { margin-top:5px; font-size:16px; }
+.rhythm-page .rhythm-prayer-list { gap:10px; margin-top:0; }
+.rhythm-page .rhythm-prayer-row { min-height:62px; gap:16px; padding:13px 15px; border:1px solid var(--line); border-radius:11px; background:var(--surface-raised); }
+.rhythm-page .rhythm-prayer-row b { font-size:12px; }
+.rhythm-page .rhythm-prayer-row small { margin-top:2px; font-size:10px; }
+.rhythm-page .rhythm-record-list { gap:10px; margin-top:0; }
+.rhythm-page .rhythm-record-row { min-height:54px; gap:12px; padding:12px 14px; border:1px solid var(--line); border-radius:11px; background:var(--surface-raised); }
+.rhythm-page .rhythm-record-row>div { gap:5px; }
+.rhythm-page .rhythm-record-row b { font-size:11px; line-height:1.45; }
+.rhythm-page .rhythm-record-row small { font-size:10px; line-height:1.6; }
+.rhythm-page .rhythm-record-status { width:30px; height:30px; border-radius:9px; }
+.rhythm-page .rhythm-check-row { gap:16px; padding:14px 2px; font-size:11px; line-height:1.5; }
+.rhythm-page .rhythm-check-row button { min-height:32px; padding:7px 11px; border-radius:8px; font-size:10px; }
+.rhythm-page .rhythm-stats { gap:10px; margin:4px 0 8px; }
+.rhythm-page .rhythm-stats>div { gap:7px; padding:14px; border-radius:11px; }
+.rhythm-page .rhythm-quran-layout { gap:22px; }
+.rhythm-page .rhythm-focus-link { margin-top:4px; padding-top:16px; }
+.rhythm-page .atlas-add-disclosure > form { margin-top:18px; }
+.rhythm-page .field { gap:9px; }
+.rhythm-page .field-input { min-height:46px; }
+.rhythm-page .field-input--area { min-height:112px; }
+.execution-history-list { display:grid; gap:10px !important; }
+.execution-history-list article { display:grid !important; grid-template-columns:36px minmax(0,1fr) auto; align-items:center !important; gap:14px !important; padding:15px 16px !important; border:1px solid var(--line) !important; border-radius:12px; background:var(--surface-raised) !important; }
+.execution-history-mark { width:36px !important; height:36px !important; border:1px solid var(--line); border-radius:10px !important; }
+.execution-history-list article>div { gap:6px !important; }
+.execution-history-list article b { color:var(--text); font-size:12px !important; font-weight:650; line-height:1.45; }
+.execution-history-list article small { color:var(--muted); font-size:10px !important; line-height:1.6 !important; overflow-wrap:anywhere; }
+.execution-history-list article p { margin-top:2px !important; color:var(--muted); font-size:10px !important; line-height:1.65 !important; }
+.execution-history-list article>strong { align-self:center; min-width:42px; padding:7px 9px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--accent-strong); font-size:11px !important; text-align:center; font-variant-numeric:tabular-nums; }
+@media(max-width:760px) {
+  .rhythm-grid > .surface-card { gap:15px; padding:19px !important; }
+  .rhythm-page .rhythm-prayer-row { min-height:56px; padding:11px 12px; }
+  .rhythm-page .rhythm-record-row { padding:11px 12px; }
+  .execution-history-list article { grid-template-columns:32px minmax(0,1fr) auto; gap:10px !important; padding:12px !important; }
+  .execution-history-mark { width:32px !important; height:32px !important; }
+}
