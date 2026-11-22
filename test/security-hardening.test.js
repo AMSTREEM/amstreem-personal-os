@@ -332,7 +332,7 @@ test('Atlas inner rooms use bespoke faith, task, chronograph, milestone and libr
   assert.ok(css.includes('--accent-soft:var(--accent-wash)'));
   assert.ok(css.includes('--bg-elevated:var(--surface-raised)'));
   assert.match(css, /appearance:none/);
-  assert.ok(css.includes('grid-template-columns:repeat(10,minmax(0,1fr));gap:3px'));
+  assert.match(css, /grid-template-columns:\s*repeat\(10,minmax\(0,1fr\)\);\s*gap:3px/);
   assert.match(css, /border-radius:4px/);
   assert.match(css, /execution-timer-tick--major/);
   assert.match(css, /room4-resource--completed/);
