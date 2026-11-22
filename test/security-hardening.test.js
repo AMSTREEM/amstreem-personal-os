@@ -76,7 +76,7 @@ test('Daily Rhythm separates planned from completed records and updates Residenc
   const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
   const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
   assert.match(rhythm, /status: 'planned'\|'completed'\|'active'\|'answered'/);
-  assert.match(rhythm, /value="qada"/);
+  assert.match(rhythm, /value:'qada'/);
   assert.match(rhythm, /Jumu’ah checklist/);
   assert.match(rhythm, /P-R-A-Y Reflection|P-R-A-Y REFLECTION/);
   assert.match(rhythm, /Start Qur’an Focus/);
