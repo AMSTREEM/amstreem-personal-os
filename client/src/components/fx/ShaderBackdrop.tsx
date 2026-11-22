@@ -42,8 +42,8 @@ void main() {
   vec2 q = p + vec2(warp - .5, fbm(p * 2. - vec2(t * .7, t) + m) - .5) * .72;
   float n = fbm(q * 3.1 + vec2(t * .8, -t * .6));
   float filament = smoothstep(.58, .88, fbm(q * 5. + vec2(-t, t * .7)));
-  float glow = smoothstep(.74, .12, length(q - vec2(-.22, .08))) * .55
-             + smoothstep(.68, .08, length(q - vec2(.35, -.18))) * .34;
+  float glow = (1. - smoothstep(.12, .74, length(q - vec2(-.22, .08)))) * .55
+             + (1. - smoothstep(.08, .68, length(q - vec2(.35, -.18)))) * .34;
   vec3 base = mix(vec3(.012, .018, .03), vec3(.94, .945, .94), u_light);
   vec3 tint = mix(u_accent, vec3(.72, .82, .91), u_light);
   float alpha = (.035 + glow * .11 + filament * (u_light > .5 ? .12 : .14)) * (.55 + n * .45);
