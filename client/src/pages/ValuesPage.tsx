@@ -7,6 +7,8 @@ import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
 import { Cascade } from '../components/Cascade';
 import { playAtlasFeedback } from '../lib/microFeedback';
+import { RhythmConstellation } from '../components/fx/RhythmConstellation';
+import { triggerSparkBurst } from '../components/fx/SparkBurst';
 
 type Settings = Record<string, string>;
 type Prayer = { prayer: string; completed: number; on_time: number };
@@ -62,7 +64,7 @@ export function ValuesPage() {
     onSuccess: () => { void client.invalidateQueries({ queryKey: ['rhythm-records', date] }); void client.invalidateQueries({ queryKey: ['rhythm-summary'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });
   const prayer = useMutation({
-    onMutate: entry => { if (entry.status !== 'pending') playAtlasFeedback('tick'); },
+    onMutate: entry => { if (entry.status !== 'pending') { playAtlasFeedback('tick'); triggerSparkBurst(window.innerWidth/2, window.innerHeight*.44); } },
     mutationFn: (entry: { item: Prayer; status: 'pending'|'on_time'|'qada' }) => api('/deen/prayer', json('PATCH', { date, prayer: entry.item.prayer, completed: entry.status === 'pending' ? 0 : 1, on_time: entry.status === 'on_time' ? 1 : 0 })),
     onSuccess: () => { void client.invalidateQueries({ queryKey: ['deen', date] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });
@@ -82,6 +84,7 @@ export function ValuesPage() {
 
   return <Cascade className="stack rhythm-page daily-rhythm-sanctuary">
     <PageHeader eyebrow="ROOM 02 / DAILY RHYTHM" title={tradition === 'islam' ? 'Deen & Reflection' : tradition === 'christianity' ? 'Faith & Devotion' : 'Clarity & Reflection'} description="A private place to record the practices and reflections that give your day its rhythm."/>
+    <RhythmConstellation/>
     {tradition === 'islam' && <div className="rhythm-branch">
       <section className="rhythm-intro surface-card"><div><span className="eyebrow">DEEN · DAILY PRACTICE</span><h2>Return to what matters.</h2><p>Record the five prayers, Qur’an work and optional acts of worship. A plan is not a completed act; keep the distinction honest.</p></div><div className="rhythm-intro-stat"><b>{prayerCount}/5</b><small>SALAH RECORDED</small></div></section>
       <div className="rhythm-grid">

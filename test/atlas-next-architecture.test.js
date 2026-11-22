@@ -218,7 +218,7 @@ test('Web Audio micro-feedback is zero-dependency, opt-in, quiet and tied to che
   const audio = read('client/src/lib/microFeedback.ts');
   assert.match(audio, /atlas-sound-feedback/);
   assert.match(audio, /localStorage\.getItem\(FEEDBACK_KEY\) !== 'on'/);
-  assert.match(audio, /0\.015/);
+  assert.match(audio, /notes=\[523\.25,659\.25,783\.99\]/);
   assert.match(audio, /tone\(660/);
   assert.match(audio, /tone\(880/);
   assert.match(read('client/src/pages/SettingsPage.tsx'), /Subtle sound cues/);
