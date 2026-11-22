@@ -43,7 +43,7 @@ export function SelfControlPage({ embedded = false }: { embedded?: boolean }) {
   return <Cascade className="stack self-control-page">
     {!embedded && <PageHeader eyebrow="PERSONAL DEVELOPMENT / PRIVATE" title="Personal Commitments" description="A private space for the commitments you choose to keep or leave behind. Track progress honestly, without turning a difficult day into a verdict." action={<Button onClick={() => setShowCreate(true)}><Plus size={15}/> Add commitment</Button>}/>}
     <div className="self-control-note surface-card"><span className="self-note-mark"><ShieldCheck size={19}/></span><div><strong>Progress is not perfection.</strong><p>A difficult day does not erase your effort. If you slip, record it honestly, notice what led to it, and begin again without punishing yourself. A day without a check-in stays unscored; it is never treated as a slip.</p></div><div className="self-note-stats"><span><b>{totalTrackers}</b><small>TRACKERS</small></span><span><b>{cleanToday}</b><small>CLEAN TODAY</small></span></div></div>
-    <section className="self-rhythm-consistency">
+    <Card className="self-rhythm-consistency"><section>
       <div className="self-rhythm-metrics">
         <div><span className="module-kicker">ROLLING CONSISTENCY</span><b><AnimatedMetric value={data.data?.consistency.percent7 ?? 0} suffix="%" /></b><small>{data.data?.consistency.days7 ?? 0}/7 days with real check-ins · last 7 days</small></div>
         <div><span className="module-kicker">30-DAY VIEW</span><b><AnimatedMetric value={data.data?.consistency.percent30 ?? 0} suffix="%" /></b><small>{data.data?.consistency.days30 ?? 0}/30 days with real check-ins</small></div>
@@ -52,7 +52,7 @@ export function SelfControlPage({ embedded = false }: { embedded?: boolean }) {
         <div className="self-rhythm-heatmap" aria-label="Thirty-day check-in heatmap">{(data.data?.history || []).map(day => <span key={day.date} className={day.checkins+day.habits===0?'':day.checkins+day.habits>=3?'is-high':day.checkins+day.habits>=2?'is-medium':'is-low'} title={day.date+' · '+(day.habits||0)+' routine check-ins · '+(day.checkins||0)+' self-control records'} />)}</div>
         <div className="self-rhythm-legend"><span>Less</span><i/><i/><i/><span>More</span></div>
       </div>
-    </section>
+    </section></Card>
     <div className="self-control-section-head"><div><span className="module-kicker">YOUR PERSONAL COMMITMENTS</span><h2>Your personal commitments.</h2></div><span className="module-count">{totalTrackers} TRACKERS</span><Button size="sm" onClick={() => setShowCreate(true)}><Plus size={14}/> Add commitment</Button></div>
     <div className="tracker-grid">
       {data.data?.summary.length ? data.data.summary.map(tracker => <Card key={tracker.id} className="tracker-card">
