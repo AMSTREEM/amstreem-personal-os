@@ -198,7 +198,7 @@ test('Room 4 visual craft uses semantic tokens, responsive spacing, motion and r
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
   assert.match(css, /--bg-canvas:var\(--bg\)/);
   assert.match(css, /--bg-surface:var\(--surface\)/);
-  assert.match(css, /--bg-elevated:var\(--surface-raised\)/);
+  assert.ok(css.includes('--bg-elevated:var(--surface-raised)'));
   assert.match(css, /--border-hairline:var\(--line\)/);
   assert.match(css, /--text-primary:var\(--text\)/);
   assert.match(css, /--accent-primary:var\(--accent\)/);
@@ -329,10 +329,10 @@ test('Atlas inner rooms use bespoke faith, task, chronograph, milestone and libr
   assert.match(goals, /goal-meta-chip/);
   assert.match(learning, /room4-path-card--/);
   assert.match(library, /room4-resource--/);
-  assert.match(css, /--accent-soft:var\(/--accent-wash\\)/);
-  assert.match(css, /--bg-elevated:var\(/--surface-raised\\)/);
+  assert.ok(css.includes('--accent-soft:var(--accent-wash)'));
+  assert.ok(css.includes('--bg-elevated:var(--surface-raised)'));
   assert.match(css, /appearance:none/);
-  assert.match(css, /grid-template-columns:repeat\(10,minmax\(0,1fr\)\);gap:3px/);
+  assert.ok(css.includes('grid-template-columns:repeat(10,minmax(0,1fr));gap:3px'));
   assert.match(css, /border-radius:4px/);
   assert.match(css, /execution-timer-tick--major/);
   assert.match(css, /room4-resource--completed/);
