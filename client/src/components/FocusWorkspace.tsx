@@ -30,6 +30,7 @@ export function FocusWorkspace() {
   const [customMinutes,setCustomMinutes]=useState('40');
   const [breakMinutes,setBreakMinutes]=useState('5');
   const [projectFilter,setProjectFilter]=useState('all');
+  const [selectedTaskId,setSelectedTaskId]=useState<number|null>(null);
   const [taskFilter,setTaskFilter]=useState<'open'|'all'|'done'>('open');
   const [newTask,setNewTask]=useState('');
   const [newTaskProject,setNewTaskProject]=useState('');
@@ -94,6 +95,8 @@ export function FocusWorkspace() {
     return rows.filter(task=>!task.parent_task_id&&(projectFilter==='all'||String(task.project_id||'none')===projectFilter)&&(taskFilter==='all'||(taskFilter==='open'?!task.done:!!task.done)));
   },[tasks.data,projectFilter,taskFilter]);
   const children=(parentId:number)=>(tasks.data||[]).filter(task=>task.parent_task_id===parentId);
+  const inspectedTask=tasks.data?.find(task=>task.id===selectedTaskId)||null;
+  const inspectedSubtasks=inspectedTask?children(inspectedTask.id):[];
 
   function start(kind:'focus'|'break') {
     if(running)return;
@@ -116,7 +119,7 @@ export function FocusWorkspace() {
   const isFocusRoute=location.pathname==='/focus';
   return <Cascade className={isFocusRoute ? "stack execution-workspace focus-room-only" : "stack execution-workspace"}>
     <div className="execution-heading"><div><span className="eyebrow">ROOM 03 / EXECUTION & FOCUS</span><h1>{isFocusRoute?'Settle into deep work.':'Protect your attention.'}</h1><p>{isFocusRoute?'One clear intention. One protected block. Your progress is recorded alongside the work it supports.':'Choose the work. Protect your attention. Let each completed session strengthen the same record.'}</p></div><div className="execution-heading-stat"><b>{sessions.data?.length||0}</b><span>RECORDED SESSIONS</span></div></div>
-    <div className={"execution-split "+(isFocusRoute?"focus-room-layout":"execution-projects-layout")}>
+    <div className={"execution-split "+(isFocusRoute?"focus-room-layout":"execution-projects-layout")+(inspectedTask&&!isFocusRoute?" has-task-inspector":"")}>
       {!isFocusRoute && <section className="execution-projects-panel">
         <Card className="execution-panel-card">
           <div className="execution-panel-heading"><div><span className="eyebrow">01 / PROJECTS & TASKS</span><h2>Choose what moves.</h2><p>One task at a time, connected to the bigger picture.</p></div><Link className="text-link" to="/projects">Manage projects ↗</Link></div>
@@ -136,7 +139,7 @@ export function FocusWorkspace() {
           </form></details>
           {createTask.isError&&<p className="inline-error">{createTask.error.message}</p>}
           <div className="execution-task-list">
-            {tasks.isLoading?<div className="atlas-skeleton-list" aria-label="Loading tasks"><i/><i/><i/></div>:visibleTasks.length?<AnimatePresence initial={false}>{visibleTasks.map(task=><motion.article layout initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0, y: -5, marginBottom: 0 }} transition={{ layout: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 }, opacity: { duration: 0.14 }, height: { duration: 0.16 } }} className={'execution-task '+(task.done?'is-done':'')} key={task.id}>
+            {tasks.isLoading?<div className="atlas-skeleton-list" aria-label="Loading tasks"><i/><i/><i/></div>:visibleTasks.length?<AnimatePresence initial={false}>{visibleTasks.map(task=><motion.article layout initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0, y: -5, marginBottom: 0 }} transition={{ layout: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 }, opacity: { duration: 0.14 }, height: { duration: 0.16 } }} className={'execution-task '+(task.done?'is-done':'')+(selectedTaskId===task.id?' is-selected':'')} key={task.id} onClick={()=>setSelectedTaskId(task.id)} tabIndex={0} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();setSelectedTaskId(task.id);}}}>
               <div className="execution-task-main"><motion.button whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} className="execution-task-check" onClick={()=>toggleTask.mutate(task)} aria-label={task.done?'Reopen '+task.title:'Complete '+task.title}>{task.done?<Check size={15}/>:<Circle size={15}/>}</motion.button><div className="execution-task-copy"><b>{task.title}</b><div className="execution-task-meta"><span className={priorityClass(task.priority)}>{priorityLabels[task.priority]||'Normal'}</span>{task.due_date&&<time>{task.due_date}</time>}{task.project_title&&<span>{task.project_title}</span>}{task.focus_minutes>0&&<span><Clock3 size={11}/> {task.focus_minutes}m focused</span>}</div></div><Button size="sm" variant="secondary" disabled={sessionInProgress||!!task.done} onClick={()=>focusTask(task)}><Timer size={13}/> Focus</Button></div>
               {!!children(task.id).length&&<div className="execution-subtasks">{children(task.id).map(child=><label key={child.id}><input type="checkbox" checked={!!child.done} onChange={()=>toggleTask.mutate(child)}/><span className={child.done?'is-complete':''}>{child.title}</span></label>)}</div>}
               <details className="atlas-add-disclosure atlas-add-disclosure--compact"><summary>+ Add subtask</summary><form className="execution-subtask-form" onSubmit={event=>{event.preventDefault();const title=subtaskDrafts[task.id]?.trim();if(title)createSubtask.mutate({parentId:task.id,title});}}><input value={subtaskDrafts[task.id]||''} onChange={event=>setSubtaskDrafts(current=>({...current,[task.id]:event.target.value}))} placeholder="Add subtask…" aria-label={'Add subtask to '+task.title}/><button type="submit" disabled={!subtaskDrafts[task.id]?.trim()||createSubtask.isPending}><Plus size={12}/> Subtask</button></form></details>
