@@ -3726,7 +3726,8 @@ input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
   line-height:1.1em;
   will-change:transform;
 }
-.atlas-odometer-number__stack > span {
+.atlas-odometer-number__stack > span,
+.atlas-odometer-number__digit {
   display:block;
   height:1.1em;
   line-height:1.1em;
