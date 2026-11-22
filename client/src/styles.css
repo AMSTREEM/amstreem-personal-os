@@ -3685,3 +3685,50 @@ input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
   .residence-pulse__track > span,
   .residence-dimension i > span { transition: none !important; }
 }
+
+
+/* Atlas flagship FX engine — decorative layers never intercept input. */
+.auth-screen { position:relative; isolation:isolate; }
+.auth-screen > :not(.atlas-auth-shader) { position:relative; z-index:1; }
+.atlas-auth-shader { opacity:.92; }
+.execution-timer { position:relative; isolation:isolate; overflow:hidden; }
+.execution-timer > :not(.atlas-focus-shader) { position:relative; z-index:2; }
+.atlas-focus-shader { z-index:0 !important; opacity:.95; }
+.atlas-dot-field { position:absolute; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; mask-image:radial-gradient(ellipse 85% 80% at 50% 45%,#000 55%,transparent 100%); -webkit-mask-image:radial-gradient(ellipse 85% 80% at 50% 45%,#000 55%,transparent 100%); }
+.residence-band--overview { position:relative; isolation:isolate; }
+.residence-band--overview > :not(.atlas-dot-field) { position:relative; z-index:1; }
+.residence-band--overview > .atlas-dot-field { z-index:0; }
+.atlas-portal-room { min-width:0; }
+.atlas-spatial-tilt { position:relative; min-width:0; transform:perspective(1000px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)); transform-style:preserve-3d; transition:transform 180ms ease-out; }
+.atlas-spatial-tilt__foil { position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:3; opacity:0; background:linear-gradient(115deg,transparent 25%,rgba(255,255,255,.12) 45%,var(--accent-soft) 50%,rgba(255,255,255,.12) 55%,transparent 75%); background-position:var(--foil-x,50%) var(--foil-y,50%); background-size:220% 220%; mix-blend-mode:soft-light; transition:opacity 180ms ease; }
+:root:not([data-theme^="light-"]) .atlas-spatial-tilt__foil { mix-blend-mode:color-dodge; }
+@media (hover:hover) and (pointer:fine) { .atlas-spatial-tilt:hover .atlas-spatial-tilt__foil { opacity:.72; } }
+.atlas-kinetic-text { display:inline; }
+.atlas-kinetic-char-mask { display:inline-block; overflow:hidden; vertical-align:bottom; }
+.atlas-kinetic-char-mask > span { display:inline-block; will-change:transform,opacity,font-weight; }
+.atlas-odometer-number { display:inline-flex; align-items:baseline; white-space:pre; font-variant-numeric:tabular-nums; }
+.atlas-odometer-number__slot { display:inline-block; height:1em; min-width:.58em; overflow:hidden; vertical-align:bottom; }
+.atlas-odometer-number__stack { display:flex; flex-direction:column; line-height:1; will-change:transform; }
+.atlas-odometer-number__stack > span { height:1em; flex:none; }
+.atlas-command-dock { position:relative; isolation:isolate; }
+.atlas-command-dock::before { content:""; position:absolute; inset:0; z-index:0; pointer-events:none; border-radius:inherit; background:var(--surface); opacity:.9; filter:url(#atlas-gooey); }
+.atlas-command-dock > * { position:relative; z-index:1; }
+.atlas-gooey-defs { position:absolute; pointer-events:none; }
+.atlas-spark-burst { position:fixed; inset:0; width:100vw; height:100vh; z-index:9999; pointer-events:none; }
+.atlas-cursor-aura { position:fixed; left:0; top:0; width:280px; height:280px; border-radius:50%; pointer-events:none; z-index:0; background:radial-gradient(circle, color-mix(in srgb,var(--accent-primary) 4%,transparent),transparent 70%); will-change:transform; }
+.atlas-focus-sonar { position:absolute; inset:0; z-index:4; display:grid; place-items:center; pointer-events:none; }
+.atlas-focus-sonar i { position:absolute; width:180px; height:180px; border:1px solid var(--accent-primary); border-radius:50%; animation:atlas-sonar 650ms cubic-bezier(.16,1,.3,1) forwards; }
+.atlas-focus-sonar i:nth-child(2) { animation-delay:110ms; }
+@keyframes atlas-sonar { from { transform:scale(1); opacity:.8; } to { transform:scale(1.45); opacity:0; } }
+.execution-timer-readout.is-complete { animation:atlas-chromatic-edge 220ms ease-out; }
+@keyframes atlas-chromatic-edge { 0% { text-shadow:-2px 0 rgba(255,60,110,.6),2px 0 rgba(0,220,255,.6); } 100% { text-shadow:none; } }
+.goal-spatial-wrap,.residence-pulse-tilt { min-width:0; }
+@media (hover:none),(pointer:coarse) { .atlas-spatial-tilt { transform:none !important; transition:none !important; } .atlas-spatial-tilt__foil { display:none; } .atlas-cursor-aura { display:none; } }
+@media (prefers-reduced-motion:reduce) {
+ .atlas-spatial-tilt { transform:none !important; transition:none !important; }
+ .atlas-spatial-tilt__foil,.atlas-cursor-aura { display:none !important; }
+ .atlas-focus-sonar,.atlas-spark-burst { display:none !important; }
+ .atlas-kinetic-char-mask > span { will-change:auto; }
+ .atlas-command-dock::before { filter:none !important; }
+ .atlas-odometer-number__stack { transition:none !important; }
+}
