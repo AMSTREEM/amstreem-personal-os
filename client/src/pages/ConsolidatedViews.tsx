@@ -4,6 +4,7 @@ import { ReviewsPage } from './ReviewsPage';
 import { InsightsPage } from './InsightsPage';
 import { RitualsPage } from './RitualsPage';
 import { SelfControlPage } from './SelfControlPage';
+import { PageHeader } from '../components/ui';
 
 export function HabitsSelfControlView() {
   return <div className="stack habits-self-control-view">
