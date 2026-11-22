@@ -2340,3 +2340,29 @@ input, select, textarea { min-width: 0; }
   .execution-history-list article { grid-template-columns:32px minmax(0,1fr) auto; gap:10px !important; padding:12px !important; }
   .execution-history-mark { width:32px !important; height:32px !important; }
 }
+
+
+/* Room 02 vertical rhythm correction: restore real top/bottom breathing room. */
+.rhythm-page > .surface-card,
+.rhythm-page > .rhythm-grid > .surface-card {
+  padding-block: 32px !important;
+}
+.rhythm-page > .surface-card > .module-panel-head,
+.rhythm-page > .rhythm-grid > .surface-card > .module-panel-head {
+  margin-bottom: 4px;
+}
+.rhythm-page > .surface-card > .rhythm-record-list,
+.rhythm-page > .rhythm-grid > .surface-card > .rhythm-record-list,
+.rhythm-page > .surface-card > .rhythm-prayer-list,
+.rhythm-page > .rhythm-grid > .surface-card > .rhythm-prayer-list {
+  margin-block: 6px;
+}
+.rhythm-page > .surface-card > .rhythm-focus-link {
+  margin-top: 12px;
+}
+@media (max-width: 760px) {
+  .rhythm-page > .surface-card,
+  .rhythm-page > .rhythm-grid > .surface-card {
+    padding-block: 25px !important;
+  }
+}
