@@ -32,7 +32,8 @@ export function App() {
     <Route element={<AppShell />}>
       <Route index element={<Navigate to="/today" replace />} />
       {/* Canonical eight-view destinations */}
-      <Route path="/today" element={<TodayPage />} />
+      <Route path="/residence" element={<TodayPage />} />
+      <Route path="/today" element={<LegacyRedirect to="/residence" />} />
       <Route path="/values" element={<ValuesPage />} />
       <Route path="/habits" element={<HabitsSelfControlView />} />
       <Route path="/execution" element={<FocusWorkspace />} />
