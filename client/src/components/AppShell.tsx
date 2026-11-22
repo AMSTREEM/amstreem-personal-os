@@ -8,14 +8,14 @@ import { ArrowRight, BookOpen, Check, Compass, GraduationCap, Heart, House, LogO
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
 import { MobileInstallPrompt } from './MobileInstallPrompt';
-import { EntrancePresetContext, entranceFrame, useCompactMotionViewport, useEntrancePreset } from './EntranceMotion';
+import { EntrancePresetContext, useEntrancePreset } from './EntranceMotion';
 import { playAtlasFeedback } from '../lib/microFeedback';
 import { useFocusTimer, updateFocusTimer } from '../lib/focusTimerStore';
 import { OdometerNumber } from './fx/OdometerNumber';
 import { PortalTransition, setPortalOrigin } from './fx/PortalTransition';
 import { SparkBurst } from './fx/SparkBurst';
+import { EnergyVortex } from './fx/AtlasEngines';
 import { CursorAura } from './fx/CursorAura';
-import { DockGooeyFilter } from './fx/DockGooeyFilter';
 import { MagneticButton } from './fx/MagneticButton';
 import { useSpotlightGrid } from './fx/useSpotlightGrid';
 
@@ -62,8 +62,6 @@ export function AppShell() {
   const { user, role, signOut, session, completeOnboarding } = useAuth();
   const queryClient = useQueryClient();
   const reduceMotion = useReducedMotion();
-  const hasMountedRoom = useRef(false);
-  useEffect(() => { hasMountedRoom.current = true; }, []);
   const [booting, setBooting] = useState(true);
   useEffect(() => { const timeout = window.setTimeout(() => setBooting(false), 380); return () => window.clearTimeout(timeout); }, []);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -129,7 +127,6 @@ export function AppShell() {
   ].filter(item => (item.label+' '+item.detail).toLowerCase().includes(commandQuery.toLowerCase())),[commandQuery]);
   const location = useLocation();
   const entrancePreset = useEntrancePreset(location.pathname);
-  const compactMotionViewport = useCompactMotionViewport();
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Record<string, string>>('/settings') });
   const quickDate = atlasDate();
   const quickReligion = settings.data?.faith_tradition || settings.data?.religion || 'none';
@@ -185,7 +182,7 @@ export function AppShell() {
   };
   const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => role === 'admin' || !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
   return <div className={"app-frame" + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
-    <CursorAura/><SparkBurst/><DockGooeyFilter/>
+    <CursorAura/><SparkBurst/><EnergyVortex/>
     <MobileInstallPrompt />
     <AnimatePresence initial={false}>{tourOpen && <AtlasWalkthrough onClose={closeTour} />}</AnimatePresence>
     {mobileOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
@@ -226,9 +223,9 @@ export function AppShell() {
           <motion.div
             key={location.pathname}
             className="room-view-transition"
-            initial={reduceMotion || !hasMountedRoom.current ? false : entranceFrame(entrancePreset, 0, compactMotionViewport).initial}
-            animate={entranceFrame(entrancePreset, 0, compactMotionViewport).animate}
-            transition={reduceMotion ? { duration: 0 } : entranceFrame(entrancePreset, 0, compactMotionViewport).transition}
+            initial={false}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0 }}
             style={{ willChange: reduceMotion ? 'auto' : 'transform, opacity' }}
           >
             <Outlet />

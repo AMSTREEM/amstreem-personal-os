@@ -6,6 +6,7 @@ import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
 import { SpatialTiltCard } from '../components/fx/SpatialTiltCard';
 import { Cascade } from '../components/Cascade';
+import { LifeConstellation, triggerEnergyVortex } from '../components/fx/AtlasEngines';
 
 type Goal = { id: number; title: string; detail: string; target_date: string | null; status: string; category?: string; horizon?:'short-term'|'long-term'; focus_minutes: number };
 type Project = { id: number; title: string; goal_id: number | null; status: string; open_tasks: number; milestones: { id: number; title: string; completed: number }[] };
@@ -31,7 +32,7 @@ export function GoalsPage() {
   });
   const toggleMilestone = useMutation({
     mutationFn: ({id,completed}:{id:number;completed:boolean}) => api('/project-milestones/'+id,json('PATCH',{completed})),
-    onSuccess: () => { void client.invalidateQueries({queryKey:['projects']}); void client.invalidateQueries({queryKey:['goals']}); void client.invalidateQueries({queryKey:['overview']}); }
+    onSuccess: (_data, variables) => { if (variables.completed) triggerEnergyVortex(window.innerWidth * .5, window.innerHeight * .38); void client.invalidateQueries({queryKey:['projects']}); void client.invalidateQueries({queryKey:['goals']}); void client.invalidateQueries({queryKey:['overview']}); }
   });
   const workByGoal = useMemo(() => {
     return new Map((goals.data || []).map(goal => {
@@ -49,7 +50,7 @@ export function GoalsPage() {
   }, [goals.data, projects.data, tasks.data, habits.data, paths.data]);
 
   return <Cascade className="stack growth-horizon-layout goals-horizon">
-    <PageHeader eyebrow="DIRECTION / LONG GAME" title="Goals & Milestones" description="Keep meaningful outcomes visible, with progress earned through linked tasks, completed lessons and project milestones." />
+    <PageHeader eyebrow="DIRECTION / LONG GAME" title="Goals & Milestones" description="Keep meaningful outcomes visible, with progress earned through linked tasks, completed lessons and project milestones." />\n    <LifeConstellation goals={(goals.data||[]).map(({id,title})=>({id,title}))} projects={(projects.data||[]).map(({id,title,goal_id})=>({id,title,goal_id}))} paths={(paths.data||[]).map(({id,title,goal_id})=>({id,title,goal_id}))} />
     <Card>
       <div className="card-heading"><div><h2>Set a direction</h2><p>Describe an outcome, not a vague aspiration.</p></div></div>
       <details className="atlas-add-disclosure"><summary>+ Add goal</summary><form className="form-stack" onSubmit={event => { event.preventDefault(); if (title.trim()) create.mutate(); }}>
