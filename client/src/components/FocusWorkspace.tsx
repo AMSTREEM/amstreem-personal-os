@@ -3,8 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Cascade } from './Cascade';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, Check, ChevronDown, Circle, Clock3, Pause, Play, Plus, RotateCcw, Timer, X } from 'lucide-react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ProjectsPage } from '../pages/ProjectsPage';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, TextArea, TextInput } from './ui';
 import { playAtlasFeedback, primeAtlasAudio } from '../lib/microFeedback';
@@ -15,8 +14,9 @@ import { OdometerNumber } from './fx/OdometerNumber';
 import { triggerSparkBurst } from './fx/SparkBurst';
 import { FerrofluidCore, triggerEnergyVortex } from './fx/AtlasEngines';
 
-type Task = { id:number; title:string; detail:string; done:number; priority:number; due_date:string|null; project_id:number|null; project_title?:string|null; goal_title?:string|null; parent_task_id:number|null; focus_minutes:number; subtask_count:number };
-type Project = { id:number; title:string; goal_title?:string|null; target_date:string|null; open_tasks:number; focus_minutes:number; progress_pct:number };
+type Task = { id:number; title:string; detail:string; done:number; priority:number; due_date:string|null; project_id:number|null; goal_id:number|null; project_title?:string|null; goal_title?:string|null; parent_task_id:number|null; focus_minutes:number; subtask_count:number };
+type Project = { id:number; title:string; goal_id:number|null; goal_title?:string|null; target_date:string|null; open_tasks:number; focus_minutes:number; progress_pct:number };
+type Goal = { id:number; title:string };
 type Lesson = { id:number; title:string; status:string; study_minutes:number };
 type LearningPath = { id:number; title:string; goal_id:number|null; lessons:Lesson[] };
 type Session = { id:number; session_date:string; minutes:number; focus:string; reflection:string; task_title?:string|null; project_title?:string|null; lesson_title?:string|null; path_title?:string|null; distractions?:string[] };
@@ -35,6 +35,7 @@ export function FocusWorkspace() {
   const [customMinutes,setCustomMinutes]=useState('40');
   const [breakMinutes,setBreakMinutes]=useState('5');
   const [projectFilter,setProjectFilter]=useState('all');
+  const [goalFilter,setGoalFilter]=useState('all');
   const [selectedTaskId,setSelectedTaskId]=useState<number|null>(null);
   const [taskFilter,setTaskFilter]=useState<'open'|'all'|'done'>('open');
   const [newTask,setNewTask]=useState('');
@@ -47,6 +48,7 @@ export function FocusWorkspace() {
   const chimedKeys=useRef(new Set<string>());
   const tasks=useQuery({queryKey:['tasks'],queryFn:()=>api<Task[]>('/tasks')});
   const projects=useQuery({queryKey:['projects'],queryFn:()=>api<Project[]>('/projects')});
+  const goals=useQuery({queryKey:['goals'],queryFn:()=>api<Goal[]>('/goals')});
   const learning=useQuery({queryKey:['learning-paths'],queryFn:()=>api<LearningPath[]>('/learning/paths')});
   const sessions=useQuery({queryKey:['sessions'],queryFn:()=>api<Session[]>('/sessions')});
   const remaining=timer.deadline===null?timer.remaining:Math.max(0,Math.ceil((timer.deadline-now)/1000));
@@ -98,8 +100,8 @@ export function FocusWorkspace() {
   const createSubtask=useMutation({mutationFn:({parentId,title}:{parentId:number;title:string})=>api('/tasks',json('POST',{title,category:'Personal',parent_task_id:parentId,project_id:tasks.data?.find(item=>item.id===parentId)?.project_id||null})),onSuccess:(_data,variables)=>{setSubtaskDrafts(current=>({...current,[variables.parentId]:''}));void client.invalidateQueries({queryKey:['tasks']});}});
   const visibleTasks=useMemo(()=>{
     const rows=tasks.data||[];
-    return rows.filter(task=>!task.parent_task_id&&(projectFilter==='all'||String(task.project_id||'none')===projectFilter)&&(taskFilter==='all'||(taskFilter==='open'?!task.done:!!task.done)));
-  },[tasks.data,projectFilter,taskFilter]);
+    return rows.filter(task=>{const linkedGoal=task.goal_id||projects.data?.find(project=>project.id===task.project_id)?.goal_id||null;return !task.parent_task_id&&(projectFilter==='all'||String(task.project_id||'none')===projectFilter)&&(goalFilter==='all'||String(linkedGoal||'none')===goalFilter)&&(taskFilter==='all'||(taskFilter==='open'?!task.done:!!task.done));});
+  },[tasks.data,projects.data,projectFilter,goalFilter,taskFilter]);
   const children=(parentId:number)=>(tasks.data||[]).filter(task=>task.parent_task_id===parentId);
   const inspectedTask=tasks.data?.find(task=>task.id===selectedTaskId)||null;
   const inspectedSubtasks=inspectedTask?children(inspectedTask.id):[];
@@ -128,13 +130,13 @@ export function FocusWorkspace() {
     <div className={"execution-split "+(isFocusRoute?"focus-room-layout":"execution-projects-layout")+(inspectedTask&&!isFocusRoute?" has-task-inspector":"")}>
       {!isFocusRoute && <section className="execution-projects-panel">
         <Card className="execution-panel-card">
-          <div className="execution-panel-heading"><div><span className="eyebrow">01 / PROJECTS & TASKS</span><h2>Choose what moves.</h2><p>One task at a time, connected to the bigger picture.</p></div><Link className="text-link" to="/projects">Manage projects ↗</Link></div>
+          <div className="execution-panel-heading"><div><span className="eyebrow">01 / DAILY ACTION</span><h2>Task queue.</h2><p>Choose the next useful action, with project and goal context close at hand.</p></div></div>
           <div className="execution-project-rail">
-            <button className={projectFilter==='all'?'is-active':''} onClick={()=>setProjectFilter('all')}>All work <small>{(tasks.data||[]).filter(task=>!task.parent_task_id&&!task.done).length}</small></button>
-            {(projects.data||[]).map(project=><div className={'execution-project-choice '+(projectFilter===String(project.id)?'is-active':'')} key={project.id}><button className="execution-project-choice__select" onClick={()=>{setProjectFilter(String(project.id));if(!sessionInProgress)setTimer(current=>({...current,taskId:'',lessonId:'',projectId:String(project.id),focus:project.title}));}}>{project.title}<small>{project.open_tasks}</small></button><button className="execution-project-choice__focus" disabled={sessionInProgress} onClick={()=>focusProject(project)} aria-label={'Start focus on '+project.title}><Timer size={12}/></button></div>)}
-            <button className={projectFilter==='none'?'is-active':''} onClick={()=>setProjectFilter('none')}>Standalone <small>{(tasks.data||[]).filter(task=>!task.project_id&&!task.done&&!task.parent_task_id).length}</small></button>
+            <button className={projectFilter==='all'?'is-active':''} onClick={()=>{setProjectFilter('all');setGoalFilter('all');}}>All work <small>{(tasks.data||[]).filter(task=>!task.parent_task_id&&!task.done).length}</small></button>
+            {(projects.data||[]).map(project=><div className={'execution-project-choice '+(projectFilter===String(project.id)?'is-active':'')} key={project.id}><button className="execution-project-choice__select" onClick={()=>{setProjectFilter(String(project.id));setGoalFilter('all');if(!sessionInProgress)setTimer(current=>({...current,taskId:'',lessonId:'',projectId:String(project.id),focus:project.title}));}}>{project.title}<small>{project.open_tasks}</small></button><button className="execution-project-choice__focus" disabled={sessionInProgress} onClick={()=>focusProject(project)} aria-label={'Start focus on '+project.title}><Timer size={12}/></button></div>)}
+            <button className={projectFilter==='none'?'is-active':''} onClick={()=>{setProjectFilter('none');setGoalFilter('all');}}>Standalone <small>{(tasks.data||[]).filter(task=>!task.project_id&&!task.done&&!task.parent_task_id).length}</small></button>
           </div>
-          <details className="execution-project-manager"><summary><Plus size={13}/> Create project · manage milestones & goal links</summary><ProjectsPage embedded /></details>
+          <div className="execution-project-rail execution-goal-filter-rail" aria-label="Filter tasks by goal"><button className={goalFilter==='all'?'is-active':''} onClick={()=>{setGoalFilter('all');setProjectFilter('all');}}>All goals</button>{(goals.data||[]).map(goal=><button key={goal.id} className={goalFilter===String(goal.id)?'is-active':''} onClick={()=>{setGoalFilter(String(goal.id));setProjectFilter('all');}}>{goal.title}</button>)}<button className={goalFilter==='none'?'is-active':''} onClick={()=>{setGoalFilter('none');setProjectFilter('all');}}>Unlinked</button></div>
           <div className="execution-task-toolbar"><div><b>Tasks</b><span>{visibleTasks.length} shown</span></div><div className="execution-filter-tabs"><button className={taskFilter==='open'?'is-active':''} onClick={()=>setTaskFilter('open')}>Open</button><button className={taskFilter==='all'?'is-active':''} onClick={()=>setTaskFilter('all')}>All</button><button className={taskFilter==='done'?'is-active':''} onClick={()=>setTaskFilter('done')}>Done</button></div></div>
           <details className="atlas-add-disclosure"><summary>+ Add task</summary><form className="execution-quick-add" onSubmit={event=>{event.preventDefault();if(newTask.trim())createTask.mutate();}}>
             <TextInput value={newTask} onChange={event=>setNewTask(event.target.value)} placeholder="Add a clear next action…" />

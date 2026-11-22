@@ -1,5 +1,4 @@
 import { LibraryPage } from './LibraryPage';
-import { LearningPage } from './LearningPage';
 import { ReviewsPage } from './ReviewsPage';
 import { InsightsPage } from './InsightsPage';
 import { RitualsPage } from './RitualsPage';
@@ -16,13 +15,9 @@ export function HabitsSelfControlView() {
 
  
 export function LearningLibraryView() {
-  return <div className="stack growth-combined-view growth-horizon-layout">
-    <section className="growth-view-section" aria-labelledby="growth-learning-heading">
-      <div className="growth-section-heading"><span className="eyebrow">KNOWLEDGE / LEARNING STUDIO</span><h2 id="growth-learning-heading">Learning paths</h2><p>Build skills through structured paths, lessons, study notes and focused sessions.</p></div>
-      <LearningPage embedded />
-    </section>
+  return <div className="stack growth-combined-view">
     <section className="growth-view-section" aria-labelledby="growth-library-heading">
-      <div className="growth-section-heading"><span className="eyebrow">KNOWLEDGE / PRIVATE LIBRARY</span><h2 id="growth-library-heading">Reading & reference</h2><p>Keep books, articles, references and private notes close without mixing them into lesson plans.</p></div>
+      <div className="growth-section-heading"><span className="eyebrow">KNOWLEDGE / PRIVATE LIBRARY</span><h2 id="growth-library-heading">Private Library</h2><p>Keep books, articles, references and private notes close to the work that matters.</p></div>
       <LibraryPage embedded />
     </section>
   </div>;
