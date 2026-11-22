@@ -15,25 +15,20 @@ import { useFocusTimer, updateFocusTimer } from '../lib/focusTimerStore';
 const MotionNavLink = motion.create(NavLink);
 
 const rooms = [
-  { id: 'residence', label: 'Residence', to: '/today', icon: House, paths: ['/today', '/insights'] },
-  { id: 'rhythm', label: 'Daily Rhythm', to: '/values', icon: MoonStar, paths: ['/values', '/self-control', '/rituals'] },
-  { id: 'execution', label: 'Execution & Focus', to: '/execution', icon: Compass, paths: ['/execution', '/projects', '/tasks', '/calendar', '/focus'] },
-  { id: 'growth', label: 'Growth & Direction', to: '/learning', icon: GraduationCap, paths: ['/learning', '/library', '/goals', '/reviews'] }
+  { id: 'residence', label: 'Residence', to: '/today', icon: House, paths: ['/today'] },
+  { id: 'rhythm', label: 'Daily Rhythm', to: '/values', icon: MoonStar, paths: ['/values', '/habits'] },
+  { id: 'execution', label: 'Execution & Focus', to: '/execution', icon: Compass, paths: ['/execution', '/calendar'] },
+  { id: 'growth', label: 'Growth & Direction', to: '/goals', icon: GraduationCap, paths: ['/goals', '/learning-library', '/reviews-insights'] }
 ];
 
 const commandDestinations = [
-  { label: 'Insights', detail: 'Review patterns from your activity', to: '/insights', icon: Zap },
-  { label: 'Daily Rhythm', detail: 'Open your tradition-specific daily practice', to: '/values', icon: MoonStar },
-  { label: 'Self-Control & Streaks', detail: 'Review routines, check-ins and recovery', to: '/self-control', icon: Heart },
-  { label: 'Habits & Streaks', detail: 'Review your daily habits', to: '/rituals', icon: Heart },
-  { label: 'Projects', detail: 'Move a project forward', to: '/projects', icon: Compass },
-  { label: 'Tasks', detail: 'Review and complete tasks', to: '/tasks', icon: Zap },
-  { label: 'Calendar', detail: 'Review your schedule', to: '/calendar', icon: Compass },
-  { label: 'Focus Timer', detail: 'Start or resume a deep-work session', to: '/focus', icon: Timer },
-  { label: 'Learning Studio', detail: 'Continue a learning path', to: '/learning', icon: GraduationCap },
-  { label: 'Private Library', detail: 'Open saved notes and resources', to: '/library', icon: BookOpen },
-  { label: 'Goals', detail: 'Review long-term direction', to: '/goals', icon: Target },
-  { label: 'Reviews', detail: 'Open daily and weekly reviews', to: '/reviews', icon: Heart }
+  { label: 'Faith / Deen', detail: 'Open your tradition-specific daily practice', to: '/values', icon: MoonStar },
+  { label: 'Habits & Self-Control', detail: 'Manage routines, commitments and recovery', to: '/habits', icon: Heart },
+  { label: 'Projects & Tasks', detail: 'Plan work and launch a focus session', to: '/execution', icon: Compass },
+  { label: 'Calendar', detail: 'Review scheduled commitments and activity', to: '/calendar', icon: Compass },
+  { label: 'Goals & Milestones', detail: 'Review long-term direction and progress', to: '/goals', icon: Target },
+  { label: 'Learning & Library', detail: 'Continue learning and saved resources', to: '/learning-library', icon: GraduationCap },
+  { label: 'Reviews & Insights', detail: 'Reflect on activity and evidence', to: '/reviews-insights', icon: Heart }
 ];
 
 type QuickPrayer = { prayer: string; completed: number; on_time: number };
@@ -75,7 +70,7 @@ export function AppShell() {
     return () => window.clearInterval(tick);
   }, []);
   useEffect(() => {
-    const paths = ['/today','/values','/projects','/learning'];
+    const paths = ['/today','/values','/execution','/goals'];
     const onKey = (event: KeyboardEvent) => {
       const el = event.target as HTMLElement | null;
       const typing = !!el && (el.isContentEditable || ['INPUT','TEXTAREA','SELECT'].includes(el.tagName));
@@ -159,10 +154,10 @@ export function AppShell() {
   }, [focusActive, focusTimer.kind, focusClock, focusContext, current?.label]);
   const faithTabLabel = quickReligion === 'islam' ? 'Deen & Reflection' : quickReligion === 'christianity' ? 'Faith & Devotion' : 'Clarity & Reflection';
   const tabsByRoom = {
-    residence: [{ label: 'Overview', to: '/today' }, { label: 'Insights', to: '/insights' }],
-    rhythm: [{ label: faithTabLabel, to: '/values' }, { label: 'Self-Control & Streaks', to: '/self-control' }, { label: 'Routine Builder', to: '/rituals' }],
-    execution: [{ label: 'Workspace', to: '/execution' }, { label: 'Projects', to: '/projects' }, { label: 'Tasks', to: '/tasks' }, { label: 'Focus Timer', to: '/focus' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
-    growth: [{ label: 'Learning Studio', to: '/learning' }, { label: 'Private Library', to: '/library', feature: 'library' }, { label: 'Goals', to: '/goals' }, { label: 'Reviews', to: '/reviews' }]
+    residence: [],
+    rhythm: [{ label: faithTabLabel, to: '/values' }, { label: 'Habits & Self-Control', to: '/habits' }],
+    execution: [{ label: 'Projects & Tasks', to: '/execution' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
+    growth: [{ label: 'Goals & Milestones', to: '/goals' }, { label: 'Learning & Library', to: '/learning-library', feature: 'library' }, { label: 'Reviews & Insights', to: '/reviews-insights' }]
   };
   const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => role === 'admin' || !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
   useEffect(() => {
@@ -219,7 +214,7 @@ export function AppShell() {
     <main className="main-area">
       <header className="topbar">
         <button className="mobile-menu-button" onClick={() => setMobileOpen(v => !v)} aria-label={mobileOpen ? 'Close menu' : 'Open menu'}>{mobileOpen ? <X /> : <Menu />}</button>
-        <div className="topbar-context"><span>AMSTREEM ATLAS</span><b>{current?.label || (location.pathname === '/reviews' ? 'Deen & Reflection' : location.pathname === '/library' ? 'Learning Studio' : location.pathname === '/admin' ? 'Administration' : 'Settings')}</b></div>
+        <div className="topbar-context"><span>AMSTREEM ATLAS</span><b>{current?.label || (location.pathname === '/habits' ? 'Habits & Self-Control' : location.pathname === '/learning-library' ? 'Learning & Library' : location.pathname === '/reviews-insights' ? 'Reviews & Insights' : location.pathname === '/admin' ? 'Administration' : 'Settings')}</b></div>
         <div className="topbar-right"><button className="global-capture-trigger" type="button" onClick={() => {setCommandOpen(true);setCommandQuery('');}}><Search size={14}/><span>Quick capture</span><kbd>⌘ K</kbd></button><button className="tour-launcher" type="button" onClick={() => setTourOpen(true)}><Compass size={14} /> Guided tour</button><span className="privacy-indicator"><span /> PRIVATE BY DESIGN</span><span className="topbar-date">{new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric'}).format(new Date())}</span></div>
       </header>
 
@@ -251,7 +246,7 @@ export function AppShell() {
         <motion.button type="button" whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className="atlas-dock-action" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={15}/><span>Command</span><kbd>⌘ K</kbd></motion.button>
         <motion.button type="button" whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className="atlas-dock-action" onClick={() => { setCommandOpen(true); setCommandQuery('add a task'); }}><Plus size={15}/><span>Quick Capture</span></motion.button>
         <motion.div className={'atlas-dock-focus ' + (focusSessionVisible ? 'is-expanded' : '')} layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }}>
-          <motion.button type="button" whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className="atlas-dock-action atlas-dock-focus__open" onClick={() => navigate('/focus')}><Timer size={15}/><span>Focus Timer</span>{focusSessionVisible && <strong>{focusClock}</strong>}</motion.button>
+          <motion.button type="button" whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className="atlas-dock-action atlas-dock-focus__open" onClick={() => navigate('/execution')}><Timer size={15}/><span>Focus Timer</span>{focusSessionVisible && <strong>{focusClock}</strong>}</motion.button>
           {focusSessionVisible && <motion.div className="atlas-dock-focus__detail" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.18 }}><span title={focusContext}>{focusContext}</span><motion.button type="button" whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} onClick={toggleTimer} aria-label={focusActive ? 'Pause focus timer' : 'Resume focus timer'}>{focusActive ? <Pause size={13}/> : <Play size={13}/>}<small>{focusActive ? 'Pause' : 'Resume'}</small></motion.button></motion.div>}
         </motion.div>
         <motion.button type="button" whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className="atlas-dock-action" onClick={() => { navigate('/today'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></motion.button>
