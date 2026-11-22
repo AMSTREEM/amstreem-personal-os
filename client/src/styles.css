@@ -2811,3 +2811,16 @@ input, select, textarea { min-width: 0; }
   .execution-quick-add { grid-template-columns:minmax(0,1fr); }
   .execution-quick-add > :first-child { grid-column:auto; }
 }
+
+
+/* Phase 4 — combined Growth & Direction workspaces */
+.growth-combined-view { gap: 2rem; }
+.growth-view-section { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
+.growth-view-section + .growth-view-section {
+  border-top: 1px solid var(--border-subtle, var(--border, rgba(255,255,255,.08)));
+  padding-top: 1.75rem;
+}
+.growth-section-heading { display: flex; flex-direction: column; gap: .35rem; }
+.growth-section-heading h2 { margin: 0; font-size: 1.2rem; letter-spacing: -.025em; }
+.growth-section-heading p { margin: 0; max-width: 66ch; color: var(--text-muted, var(--muted)); font-size: .9rem; line-height: 1.6; }
+.growth-view-section > .stack { gap: 1.25rem; }
