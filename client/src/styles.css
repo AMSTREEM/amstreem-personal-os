@@ -5384,3 +5384,35 @@ html, body, #root, .app-frame, .main-area, .page-container {
   padding: 12px 16px;
   box-sizing: border-box;
 }
+
+
+/* iOS mobile header clarity: avoid WebKit's sticky + backdrop-filter text
+   compositing artefact, and keep the controls below the device safe area. */
+@media (max-width: 767px) {
+  .topbar {
+    height: auto;
+    min-height: calc(52px + env(safe-area-inset-top, 0px));
+    padding-top: env(safe-area-inset-top, 0px);
+    background: color-mix(in srgb, var(--bg) 97%, transparent);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    isolation: isolate;
+  }
+  .topbar-context,
+  .topbar-context b,
+  .mobile-more-trigger {
+    opacity: 1;
+    filter: none;
+    -webkit-filter: none;
+    color: var(--text);
+    -webkit-text-fill-color: currentColor;
+    transform: none;
+    text-shadow: none;
+  }
+  .mobile-more-trigger {
+    position: relative;
+    z-index: 1;
+    flex: none;
+    background: var(--surface);
+  }
+}
