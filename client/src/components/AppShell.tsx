@@ -157,7 +157,7 @@ export function AppShell() {
     residence: [],
     rhythm: [{ label: faithTabLabel, to: '/values' }, { label: 'Habits & Self-Control', to: '/habits' }],
     execution: [{ label: 'Projects & Tasks', to: '/execution' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
-    growth: [{ label: 'Goals & Milestones', to: '/goals' }, { label: 'Learning & Library', to: '/learning-library', feature: 'library' }, { label: 'Reviews & Insights', to: '/reviews-insights' }]
+    growth: [{ label: 'Goals & Milestones', to: '/goals' }, { label: 'Learning & Library', to: '/learning-library' }, { label: 'Reviews & Insights', to: '/reviews-insights' }]
   };
   const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => role === 'admin' || !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
   useEffect(() => {
