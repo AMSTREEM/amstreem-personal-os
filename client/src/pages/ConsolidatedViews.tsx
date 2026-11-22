@@ -7,7 +7,7 @@ import { SelfControlPage } from './SelfControlPage';
 import { PageHeader } from '../components/ui';
 
 export function HabitsSelfControlView() {
-  return <div className="stack habits-self-control-view">
+  return <div className="stack habits-self-control-view daily-rhythm-sanctuary">
     <PageHeader eyebrow="ROOM 02 / DAILY RHYTHM" title="Habits & Self-Control" description="Build the routines you want to keep, honour your personal commitments, and learn from the days that do not go to plan." />
     <SelfControlPage embedded />
     <RitualsPage embedded />
@@ -16,7 +16,7 @@ export function HabitsSelfControlView() {
 
  
 export function LearningLibraryView() {
-  return <div className="stack growth-combined-view">
+  return <div className="stack growth-combined-view growth-horizon-layout">
     <section className="growth-view-section" aria-labelledby="growth-learning-heading">
       <div className="growth-section-heading"><span className="eyebrow">KNOWLEDGE / LEARNING STUDIO</span><h2 id="growth-learning-heading">Learning paths</h2><p>Build skills through structured paths, lessons, study notes and focused sessions.</p></div>
       <LearningPage embedded />
