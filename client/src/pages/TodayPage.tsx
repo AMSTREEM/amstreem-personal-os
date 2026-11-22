@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Cascade } from '../components/Cascade';
 import { playAtlasFeedback } from '../lib/microFeedback';
 import { AnimatedMetric } from '../components/AnimatedMetric';
@@ -48,6 +48,7 @@ function formatMinutes(minutes: number) {
 }
 
 export function TodayPage() {
+  const reduceMotion = useReducedMotion();
   const client = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -220,7 +221,7 @@ export function TodayPage() {
   return <Cascade className="stack today-dashboard">
     <section className="residence-band residence-band--orientation" aria-label="Today's orientation">
       <PageHeader eyebrow={new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()).toUpperCase()} title={`Good ${rhythm === 'day' ? 'afternoon' : rhythm}, ${settings.data?.display_name?.trim() || user?.name || user?.username || 'there'}`} description="Your Residence: a clear view of today’s priorities, routines, focus and progress." action={showCalendar ? <Link className="button button--secondary" to="/calendar">View calendar <ArrowRight size={14} /></Link> : undefined} />
-      <section className="residence-rhythm"><div><span className="eyebrow">{rhythmCopy.eyebrow}</span><h2>{rhythmCopy.title}</h2><p>{rhythmCopy.detail}</p></div><span className="residence-rhythm-time">{new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',minute:'2-digit'}).format(new Date())} WAT</span></section>
+      <section className="residence-rhythm"><div><span className="eyebrow">{rhythmCopy.eyebrow}</span><span className="residence-rhythm-title-mask"><motion.h2 initial={reduceMotion ? false : { y: "105%", opacity: 0 }} animate={{ y: "0%", opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.28, delay: 0.07, ease: [0.16, 1, 0.3, 1] }}>{rhythmCopy.title}</motion.h2></span><p>{rhythmCopy.detail}</p></div><span className="residence-rhythm-time">{new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',minute:'2-digit'}).format(new Date())} WAT</span></section>
       {yesterdayReview?.shutdown_complete && yesterdayReview.next_focus?.trim() && <div className="residence-carryforward"><span className="eyebrow">YOUR FIRST MEANINGFUL STEP</span><p>{yesterdayReview.next_focus}</p><small>Carried forward from yesterday’s shutdown</small></div>}
     <section className="residence-rhythm-action" aria-live="polite">
       {showShutdownPrompt ? <><div><span className="eyebrow">EVENING SHUTDOWN</span><b>{prioritiesCompleted ? 'Your three priorities are complete. Close the loop.' : 'Make space to close the day.'}</b><p>Capture what moved forward and choose tomorrow’s first meaningful step.</p></div><Link to="#evening-shutdown">Begin shutdown <ArrowRight size={13}/></Link></>
