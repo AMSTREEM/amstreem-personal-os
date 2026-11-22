@@ -16,7 +16,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm install
-      - run: npm audit --omit=dev --audit-level=high
+      - run: npm audit
       - run: node --check server.js
       - run: npm run typecheck
       - run: npm run build
