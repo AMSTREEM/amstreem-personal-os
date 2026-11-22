@@ -4329,3 +4329,94 @@ html, body, #root, .app-frame, .main-area, .page-container {
 }
 #root { min-height:100vh; }
 .app-frame, .main-area, .page-container { overflow-y:visible; }
+
+
+/* Growth & Direction — Life Constellation, tuned for desktop and touch screens. */
+.goals-horizon .atlas-constellation {
+  padding:clamp(16px,2.4vw,26px);
+  border:1px solid var(--line);
+  border-radius:var(--atlas-radius-card,20px);
+  background:linear-gradient(145deg,color-mix(in srgb,var(--accent-wash) 42%,var(--surface)),var(--surface) 58%,var(--surface-raised));
+  box-shadow:var(--surface-specular);
+}
+.atlas-constellation__heading { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; min-width:0; }
+.atlas-constellation__copy { min-width:0; max-width:650px; }
+.atlas-constellation__copy h2 { margin:8px 0 6px; font:650 clamp(20px,2.2vw,26px)/1.15 Manrope,sans-serif; letter-spacing:-.045em; }
+.atlas-constellation__copy p { max-width:590px; margin:0; color:var(--muted); font-size:12px; line-height:1.7; }
+.atlas-constellation__counts { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:7px; flex:none; }
+.atlas-constellation__counts span { display:inline-flex; align-items:center; gap:5px; padding:7px 10px; border:1px solid var(--line); border-radius:9px; background:color-mix(in srgb,var(--surface-raised) 76%,transparent); color:var(--muted); font-size:10px; white-space:nowrap; }
+.atlas-constellation__counts b { color:var(--text); font:650 13px Manrope,sans-serif; font-variant-numeric:tabular-nums; }
+.atlas-constellation__legend { display:flex; align-items:center; flex-wrap:wrap; gap:12px 18px; margin-top:18px; padding-top:13px; border-top:1px solid var(--line-soft); }
+.atlas-constellation__legend > span { display:inline-flex; align-items:center; gap:7px; color:var(--muted); font-size:10px; }
+.atlas-constellation__legend i { width:8px; height:8px; border-radius:50%; box-shadow:0 0 10px currentColor; }
+.atlas-constellation__legend i.is-goal { background:#9b9cff; color:#9b9cff; }
+.atlas-constellation__legend i.is-project { background:#6dc8d6; color:#6dc8d6; }
+.atlas-constellation__legend i.is-learning { background:#d2b3ff; color:#d2b3ff; }
+.atlas-constellation__legend small { margin-left:auto; color:var(--subtle); font-size:9px; }
+.goals-horizon .atlas-constellation canvas { display:block; width:100%; height:260px; margin-top:4px; border-radius:12px; touch-action:pan-y; cursor:grab; }
+.atlas-constellation__selection { display:flex; align-items:center; gap:9px; min-height:30px; padding-top:8px; border-top:1px solid var(--line-soft); color:var(--subtle); font-size:10px; }
+.atlas-constellation__selection b { color:var(--text); font-size:11px; }
+.atlas-constellation__selection span { color:var(--muted); }
+.atlas-constellation__empty { display:flex; align-items:center; gap:16px; min-height:144px; margin-top:18px; padding:20px; border:1px dashed var(--line); border-radius:14px; background:color-mix(in srgb,var(--surface-raised) 55%,transparent); }
+.atlas-constellation__empty-mark { position:relative; display:block; width:52px; height:52px; flex:none; border:1px solid var(--line); border-radius:50%; }
+.atlas-constellation__empty-mark i { position:absolute; width:7px; height:7px; border-radius:50%; background:var(--accent-strong); box-shadow:0 0 12px color-mix(in srgb,var(--accent) 55%,transparent); }
+.atlas-constellation__empty-mark i:nth-child(1) { top:10px; left:11px; }
+.atlas-constellation__empty-mark i:nth-child(2) { right:8px; top:18px; background:#6dc8d6; }
+.atlas-constellation__empty-mark i:nth-child(3) { bottom:8px; left:22px; background:#d2b3ff; }
+.atlas-constellation__empty b { color:var(--text); font:600 13px Manrope,sans-serif; }
+.atlas-constellation__empty p { max-width:540px; margin:5px 0 0; color:var(--muted); font-size:11px; line-height:1.65; }
+@media(max-width:760px) {
+  .goals-horizon .atlas-constellation { padding:16px; }
+  .atlas-constellation__heading { flex-direction:column; gap:12px; }
+  .atlas-constellation__counts { justify-content:flex-start; gap:6px; }
+  .atlas-constellation__counts span { padding:6px 8px; font-size:9px; }
+  .atlas-constellation__legend { gap:10px 14px; margin-top:14px; }
+  .atlas-constellation__legend small { width:100%; margin-left:0; }
+  .goals-horizon .atlas-constellation canvas { height:220px; margin-top:8px; }
+  .atlas-constellation__empty { align-items:flex-start; min-height:0; padding:15px; }
+}
+@media(max-width:420px) {
+  .goals-horizon .atlas-constellation { padding:13px; border-radius:15px; }
+  .atlas-constellation__counts span { gap:4px; padding:6px; }
+  .atlas-constellation__legend { gap:9px 12px; }
+  .atlas-constellation__legend > span { font-size:9px; }
+  .goals-horizon .atlas-constellation canvas { height:190px; }
+  .atlas-constellation__empty-mark { width:42px; height:42px; }
+}
+
+/* Walkthrough dialog — full-height, scroll-safe mobile layout. */
+.atlas-tour { display:flex; flex-direction:column; max-height:min(90dvh,760px); }
+.atlas-tour__body { min-height:0; overflow:auto; overscroll-behavior:contain; }
+.atlas-tour__intro,.atlas-tour__content { min-width:0; }
+.atlas-tour__preview { min-width:0; }
+.atlas-tour__actions { flex:none; background:var(--surface); }
+@media(max-width:760px) {
+  .atlas-tour-backdrop { place-items:start center; padding:max(10px,env(safe-area-inset-top)) 10px max(10px,env(safe-area-inset-bottom)); }
+  .atlas-tour { width:100%; max-height:calc(100dvh - 20px); border-radius:17px; }
+  .atlas-tour__top { flex-wrap:wrap; gap:8px; padding:12px 14px; }
+  .atlas-tour__brand { font-size:9px; }
+  .atlas-tour__brand img { width:24px; height:24px; }
+  .atlas-tour__count { margin-left:auto; font-size:8px; letter-spacing:.08em; }
+  .atlas-tour__body { display:flex; flex-direction:column; overflow:auto; }
+  .atlas-tour__intro { padding:16px 16px 12px; }
+  .atlas-tour__intro h2 { margin:8px 0 6px; font-size:25px; }
+  .atlas-tour__intro p { margin:0; font-size:11px; line-height:1.55; }
+  .atlas-tour__progress { margin:12px 0 4px; }
+  .atlas-tour__nav { gap:5px; margin-top:8px; }
+  .atlas-tour__nav button { width:24px; height:24px; }
+  .atlas-tour__content { padding:17px 16px 20px; }
+  .atlas-tour__content h3 { font-size:19px; }
+  .atlas-tour__content p { margin:5px 0 0; font-size:11px; line-height:1.6; }
+  .atlas-tour__preview { gap:8px; margin-top:11px; padding:12px; }
+  .atlas-tour__preview-row { align-items:flex-start; padding:9px; font-size:10px; line-height:1.45; }
+  .atlas-tour__actions { position:sticky; bottom:0; flex-wrap:wrap; padding:11px 12px calc(11px + env(safe-area-inset-bottom)); }
+  .atlas-tour__actions > div { gap:6px; }
+  .atlas-tour__actions .button { min-height:40px; padding-inline:11px; font-size:10px; }
+}
+@media(max-width:380px) {
+  .atlas-tour__count { width:100%; margin-left:0; }
+  .atlas-tour__actions { gap:7px; }
+  .atlas-tour__actions > .button { padding-inline:8px; }
+  .atlas-tour__actions > div { flex:1; }
+  .atlas-tour__actions > div .button { flex:1; }
+}
