@@ -3594,11 +3594,14 @@ input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
   line-height: 1.08;
   will-change: transform;
 }
-.residence-pulse,
-.execution-timer {
+.residence-rhythm {
+  position: relative;
   isolation: isolate;
+  overflow: hidden;
 }
-.residence-pulse::before,
+.residence-rhythm > * { position: relative; z-index: 1; }
+.execution-timer { isolation: isolate; }
+.residence-rhythm::before,
 .execution-timer::after {
   content: "";
   position: absolute;
@@ -3612,7 +3615,7 @@ input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
   -webkit-mask-image: radial-gradient(ellipse at center, #000 35%, transparent 100%);
   mask-image: radial-gradient(ellipse at center, #000 35%, transparent 100%);
 }
-.residence-pulse::after {
+.residence-rhythm::after {
   content: "";
   position: absolute;
   z-index: -1;
@@ -3642,13 +3645,13 @@ input::placeholder,textarea::placeholder { color:var(--subtle); opacity:.9; }
 @media (hover: none), (pointer: coarse) {
   .atlas-card::before,
   .atlas-card::after { display: none; }
-  .residence-pulse::before,
-  .residence-pulse::after,
+  .residence-rhythm::before,
+  .residence-rhythm::after,
   .execution-timer::after { display: none; }
   .atlas-dock-action { transform: none !important; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .residence-pulse::after,
+  .residence-rhythm::after,
   .execution-timer { animation: none !important; }
   .atlas-odometer__digit { transition: none !important; }
   .atlas-card::before,
