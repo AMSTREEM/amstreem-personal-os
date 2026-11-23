@@ -354,8 +354,8 @@ test('Full-screen Mushaf opens without inline preview and uses a tap-to-toggle A
   assert.ok(css.includes('@media(min-width:768px)'));
   assert.ok(css.includes('@media(max-width:767px)'));
   assert.ok(css.includes('.mushaf-reading-screen{') && css.includes('100dvh'));
-  assert.ok(css.includes('backdrop-filter:blur(16px)'));
-  assert.ok(css.includes('max-width:640px'));
+  assert.ok(css.includes('backdrop-filter:blur(14px)'));
+  assert.ok(css.includes('width:min(100%,640px)'));
   assert.ok(css.includes('.mushaf-minimal-page-pill'));
 });
 
