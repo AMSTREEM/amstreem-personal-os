@@ -109,7 +109,7 @@ test('Self-Control consistency uses dated records and positive habit check-ins, 
   assert.match(server, /return \{\.\.\.habit,streak\}/);
   assert.match(selfControl, /verified clean check-ins/);
   assert.match(rituals, /invalidateQueries\(\{ queryKey: \['self-control'\] \}\)/);
-  assert.match(shell, /Deen & Reflection/);
+  assert.match(shell, /Deen & Qur’an/);
   assert.match(shell, /Faith & Devotion/);
   assert.match(shell, /Clarity & Reflection/);
 });
@@ -127,7 +127,7 @@ test('Room 3 records focus completion once and derives linked work metrics from 
   assert.match(server, /progress_pct:\s*p\.task_count\s*\?/);
   assert.match(server, /parent_task_id INTEGER REFERENCES tasks\(id\) ON DELETE CASCADE/);
   assert.match(server, /goal_id INTEGER REFERENCES goals\(id\) ON DELETE SET NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP\);/);
-  assert.match(execution, /ROOM 03 \/ EXECUTION & FOCUS/);
+  assert.match(execution, /FOCUS \/ CHRONOGRAPH/);
   assert.match(execution, /\['25','25m'\],\['50','50m'\],\['80','80m'\]/);
   assert.match(execution, /session_key:timer\.sessionKey/);
   assert.match(execution, /savedKeys\.current\.has\(timer\.sessionKey\)/);
@@ -149,8 +149,8 @@ test('Room 3 uses the unified FocusWorkspace route and preserves project/task bo
   assert.match(app, /path="\/projects" element={<LegacyRedirect to="\/goals" \/>}/);
   assert.match(app, /path="\/tasks" element={<LegacyRedirect to="\/execution" \/>}/);
   assert.match(app, /path="\/focus" element={<FocusWorkspace \/>}/);
-  assert.match(shell, /to: '\/execution'/);
-  assert.match(shell, /label: 'Tasks', to: '\/execution'/);
+  assert.match(shell, /paths: \['\/focus', '\/execution'\]/);
+  assert.match(shell, /label: 'Tasks', detail: .*to: '\/execution'/);
   assert.match(css, /\.execution-heading/);
   assert.match(fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8'), /project/i);
 });
@@ -268,8 +268,8 @@ test('Room 3 has a dedicated Focus Room with safe context handoffs and a persist
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
   assert.match(app, /path="\/execution" element={<FocusWorkspace \/>}/);
   assert.match(app, /path="\/focus" element={<FocusWorkspace \/>}/);
-  assert.match(shell, /paths: \['\/execution', '\/focus', '\/calendar'\]/);
-  assert.match(shell, /label: 'Focus Room', to: '\/focus'/);
+  assert.match(shell, /paths: \['\/focus', '\/execution'\]/);
+  assert.match(shell, /label: 'Focus', to: '\/focus'/);
   assert.match(shell, /navigate\('\/focus'\)/);
   assert.match(shell, /className="atlas-command-dock"/);
   assert.match(workspace, /!isFocusRoute && <section className="execution-projects-panel">/);
