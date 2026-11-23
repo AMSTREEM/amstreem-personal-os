@@ -308,6 +308,18 @@ test('Qur’an page proxy falls back across mirrors and serves bundled offline p
   assert.match(reader, /mushaf-fs-stage/);
   assert.match(reader, /mushaf-fs-sheet/);
   assert.match(reader, /mushaf-fs-footer/);
+  assert.match(reader, /readingMode === 'translation'/);
+  assert.match(reader, /readingMode === 'reading'/);
+  assert.match(reader, /Translation/);
+  assert.match(reader, /Reading/);
+  assert.match(reader, /mushaf-fs-verse-row/);
+  assert.match(reader, /mushaf-fs-verse-translation/);
+  assert.match(reader, /mushaf-fs-verse-actions/);
+  assert.match(reader, /Bookmark/);
+  assert.match(reader, /mushaf-fs-arabic--\$\{fontSize\}/);
+  assert.doesNotMatch(reader, /showTranslation/);
+  assert.match(read('client/index.html'), /Amiri\+Quran/);
+  assert.match(read('client/index.html'), /Scheherazade\+New/);
   assert.doesNotMatch(reader, /mushaf-ayah-flow[^>]*style=\{/);
   const mushafCss = read('client/src/styles.css');
   assert.match(mushafCss, /\.mushaf-fs-overlay\s*\{[\s\S]*?grid-template-rows:52px minmax\(0,1fr\) 60px/);
