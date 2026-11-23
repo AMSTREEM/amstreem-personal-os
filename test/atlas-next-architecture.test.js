@@ -331,8 +331,8 @@ test('Full-screen Mushaf opens without inline preview and uses a tap-to-toggle A
   assert.ok(reader.includes("wordSpacing: '2px'"));
   assert.ok(css.includes('UthmanicHafs1Ver18.woff2'));
   assert.ok(css.includes('family=Noto+Naskh+Arabic'));
-  assert.ok(css.includes('.tajweed-ghunnah{color:#ff9a4d}'));
-  assert.ok(css.includes('.tajweed-madda_normal{color:#72a0ff}'));
+  assert.ok(css.includes('.tajweed-iqlab,.tajweed-ghunnah{color:color-mix(in srgb,var(--m-accent) 70%,var(--m-text))}'));
+  assert.ok(css.includes('.tajweed-madda_normal,.tajweed-madda_permissible,.tajweed-madda_necessary'));
   assert.ok(css.includes('KFGQPC Uthmanic Script HAFS'));
   assert.ok(reader.includes('TAJWEED_RULES'));
   assert.ok(reader.includes('new DOMParser().parseFromString'));
