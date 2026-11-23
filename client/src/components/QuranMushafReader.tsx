@@ -231,7 +231,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
             return <Fragment key={lineNumber}>
               {surah && <div className="mushaf-surah-banner"><span className="mushaf-surah-ornament">۞</span><b>{surah.arabicName}</b><small>{surah.surahName}</small><span className="mushaf-surah-ornament">۞</span></div>}
               {surah && surah.surahNumber !== 9 && <div className="mushaf-bismillah" lang="ar">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
-              <div className="mushaf-fs-qcf-line" data-line={lineNumber}>
+              <div className="mushaf-fs-qcf-line" data-line={lineNumber} style={{ fontSize: fontSize + 'px' }}>
                 {words.map((word, index) => <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-qcf-word" style={{ fontFamily: 'QCF_P' + page }} dangerouslySetInnerHTML={{ __html: escapeGlyphHtml(word.codeV2 || word.text) }} />)}
               </div>
             </Fragment>;
@@ -459,4 +459,70 @@ const mushafStyles = `
  .mushaf-fs-page-pill button{padding:0 6px;font-size:9px}
 }
 
+
+/* Quran.com-inspired two-row chrome and QCF V2 page layout */
+.mushaf-fs-overlay{display:grid;grid-template-rows:auto minmax(0,1fr) 64px}
+.mushaf-fs-header{height:auto;min-height:88px;max-width:none;width:100%;display:flex;flex-direction:column;gap:0;padding:0 20px;border-bottom:1px solid var(--border-hairline);background:var(--bg-surface)}
+.mushaf-fs-top-row{height:50px;min-height:50px;width:100%;max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mushaf-fs-header-left{display:flex;align-items:center;gap:12px;min-width:0}
+.mushaf-fs-page-meta{font:500 10px/1.2 "DM Sans",sans-serif;color:var(--text-muted);white-space:nowrap}
+.mushaf-fs-header-right{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.mushaf-fs-surah-trigger{max-width:260px;min-height:34px;padding:0 9px;border:1px solid var(--border-hairline);border-radius:8px;background:var(--bg-elevated);color:var(--text-primary);font:600 12px/1 "DM Sans",sans-serif;white-space:nowrap}
+.mushaf-fs-tabs{width:100%;max-width:900px;height:38px;min-height:38px;margin:0 auto;display:flex;align-items:stretch;gap:24px}
+.mushaf-fs-tabs button{position:relative;min-width:120px;padding:0 5px;border:0;background:transparent;color:var(--text-muted);font:600 12px/1 "DM Sans",sans-serif}
+.mushaf-fs-tabs button.is-active{color:var(--text-primary)}
+.mushaf-fs-tabs button.is-active:after{position:absolute;content:"";height:2px;left:0;right:0;bottom:0;background:var(--accent,#b69b63);border-radius:2px}
+.mushaf-fs-stage{align-items:flex-start;padding:14px 16px;overflow-y:auto}
+.mushaf-fs-sheet{max-width:740px;width:100%;padding:22px 24px 48px;border:0;border-radius:0;background:transparent;box-shadow:none}
+.mushaf-fs-qcf-page{max-width:580px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:0;direction:rtl}
+.mushaf-fs-qcf-line{min-height:1.9em;width:100%;display:flex;align-items:baseline;justify-content:center;gap:4px;direction:rtl;text-align:center;white-space:nowrap;line-height:1.9;color:var(--text-primary)}
+.mushaf-fs-qcf-word{display:inline-block;white-space:pre}
+.mushaf-fs-unicode-lines .mushaf-fs-qcf-line{font-family:"Amiri Quran","Scheherazade New","Traditional Arabic",serif;white-space:normal;flex-wrap:wrap;font-size:26px}
+.mushaf-fs-unicode-flow{font-family:"Amiri Quran","Scheherazade New","Traditional Arabic",serif;font-size:28px;line-height:2.2}
+.mushaf-fs-font-note{text-align:center;color:var(--text-muted);font:11px "DM Sans",sans-serif}
+.mushaf-fs-verse-list{max-width:740px;width:100%;margin:0 auto}
+.mushaf-fs-translation-pill{width:max-content;max-width:100%;margin:0 auto 10px;padding:6px 12px;border:1px solid var(--border-hairline);border-radius:999px;background:var(--bg-elevated);color:var(--text-muted);font:500 10px/1.2 "DM Sans",sans-serif;text-align:center}
+.mushaf-fs-verse-row{padding:24px 0;border-bottom:1px solid var(--border-hairline)}
+.mushaf-fs-verse-row:first-of-type{border-top:0}
+.mushaf-fs-verse-arabic-line{display:flex;align-items:flex-start;gap:14px;direction:ltr}
+.mushaf-fs-verse-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto;direction:ltr}
+.mushaf-fs-verse-actions small{font:600 11px "DM Sans",sans-serif;color:var(--text-muted)}
+.mushaf-fs-verse-actions button,.mushaf-fs-verse-copy button{display:inline-flex;align-items:center;gap:5px;padding:5px;border:0;border-radius:6px;background:transparent;color:var(--text-muted);font:500 10px "DM Sans",sans-serif}
+.mushaf-fs-verse-actions button:hover,.mushaf-fs-verse-copy button:hover{background:var(--bg-elevated);color:var(--text-primary)}
+.mushaf-fs-verse-arabic{flex:1;min-width:0;text-align:right;direction:rtl;font-family:"Amiri Quran","Scheherazade New","Traditional Arabic",serif;line-height:2.2}
+.mushaf-fs-verse-translation{margin-top:12px;font:400 16px/1.75 "DM Sans",sans-serif;color:var(--text-primary)}
+.mushaf-fs-verse-copy{display:flex;justify-content:flex-end;margin-top:7px}
+.mushaf-fs-footer{height:64px;min-height:64px;max-width:none;width:100%;padding:0 12px}
+.mushaf-fs-page-pill{width:100%;max-width:720px;justify-content:space-between;gap:5px;padding:5px 8px;border:0;border-radius:0;background:transparent;box-shadow:none}
+.mushaf-fs-page-pill button{height:38px;min-height:38px;padding:0 12px;border:1px solid var(--border-hairline);border-radius:8px;background:var(--bg-elevated);font:500 11px "DM Sans",sans-serif}
+.mushaf-fs-page-pill .mushaf-fs-log-page{background:var(--accent-wash,var(--bg-elevated));border-color:var(--accent,#b69b63)}
+@media(max-width:700px){
+ .mushaf-fs-header{padding:0 8px}
+ .mushaf-fs-top-row{gap:4px}
+ .mushaf-fs-header-left{gap:5px}
+ .mushaf-fs-surah-trigger{max-width:145px;font-size:10px!important;padding:0 5px!important}
+ .mushaf-fs-page-meta{font-size:9px}
+ .mushaf-fs-header-right{gap:4px}
+ .mushaf-fs-header-right .mushaf-mode-switch button{padding:5px 6px;font-size:9px}
+ .mushaf-fs-header-right .mushaf-top-font button{padding:5px 5px;font-size:10px}
+ .mushaf-fs-tabs{gap:12px}
+ .mushaf-fs-tabs button{min-width:0;flex:1}
+ .mushaf-fs-sheet{padding:16px 12px 36px}
+ .mushaf-fs-qcf-line{gap:2px}
+ .mushaf-fs-verse-row{padding:20px 0}
+ .mushaf-fs-verse-arabic{font-size:25px;line-height:2.15}
+ .mushaf-fs-verse-translation{font-size:14px}
+ .mushaf-fs-page-pill button{padding:0 7px;font-size:9px}
+}
+@media(max-width:390px){
+ .mushaf-fs-top-row{gap:2px}
+ .mushaf-fs-surah-trigger{max-width:112px;font-size:9px!important}
+ .mushaf-fs-page-meta{font-size:8px}
+ .mushaf-fs-header-right{gap:2px}
+ .mushaf-fs-header-right .mushaf-mode-switch button{padding:4px 4px;font-size:8px}
+ .mushaf-fs-header-right .mushaf-top-font button{padding:4px 3px;font-size:9px}
+ .mushaf-fs-close{width:26px;height:26px!important;min-height:26px!important}
+ .mushaf-fs-page-pill{gap:3px;padding:4px}
+ .mushaf-fs-page-pill button{padding:0 5px;font-size:8px}
+}
 `;
