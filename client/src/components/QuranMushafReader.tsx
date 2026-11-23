@@ -230,9 +230,9 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
             const surah = firstWord?.numberInSurah === 1 ? pageData.ayahs.find(ayah => ayah.surahNumber === firstWord.surahNumber) : null;
             return <Fragment key={lineNumber}>
               {surah && <div className="mushaf-surah-banner"><span className="mushaf-surah-ornament">۞</span><b>{surah.arabicName}</b><small>{surah.surahName}</small><span className="mushaf-surah-ornament">۞</span></div>}
-              {surah && surah.surahNumber !== 9 && <div className="mushaf-bismillah" lang="ar">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
+              {surah && surah.surahNumber !== 1 && surah.surahNumber !== 9 && <div className="mushaf-bismillah" lang="ar">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
               <div className="mushaf-fs-qcf-line" data-line={lineNumber} style={{ fontSize: fontSize + 'px' }}>
-                {words.map((word, index) => <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-qcf-word" style={{ fontFamily: 'QCF_P' + page }} dangerouslySetInnerHTML={{ __html: escapeGlyphHtml(word.codeV2 || word.text) }} />)}
+                {words.map((word, index) => <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className={'mushaf-fs-qcf-word ' + (word.charTypeName === 'end' ? 'is-end' : '')} style={{ fontFamily: word.charTypeName === 'end' ? '"Amiri Quran", "Traditional Arabic", serif' : 'QCF_P' + page }} dangerouslySetInnerHTML={{ __html: escapeGlyphHtml(word.charTypeName === 'end' ? word.text : (word.codeV2 || word.text)) }} />)}
               </div>
             </Fragment>;
           }) : readingLines.length > 0 ? <div className="mushaf-fs-unicode-lines" dir="rtl">
@@ -242,7 +242,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
           </div> : <div className="mushaf-ayah-flow mushaf-fs-unicode-flow" dir="rtl" lang="ar">
             {pageData.ayahs.map(ayah => <Fragment key={ayah.surahNumber + ':' + ayah.numberInSurah}>
               {ayah.numberInSurah === 1 && <div className="mushaf-surah-banner"><span className="mushaf-surah-ornament">۞</span><b>{ayah.arabicName}</b><small>{ayah.surahName}</small><span className="mushaf-surah-ornament">۞</span></div>}
-              {ayah.numberInSurah === 1 && ayah.surahNumber !== 9 && <div className="mushaf-bismillah" lang="ar">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
+              {ayah.numberInSurah === 1 && ayah.surahNumber !== 1 && ayah.surahNumber !== 9 && <div className="mushaf-bismillah" lang="ar">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
               <button type="button" className={'mushaf-ayah ' + (selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah ? 'is-selected' : '')} onClick={() => selectAyah(ayah)} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>
                 {ayah.text}<span className="mushaf-ayah-number" aria-label={'Ayah ' + ayah.numberInSurah}>﴿{arabicNumber(ayah.numberInSurah)}﴾</span>
               </button>
@@ -257,7 +257,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
             const isSelected = selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah;
             return <article className="mushaf-fs-verse-row" key={ayah.surahNumber + ':' + ayah.numberInSurah}>
               {beginsSurah && <div className="mushaf-surah-banner mushaf-fs-verse-surah"><span className="mushaf-surah-ornament">۞</span><b>{ayah.arabicName}</b><small>{ayah.surahName}</small><span className="mushaf-surah-ornament">۞</span></div>}
-              {beginsSurah && ayah.surahNumber !== 9 && ayah.numberInSurah === 1 && <div className="mushaf-bismillah mushaf-fs-verse-bismillah" lang="ar" dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
+              {beginsSurah && ayah.surahNumber !== 1 && ayah.surahNumber !== 9 && ayah.numberInSurah === 1 && <div className="mushaf-bismillah mushaf-fs-verse-bismillah" lang="ar" dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
               <div className="mushaf-fs-verse-actionbar">
                 <div className="mushaf-fs-verse-actions"><small>{ayah.surahNumber}:{ayah.numberInSurah}</small><button type="button" aria-label={'Play ' + ayah.surahNumber + ':' + ayah.numberInSurah} onClick={() => { selectAyah(ayah); playAyah(ayah); }}><Play size={14}/></button><button type="button" aria-label={'Bookmark ' + ayah.surahNumber + ':' + ayah.numberInSurah} onClick={() => selectAyah(ayah)}><Bookmark size={14}/></button></div>
                 <button type="button" className="mushaf-fs-verse-copy" onClick={() => { void navigator.clipboard?.writeText(ayah.text + '\n\n' + ayah.translation + '\n\n' + ayah.surahNumber + ':' + ayah.numberInSurah); }}><Copy size={13}/> Copy</button>
@@ -533,4 +533,6 @@ const mushafStyles = `
 .mushaf-fs-verse-actionbar .mushaf-fs-verse-copy{display:inline-flex;align-items:center;gap:5px;margin:0;padding:5px;border:0;border-radius:6px;background:transparent;color:var(--text-muted);font:500 10px "DM Sans",sans-serif}
 .mushaf-fs-verse-actionbar .mushaf-fs-verse-copy:hover{background:var(--bg-elevated);color:var(--text-primary)}
 .mushaf-fs-verse-arabic-line{display:block;direction:rtl}
+
+.mushaf-fs-qcf-word.is-end{font-family:"Amiri Quran","Traditional Arabic",serif!important;font-size:.8em}
 `;
