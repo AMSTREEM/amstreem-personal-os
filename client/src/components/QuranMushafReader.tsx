@@ -362,7 +362,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
             const beginsSurah = index === 0;
             const isSelected = selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah;
             return <article className="mushaf-fs-verse-row" key={ayah.surahNumber + ':' + ayah.numberInSurah}>
-              {beginsSurah && <SurahCartouche arabicName={ayah.arabicName} englishName={QURAN_SURAHS[ayah.surahNumber - 1]?.english || ayah.surahName} ayahs={QURAN_SURAHS[ayah.surahNumber - 1]?.ayahs || 0} />}
               {beginsSurah && ayah.surahNumber !== 1 && ayah.surahNumber !== 9 && ayah.numberInSurah === 1 && <BismillahOrnament />}
               <div className="mushaf-fs-verse-actionbar">
                 <div className="mushaf-fs-verse-actions"><small>{ayah.surahNumber}:{ayah.numberInSurah}</small><button type="button" aria-label={'Play ' + ayah.surahNumber + ':' + ayah.numberInSurah} onClick={() => { selectAyah(ayah); playAyah(ayah); }}><Play size={14}/></button><button type="button" aria-label={'Bookmark ' + ayah.surahNumber + ':' + ayah.numberInSurah} onClick={() => selectAyah(ayah)}><Bookmark size={14}/></button></div>
@@ -744,7 +743,7 @@ const mushafStyles = `
 .mushaf-fs-tabs button.is-active{background:var(--bg-canvas);color:var(--text-primary);box-shadow:0 1px 5px rgba(0,0,0,.12)}
 .mushaf-fs-stage{padding:24px 20px;display:block;overflow-y:auto}
 .mushaf-fs-stage.is-verse-by-verse{display:block;padding:24px 20px 32px}
-.mushaf-fs-stage.is-verse-by-verse .mushaf-fs-sheet{max-width:860px;min-height:0;padding:0 30px 34px;margin:0 auto;background:transparent;border:0;box-shadow:none;border-radius:0;text-align:left}
+.mushaf-fs-stage.is-verse-by-verse .mushaf-fs-sheet{width:100%;max-width:860px;height:auto!important;max-height:none!important;min-height:0;display:block;overflow:visible;padding:0 30px 34px;margin:0 auto;background:transparent;border:0;box-shadow:none;border-radius:0;text-align:left}
 .mushaf-fs-verse-list{max-width:780px;margin:0 auto;text-align:left}
 .mushaf-fs-surah-intro{text-align:center;padding:22px 12px 28px;margin:0 auto 6px;border-bottom:1px solid var(--border-hairline)}
 .mushaf-fs-surah-intro>span{font:700 9px/1.4 "DM Sans",sans-serif;letter-spacing:.2em;color:var(--text-muted)}
