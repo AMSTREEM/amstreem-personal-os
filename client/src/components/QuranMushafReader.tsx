@@ -76,7 +76,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   const [sidebarTab, setSidebarTab] = useState<'surah' | 'juz' | 'page'>('surah');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [hudVisible, setHudVisible] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [starredAyahs, setStarredAyahs] = useState<Array<{ surah: number; ayah: number }>>(() => { try { return JSON.parse(localStorage.getItem('atlas_mushaf_starred_ayahs_v1') || '[]'); } catch { return []; } });
   const [selected, setSelected] = useState<{ surah: number; ayah: number } | null>(null);
   const [readingMode, setReadingMode] = useState<'translation' | 'reading'>('reading');
@@ -334,6 +333,23 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   const currentSurahNumber = activeSurahNumber;
   const currentSurah = QURAN_SURAHS[currentSurahNumber - 1];
   const readerContent = <>
+    <div className="mushaf-desktop-shell">
+      <header className="mushaf-desktop-header" onClick={event => event.stopPropagation()}>
+        <button type="button" className="mushaf-desktop-surah-trigger" onClick={() => setSidebarOpen(value => !value)}>{activeSurahNumber}. {activeSurah?.transliteration || 'Al-Fatihah'} ▾</button>
+        <div className="mushaf-desktop-header-center"><span>Page {page} · Juz {pageJuz}</span><div className="mushaf-desktop-mode"><button type="button" className={mode === 'hifz' ? 'is-active' : ''} onClick={() => changeMode('hifz')}>Hifz</button><button type="button" className={mode === 'murajaah' ? 'is-active' : ''} onClick={() => changeMode('murajaah')}>Muraja'ah</button></div></div>
+        <div className="mushaf-desktop-header-actions"><div className="mushaf-desktop-reading-switch"><button type="button" className={readingMode === 'translation' ? 'is-active' : ''} onClick={() => changeReadingMode('translation')}>Verse by Verse</button><button type="button" className={readingMode === 'reading' ? 'is-active' : ''} onClick={() => changeReadingMode('reading')}>Page by Page</button></div><button type="button" onClick={() => changeFontSize(-1)}>A−</button><button type="button" onClick={() => changeFontSize(1)}>A+</button><button type="button" className="mushaf-desktop-exit" onClick={() => setFullScreen(false)} aria-label="Exit Mushaf"><X size={16}/></button></div>
+      </header>
+      <div className="mushaf-desktop-workspace">
+        {sidebarOpen && <aside className="mushaf-desktop-sidebar" onClick={event => event.stopPropagation()}>
+          <div className="mushaf-desktop-sidebar-tabs"><button type="button" className={sidebarTab === 'surah' ? 'is-active' : ''} onClick={() => setSidebarTab('surah')}>Surah</button><button type="button" className={sidebarTab === 'juz' ? 'is-active' : ''} onClick={() => setSidebarTab('juz')}>Juz</button><button type="button" className={sidebarTab === 'page' ? 'is-active' : ''} onClick={() => setSidebarTab('page')}>Page</button><button type="button" className="mushaf-desktop-sidebar-close" onClick={() => setSidebarOpen(false)} aria-label="Collapse sidebar"><X size={14}/></button></div>
+          <div className="mushaf-desktop-sidebar-search"><Search size={15}/><input value={surahSearch} onChange={event => setSurahSearch(event.target.value)} placeholder={sidebarTab === 'surah' ? 'Search Surah' : sidebarTab === 'juz' ? 'Find Juz' : 'Find page'} aria-label="Search contents"/></div>
+          <div className="mushaf-desktop-sidebar-list">
+            {sidebarTab === 'surah' && QURAN_SURAHS.filter(item => { const q=surahSearch.trim().toLowerCase(); return !q || String(item.number)===q || item.transliteration.toLowerCase().includes(q) || item.english.toLowerCase().includes(q); }).map(item => <button type="button" key={item.number} className={item.number === activeSurahNumber ? 'is-active' : ''} onClick={() => { jumpSurah(item.number); setSurahSearch(''); }}>{item.number}. {item.transliteration}<small>{item.ayahs} verses · {item.revelation}</small></button>)}
+            {sidebarTab === 'juz' && QURAN_JUZ_STARTS.filter(([juz]) => !surahSearch.trim() || String(juz).includes(surahSearch.trim())).map(([juz,surah,ayah]) => <button type="button" key={juz} onClick={() => { jumpJuz(juz); setSurahSearch(''); }}>Juz {juz}<small>{QURAN_SURAHS[surah-1]?.transliteration} · Ayah {ayah}</small></button>)}
+            {sidebarTab === 'page' && <form className="mushaf-desktop-page-jump" onSubmit={quickJump}><label htmlFor="mushaf-desktop-page">Go to Mushaf page</label><input id="mushaf-desktop-page" type="number" min="1" max="604" value={pageInput} onChange={event => setPageInput(event.target.value)}/><button type="submit">Go</button><div className="mushaf-desktop-page-grid">{Array.from({length:604},(_,index)=>index+1).filter(value=>!surahSearch.trim()||String(value).includes(surahSearch.trim())).map(value=><button type="button" key={value} className={value===page?'is-active':''} onClick={()=>{changePage(value);setSurahSearch('');}}>{value}</button>)}</div></form>}
+          </div>
+        </aside>}
+        <div className="mushaf-desktop-main">
     <div className="mushaf-reading-screen" onClick={() => setHudVisible(value => !value)} onMouseMove={event => { if (window.matchMedia('(hover: hover)').matches && (event.clientY < 96 || event.clientY > window.innerHeight - 96)) setHudVisible(true); }} onMouseLeave={() => { if (window.matchMedia('(hover: hover)').matches) setHudVisible(false); }}>
       <main className={'mushaf-reading-canvas ' + (readingMode === 'reading' ? 'is-page-mode' : 'is-verse-mode')} ref={readerRef}>
         {loading && <div className="mushaf-loading-skeleton is-page" role="status" aria-label={'Loading Mushaf page ' + page}>{Array.from({ length: 11 }, (_, index) => <span key={index}/>)}</div>}
@@ -361,12 +377,13 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
           </article>)}
         </div>}
         <div className="mushaf-minimal-page-pill"><b>{page}</b><span>Auto-saved</span></div>
+          <div className="mushaf-page-desktop-arrows"><button type="button" aria-label="Previous page" disabled={page <= 1} onClick={event => { event.stopPropagation(); changePage(page - 1); }}>▲</button><button type="button" aria-label="Next page" disabled={page >= 604} onClick={event => { event.stopPropagation(); changePage(page + 1); }}>▼</button></div>
       </main>
       
       {hudVisible && <div className="mushaf-floating-top" onClick={event => event.stopPropagation()}>
         <button type="button" className="mushaf-hud-pill" onClick={() => { setContentsTab('surah'); setDrawerOpen(true); }}>☷ Contents</button>
         <div className="mushaf-hud-segment"><button type="button" className={mode === 'hifz' ? 'is-active' : ''} onClick={() => changeMode('hifz')}>Hifz</button><button type="button" className={mode === 'murajaah' ? 'is-active' : ''} onClick={() => changeMode('murajaah')}>Muraja’ah</button></div>
-        <div className="mushaf-hud-settings"><button type="button" className="mushaf-hud-pill" onClick={() => setSettingsOpen(value => !value)}>Settings</button><button type="button" className="mushaf-hud-pill" onClick={() => changeFontSize(-1)}>A−</button><button type="button" className="mushaf-hud-pill" onClick={() => changeFontSize(1)}>A+</button><button type="button" className="mushaf-hud-pill" onClick={() => changeReadingMode(readingMode === 'reading' ? 'translation' : 'reading')}>{readingMode === 'reading' ? 'Verse by Verse' : 'Page by Page'}</button><button type="button" className="mushaf-hud-exit" aria-label="Exit Mushaf" onClick={() => { setHudVisible(false); setFullScreen(false); }}>✕</button></div>
+        <div className="mushaf-hud-settings"><button type="button" className="mushaf-hud-pill" onClick={() => changeFontSize(-1)}>A−</button><button type="button" className="mushaf-hud-pill" onClick={() => changeFontSize(1)}>A+</button><button type="button" className="mushaf-hud-pill" onClick={() => changeReadingMode(readingMode === 'reading' ? 'translation' : 'reading')}>{readingMode === 'reading' ? 'Verse by Verse' : 'Page by Page'}</button><button type="button" className="mushaf-hud-exit" aria-label="Exit Mushaf" onClick={() => { setHudVisible(false); setFullScreen(false); }}>✕</button></div>
       </div>}
       {hudVisible && <div className="mushaf-floating-bottom" onClick={event => event.stopPropagation()}>
         <button type="button" className="mushaf-hud-pill mushaf-prev" disabled={page <= 1} onClick={() => changePage(page - 1)}>Prev</button>
@@ -388,7 +405,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
           </div>
         </section>
       </div>}
-    </div>
+    </div></div></div></div>
   </>;
 
   return <>
