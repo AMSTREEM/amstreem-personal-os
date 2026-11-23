@@ -131,7 +131,7 @@ function parseAlQuranTajweed(markup) {
   const classByCode = { h:'tj-hamza',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-ikhfa',f:'tj-ikhfa',i:'tj-ikhfa',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham' };
   const segments = [];
   const source = String(markup || '');
-  const pattern = /\\[([a-z])(?::\\d+)?\\[([\\s\\S]*?)\\]/g;
+  const pattern = /\[([a-z])(?::\d+)?\[([\s\S]*?)\]/g;
   let cursor = 0, match;
   while ((match = pattern.exec(source))) {
     if (match.index > cursor) segments.push({ text: source.slice(cursor, match.index), className: '' });
@@ -139,7 +139,7 @@ function parseAlQuranTajweed(markup) {
     cursor = pattern.lastIndex;
   }
   if (cursor < source.length) segments.push({ text: source.slice(cursor), className: '' });
-  return segments.map(item => ({ ...item, text: item.text.replace(/[\\u06DD\\u06DE\\u06E9\\u06DF-\\u06E8\\u06EA-\\u06ED]/g, '') })).filter(item => item.text);
+  return segments.map(item => ({ ...item, text: item.text.replace(/[\u06DD\u06DE\u06E9\u06DF-\u06E8\u06EA-\u06ED]/g, '') })).filter(item => item.text);
 }
 function normalizeAlQuranCloud(body, page) {
   const editions = Array.isArray(body?.data) ? body.data : [];
@@ -208,7 +208,7 @@ function splitTajweedWords(markup) {
   let current = '';
   for (const token of tokens) {
     if (/^\s+$/.test(token)) { if (current) words.push(current); current = ''; }
-    else current += token.replace(/[\\u06DD\\u06DE\\u06E9\\u06DF-\\u06E8\\u06EA-\\u06ED]/g, '');
+    else current += token.replace(/[\u06DD\u06DE\u06E9\u06DF-\u06E8\u06EA-\u06ED]/g, '');
   }
   if (current) words.push(current);
   return words;
