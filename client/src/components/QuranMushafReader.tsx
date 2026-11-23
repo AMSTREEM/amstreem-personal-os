@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, BookOpen, Bookmark, Check, ChevronLeft, ChevronRight, Copy, Maximize2, Menu, Play, Search, Share2, WifiOff, X } from 'lucide-react';
+import { Bookmark, Copy, Maximize2, Play, Search, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz } from '../data/quranSurahs';
 import { triggerSparkBurst } from './fx/SparkBurst';
@@ -403,7 +403,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     </div>
     <footer className="mushaf-fs-footer">
       <span className="mushaf-save-status" role="status">{saveStatus || 'Auto-save enabled'}</span>
-      <span className="mushaf-save-status" role="status">{saveStatus}</span>
     </footer>
     <audio ref={audioRef} />
   </>;
