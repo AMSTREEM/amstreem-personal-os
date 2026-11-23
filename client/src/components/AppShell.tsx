@@ -28,12 +28,12 @@ const rooms = [
 ];
 
 const commandDestinations = [
-  { label: 'Faith / Deen', detail: 'Open your tradition-specific daily practice', to: '/values', icon: MoonStar },
+  { label: 'Deen & Qur’an', detail: 'Prayer, Qur’an and daily reflection', to: '/values', icon: MoonStar },
   { label: 'Habits & Self-Control', detail: 'Manage routines, commitments and recovery', to: '/habits', icon: Heart },
   { label: 'Tasks', detail: 'Choose and complete your next actions', to: '/execution', icon: Compass },
   { label: 'Calendar', detail: 'Review scheduled commitments and activity', to: '/calendar', icon: Compass },
   { label: 'Goals · Projects · Learning', detail: 'Shape direction, build projects and develop skills', to: '/goals', icon: Target },
-  { label: 'Private Library', detail: 'Keep saved reading and reference material', to: '/learning-library', icon: BookOpen },
+  { label: 'Learning & Library', detail: 'Lessons, books and saved resources', to: '/learning-library', icon: BookOpen },
   { label: 'Reviews & Insights', detail: 'Reflect on activity and evidence', to: '/reviews-insights', icon: Heart }
 ];
 
