@@ -243,7 +243,7 @@ test('first-run walkthrough explains Today Focus Goals More and the signature in
   assert.match(tour, /Activity Pulse/);
   assert.match(tour, /Ferrofluid Core/);
   assert.match(tour, /25m, 50m or 80m/);
-  assert.match(tour, /Link a task or Qur’an Surah/);
+  assert.match(tour, /link a task or Qur’an Surah/i);
   assert.match(tour, /Life Constellation/);
   assert.match(tour, /Deen & Qur’an/);
   assert.match(tour, /Habits & Self-Control/);
