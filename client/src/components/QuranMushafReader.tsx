@@ -1,14 +1,12 @@
 import { Fragment, type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Bookmark, ChevronLeft, ChevronRight, Copy, Search, WifiOff, X } from 'lucide-react';
+import { Bookmark, Copy, Search, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz } from '../data/quranSurahs';
-import { triggerSparkBurst } from './fx/SparkBurst';
 
 type Settings = Record<string, string>;
-type MushafWord = { text: string; tajweed: string; codeV2: string; lineNumber: number; pageNumber: number; position: number; charTypeName: string };
 type TajweedSegment = { text: string; className: string };
-type MushafAyah = { number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; tajweedText?: string; tajweedSegments?: TajweedSegment[]; translation: string; translations?: Array<{ id: number; name: string; text: string }>; words?: MushafWord[] };
+type MushafAyah = { number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; tajweedText?: string; tajweedSegments?: TajweedSegment[]; translation: string; translations?: Array<{ id: number; name: string; text: string }>; };
 type MushafPage = { page: number; juz: number; tajweedComplete?: boolean; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void; autoOpen?: boolean };
 const CACHE_PREFIX = 'atlas_mushaf_page_v9_';
@@ -50,7 +48,6 @@ const sanitizeMushafPage = (payload: MushafPage): MushafPage => ({
     tajweedSegments: ayah.tajweedSegments?.map(segment => ({ text: String(segment.text || ''), className: TAJWEED_CLASSES.has(segment.className) ? segment.className : '' })),
     translation: stripAyahEndMarker(ayah.translation || ''),
     translations: ayah.translations?.map(translation => ({ ...translation, text: stripAyahEndMarker(translation.text || '') })),
-    words: ayah.words?.map(word => ({ ...word, text: stripAyahEndMarker(word.text || ''), tajweed: word.tajweed || '', codeV2: word.codeV2 || '' }))
   }))
 });
 function AyahMedallion({ number, className }: { number: number; className: string }) {
