@@ -278,7 +278,7 @@ test('Room 3 has a dedicated Focus Room with safe context handoffs and a persist
   assert.match(workspace, /sessionKey&&timer\.remaining>0/);
   assert.match(workspace, /session_key:timer\.sessionKey/);
   assert.match(workspace, /savedKeys\.current\.has\(timer\.sessionKey\)/);
-  assert.match(values, /to="\/focus\?focus=Qur/);
+  assert.doesNotMatch(values, /to="\/focus\?focus=Qur/);
   assert.match(values, /to="\/focus\?focus=Devotional%20Focus"/);
   assert.match(learning, /to=\{'\/focus\?lesson=' \+ lesson\.id\}/);
   assert.match(residence, /to=\{'\/focus\?task=' \+ task\.id\}/);
