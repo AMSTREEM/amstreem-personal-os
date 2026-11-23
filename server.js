@@ -182,7 +182,7 @@ function splitTajweedWords(markup) {
   let current = '';
   for (const token of tokens) {
     if (/^\s+$/.test(token)) { if (current) words.push(current); current = ''; }
-    else current += token;
+    else current += token.replace(/[\\u06DD\\u06DE\\u06E9\\u06DF-\\u06E8\\u06EA-\\u06ED]/g, '');
   }
   if (current) words.push(current);
   return words;
