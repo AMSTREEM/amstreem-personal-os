@@ -103,7 +103,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
 
   const updateBookmark = useCallback((nextPage: number, ayah?: MushafAyah | null) => {
     const current = mode === 'hifz' ? hifzMark : murajaahMark;
-    const next = { page: clampPage(nextPage), surah: ayah?.surah.number ?? current.surah, ayah: ayah?.numberInSurah ?? current.ayah };
+    const next = { page: clampPage(nextPage), surah: ayah?.surahNumber ?? current.surah, ayah: ayah?.numberInSurah ?? current.ayah };
     if (mode === 'hifz') setHifzMark(next); else setMurajaahMark(next);
   }, [mode, hifzMark, murajaahMark]);
   const changePage = (next: number) => { const value = clampPage(next); setPage(value); setSelected(null); updateBookmark(value, null); };
@@ -123,12 +123,12 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   const copyAyah = async () => {
     if (!selectedAyah) return;
     const surah = QURAN_SURAHS[selectedAyah.surahNumber - 1];
-    const text = `${selectedAyah.text}\n\n${surah.transliteration} ${selectedAyah.surah.number}:${selectedAyah.numberInSurah}`;
+    const text = `${selectedAyah.text}\n\n${surah.transliteration} ${selectedAyah.surahNumber}:${selectedAyah.numberInSurah}`;
     try { await navigator.clipboard.writeText(text); setLogMessage('Ayah copied.'); } catch { setLogMessage('Clipboard access is unavailable in this browser.'); }
   };
   const shareAyah = async () => {
     if (!selectedAyah) return;
-    const surah = QURAN_SURAHS[selectedAyah.surah.number - 1];
+    const surah = QURAN_SURAHS[selectedAyah.surahNumber - 1];
     const text = `${selectedAyah.text}\n\n${surah.transliteration} ${selectedAyah.number}:${selectedAyah.numberInSurah}`;
     try { if (navigator.share) await navigator.share({ title: 'Qur’an · ' + surah.transliteration, text }); else await navigator.clipboard.writeText(text); } catch { /* share sheet dismissed */ }
   };
@@ -137,9 +137,9 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     setLogging(true); setLogMessage('');
     const first = pageData.ayahs[0], last = pageData.ayahs[pageData.ayahs.length - 1];
     const sameSurah = first.surahNumber === last.surahNumber;
-    const label = sameSurah ? (QURAN_SURAHS[first.surah.number - 1]?.transliteration || first.surahName) : `Page ${page} · ${first.surah.englishName}–${last.surahName}`;
+    const label = sameSurah ? (QURAN_SURAHS[first.surahNumber - 1]?.transliteration || first.surahName) : `Page ${page} · ${first.surahName}–${last.surahName}`;
     try {
-      await api('/deen/quran', json('POST', { log_date: lagosDate(), activity: mode === 'hifz' ? 'memorisation' : 'revision', surah: label, ayah_start: sameSurah ? first.numberInSurah : null, ayah_end: sameSurah ? last.numberInSurah : null, pages: 1, juz: first.juz, reflection: `Mushaf page ${page}: ${first.surah.englishName} ${first.numberInSurah}–${last.surah.englishName} ${last.numberInSurah}. Completed in ${mode === 'hifz' ? 'Hifz' : 'Muraja’ah'}.` }));
+      await api('/deen/quran', json('POST', { log_date: lagosDate(), activity: mode === 'hifz' ? 'memorisation' : 'revision', surah: label, ayah_start: sameSurah ? first.numberInSurah : null, ayah_end: sameSurah ? last.numberInSurah : null, pages: 1, juz: pageData.juz, reflection: `Mushaf page ${page}: ${first.surahName} ${first.numberInSurah}–${last.surahName} ${last.numberInSurah}. Completed in ${mode === 'hifz' ? 'Hifz' : 'Muraja’ah'}.` }));
       const rect = event.currentTarget.getBoundingClientRect(); triggerSparkBurst(rect.left + rect.width / 2, rect.top + rect.height / 2);
       setLogMessage('Page ' + page + ' logged successfully.'); onLogged();
     } catch (error) { setLogMessage(error instanceof Error ? error.message : 'Could not log this page.'); }
@@ -161,9 +161,9 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
         {loading && <p className="mushaf-loading" role="status">Loading Mushaf page {page}…</p>}
         {!loading && pageError && <div className="mushaf-error" role="alert"><WifiOff size={24}/><p>{pageError}</p><button type="button" onClick={() => changePage(page)}>Retry page</button></div>}
         {!loading && pageData && <div className="mushaf-ayah-flow" dir="rtl" lang="ar" style={{ fontSize }}>
-          {pageData.ayahs.map((ayah, index) => <span key={ayah.surah.number + ':' + ayah.numberInSurah}>
-            {(index === 0 || pageData.ayahs[index - 1].surah.number !== ayah.surah.number) && <span className="mushaf-surah-heading"><b>{ayah.arabicName}</b><small>{ayah.surahName}</small></span>}
-            <button type="button" className={'mushaf-ayah ' + (selected?.surah === ayah.surah.number && selected?.ayah === ayah.numberInSurah ? 'is-selected' : '')} onClick={() => selectAyah(ayah)} aria-pressed={selected?.surah === ayah.surah.number && selected?.ayah === ayah.numberInSurah}>{ayah.text} <span className="mushaf-ayah-number">۞{arabicNumber(ayah.numberInSurah)}۞</span></button>
+          {pageData.ayahs.map((ayah, index) => <span key={ayah.surahNumber + ':' + ayah.numberInSurah}>
+            {(index === 0 || pageData.ayahs[index - 1].surahNumber !== ayah.surahNumber) && <span className="mushaf-surah-heading"><b>{ayah.arabicName}</b><small>{ayah.surahName}</small></span>}
+            <button type="button" className={'mushaf-ayah ' + (selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah ? 'is-selected' : '')} onClick={() => selectAyah(ayah)} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>{ayah.text} <span className="mushaf-ayah-number">۞{arabicNumber(ayah.numberInSurah)}۞</span></button>
             {showTranslation && ayah.translation && <span className="mushaf-translation" dir="ltr" lang="en">{ayah.translation}</span>}
           </span>)}
         </div>}
@@ -171,9 +171,9 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
       </main>
       {drawerOpen && <><button type="button" className="mushaf-drawer-scrim" aria-label="Close surah navigation" onClick={() => setDrawerOpen(false)}/><aside className="mushaf-surah-drawer" aria-label="114 Surahs"><header><div><b>Surah index</b><small>114 chapters · Madani Mushaf</small></div><button type="button" aria-label="Close surah index" onClick={() => setDrawerOpen(false)}><X size={18}/></button></header><div className="mushaf-drawer-jumps"><label>Page <input type="number" min="1" max="604" value={pageInput} onChange={event => setPageInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { changePage(Number(pageInput) || page); setDrawerOpen(false); } }}/></label><label>Juz <select defaultValue={pageJuz} onChange={event => { jumpJuz(Number(event.target.value)); setDrawerOpen(false); }}>{Array.from({length:30},(_,i)=><option key={i+1} value={i+1}>Juz {i+1}</option>)}</select></label></div><div className="mushaf-surah-list">{QURAN_SURAHS.map(item => <button type="button" key={item.number} className={page >= item.pageStart && page <= item.pageEnd ? 'is-current' : ''} onClick={() => jumpSurah(item.number)}><span className="mushaf-surah-number">{item.number}</span><span className="mushaf-surah-names"><b>{item.transliteration}</b><small>{item.english} · {item.ayahs} ayahs · p.{item.pageStart}</small></span><strong lang="ar" dir="rtl">{item.arabic}</strong></button>)}</div></aside></>}
     </div>
-    {selectedAyah && <div className="mushaf-ayah-actionbar"><div className="mushaf-selected-ref"><b>{selectedAyah.surahName} · {selectedAyah.surah.number}:{selectedAyah.numberInSurah}</b><small>{selectedAyah.arabicName}</small></div><button type="button" onClick={togglePlay}>{playing ? <Pause size={16}/> : <Play size={16}/>}<span>{playing ? 'Pause' : 'Play ayah'}</span></button><label className="mushaf-reciter"><Headphones size={15}/><select value={reciter} onChange={event => setReciter(event.target.value)}>{reciters.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label><button type="button" className={repeatMode === 'ayah' ? 'is-active' : ''} onClick={() => setRepeatMode(v => v === 'ayah' ? 'off' : 'ayah')}><Repeat size={15}/> Ayah loop</button><button type="button" className={repeatMode === 'page' ? 'is-active' : ''} onClick={() => setRepeatMode(v => v === 'page' ? 'off' : 'page')}><Repeat size={15}/> Page loop</button><button type="button" onClick={() => setShowTranslation(v => !v)}>{showTranslation ? 'Hide meaning' : 'Show meaning'}</button><button type="button" onClick={copyAyah}><Copy size={15}/> Copy</button><button type="button" onClick={shareAyah}><Share2 size={15}/> Share</button></div>}
+    {selectedAyah && <div className="mushaf-ayah-actionbar"><div className="mushaf-selected-ref"><b>{selectedAyah.surahName} · {selectedAyah.surahNumber}:{selectedAyah.numberInSurah}</b><small>{selectedAyah.arabicName}</small></div><button type="button" onClick={togglePlay}>{playing ? <Pause size={16}/> : <Play size={16}/>}<span>{playing ? 'Pause' : 'Play ayah'}</span></button><label className="mushaf-reciter"><Headphones size={15}/><select value={reciter} onChange={event => setReciter(event.target.value)}>{reciters.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label><button type="button" className={repeatMode === 'ayah' ? 'is-active' : ''} onClick={() => setRepeatMode(v => v === 'ayah' ? 'off' : 'ayah')}><Repeat size={15}/> Ayah loop</button><button type="button" className={repeatMode === 'page' ? 'is-active' : ''} onClick={() => setRepeatMode(v => v === 'page' ? 'off' : 'page')}><Repeat size={15}/> Page loop</button><button type="button" onClick={() => setShowTranslation(v => !v)}>{showTranslation ? 'Hide meaning' : 'Show meaning'}</button><button type="button" onClick={copyAyah}><Copy size={15}/> Copy</button><button type="button" onClick={shareAyah}><Share2 size={15}/> Share</button></div>}
     <div className="mushaf-bottom-bar"><span>{pageData?.ayahs?.length || 0} ayahs · bookmark auto-saved · {logMessage}</span><button type="button" className="button button--primary" disabled={!pageData?.ayahs?.length || loading || logging} onClick={logPage}><Check size={15}/>{logging ? 'Logging…' : 'Complete & Log Page'}</button></div>
-    <audio ref={audioRef} onEnded={() => { if (repeatMode === 'ayah' && selectedAyah) playAyah(selectedAyah); else if (repeatMode === 'page' && pageData?.ayahs?.length) { const index = pageData.ayahs.findIndex(item => item.number === selectedAyah?.number); const next = pageData.ayahs[index + 1] || pageData.ayahs[0]; setSelected({ surah: next.surah.number, ayah: next.numberInSurah }); playAyah(next); } else setPlaying(false); }} onPause={() => setPlaying(false)} onPlay={() => setPlaying(true)} />
+    <audio ref={audioRef} onEnded={() => { if (repeatMode === 'ayah' && selectedAyah) playAyah(selectedAyah); else if (repeatMode === 'page' && pageData?.ayahs?.length) { const index = pageData.ayahs.findIndex(item => item.number === selectedAyah?.number); const next = pageData.ayahs[index + 1] || pageData.ayahs[0]; setSelected({ surah: next.surahNumber, ayah: next.numberInSurah }); playAyah(next); } else setPlaying(false); }} onPause={() => setPlaying(false)} onPlay={() => setPlaying(true)} />
   </>;
 
   return <>
