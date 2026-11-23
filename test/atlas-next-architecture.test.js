@@ -47,16 +47,16 @@ test('project, task, calendar, focus and review records can be linked', () => {
   assert.match(server, /study_minutes:studyMinutes/);
 });
 
-test('the four primary rooms stay visible while secondary views remain optional', () => {
+test('the four core destinations and More menu stay visible while secondary views remain optional', () => {
   const shell = read('client/src/components/AppShell.tsx');
   const settings = read('client/src/pages/SettingsPage.tsx');
-  for (const room of ['Residence', 'Daily Rhythm', 'Execution & Focus', 'Growth & Direction']) {
+  for (const room of ['Today', 'Deen & Qur’an', 'Focus', 'Goals']) {
     assert.ok(shell.includes("label: '" + room + "'"), 'Missing room ' + room);
   }
-  assert.match(shell, /const rooms = \[/);
+  assert.match(shell, /const rooms = \[/);\n  assert.match(shell, /faithTabLabel = quickReligion === 'islam' \? 'Deen & Qur’an'/);\n  assert.match(shell, /atlas-mobile-dock/);\n  assert.match(shell, /<span>More<\\/span>/);
   assert.match(shell, /tabsByRoom/);
   assert.match(shell, /feature: 'calendar'/);
-  assert.match(shell, /label: 'Goals · Projects · Learning', to: '\/goals'/);
+  assert.match(shell, /label: 'Goals · Projects · Learning', detail:/);
   assert.match(shell, /label: 'Private Library', to: '\/learning-library'/);
   assert.match(settings, /Optional workspace views/);
 });
