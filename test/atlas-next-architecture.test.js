@@ -271,7 +271,7 @@ test('Qur’an reader uses Quran.com two-mode chrome, QCF word rendering and stu
   assert.match(reader, /fetch\('\/api\/quran\/page\/' \+ page\)/);
   assert.doesNotMatch(reader, /fetch\('https:\/\/api\.alquran\.cloud/);
   assert.match(reader, /Open Full-Screen Mushaf/);
-  assert.match(reader, /QURAN_SURAHS\.map/);
+  assert.match(reader, /QURAN_SURAHS\.filter[\s\S]*?\.map/);
   assert.match(reader, /Verse by Verse/);
   assert.match(reader, /readingMode === 'translation'/);
   assert.match(reader, /readingMode === 'reading'/);
