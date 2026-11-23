@@ -380,7 +380,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
             </article>)}
           </section>}
           {!loading && pageData && readingMode === 'reading' && <section className="mushaf-page-view" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px' }}>
-            {pageData.ayahs.map((ayah, index) => {
+            <div className="mushaf-page-text">{pageData.ayahs.map((ayah, index) => {
               const surah = QURAN_SURAHS[ayah.surahNumber - 1];
               const startsSurah = ayah.numberInSurah === 1;
               return <Fragment key={ayah.surahNumber + ':' + ayah.numberInSurah}>
@@ -389,7 +389,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
                 {index === 0 && !startsSurah && <div className="mushaf-page-context">{surah?.transliteration || ayah.surahName}</div>}
                 <span className="mushaf-page-ayah">{renderTajweedMarkup(ayah.tajweedText || '', ayah.tajweedSegments, ayah.text)}<AyahMedallion className="mushaf-page-medallion" number={ayah.numberInSurah}/></span>{' '}
               </Fragment>;
-            })}
+            })}</div>
             <footer className="mushaf-page-footer" dir="ltr">— Page {page} · Juz {pageJuz} —</footer>
           </section>}
         </div>
