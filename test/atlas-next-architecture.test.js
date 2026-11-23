@@ -296,7 +296,7 @@ test('Mushaf rebuild uses a fixed top bar, three-tab sidebar and two clean readi
   assert.ok(css.includes('height:48px;min-height:48px'));
   assert.ok(css.includes('flex:0 0 260px'));
   assert.ok(css.includes('width:min(100%,780px)'));
-  assert.ok(css.includes('width:min(100%,490px)'));
+  assert.ok(css.includes('width:min(100%,500px)'));
   assert.ok(css.includes('width:28px;height:28px;min-width:28px'));
   assert.ok(css.includes('inset 0 0 0 2px var(--bg-canvas)'));
   assert.ok(css.includes('mushaf-medallion--wide'));
