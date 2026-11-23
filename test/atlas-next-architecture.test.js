@@ -384,6 +384,6 @@ test('global scrollbars use theme tokens consistently and the workspace has a si
   assert.match(css, /\*::-webkit-scrollbar-thumb \{ background:var\(--border-strong\); border-radius:999px; \}/);
   assert.match(css, /\*::-webkit-scrollbar-thumb:hover \{ background:var\(--accent-primary\); \}/);
   assert.match(css, /\.app-frame, \.main-area, \.page-container \{ overflow-y:visible; \}/);
-  assert.match(css, /\\.primary-nav \\{[^}]*overflow: auto;/);
+  assert.match(css, /\.primary-nav \{[^}]*overflow: auto;/);
   assert.ok(shell.includes('className="page-container"'));
 });
