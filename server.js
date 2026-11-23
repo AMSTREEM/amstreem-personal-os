@@ -42,7 +42,8 @@ app.use((req,res,next)=>{
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
     "img-src 'self' data: blob: https:",
-    `connect-src 'self' ${supabaseOrigin} wss://${supabaseHost}`,
+    `connect-src 'self' ${supabaseOrigin} wss://${supabaseHost} https://alquran.cloud https://api.alquran.cloud https://islamic.network https://everyayah.com`,
+    "media-src 'self' blob: https://alquran.cloud https://api.alquran.cloud https://islamic.network https://everyayah.com",
     "upgrade-insecure-requests"
   ].join('; '));
   if (process.env.NODE_ENV === 'production' && req.secure) {
@@ -83,6 +84,56 @@ function rateLimit({ max, windowMs = 60_000, prefix = 'ip' }) {
 app.get('/healthz', (req,res) => res.status(200).json({ ok: true }));
 app.use('/api/admin', rateLimit({ max: 30, prefix: 'admin' }));
 app.use('/api', rateLimit({ max: 120 }));
+
+// Public, read-only Qur'an page proxy. Cache the combined Uthmani + Sahih
+// translation payload in this process so page turns never depend on browser CORS.
+const quranPageCache = new Map();
+const QURAN_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+app.get('/api/quran/page/:page', async (req, res) => {
+  const page = Number(req.params.page);
+  if (!Number.isInteger(page) || page < 1 || page > 604) {
+    return res.status(400).json({ error: 'Qur’an page must be between 1 and 604.' });
+  }
+  const cached = quranPageCache.get(page);
+  if (cached && Date.now() - cached.cachedAt < QURAN_CACHE_TTL_MS) {
+    res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+    res.setHeader('X-Quran-Cache', 'HIT');
+    return res.json(cached.payload);
+  }
+  try {
+    const upstream = await fetch(`https://api.alquran.cloud/v1/page/${page}/editions/quran-uthmani,en.sahih`, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(12000)
+    });
+    if (!upstream.ok) throw new Error(`Qur’an provider returned HTTP ${upstream.status}.`);
+    const body = await upstream.json();
+    const editions = Array.isArray(body?.data) ? body.data : [];
+    const arabic = editions.find(item => item?.edition?.identifier === 'quran-uthmani') || editions[0];
+    const english = editions.find(item => item?.edition?.identifier === 'en.sahih') || editions[1];
+    if (body?.code !== 200 || !Array.isArray(arabic?.ayahs) || !arabic.ayahs.length) {
+      throw new Error('Qur’an provider returned an incomplete page.');
+    }
+    const payload = { data: { ayahs: arabic.ayahs.map((ayah, index) => ({
+      text: ayah.text,
+      translation: english?.ayahs?.[index]?.text || '',
+      number: ayah.number,
+      numberInSurah: ayah.numberInSurah,
+      juz: ayah.juz,
+      surah: { number: ayah.surah.number, name: ayah.surah.name, englishName: ayah.surah.englishName }
+    })) } };
+    quranPageCache.set(page, { cachedAt: Date.now(), payload });
+    if (quranPageCache.size > 604) {
+      const oldest = quranPageCache.keys().next().value;
+      if (oldest !== undefined) quranPageCache.delete(oldest);
+    }
+    res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+    res.setHeader('X-Quran-Cache', 'MISS');
+    return res.json(payload);
+  } catch (error) {
+    console.error('Qur’an page proxy failed:', error.message);
+    return res.status(502).json({ error: 'The Qur’an page provider is temporarily unavailable. Please retry.' });
+  }
+});
 const ownerUserId = process.env.ADMIN_USER_ID || (process.env.ATLAS_STAGING === 'true' ? null : supabaseConfig.ownerUserId);
 const tenantContext = new AsyncLocalStorage();
 const userLocks = new Map();
