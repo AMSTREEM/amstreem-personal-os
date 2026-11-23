@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, Check, HeartHandshake, MoonStar, Plus, RotateCcw, Sparkles, Timer } from 'lucide-react';
+import { BookOpen, Check, HeartHandshake, MoonStar, Plus, RotateCcw, Sparkles } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { api, json } from '../lib/api';
@@ -9,13 +9,11 @@ import { Cascade } from '../components/Cascade';
 import { playAtlasFeedback } from '../lib/microFeedback';
 import { RhythmConstellation } from '../components/fx/RhythmConstellation';
 import { triggerSparkBurst } from '../components/fx/SparkBurst';
-import { QURAN_SURAHS, findSurah, getAyahRangeLocation } from '../data/quranSurahs';
 import { QuranMushafReader } from '../components/QuranMushafReader';
 
 type Settings = Record<string, string>;
 type Prayer = { prayer: string; completed: number; on_time: number };
 type Deen = { date: string; prayers: Prayer[]; quran: { activity: string; pages: number; entries: number }[]; tahajjud: { woke_up: number; prayed: number } };
-type QuranLog = { id: number; log_date: string; activity: string; surah: string; ayah_start: number | null; ayah_end: number | null; pages: number; juz: number | null; reflection: string };
 type RhythmRecord = { id: number; record_date: string; tradition: string; record_type: string; title: string; detail: string; status: 'planned'|'completed'|'active'|'answered'; metadata: Record<string, unknown> };
 const prayerNames = ['Fajr','Dhuhr','Asr','Maghrib','Isha'];
 const prayerRhythm = ['Morning Quiet Time','Midday Pause','Evening Examen'];
@@ -27,14 +25,7 @@ export function ValuesPage() {
   const { role } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const date = dateKey();
-  const [activity, setActivity] = useState('memorisation');
   const [faithWorkspace, setFaithWorkspace] = useState<'primary'|'secondary'|'tertiary'|'all'>('primary');
-  const [surah, setSurah] = useState('');
-  const [ayahStart, setAyahStart] = useState('');
-  const [ayahEnd, setAyahEnd] = useState('');
-  const [pages, setPages] = useState('0');
-  const [juz, setJuz] = useState('');
-  const [quranReflection, setQuranReflection] = useState('');
   const [quickTitle, setQuickTitle] = useState('');
   const [quickDetail, setQuickDetail] = useState('');
   const [quickStatus, setQuickStatus] = useState<'planned'|'completed'>('planned');
@@ -50,12 +41,6 @@ export function ValuesPage() {
   const [pray, setPray] = useState('');
   const [intercession, setIntercession] = useState('');
   const [intercessionDetail, setIntercessionDetail] = useState('');
-  const selectedSurah = QURAN_SURAHS.find(item => item.transliteration === surah) || findSurah(surah);
-  const startNumber = ayahStart === '' ? null : Number(ayahStart);
-  const endNumber = ayahEnd === '' ? null : Number(ayahEnd);
-  const validAyahRange = !!selectedSurah && startNumber !== null && endNumber !== null && Number.isInteger(startNumber) && Number.isInteger(endNumber) && startNumber >= 1 && endNumber >= startNumber && endNumber <= selectedSurah.ayahs;
-  const rangeLocation = validAyahRange && selectedSurah ? getAyahRangeLocation(selectedSurah.number, startNumber!, endNumber!) : null;
-  const surahCoverage = selectedSurah ? getAyahRangeLocation(selectedSurah.number, 1, selectedSurah.ayahs) : null;
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Settings>('/settings') });
   const traditionMutation = useMutation({
     mutationFn: (value: 'islam'|'christianity'|'general') => api<Settings>('/settings', json('PATCH', { faith_tradition: value })),
@@ -66,7 +51,6 @@ export function ValuesPage() {
   const adminPreview = role === 'admin' && ['islam','christianity','general'].includes(requestedTradition || '') ? requestedTradition : null;
   const tradition = adminPreview || (religion === 'islam' || religion === 'christianity' ? religion : 'general');
   const deen = useQuery({ queryKey: ['deen', date], queryFn: () => api<Deen>('/deen/summary?date=' + date), enabled: tradition === 'islam' });
-  const quranLogs = useQuery({ queryKey: ['quran-logs'], queryFn: () => api<QuranLog[]>('/deen/quran'), enabled: tradition === 'islam' });
   const records = useQuery({ queryKey: ['rhythm-records', date], queryFn: () => api<RhythmRecord[]>('/rhythm/records?date=' + date) });
   const createRecord = useMutation({
     mutationFn: (entry: { record_type: string; title: string; detail?: string; status?: RhythmRecord['status']; record_date?: string }) => api<RhythmRecord>('/rhythm/records', json('POST', { record_date: date, status: 'completed', ...entry, ...(adminPreview ? { admin_tradition: adminPreview } : {}) })),
@@ -81,17 +65,10 @@ export function ValuesPage() {
     mutationFn: (entry: { item: Prayer; status: 'pending'|'on_time'|'qada' }) => api('/deen/prayer', json('PATCH', { date, prayer: entry.item.prayer, completed: entry.status === 'pending' ? 0 : 1, on_time: entry.status === 'on_time' ? 1 : 0 })),
     onSuccess: () => { void client.invalidateQueries({ queryKey: ['deen', date] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });
-  const quran = useMutation({
-    mutationFn: () => api('/deen/quran', json('POST', { log_date: date, activity, surah: selectedSurah?.transliteration || surah, ayah_start: ayahStart || null, ayah_end: ayahEnd || null, pages: rangeLocation?.pages ?? 0, juz: rangeLocation?.juzStart ?? selectedSurah?.juzStart ?? null, reflection: quranReflection })),
-    onSuccess: () => { setSurah(''); setAyahStart(''); setAyahEnd(''); setPages('0'); setJuz(''); setQuranReflection(''); void client.invalidateQueries({ queryKey: ['quran-logs'] }); void client.invalidateQueries({ queryKey: ['deen', date] }); void client.invalidateQueries({ queryKey: ['rhythm-summary'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
-  });
   const recordsFor = (type: string) => (records.data || []).filter(item => item.record_type === type);
   const add = (type: string, title: string, detail = '', status: RhythmRecord['status'] = 'completed') => createRecord.mutate({ record_type: type, title, detail, status });
   const setPrayerStatus = (item: Prayer, status: string) => prayer.mutate({ item, status: status as 'pending'|'on_time'|'qada' });
   const prayerCount = deen.data?.prayers.filter(item => !!item.completed).length ?? 0;
-  const quranToday = quranLogs.data?.filter(log => log.log_date === date) ?? [];
-  const memorisedPages = quranToday.filter(log => log.activity === 'memorisation').reduce((sum, log) => sum + log.pages, 0);
-  const revisedPages = quranToday.filter(log => log.activity === 'revision').reduce((sum, log) => sum + log.pages, 0);
   const recordList = (types: string[]) => (records.data || []).filter(item => types.includes(item.record_type));
   const recordRow = (item: RhythmRecord, answerable = false) => <div className="rhythm-record-row" key={item.id}><span className={'rhythm-record-status rhythm-record-status--' + item.status}>{item.status === 'completed' ? <Check size={13}/> : item.status === 'answered' ? <HeartHandshake size={13}/> : null}</span><div><b>{item.title}</b>{item.detail && <small>{item.detail}</small>}</div>{answerable && item.status === 'active' ? <button type="button" className="text-link" onClick={() => updateRecord.mutate({id:item.id,status:'answered'})}>Mark answered</button> : ['planned','completed'].includes(item.status) && ['sunnah','adhkar','jumuah','prayer_rhythm','daily_intention'].includes(item.record_type) ? <button type="button" className="text-link" onClick={() => updateRecord.mutate({id:item.id,status:item.status==='completed'?'planned':'completed'})}>{item.status==='completed'?'Return to plan':'Mark complete'}</button> : <span className="rhythm-record-label">{item.status}</span>}</div>;
 
@@ -111,18 +88,7 @@ export function ValuesPage() {
           <div className="rhythm-quick-actions"><button type="button" onClick={()=>add('adhkar','Morning adhkar','', 'completed')}>+ Morning adhkar</button><button type="button" onClick={()=>add('adhkar','Evening adhkar','', 'completed')}>+ Evening adhkar</button></div>
         </Card>
       </div>
-      <Card className="faith-section-secondary">
-        <QuranMushafReader settings={settings.data || {}} settingsReady={settings.isFetched} onLogged={() => { void client.invalidateQueries({ queryKey: ['quran-logs'] }); void client.invalidateQueries({ queryKey: ['deen', date] }); void client.invalidateQueries({ queryKey: ['rhythm-summary'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }} />
-        <div className="rhythm-stats"><div><b>{memorisedPages}</b><small>MEMORISED PAGES</small></div><div><b>{revisedPages}</b><small>REVISED PAGES</small></div><div><b>{quranToday.length}</b><small>SESSIONS TODAY</small></div></div>
-        <div className="rhythm-quran-layout"><details className="atlas-add-disclosure"><summary>+ Add record</summary><form className="form-stack" onSubmit={event=>{event.preventDefault();if(selectedSurah && (!ayahStart && !ayahEnd || validAyahRange))quran.mutate();}}>
-          <div className="field-row"><Field label="ACTIVITY"><select className="field-input" value={activity} onChange={event=>setActivity(event.target.value)}><option value="memorisation">Hifz · memorisation</option><option value="revision">Revision</option></select></Field><Field label="SURAH"><select className="field-input" value={surah} onChange={event=>{setSurah(event.target.value);setAyahStart('');setAyahEnd('');}} required><option value="">Choose a surah (1–114)</option>{QURAN_SURAHS.map(item=><option key={item.number} value={item.transliteration}>{item.number}. {item.transliteration} · {item.arabic} ({item.ayahs} ayahs)</option>)}</select>{selectedSurah && <small className="muted">{selectedSurah.english} · {selectedSurah.ayahs} ayahs · Mushaf pages {surahCoverage?.pageStart}–{surahCoverage?.pageEnd} · Juz {surahCoverage?.juzStart}{surahCoverage?.juzEnd !== surahCoverage?.juzStart ? `–${surahCoverage?.juzEnd}` : ''}</small>}</Field></div>
-          <div className="field-row"><Field label="STARTING AYAH"><TextInput type="number" min="1" max={selectedSurah?.ayahs || 1} value={ayahStart} onChange={event=>setAyahStart(event.target.value)} disabled={!selectedSurah}/></Field><Field label="ENDING AYAH"><TextInput type="number" min="1" max={selectedSurah?.ayahs || 1} value={ayahEnd} onChange={event=>setAyahEnd(event.target.value)} disabled={!selectedSurah}/></Field></div>
-          <div className="field-row"><Field label="MUSHAF PAGES"><input className="field-input" value={rangeLocation ? (rangeLocation.pageStart===rangeLocation.pageEnd ? String(rangeLocation.pageStart) : `${rangeLocation.pageStart}–${rangeLocation.pageEnd}`) : "Enter a valid ayah range"} readOnly/></Field><Field label="JUZ"><input className="field-input" value={rangeLocation ? (rangeLocation.juzStart===rangeLocation.juzEnd ? String(rangeLocation.juzStart) : `${rangeLocation.juzStart}–${rangeLocation.juzEnd}`) : selectedSurah ? `Starts in ${selectedSurah.juzStart}` : "—"} readOnly/></Field></div>
-          <Field label="REFLECTION (OPTIONAL)"><TextArea value={quranReflection} onChange={event=>setQuranReflection(event.target.value)} placeholder="What did you memorise, revise or notice?"/></Field>
-          <div><Button type="submit" disabled={quran.isPending||!selectedSurah||!!(ayahStart||ayahEnd)&&!validAyahRange}>{quran.isPending?'Saving…':'Save Qur’an record'}</Button></div>
-        </form></details><div className="rhythm-record-list">{quranToday.slice(0,8).map(log=><div className="rhythm-record-row" key={log.id}><span className="rhythm-record-status rhythm-record-status--completed"><Check size={13}/></span><div><b>{log.surah} · {log.activity}</b><small>{log.ayah_start?'Ayah '+log.ayah_start+(log.ayah_end?'–'+log.ayah_end:'')+' · ':''}{log.pages+' pages'}{log.juz?' · Juz '+log.juz:''}</small></div></div>)}</div></div>
-        <div className="rhythm-focus-link"><span>Ready for a dedicated block?</span><Link className="button button--secondary" to="/focus?focus=Qur%27an%20Hifz%20and%20Revision"><Timer size={14}/> Start Qur’an Focus</Link></div>
-      </Card>
+      <QuranMushafReader settings={settings.data || {}} settingsReady={settings.isFetched} onLogged={() => { void client.invalidateQueries({ queryKey: ['deen', date] }); void client.invalidateQueries({ queryKey: ['rhythm-summary'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }} />
       <div className="rhythm-grid">
         <Card className="faith-section-tertiary"><div className="module-panel-head"><div><span className="module-kicker">FRIDAY PREPARATION</span><h2>Jumu’ah checklist</h2></div></div>
           {jumuahItems.map(title=>{const item=recordsFor('jumuah').find(row=>row.title===title);return <div className="rhythm-check-row" key={title}><span>{title}</span>{item ? <button type="button" className={item.status==='completed'?'is-complete':''} onClick={()=>updateRecord.mutate({id:item.id,status:item.status==='completed'?'planned':'completed'})}>{item.status==='completed'?'Completed':'Planned · Mark done'}</button> : <button type="button" onClick={()=>add('jumuah',title,'', 'planned')}>Add to plan</button>}</div>;})}
