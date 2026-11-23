@@ -40,7 +40,7 @@ app.use((req,res,next)=>{
     "form-action 'self'",
     "script-src 'self' https://cdn.jsdelivr.net",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com https://verses.quran.foundation https://quran.foundation data:",
+    "font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com https://verses.quran.foundation https://quran.foundation data:",
     "img-src 'self' data: blob: https:",
     `connect-src 'self' ${supabaseOrigin} wss://${supabaseHost} https://alquran.cloud https://api.alquran.cloud https://api.quran.com https://islamic.network https://everyayah.com`,
     "media-src 'self' blob: https://alquran.cloud https://api.alquran.cloud https://islamic.network https://everyayah.com https://quran.foundation https://verses.quran.foundation",
@@ -160,7 +160,7 @@ function normalizeQuranCom(body, page) {
       const clearQuran = translations.find(item => item.id === 131);
       const sahih = translations.find(item => item.id === 20);
       const words = Array.isArray(verse.words) ? verse.words.map(word => ({
-        text: String(word.text_uthmani || ''),
+        text: String(word.text_qpc_hafs || word.text_uthmani || ''),
         codeV2: String(word.code_v2 || ''),
         lineNumber: Number(word.line_number || word.line_v2 || 0),
         pageNumber: Number(word.page_number || word.v2_page || page),
@@ -169,7 +169,7 @@ function normalizeQuranCom(body, page) {
       })) : [];
       return { number: Number(verse.id), numberInSurah: Number(verse.verse_number || ayahRaw), surahNumber,
         surahName: label.surahName || `Surah ${surahNumber}`, arabicName: label.arabicName || '',
-        text: String(verse.text_uthmani || words.map(word => word.text).join(' ')),
+        text: String(verse.text_qpc_hafs || verse.text_uthmani || words.map(word => word.text).join(' ')),
         translation: clearQuran?.text || sahih?.text || '',
         translations, words };
     }) };
@@ -196,7 +196,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
       quranHeaders = auth.headers;
       officialQuranApiBase = auth.apiBase;
     } catch (error) { console.warn('Quran Foundation authentication unavailable:', error.message); }
-    const quranQuery = `?mushaf=1&words=true&translations=131,20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,position,verse_key,char_type_name&fields=text_uthmani,verse_key,chapter_id,verse_number,juz_number&page=1&per_page=50`;
+    const quranQuery = `?mushaf=1&words=true&translations=131,20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,verse_key,chapter_id,verse_number,juz_number&page=1&per_page=50`;
     const qcfSources = [
       `https://quran.com/api/proxy/content/api/qdc/verses/by_page/${page}${quranQuery}`,
       `https://api.quran.com/api/v4/verses/by_page/${page}${quranQuery}`
@@ -216,7 +216,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
     try { return await fetchQuranMirror(`https://api.alquran.cloud/v1/page/${page}/editions/quran-uthmani,en.sahih`, normalizeAlQuranCloud, page); }
     catch (error) { console.warn('Qur’an Uthmani fallback failed:', error.message); }
     try {
-      const textOnly = await fetchQuranMirror(`https://api.quran.com/api/v4/verses/by_page/${page}?words=false&translations=20&fields=text_uthmani,verse_key,chapter_id,verse_number,juz_number&per_page=50`, normalizeQuranCom, page, quranHeaders);
+      const textOnly = await fetchQuranMirror(`https://api.quran.com/api/v4/verses/by_page/${page}?words=false&translations=20&fields=text_uthmani,text_qpc_hafs,verse_key,chapter_id,verse_number,juz_number&per_page=50`, normalizeQuranCom, page, quranHeaders);
       return { ...textOnly, qcfAvailable: false };
     } catch (error) { console.warn('Qur’an text fallback failed:', error.message); }
     const offline = quranOfflinePages[String(page)];
