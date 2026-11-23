@@ -158,7 +158,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
     const quranHeaders = {};
     if (process.env.QURAN_API_TOKEN) quranHeaders['x-auth-token'] = process.env.QURAN_API_TOKEN;
     if (process.env.QURAN_CLIENT_ID) quranHeaders['x-client-id'] = process.env.QURAN_CLIENT_ID;
-    const quranQuery = `?mushaf=1&words=true&translations=131,20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,position,verse_key&fields=text_uthmani,verse_key,chapter_id,verse_number,juz_number&page=1&per_page=50`;
+    const quranQuery = `?mushaf=1&words=true&translations=131,20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,position,verse_key,char_type_name&fields=text_uthmani,verse_key,chapter_id,verse_number,juz_number&page=1&per_page=50`;
     const qcfSources = [
       `https://quran.com/api/proxy/content/api/qdc/verses/by_page/${page}${quranQuery}`,
       `https://api.quran.com/api/v4/verses/by_page/${page}${quranQuery}`
