@@ -157,7 +157,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
     const quranHeaders = {};
     if (process.env.QURAN_API_TOKEN) quranHeaders['x-auth-token'] = process.env.QURAN_API_TOKEN;
     if (process.env.QURAN_CLIENT_ID) quranHeaders['x-client-id'] = process.env.QURAN_CLIENT_ID;
-    const quranUrl = `https://api.quran.com/api/v4/verses/by_page/${page}?mushaf=1&words=true&translations=131,20&word_fields=code_v2,line_number,page_number,text_uthmani,char_type_name,position,verse_key&fields=text_uthmani,verse_key,chapter_id,verse_number,juz_number&page=1&per_page=50`;
+    const quranUrl = `https://api.quran.com/api/v4/verses/by_page/${page}?mushaf=1&words=true&translations=131,20&word_fields=code_v2,line_number,page_number,text_uthmani,position,verse_key&fields=text_uthmani,verse_key,chapter_id,verse_number,juz_number&page=1&per_page=50`;
     try {
       const qcf = await fetchQuranMirror(quranUrl, normalizeQuranCom, page, quranHeaders);
       if (qcf.qcfAvailable) return qcf;
