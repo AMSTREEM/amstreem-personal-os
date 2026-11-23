@@ -738,7 +738,7 @@ app.post('/api/reviews',(q,s)=>{
 
 app.get('/api/settings',(q,s)=>{const values=Object.fromEntries(all('SELECT key,value FROM settings').map(x=>[x.key,x.value]));values.faith_tradition=values.faith_tradition||values.religion||'general';s.json(values);});
 app.patch('/api/settings',(q,s)=>{
- const allowed=['daily_target','display_name','username','north_star','religion','faith_tradition','leaderboard_name','leaderboard_public','theme','features','widgets','sidebar_collapsed'];
+ const allowed=['daily_target','display_name','username','north_star','religion','faith_tradition','leaderboard_name','leaderboard_public','theme','features','widgets','sidebar_collapsed','hifz_page','murajaah_page'];
  const themes=['shadowed-alchemist','nocturnal-amethyst','abyssal-trench','whispering-woods','crimson-velvet','light-porcelain','light-sandstone','light-sage','light-lavender','light-sky'];
  const features=['calendar','deen','faith','selfcontrol','learning','tasks','focus','library','goals','rankings','rituals','values'];
  if(q.body.religion!==undefined&&!['islam','christianity','none','prefer_not_to_say'].includes(q.body.religion))return s.status(400).json({error:'Choose a valid religious experience.'});
