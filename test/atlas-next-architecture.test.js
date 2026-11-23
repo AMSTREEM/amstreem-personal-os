@@ -317,7 +317,13 @@ test('Full-screen Mushaf opens without inline preview and uses a tap-to-toggle A
   assert.ok(reader.includes('mushaf-header-autosaved'));
   assert.doesNotMatch(reader, /mushaf-minimal-page-pill"><b>\{page\}<\/b><span>Auto-saved/);
   assert.doesNotMatch(reader, /mushaf-hud-autosaved/);
-  assert.ok(reader.includes("fontFamily: \"'Amiri Quran', 'Scheherazade New', serif\""));
+  assert.ok(reader.includes("fontFamily: \"'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', serif\""));
+  assert.ok(reader.includes("fontFamily: \"'Noto Naskh Arabic', 'Amiri Quran', serif\""));
+  assert.ok(reader.includes("wordSpacing: '2px'"));
+  assert.ok(css.includes('UthmanicHafs1Ver18.woff2'));
+  assert.ok(css.includes('family=Noto+Naskh+Arabic'));
+  assert.ok(server.includes('text_qpc_hafs'));
+  assert.ok(server.includes('https://quran.foundation'));
   assert.ok(css.includes('.mushaf-header-autosaved'));
   assert.ok(css.includes('.mushaf-reading-canvas{padding-bottom:64px}'));
   assert.ok(reader.includes('mushaf-desktop-reading-switch'));
@@ -362,8 +368,9 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.ok(reader.includes('sanitizeMushafPage(payload as MushafPage)'));
   assert.ok(reader.includes('readingLines = useMemo'));
   assert.ok(reader.includes('word.pageNumber !== page'));
-  assert.ok(reader.includes('new FontFace'));
-  assert.ok(reader.includes('QCF2'));
+  assert.ok(reader.includes('KFGQPC Uthmanic Script HAFS'));
+  assert.ok(css.includes('font-display:swap'));
+  assert.ok(server.includes('text_qpc_hafs'));
   assert.ok(reader.includes('function AyahMedallion'));
   assert.ok(reader.includes('mushaf-ayah-medallion-frame'));
   assert.ok(reader.includes('stripAyahEndMarker'));
