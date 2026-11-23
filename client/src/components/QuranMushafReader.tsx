@@ -224,19 +224,34 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
       <main className="mushaf-fs-sheet mushaf-page-wrap" ref={readerRef}>
         {loading && <p className="mushaf-loading" role="status">Loading Mushaf page {page}…</p>}
         {!loading && pageError && <div className="mushaf-error" role="alert"><WifiOff size={24}/><p>{pageError}</p><button type="button" onClick={() => changePage(page)}>Retry page</button></div>}
-        {!loading && pageData && readingMode === 'reading' && <div className={`mushaf-ayah-flow mushaf-fs-arabic mushaf-fs-arabic--${fontSize}`} dir="rtl" lang="ar">
-          {pageData.ayahs.map((ayah, index) => {
-            const beginsSurah = index === 0 || pageData.ayahs[index - 1].surahNumber !== ayah.surahNumber;
-            return <Fragment key={ayah.surahNumber + ':' + ayah.numberInSurah}>
-              {beginsSurah && <div className="mushaf-surah-banner"><span className="mushaf-surah-ornament">۞</span><b>{ayah.arabicName}</b><small>{ayah.surahName}</small><span className="mushaf-surah-ornament">۞</span></div>}
-              {beginsSurah && ayah.surahNumber !== 9 && ayah.numberInSurah === 1 && <div className="mushaf-bismillah" lang="ar">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
-              <button type="button" className={'mushaf-ayah ' + (selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah ? 'is-selected' : '')} onClick={() => selectAyah(ayah)} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>
-                {ayah.text}<span className="mushaf-ayah-number" aria-label={`Ayah ${ayah.numberInSurah}`}>﴿{arabicNumber(ayah.numberInSurah)}﴾</span>
-              </button>
+        {!loading && pageData && readingMode === 'reading' && <div className="mushaf-fs-qcf-page mushaf-fs-arabic" dir="rtl" lang="ar">
+          {readingLines.length > 0 && qcfFontStatus === 'ready' ? readingLines.map(({ lineNumber, words }) => {
+            const firstWord = words[0];
+            const surah = firstWord?.numberInSurah === 1 ? pageData.ayahs.find(ayah => ayah.surahNumber === firstWord.surahNumber) : null;
+            return <Fragment key={lineNumber}>
+              {surah && <div className="mushaf-surah-banner"><span className="mushaf-surah-ornament">۞</span><b>{surah.arabicName}</b><small>{surah.surahName}</small><span className="mushaf-surah-ornament">۞</span></div>}
+              {surah && surah.surahNumber !== 9 && <div className="mushaf-bismillah" lang="ar">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
+              <div className="mushaf-fs-qcf-line" data-line={lineNumber}>
+                {words.map((word, index) => <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-qcf-word" style={{ fontFamily: 'QCF_P' + page }} dangerouslySetInnerHTML={{ __html: escapeGlyphHtml(word.codeV2 || word.text) }} />)}
+              </div>
             </Fragment>;
-          })}
+          }) : readingLines.length > 0 ? <div className="mushaf-fs-unicode-lines" dir="rtl">
+            {readingLines.map(({ lineNumber, words }) => <div className="mushaf-fs-qcf-line" key={lineNumber}>
+              {words.map((word, index) => <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index}>{word.text}</span>)}
+            </div>)}
+          </div> : <div className="mushaf-ayah-flow mushaf-fs-unicode-flow" dir="rtl" lang="ar">
+            {pageData.ayahs.map(ayah => <Fragment key={ayah.surahNumber + ':' + ayah.numberInSurah}>
+              {ayah.numberInSurah === 1 && <div className="mushaf-surah-banner"><span className="mushaf-surah-ornament">۞</span><b>{ayah.arabicName}</b><small>{ayah.surahName}</small><span className="mushaf-surah-ornament">۞</span></div>}
+              {ayah.numberInSurah === 1 && ayah.surahNumber !== 9 && <div className="mushaf-bismillah" lang="ar">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
+              <button type="button" className={'mushaf-ayah ' + (selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah ? 'is-selected' : '')} onClick={() => selectAyah(ayah)} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>
+                {ayah.text}<span className="mushaf-ayah-number" aria-label={'Ayah ' + ayah.numberInSurah}>﴿{arabicNumber(ayah.numberInSurah)}﴾</span>
+              </button>
+            </Fragment>)}
+          </div>}
+          {pageData.qcfAvailable && qcfFontStatus === 'fallback' && <p className="mushaf-fs-font-note">QCF page font unavailable — showing Uthmani text.</p>}
         </div>}
         {!loading && pageData && readingMode === 'translation' && <div className={`mushaf-fs-verse-list mushaf-fs-arabic mushaf-fs-arabic--${fontSize}`} dir="ltr" lang="en">
+          <div className="mushaf-fs-translation-pill">Translation: Dr. Mustafa Khattab / Sahih International</div>
           {pageData.ayahs.map((ayah, index) => {
             const beginsSurah = index === 0 || pageData.ayahs[index - 1].surahNumber !== ayah.surahNumber;
             const isSelected = selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah;
@@ -244,7 +259,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
               {beginsSurah && <div className="mushaf-surah-banner mushaf-fs-verse-surah"><span className="mushaf-surah-ornament">۞</span><b>{ayah.arabicName}</b><small>{ayah.surahName}</small><span className="mushaf-surah-ornament">۞</span></div>}
               {beginsSurah && ayah.surahNumber !== 9 && ayah.numberInSurah === 1 && <div className="mushaf-bismillah mushaf-fs-verse-bismillah" lang="ar" dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
               <div className="mushaf-fs-verse-arabic-line" dir="rtl" lang="ar">
-                <div className="mushaf-fs-verse-actions"><small>{ayah.surahNumber}:{ayah.numberInSurah}</small><button type="button" aria-label={`Play ${ayah.surahNumber}:${ayah.numberInSurah}`} onClick={() => { selectAyah(ayah); playAyah(ayah); }}><Play size={14}/></button></div>
+                <div className="mushaf-fs-verse-actions"><small>{ayah.surahNumber}:{ayah.numberInSurah}</small><button type="button" aria-label={`Play ${ayah.surahNumber}:${ayah.numberInSurah}`} onClick={() => { selectAyah(ayah); playAyah(ayah); }}><Play size={14}/></button><button type="button" aria-label={`Bookmark ${ayah.surahNumber}:${ayah.numberInSurah}`} onClick={() => selectAyah(ayah)}><Bookmark size={14}/></button></div>
                 <button type="button" className={'mushaf-fs-verse-arabic ' + (isSelected ? 'is-selected' : '')} onClick={() => selectAyah(ayah)} aria-pressed={isSelected}>
                   {ayah.text}<span className="mushaf-ayah-number" aria-label={`Ayah ${ayah.numberInSurah}`}>﴿{arabicNumber(ayah.numberInSurah)}﴾</span>
                 </button>
@@ -253,6 +268,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
                 <span>{ayah.translation || 'Translation unavailable for this verse.'}</span>
                 <small>{ayah.surahNumber}:{ayah.numberInSurah}</small>
               </div>
+              <div className="mushaf-fs-verse-copy"><button type="button" onClick={() => { void navigator.clipboard?.writeText(ayah.text + '\n\n' + ayah.translation + '\n\n' + ayah.surahNumber + ':' + ayah.numberInSurah); }}><Copy size={13}/> Copy</button></div>
             </article>;
           })}
         </div>}
@@ -262,7 +278,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     <footer className="mushaf-fs-footer">
       <div className="mushaf-fs-page-pill">
         <button type="button" className="mushaf-fs-page-nav" disabled={page <= 1} onClick={() => changePage(page - 1)}><ChevronLeft size={16}/> Previous Page</button>
-        <button type="button" className="mushaf-fs-log-page" disabled={!pageData?.ayahs?.length || loading || logging} onClick={logPage}>Page {page} / 604 · {logging ? 'Logging…' : 'Log Page'}</button>
+        <button type="button" className="mushaf-fs-log-page" disabled={!pageData?.ayahs?.length || loading || logging} onClick={logPage}>Complete &amp; Log Page</button>
         <button type="button" className="mushaf-fs-page-nav" disabled={page >= 604} onClick={() => changePage(page + 1)}>Next Page <ChevronRight size={16}/></button>
       </div>
       <span className="mushaf-log-message" role="status">{logMessage}</span>
