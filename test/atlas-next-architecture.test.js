@@ -274,7 +274,8 @@ test('Qur’an reader uses a same-origin cached proxy and full-screen ayah study
   assert.match(reader, /murajaah_bookmark/);
 });
 
-\ntest('Qur’an page proxy falls back across mirrors and serves bundled offline pages', () => {
+
+test('Qur’an page proxy falls back across mirrors and serves bundled offline pages', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const values = read('client/src/pages/ValuesPage.tsx');
   const offline = JSON.parse(read('server/quran-fallback.json'));
