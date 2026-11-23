@@ -279,7 +279,7 @@ const mushafStyles = `
 
 .mushaf-fs-overlay{position:fixed;inset:0;width:100vw;height:100dvh;z-index:9999;background:var(--bg-canvas);display:grid;grid-template-rows:52px minmax(0,1fr) 60px;overflow:hidden;box-sizing:border-box;font-family:"DM Sans",system-ui,sans-serif}
 .mushaf-fs-overlay *{box-sizing:border-box}
-.mushaf-fs-header{width:100%;max-width:100%;margin:0 auto;height:52px;min-height:52px;padding:0 12px;display:flex;align-items:center;justify-content:center;gap:12px;border-bottom:1px solid var(--border-hairline);background:var(--bg-surface);white-space:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+.mushaf-fs-header{width:100%;max-width:720px;margin:0 auto;height:52px;min-height:52px;padding:0 12px;display:flex;align-items:center;justify-content:center;gap:12px;border-bottom:1px solid var(--border-hairline);background:var(--bg-surface);white-space:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
 .mushaf-fs-header::-webkit-scrollbar,.mushaf-fs-footer::-webkit-scrollbar{display:none}
 .mushaf-fs-controls{display:flex;align-items:center;justify-content:center;gap:7px;flex:0 0 auto;white-space:nowrap}
 .mushaf-fs-header button{height:32px;min-height:32px;padding:0 9px;border:1px solid var(--border-hairline);border-radius:8px;background:var(--bg-elevated);color:var(--text-primary);font:600 11px/1 "DM Sans",sans-serif;white-space:nowrap;flex:0 0 auto}
@@ -310,16 +310,16 @@ const mushafStyles = `
 .mushaf-fs-verse-arabic.is-selected{background:color-mix(in srgb,var(--accent,#b69b63) 12%,transparent);border-radius:8px}
 .mushaf-fs-verse-translation{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-top:10px;direction:ltr;text-align:left;font:400 15px/1.65 "DM Sans",sans-serif;color:var(--text-secondary,var(--text-muted))}
 .mushaf-fs-verse-translation small{flex:0 0 auto;padding:3px 7px;border-radius:6px;background:var(--bg-elevated);color:var(--text-muted);font:500 10px/1.4 "DM Sans",sans-serif}
-.mushaf-fs-footer{width:100%;max-width:100%;margin:0 auto;height:60px;min-height:60px;padding:0 16px env(safe-area-inset-bottom);display:flex;align-items:center;justify-content:center;gap:10px;border-top:1px solid var(--border-hairline);background:var(--bg-surface);box-sizing:border-box;white-space:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+.mushaf-fs-footer{width:100%;max-width:720px;margin:0 auto;height:60px;min-height:60px;padding:0 16px env(safe-area-inset-bottom);display:flex;align-items:center;justify-content:center;gap:10px;border-top:1px solid var(--border-hairline);background:var(--bg-surface);box-sizing:border-box;white-space:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
 .mushaf-fs-footer button{height:36px;min-height:36px;padding:0 12px;border-radius:8px;white-space:nowrap;flex:0 0 auto}
 .mushaf-fs-footer .mushaf-complete-button{background:var(--accent,#b69b63);color:#111;border-color:transparent}
 .mushaf-fs-sheet .mushaf-loading,.mushaf-fs-sheet .mushaf-error{font-family:"DM Sans",sans-serif}
 @media(max-width:600px){
- .mushaf-fs-header{justify-content:flex-start;gap:7px;padding:0 7px}
- .mushaf-fs-controls{gap:4px}
- .mushaf-fs-header button{padding:0 7px;font-size:10px}
- .mushaf-fs-header .mushaf-mode-switch button{padding:0 7px;font-size:9px}
- .mushaf-fs-view-switch button{padding:0 8px;font-size:10px}
+ .mushaf-fs-header{justify-content:center;gap:4px;padding:0 4px}
+ .mushaf-fs-controls{gap:3px}
+ .mushaf-fs-header button{padding:0 5px;font-size:9px}
+ .mushaf-fs-header .mushaf-mode-switch button{padding:0 5px;font-size:8px}
+ .mushaf-fs-view-switch button{padding:0 6px;font-size:9px}
  .mushaf-fs-stage{padding:8px 6px;place-items:center}
  .mushaf-fs-sheet{padding:15px 12px;border-radius:12px}
  .mushaf-fs-verse-row{padding:15px 0}
