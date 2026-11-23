@@ -414,7 +414,7 @@ test('Mushaf saves the active page and ayah locally immediately and debounces wo
   assert.match(reader, /localStorage\.setItem\(key, JSON\.stringify\(mark\)\)/);
   assert.match(reader, /setSaveStatus\('Auto-saved · Page ' \+ mark\.page\)/);
   assert.match(reader, /window\.setTimeout\(\(\) =>/);
-  assert.match(reader, /}, 500\)/);
+  assert.match(reader, /}, 1200\)/);
   assert.match(reader, /window\.clearTimeout\(timer\)/);
   assert.match(reader, /atlas_quran_auto_logged_pages_/);
   assert.match(reader, /autoLoggedPagesRef/);
