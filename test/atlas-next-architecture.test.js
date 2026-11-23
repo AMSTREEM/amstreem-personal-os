@@ -376,7 +376,7 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.ok(server.includes('qcfAvailable'));
   assert.deepEqual(Object.keys(offline.pages).sort(), ['1', '602', '603', '604']);
   for (const page of ['1', '602', '603', '604']) assert.ok(offline.pages[page].ayahs.length > 0);
-  assert.ok(reader.includes('atlas_mushaf_page_v5_'));
+  assert.ok(reader.includes('atlas_mushaf_page_v6_'));
   assert.ok(reader.includes('sanitizeMushafPage(payload as MushafPage)'));
   assert.ok(reader.includes('readingLines = useMemo'));
   assert.ok(reader.includes('word.pageNumber !== page'));
