@@ -56,6 +56,10 @@ test('the four core destinations and More menu stay visible while secondary view
   assert.match(shell, /const rooms = \[/);
   assert.match(shell, /faithTabLabel = quickReligion === 'islam' \? 'Deen & Qur’an'/);
   assert.match(shell, /atlas-mobile-dock/);
+  assert.ok(shell.includes('to="/values?openMushaf=1"'));
+  assert.ok(shell.includes('<BookOpen size={17} strokeWidth={1.8}/><span>Qur’an</span>'));
+  assert.ok(shell.includes('atlas-mobile-dock__quran'));
+
   assert.match(shell, /<span>More/);
   assert.match(shell, /tabsByRoom/);
   assert.match(shell, /feature: 'calendar'/);
@@ -85,6 +89,9 @@ test('Express serves the built app while retaining legacy public assets', () => 
 
 test('Today supports fast task capture and deadline-aware priorities', () => {
   const today = read('client/src/pages/TodayPage.tsx');
+  assert.ok(today.includes('readHifzPage'));
+  assert.ok(today.includes('Continue Qur’an · Hifz P.{hifzPage}'));
+  assert.ok(today.includes('to="/values?openMushaf=1"'));
   assert.match(today, /today-quick-capture/);
   assert.match(today, /api<Task>\('\/tasks'/);
   assert.match(today, /a\.due_date\.localeCompare\(b\.due_date\)/);
@@ -270,7 +277,11 @@ test('Qur’an reader uses the Quran.com page proxy, saved bookmarks, no reciter
   assert.ok(reader.includes('createPortal(') && reader.includes('document.body'));
   assert.doesNotMatch(reader, /reciters|reciter|Mishary|isPlaying|audioRef|playAyah|togglePlayback|<audio|aria-label="Play verse"|<Play/);
   assert.ok(reader.includes('hifz_bookmark') && reader.includes('murajaah_bookmark'));
-  assert.ok(values.includes('<QuranMushafReader settings='));
+  assert.ok(values.includes('<QuranMushafReader autoOpen={searchParams.get(\'openMushaf\') === \'1\'}'));
+  assert.ok(reader.includes('autoOpen?: boolean'));
+  assert.ok(reader.includes('autoOpenHandled.current = true'));
+  assert.ok(reader.includes("openReader('hifz')"));
+  assert.ok(values.includes('<QuranMushafReader settings=') || values.includes('<QuranMushafReader autoOpen='));
   assert.doesNotMatch(values, /Open Full-Screen Mushaf|rhythm-quran-layout|Save Qur’an record/);
 });
 
