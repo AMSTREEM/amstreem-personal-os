@@ -33,7 +33,7 @@ test('Qur’an reference contains all 114 Surahs for the 604-page Madani Mushaf'
     [6, 604, 604]
   );
 
-  const juzMatch = source.match(/export const quranJuzBoundaries = (\\[[\\s\\S]*?\\]) as const;/);
+  const juzMatch = source.match(/export const quranJuzBoundaries = (\[[\s\S]*?\]) as const;/);
   assert.ok(juzMatch, '30 Juz start boundaries should be present');
   const juzBoundaries = JSON.parse(juzMatch[1]);
   assert.equal(juzBoundaries.length, 30);
