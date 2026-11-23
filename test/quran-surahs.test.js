@@ -20,6 +20,9 @@ test('Qur’an reference contains all 114 Surahs for the 604-page Madani Mushaf'
     assert.ok(surah.juz >= 1 && surah.juz <= 30);
   }
 
+  assert.equal(surahs[0].name, 'Al-Fatihah');
+  assert.equal(surahs[1].name, 'Al-Baqarah');
+  assert.equal(surahs[113].name, 'An-Nas');
   assert.deepEqual(
     [surahs[0].ayahCount, surahs[0].startPage, surahs[0].endPage],
     [7, 1, 1]
