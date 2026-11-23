@@ -138,7 +138,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
         ayah_end: sameSurah ? last.numberInSurah : null,
         pages: 1,
         juz: first.juz,
-        reflection: 'Completed Mushaf page ' + page + ' in the ' + (mode === 'hifz' ? 'Hifz' : 'Muraja’ah') + ' reader.'
+        reflection: 'Mushaf page ' + page + ': ' + first.surah.englishName + ' ' + first.numberInSurah + '–' + last.surah.englishName + ' ' + last.numberInSurah + '. Completed in the ' + (mode === 'hifz' ? 'Hifz' : 'Muraja’ah') + ' reader.'
       }));
       const rect = event.currentTarget.getBoundingClientRect();
       triggerSparkBurst(rect.left + rect.width / 2, rect.top + rect.height / 2);
