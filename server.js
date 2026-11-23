@@ -207,17 +207,21 @@ app.get('/api/quran/page/:page', async (req, res) => {
       qcfSources.push(officialQuranApiBase + '/verses/by_page/' + page + quranQuery);
     }
     let qcfPage = null;
+    let qcfWithoutTajweed = null;
     let tajweedUnicodePage = null;
     for (const sourceUrl of qcfSources) {
       try {
         const candidate = await fetchQuranMirror(sourceUrl, normalizeQuranCom, page, quranHeaders);
-        if (candidate.qcfAvailable) { qcfPage = candidate; break; }
-        if (!tajweedUnicodePage && candidate.ayahs.some(ayah => ayah.tajweedText)) tajweedUnicodePage = candidate;
+        const hasTajweed = candidate.ayahs.some(ayah => ayah.tajweedText);
+        if (candidate.qcfAvailable && hasTajweed) { qcfPage = candidate; break; }
+        if (candidate.qcfAvailable && !qcfWithoutTajweed) qcfWithoutTajweed = candidate;
+        if (!tajweedUnicodePage && hasTajweed) tajweedUnicodePage = candidate;
         console.warn('Qur’an API returned Unicode text without QCF glyphs; trying the next source.');
       } catch (error) { console.warn('Qur’an word-level mirror failed:', error.message); }
     }
     if (qcfPage) return qcfPage;
     if (tajweedUnicodePage) return { ...tajweedUnicodePage, qcfAvailable: false };
+    if (qcfWithoutTajweed) return qcfWithoutTajweed;
     try { return await fetchQuranMirror(`https://api.alquran.cloud/v1/page/${page}/editions/quran-uthmani,en.sahih`, normalizeAlQuranCloud, page); }
     catch (error) { console.warn('Qur’an Uthmani fallback failed:', error.message); }
     try {
