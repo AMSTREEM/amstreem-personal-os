@@ -72,9 +72,7 @@ function SurahCartouche({ arabicName, englishName, ayahs }: { arabicName: string
 }
 function BismillahOrnament() {
   return <div className="mushaf-bismillah-ornament" lang="ar" dir="rtl">
-    <span aria-hidden="true"/>
-    <div><b>بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</b><small>In the Name of Allah—the Most Compassionate, Most Merciful</small></div>
-    <span aria-hidden="true"/>
+    <b>بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</b>
   </div>;
 }
 const readBookmark = (key: string) => { try { const value = JSON.parse(localStorage.getItem(key) || '{}'); return { page: clampPage(Number(value.page) || 1), surah: Number(value.surah) || 1, ayah: Number(value.ayah) || 1 }; } catch { return { page: 1, surah: 1, ayah: 1 }; } };
@@ -376,10 +374,10 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
             {readingLines.length === 15 ? readingLines.map(({ lineNumber, words }) => <div className="mushaf-fs-qcf-line" data-line={lineNumber} key={lineNumber} style={{ fontFamily: "'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', serif", fontSize: `${arabicFontSize}px`, fontWeight: 500, letterSpacing: 0, lineHeight: 2.05 }}>{words.map((word, index) => word.charTypeName === 'end' ? <AyahMedallion key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" number={word.numberInSurah}/> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-qcf-word">{renderTajweedMarkup(word.tajweed || word.text)}</span>)}</div>) :
               <div className="mushaf-fs-unicode-flow" dir="rtl" lang="ar" style={{ fontSize: `${arabicFontSize}px` }}>{pageData.ayahs.map(ayah => <button type="button" key={ayah.surahNumber + ':' + ayah.numberInSurah} className={'mushaf-ayah ' + (selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah ? 'is-selected' : '')} onClick={event => { event.stopPropagation(); selectAyah(ayah); }} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>{renderTajweedMarkup(ayah.tajweedText || ayah.text)}<AyahMedallion className="mushaf-ayah-number" number={ayah.numberInSurah}/></button>)}</div>}
           </div>
-          <div className="mushaf-page-number" dir="ltr"><span>{page}</span></div>
+          <div className="mushaf-page-number" dir="ltr"><span>— Page {page} · Juz {pageJuz} —</span></div>
         </div>}
         {!loading && pageData && readingMode === 'translation' && <div className="mushaf-fs-verse-list" dir="ltr" lang="en">
-          <div className="mushaf-fs-surah-intro"><b className="mushaf-fs-surah-arabic-title" lang="ar" dir="rtl">{activeSurah?.arabic || ''}</b><div className="mushaf-fs-surah-intro-copy"><span>THE HOLY QUR’AN</span><h1>{activeSurahNumber}. Surah {activeSurah?.transliteration || 'Surah'}</h1><p>{activeSurah?.english || ''} · {activeSurah?.ayahs || surahAyahs.length} Ayahs</p><small>{activeSurah?.revelation || 'Qur’anic'} revelation · A chapter of guidance, worship and reflection.</small></div><div className="mushaf-fs-surah-status"><span className={mode === 'hifz' ? 'is-active' : ''}>Hifz</span><span className={mode === 'murajaah' ? 'is-active' : ''}>Muraja’ah</span></div></div>
+          <div className="mushaf-fs-surah-intro"><b className="mushaf-fs-surah-arabic-title" lang="ar" dir="rtl">{activeSurah?.arabic || ''}</b><div className="mushaf-fs-surah-intro-copy"><h1>{activeSurahNumber}. Surah {activeSurah?.transliteration || 'Surah'}</h1><p>{activeSurah?.english || ''} · {activeSurah?.ayahs || surahAyahs.length} Ayahs</p></div></div>
           {surahLoading && <p className="mushaf-loading" role="status">Loading {activeSurah?.transliteration || 'Surah'}…</p>}
           {!surahLoading && surahError && <div className="mushaf-error" role="alert"><p>{surahError}</p><button type="button" onClick={() => setReadingMode('reading')}>Return to page</button></div>}
           {!surahLoading && surahAyahs.map((ayah, index) => <article className="mushaf-fs-verse-row" key={ayah.surahNumber + ':' + ayah.numberInSurah}>
