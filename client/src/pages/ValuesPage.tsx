@@ -10,6 +10,7 @@ import { playAtlasFeedback } from '../lib/microFeedback';
 import { RhythmConstellation } from '../components/fx/RhythmConstellation';
 import { triggerSparkBurst } from '../components/fx/SparkBurst';
 import { QURAN_SURAHS, findSurah, getAyahRangeLocation } from '../data/quranSurahs';
+import { QuranMushafReader } from '../components/QuranMushafReader';
 
 type Settings = Record<string, string>;
 type Prayer = { prayer: string; completed: number; on_time: number };
@@ -108,6 +109,7 @@ export function ValuesPage() {
         </Card>
       </div>
       <Card className="faith-section-secondary"><div className="module-panel-head"><div><span className="module-kicker">HIFZ / RECITATION / REVISION</span><h2>Qur’an reading & Hifz</h2></div><BookOpen size={18}/></div>
+        <QuranMushafReader settings={settings.data || {}} settingsReady={settings.isFetched} onLogged={() => { void client.invalidateQueries({ queryKey: ['quran-logs'] }); void client.invalidateQueries({ queryKey: ['deen', date] }); void client.invalidateQueries({ queryKey: ['rhythm-summary'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }} />
         <div className="rhythm-stats"><div><b>{memorisedPages}</b><small>MEMORISED PAGES</small></div><div><b>{revisedPages}</b><small>REVISED PAGES</small></div><div><b>{quranToday.length}</b><small>SESSIONS TODAY</small></div></div>
         <div className="rhythm-quran-layout"><details className="atlas-add-disclosure"><summary>+ Add record</summary><form className="form-stack" onSubmit={event=>{event.preventDefault();if(selectedSurah && (!ayahStart && !ayahEnd || validAyahRange))quran.mutate();}}>
           <div className="field-row"><Field label="ACTIVITY"><select className="field-input" value={activity} onChange={event=>setActivity(event.target.value)}><option value="memorisation">Hifz · memorisation</option><option value="revision">Revision</option></select></Field><Field label="SURAH"><select className="field-input" value={surah} onChange={event=>{setSurah(event.target.value);setAyahStart('');setAyahEnd('');}} required><option value="">Choose a surah (1–114)</option>{QURAN_SURAHS.map(item=><option key={item.number} value={item.transliteration}>{item.number}. {item.transliteration} · {item.arabic} ({item.ayahs} ayahs)</option>)}</select>{selectedSurah && <small className="muted">{selectedSurah.english} · {selectedSurah.ayahs} ayahs · Mushaf pages {surahCoverage?.pageStart}–{surahCoverage?.pageEnd} · Juz {surahCoverage?.juzStart}{surahCoverage?.juzEnd !== surahCoverage?.juzStart ? `–${surahCoverage?.juzEnd}` : ''}</small>}</Field></div>
