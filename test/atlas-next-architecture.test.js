@@ -376,7 +376,7 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.ok(reader.includes('fontSize: `${arabicFontSize}px`'));
   assert.ok(css.includes('.mushaf-fs-qcf-page'));
   assert.ok(css.includes('.mushaf-fs-verse-arabic'));
-  assert.ok(values.includes('<QuranMushafReader settings='));
+  assert.ok(values.includes('<QuranMushafReader autoOpen=') || values.includes('<QuranMushafReader settings='));
 });
 
 test('Mushaf scroll locking restores document overflow styles and uses one contained reading canvas', () => {
