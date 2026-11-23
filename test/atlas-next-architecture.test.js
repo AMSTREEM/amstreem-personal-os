@@ -423,6 +423,6 @@ test('Full-Screen Mushaf strips raw Qur’an ornaments, uses uniform 32px SVG me
   assert.ok(reader.includes('mushaf-minimal-page-pill'));
   assert.ok(read('client/src/styles.css').includes('flex:0 0 32px'));
   assert.ok(css.includes('.mushaf-contents-panel{width:100%'));
-  assert.match(reader, /overflow-x:hidden/);
+  assert.ok(css.includes('overflow-x:hidden'));
   assert.ok(read('client/src/styles.css').includes('padding:12px 16px'));
 });
