@@ -79,7 +79,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [starredAyahs, setStarredAyahs] = useState<Array<{ surah: number; ayah: number }>>(() => { try { return JSON.parse(localStorage.getItem('atlas_mushaf_starred_ayahs_v1') || '[]'); } catch { return []; } });
   const [selected, setSelected] = useState<{ surah: number; ayah: number } | null>(null);
   const [readingMode, setReadingMode] = useState<'translation' | 'reading'>('reading');
-  const [qcfFontStatus, setQcfFontStatus] = useState<'loading' | 'ready' | 'fallback'>('fallback');
   const [arabicFontSize, setArabicFontSize] = useState(() => {
     try { const saved = Number(localStorage.getItem('atlas_mushaf_arabic_font_size_v2')); return [16, 18, 20, 23, 26, 30, 34].includes(saved) ? saved : 20; }
     catch { return 20; }
@@ -119,18 +118,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     try { localStorage.setItem('atlas_mushaf_arabic_font_size_v2', String(next)); } catch { /* storage is optional */ }
     return next;
   });
-
-  useEffect(() => {
-    let cancelled = false;
-    if (readingMode !== 'reading' || !pageData?.qcfAvailable || !pageData.ayahs.some(ayah => ayah.words?.some(word => word.codeV2))) { setQcfFontStatus('fallback'); return; }
-    setQcfFontStatus('loading');
-    const family = 'QCF2' + String(page).padStart(3, '0');
-    if ([...document.fonts].some(font => font.family === family && font.status === 'loaded')) { setQcfFontStatus('ready'); return; }
-    const font = new FontFace(family, 'url(https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p' + page + '.woff2)');
-    font.display = 'swap';
-    font.load().then(loaded => { if (!cancelled) { document.fonts.add(loaded); setQcfFontStatus('ready'); } }).catch(() => { if (!cancelled) setQcfFontStatus('fallback'); });
-    return () => { cancelled = true; };
-  }, [page, pageData, readingMode]);
 
   useEffect(() => {
     if (!fullScreen) return;
@@ -364,12 +351,11 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
           <div className="mushaf-page-running-header" dir="ltr"><span>{activeSurah?.transliteration || pageData.ayahs[0]?.surahName || 'Al-Qur’an'}</span><span>Juz {pageJuz}</span></div>
           {pageData.ayahs[0]?.numberInSurah === 1 && activeSurah && <div className="mushaf-page-surah-opening"><div className="mushaf-page-surah-title"><span lang="ar" dir="rtl">{activeSurah.arabic}</span><b>{activeSurah.transliteration}</b></div>{activeSurahNumber !== 1 && activeSurahNumber !== 9 && <div className="mushaf-page-bismillah" lang="ar" dir="rtl">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>}</div>}
           <div className="mushaf-page-lines">
-            {readingLines.length > 0 ? readingLines.map(({ lineNumber, words }) => <div className="mushaf-fs-qcf-line" data-line={lineNumber} key={lineNumber} style={{ fontFamily: "'Amiri Quran', 'Scheherazade New', serif", fontSize: `${arabicFontSize}px` }}>{words.map((word, index) => word.charTypeName === 'end' ? <AyahMedallion key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" number={word.numberInSurah}/> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-qcf-word">{stripAyahEndMarker(word.text)}</span>)}</div>) :
+            {readingLines.length > 0 ? readingLines.map(({ lineNumber, words }) => <div className="mushaf-fs-qcf-line" data-line={lineNumber} key={lineNumber} style={{ fontFamily: "'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', serif", fontSize: `${arabicFontSize}px`, fontWeight: 500, letterSpacing: 0, lineHeight: 2.05 }}>{words.map((word, index) => word.charTypeName === 'end' ? <AyahMedallion key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" number={word.numberInSurah}/> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-qcf-word">{stripAyahEndMarker(word.text)}</span>)}</div>) :
               readingLines.length > 0 ? <div className="mushaf-fs-unicode-lines" dir="rtl">{readingLines.map(({ lineNumber, words }) => <div className="mushaf-fs-qcf-line" key={lineNumber} style={{ fontSize: `${arabicFontSize}px` }}>{words.map((word, index) => word.charTypeName === 'end' ? <AyahMedallion key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" number={word.numberInSurah}/> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index}>{stripAyahEndMarker(word.text)}</span>)}</div>)}</div> :
               <div className="mushaf-fs-unicode-flow" dir="rtl" lang="ar" style={{ fontSize: `${arabicFontSize}px` }}>{pageData.ayahs.map(ayah => <button type="button" key={ayah.surahNumber + ':' + ayah.numberInSurah} className={'mushaf-ayah ' + (selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah ? 'is-selected' : '')} onClick={event => { event.stopPropagation(); selectAyah(ayah); }} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>{stripAyahEndMarker(ayah.text)}<AyahMedallion className="mushaf-ayah-number" number={ayah.numberInSurah}/></button>)}</div>}
           </div>
           <div className="mushaf-page-number" dir="ltr"><span>{page}</span></div>
-          {pageData.qcfAvailable && qcfFontStatus === 'fallback' && <p className="mushaf-fs-font-note">Uthmani text fallback</p>}
         </div>}
         {!loading && pageData && readingMode === 'translation' && <div className="mushaf-fs-verse-list" dir="ltr" lang="en">
           <div className="mushaf-fs-surah-intro"><span>THE HOLY QUR’AN</span><h1>{activeSurahNumber}. {activeSurah?.transliteration || 'Surah'}</h1><b className="mushaf-fs-surah-arabic-title" lang="ar" dir="rtl">{activeSurah?.arabic || ''}</b><p>{activeSurah?.english || ''} · {activeSurah?.ayahs || surahAyahs.length} Ayahs</p><small>Translation: {pageData.translationSource || 'Sahih International'}</small></div>
