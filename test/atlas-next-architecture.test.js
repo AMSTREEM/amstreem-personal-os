@@ -350,7 +350,7 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.match(reader, /mushaf-fs-page-meta/);
   assert.match(reader, /max-width:580px/);
   assert.match(reader, /max-width:740px/);
-  assert.match(reader, /fontSize: fontSize \+ 'px'/);
+  assert.match(reader, /fontSize === 18 \? undefined : \{ fontSize: fontSize \+ 'px' \}/);
   assert.match(reader, /font-size:25px/);
   assert.doesNotMatch(reader, /showTranslation/);
   assert.match(read('client/index.html'), /Amiri\+Quran/);
@@ -386,4 +386,37 @@ test('global scrollbars use theme tokens consistently and the workspace has a si
   assert.match(css, /\.app-frame, \.main-area, \.page-container \{ overflow-y:visible; \}/);
   assert.match(css, /\.primary-nav \{[^}]*overflow: auto;/);
   assert.ok(shell.includes('className="page-container"'));
+});
+
+ 
+test('Mushaf surah cartouches, calligraphic basmala, searchable index and page-fit mode are present', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  assert.match(reader, /function SurahCartouche/);
+  assert.match(reader, /mushaf-cartouche-outer/);
+  assert.match(reader, /سُورَةُ/);
+  assert.match(reader, /function BismillahOrnament/);
+  assert.match(reader, /بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ/);
+  assert.match(reader, /surahNumber !== 1 && surahNumber !== 9/);
+  assert.match(reader, /Search Surah name or number\.\.\./);
+  assert.match(reader, /mushaf-surah-page-badge/);
+  assert.match(reader, /mushaf-surah-drawer--designed/);
+  assert.match(reader, />Page by Page<\/button>/);
+  assert.match(reader, /is-page-by-page/);
+  assert.match(reader, /clamp\(16px,2\.35vh,23px\)/);
+  assert.match(reader, /line-height:1\.72/);
+  assert.match(reader, /max-width:640px/);
+  assert.match(reader, /overflow:hidden/);
+});
+
+test('Mushaf saves the active page and ayah locally immediately and debounces workspace settings', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  assert.match(reader, /localStorage\.setItem\(key, JSON\.stringify\(mark\)\)/);
+  assert.match(reader, /setSaveStatus\('Saved · Page ' \+ mark\.page\)/);
+  assert.match(reader, /window\.setTimeout\(\(\) =>/);
+  assert.match(reader, /}, 500\)/);
+  assert.match(reader, /window\.clearTimeout\(timer\)/);
+  assert.match(reader, /changePage\(item\.pageStart, \{ surahNumber: number, numberInSurah: 1 \}\)/);
+  assert.match(reader, /const target = savedAyah \|\| pageData\.ayahs\[0\]/);
+  assert.match(reader, /changeReadingMode/);
+  assert.match(reader, /mushaf-save-status/);
 });
