@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, Check, HeartHandshake, MoonStar, Plus, RotateCcw, Sparkles } from 'lucide-react';
+import { BookOpen, Check, HeartHandshake, MoonStar, Plus, RotateCcw, Sparkles, Timer } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { api, json } from '../lib/api';
@@ -144,6 +144,6 @@ const deenPageStyles = `
 .daily-rhythm-sanctuary .rhythm-grid{gap:24px!important}
 .daily-rhythm-sanctuary .atlas-card,.daily-rhythm-sanctuary .rhythm-intro,.daily-rhythm-sanctuary>.surface-card{padding:18px 20px!important}
 .daily-rhythm-sanctuary .faith-section-secondary,.daily-rhythm-sanctuary .faith-section-primary,.daily-rhythm-sanctuary .faith-section-tertiary{margin:0!important}
-.daily-rhythm-sanctuary .rhythm-quran-layout,.daily-rhythm-sanctuary .rhythm-stats{margin-top:18px}
+.daily-rhythm-sanctuary .rhythm-stats{margin-top:18px}
 @media(max-width:700px){.daily-rhythm-sanctuary>.page-header{align-items:stretch}.daily-rhythm-sanctuary .deen-tradition-switcher{width:100%;justify-content:space-between}.daily-rhythm-sanctuary .deen-tradition-switcher button{flex:1;padding:8px 9px}.daily-rhythm-sanctuary .atlas-card,.daily-rhythm-sanctuary .rhythm-intro{padding:18px 20px!important}}
 `;
