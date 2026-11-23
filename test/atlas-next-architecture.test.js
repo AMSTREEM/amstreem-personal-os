@@ -71,11 +71,15 @@ test('canonical eight-view routes and legacy compatibility redirects cover the p
 });
 
 test('Express serves the built app while retaining legacy public assets', () => {
-  assert.match(server, /express\.static\(frontendDist\)/);
+  assert.match(server, /express\.static\(frontendDist,\s*\{\s*setHeaders/);
   assert.match(server, /express\.static\(path\.join\(__dirname, 'public'\), \{ index: false \}\)/);
   assert.match(server, /res\.sendFile\(frontendEntry/);
   assert.match(server, /Refusing to serve the legacy public HTML shell/);
   assert.match(server, /app\.get\('\/service-worker\.js'/);
+  assert.match(server, /no-store, no-cache, must-revalidate/);
+  assert.match(server, /max-age=31536000, immutable/);
+  assert.match(server, /RENDER_GIT_COMMIT/);
+  assert.match(server, /atlas-shell-\$\{buildRevision\}/);
 });
 
 
@@ -287,6 +291,11 @@ test('Full-screen Mushaf opens without inline preview and uses a tap-to-toggle A
   assert.ok(reader.includes('fontSteps = [16, 18, 20, 23, 26, 30, 34]'));
   assert.ok(reader.includes('style={{ fontSize: `${arabicFontSize}px` }}'));
   assert.ok(reader.includes('Auto-saved'));
+  assert.ok(reader.includes('onMouseMove={event =>'));
+  assert.ok(reader.includes('setLoading(true); setPageData(null); setPageError(\'\')'));
+  assert.ok(reader.includes('mushaf-page-surah-opening'));
+  assert.ok(reader.includes('word.charTypeName === \'end\' ? <AyahMedallion'));
+  assert.ok(reader.includes('{item.ayahs} verses · {item.revelation}'));
   assert.ok(reader.includes('atlas_mushaf_starred_ayahs_v1'));
   assert.ok(css.includes('.mushaf-reading-screen{') && css.includes('100dvh'));
   assert.ok(css.includes('backdrop-filter:blur(16px)'));
