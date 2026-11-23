@@ -232,19 +232,19 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
               {surah && <div className="mushaf-surah-banner"><span className="mushaf-surah-ornament">۞</span><b>{surah.arabicName}</b><small>{surah.surahName}</small><span className="mushaf-surah-ornament">۞</span></div>}
               {surah && surah.surahNumber !== 1 && surah.surahNumber !== 9 && <div className="mushaf-bismillah" lang="ar">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
               <div className="mushaf-fs-qcf-line" data-line={lineNumber} style={{ fontSize: fontSize + 'px' }}>
-                {words.map((word, index) => word.charTypeName === 'end' ? <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" role="img" aria-label={'Ayah ' + word.numberInSurah}>{arabicNumber(word.numberInSurah)}</span> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-qcf-word" style={{ fontFamily: 'QCF_P' + page }} dangerouslySetInnerHTML={{ __html: escapeGlyphHtml(word.codeV2 || word.text) }} />)}
+                {words.map((word, index) => word.charTypeName === 'end' ? <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" role="img" aria-label={'Ayah ' + word.numberInSurah}><span className="mushaf-fs-ayah-number-text">{arabicNumber(word.numberInSurah)}</span></span> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-qcf-word" style={{ fontFamily: 'QCF_P' + page }} dangerouslySetInnerHTML={{ __html: escapeGlyphHtml(word.codeV2 || word.text) }} />)}
               </div>
             </Fragment>;
           }) : readingLines.length > 0 ? <div className="mushaf-fs-unicode-lines" dir="rtl">
             {readingLines.map(({ lineNumber, words }) => <div className="mushaf-fs-qcf-line" key={lineNumber}>
-              {words.map((word, index) => word.charTypeName === 'end' ? <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" role="img" aria-label={'Ayah ' + word.numberInSurah}>{arabicNumber(word.numberInSurah)}</span> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index}>{word.text}</span>)}
+              {words.map((word, index) => word.charTypeName === 'end' ? <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" role="img" aria-label={'Ayah ' + word.numberInSurah}><span className="mushaf-fs-ayah-number-text">{arabicNumber(word.numberInSurah)}</span></span> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index}>{word.text}</span>)}
             </div>)}
           </div> : <div className="mushaf-ayah-flow mushaf-fs-unicode-flow" dir="rtl" lang="ar">
             {pageData.ayahs.map(ayah => <Fragment key={ayah.surahNumber + ':' + ayah.numberInSurah}>
               {ayah.numberInSurah === 1 && <div className="mushaf-surah-banner"><span className="mushaf-surah-ornament">۞</span><b>{ayah.arabicName}</b><small>{ayah.surahName}</small><span className="mushaf-surah-ornament">۞</span></div>}
               {ayah.numberInSurah === 1 && ayah.surahNumber !== 1 && ayah.surahNumber !== 9 && <div className="mushaf-bismillah" lang="ar">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
               <button type="button" className={'mushaf-ayah ' + (selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah ? 'is-selected' : '')} onClick={() => selectAyah(ayah)} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>
-                {ayah.text}<span className="mushaf-ayah-number" aria-label={'Ayah ' + ayah.numberInSurah}>﴿{arabicNumber(ayah.numberInSurah)}﴾</span>
+                {ayah.text}<span className="mushaf-ayah-number" aria-label={'Ayah ' + ayah.numberInSurah}><span className="mushaf-fs-ayah-number-text">{arabicNumber(ayah.numberInSurah)}</span></span>
               </button>
             </Fragment>)}
           </div>}
@@ -264,7 +264,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
               </div>
               <div className="mushaf-fs-verse-arabic-line" dir="rtl" lang="ar">
                 <button type="button" className={'mushaf-fs-verse-arabic ' + (isSelected ? 'is-selected' : '')} onClick={() => selectAyah(ayah)} aria-pressed={isSelected}>
-                  {ayah.text}<span className="mushaf-ayah-number" aria-label={'Ayah ' + ayah.numberInSurah}>﴿{arabicNumber(ayah.numberInSurah)}﴾</span>
+                  {ayah.text}<span className="mushaf-ayah-number" aria-label={'Ayah ' + ayah.numberInSurah}><span className="mushaf-fs-ayah-number-text">{arabicNumber(ayah.numberInSurah)}</span></span>
                 </button>
               </div>
               <div className="mushaf-fs-verse-translation" dir="ltr" lang="en">
@@ -536,30 +536,37 @@ const mushafStyles = `
 
 .mushaf-fs-qcf-word.is-end{font-family:"Amiri Quran","Traditional Arabic",serif!important;font-size:.8em}
 
-/* Ornamental ayah number medallions — shared by QCF, Unicode and verse views. */
+/* Ayah medallions: keep the numeral in its own geometrically centred layer. */
 .mushaf-fs-ayah-medallion,.mushaf-ayah-number{
- position:relative;isolation:isolate;display:inline-grid;place-items:center;flex:0 0 auto;
+ position:relative;isolation:isolate;display:inline-block;vertical-align:middle;flex:0 0 auto;
  box-sizing:border-box;width:2.1em;height:2.1em;min-width:2.1em;aspect-ratio:1;margin:0 .2em;
  padding:0;border:1px solid color-mix(in srgb,var(--accent,#b69b63) 78%,#8b6b32);
  border-radius:50%;background:radial-gradient(circle at 35% 28%,color-mix(in srgb,var(--accent,#b69b63) 15%,var(--bg-surface)),var(--bg-surface) 72%);
- color:var(--accent,#b69b63);font-family:"Amiri Quran","Scheherazade New","Traditional Arabic",serif;
- font-size:.48em;font-weight:600;line-height:1;text-align:center;white-space:nowrap;vertical-align:middle;
- font-variant-numeric:normal;direction:ltr;unicode-bidi:isolate;
+ color:var(--accent,#b69b63);font-size:.48em;line-height:1;white-space:nowrap;
  box-shadow:inset 0 0 0 2px var(--bg-surface),inset 0 0 0 3px color-mix(in srgb,var(--accent,#b69b63) 38%,transparent),0 1px 3px rgba(0,0,0,.08);
 }
+.mushaf-fs-ayah-number-text{
+ position:absolute;inset:0;display:grid;place-items:center;box-sizing:border-box;
+ width:100%;height:100%;margin:0;padding:0;transform:none;
+ font-family:"Noto Naskh Arabic","Amiri","Traditional Arabic",serif;
+ font-size:12px;font-weight:600;line-height:1;text-align:center;
+ direction:ltr;unicode-bidi:isolate;font-variant-numeric:normal;
+}
 .mushaf-fs-ayah-medallion:before,.mushaf-ayah-number:before{
- content:"";position:absolute;z-index:-1;inset:4px;border:1px solid color-mix(in srgb,var(--accent,#b69b63) 48%,transparent);
+ content:"";position:absolute;z-index:0;inset:4px;border:1px solid color-mix(in srgb,var(--accent,#b69b63) 48%,transparent);
  border-radius:4px;transform:rotate(45deg);pointer-events:none;
 }
 .mushaf-fs-ayah-medallion:after,.mushaf-ayah-number:after{
- content:"";position:absolute;inset:-3px;border:1px dotted color-mix(in srgb,var(--accent,#b69b63) 44%,transparent);
+ content:"";position:absolute;z-index:0;inset:-3px;border:1px dotted color-mix(in srgb,var(--accent,#b69b63) 44%,transparent);
  border-radius:50%;pointer-events:none;
 }
-.mushaf-fs-qcf-line .mushaf-fs-ayah-medallion{width:24px;height:24px;min-width:24px;font-size:12px;line-height:1;margin:0 5px;transform:none;align-self:center}
+.mushaf-fs-qcf-line .mushaf-fs-ayah-medallion{width:26px;height:26px;min-width:26px;margin:0 5px;font-size:12px;vertical-align:middle}
+.mushaf-fs-qcf-line .mushaf-fs-ayah-number-text{font-size:12px}
 .mushaf-fs-verse-arabic .mushaf-ayah-number{font-size:.43em;margin-inline:.28em}
-.mushaf-fs-sheet .mushaf-ayah-number{width:2.1em;height:2.1em;min-width:2.1em}
+.mushaf-fs-verse-arabic .mushaf-fs-ayah-number-text{font-size:12px}
 @media(max-width:600px){
- .mushaf-fs-qcf-line .mushaf-fs-ayah-medallion{width:22px;height:22px;min-width:22px;font-size:11px;margin:0 4px}
- .mushaf-fs-verse-arabic .mushaf-ayah-number{font-size:.42em}
+ .mushaf-fs-qcf-line .mushaf-fs-ayah-medallion{width:23px;height:23px;min-width:23px;margin:0 4px}
+ .mushaf-fs-qcf-line .mushaf-fs-ayah-number-text{font-size:11px}
+ .mushaf-fs-verse-arabic .mushaf-fs-ayah-number-text{font-size:11px}
 }
 `;
