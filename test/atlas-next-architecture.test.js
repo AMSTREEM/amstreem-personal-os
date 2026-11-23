@@ -317,6 +317,7 @@ test('AlQuranCloud page proxy requests Tajweed, Uthmani and Sahih with bounded m
   assert.ok(server.includes('https://alquran.api.islamic.network/v1'));
   assert.ok(server.includes('quranPageCache = new Map()'));
   assert.ok(server.includes('quranPageInflight = new Map()'));
+  assert.ok(server.includes("send(cached.payload, 'STALE')"));
   assert.ok(server.includes('parseAlQuranTajweed'));
   assert.ok(server.includes('tj-hamza'));
   assert.ok(server.includes('tj-madd'));
