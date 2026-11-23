@@ -1,4 +1,4 @@
-import { Fragment, type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Bookmark, ChevronLeft, ChevronRight, Copy, Search, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
@@ -6,25 +6,46 @@ import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz } from '../
 import { triggerSparkBurst } from './fx/SparkBurst';
 
 type Settings = Record<string, string>;
-type MushafWord = { text: string; codeV2: string; lineNumber: number; pageNumber: number; position: number; charTypeName: string };
-type MushafAyah = { number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; translation: string; translations?: Array<{ id: number; name: string; text: string }>; words?: MushafWord[] };
+type MushafWord = { text: string; tajweed: string; codeV2: string; lineNumber: number; pageNumber: number; position: number; charTypeName: string };
+type MushafAyah = { number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; tajweedText?: string; translation: string; translations?: Array<{ id: number; name: string; text: string }>; words?: MushafWord[] };
 type MushafPage = { page: number; juz: number; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
 type MushafLineWord = MushafWord & { surahNumber: number; numberInSurah: number };
 const escapeGlyphHtml = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void; autoOpen?: boolean };
-const CACHE_PREFIX = 'atlas_mushaf_page_v5_';
+const CACHE_PREFIX = 'atlas_mushaf_page_v6_';
 const pageMemoryCache = new Map<number, MushafPage>();
 const HIFZ_KEY = 'atlas_hifz_bookmark_v2';
 const MURAJAAH_KEY = 'atlas_murajaah_bookmark_v2';
 const clampPage = (value: number) => Math.max(1, Math.min(604, Number.isInteger(value) ? value : 1));
 const arabicNumber = (value: number) => String(value).replace(/\d/g, digit => '٠١٢٣٤٥٦٧٨٩'[Number(digit)]);
+const TAJWEED_RULES = new Set(['ham_wasl','slnt','laam_shamsiyah','madda_normal','madda_permissible','madda_necessary','madda_obligatory','madda_obligatory_mottasel','madda_obligatory_monfasel','qalaqah','ikhafa_shafawi','ikhafa','iqlab','idgham_shafawi','idgham_ghunnah','idgham_wo_ghunnah','idgham_mutajanisayn','idgham_mutaqaribayn','ghunnah']);
+function renderTajweedMarkup(markup: string): ReactNode {
+  if (!markup || typeof DOMParser === 'undefined') return stripAyahEndMarker(markup || '');
+  const parsed = new DOMParser().parseFromString('<div>' + markup + '</div>', 'text/html');
+  const root = parsed.body.firstElementChild;
+  const visit = (node: Node, key: string): ReactNode => {
+    if (node.nodeType === Node.TEXT_NODE) return stripAyahEndMarker(node.textContent || '');
+    if (node.nodeType !== Node.ELEMENT_NODE) return null;
+    const element = node as HTMLElement;
+    const tag = element.tagName.toLowerCase();
+    if (['script','style','iframe','object','svg','math'].includes(tag)) return null;
+    const children = Array.from(element.childNodes).map((child, index) => visit(child, key + '.' + index));
+    if (tag === 'rule') {
+      const rule = (element.getAttribute('class') || '').trim().split(/\\s+/)[0];
+      return <span key={key} className={'tajweed-rule' + (TAJWEED_RULES.has(rule) ? ' tajweed-' + rule : '')}>{children}</span>;
+    }
+    return <Fragment key={key}>{children}</Fragment>;
+  };
+  return root ? Array.from(root.childNodes).map((node, index) => visit(node, String(index))) : stripAyahEndMarker(markup);
+}
+
 const stripAyahEndMarker = (value: string) => value.replace(/[\u06DD\u06DE\u06E9\u06DF-\u06E8\u06EA-\u06ED]/g, '').trim();
 const sanitizeMushafPage = (payload: MushafPage): MushafPage => ({
   ...payload,
   ayahs: (payload.ayahs || []).map(ayah => ({
-    ...ayah, text: stripAyahEndMarker(ayah.text || ''), translation: stripAyahEndMarker(ayah.translation || ''),
+    ...ayah, text: stripAyahEndMarker(ayah.text || ''), tajweedText: ayah.tajweedText || '', translation: stripAyahEndMarker(ayah.translation || ''),
     translations: ayah.translations?.map(translation => ({ ...translation, text: stripAyahEndMarker(translation.text || '') })),
-    words: ayah.words?.map(word => ({ ...word, text: stripAyahEndMarker(word.text || ''), codeV2: word.codeV2 || '' }))
+    words: ayah.words?.map(word => ({ ...word, text: stripAyahEndMarker(word.text || ''), tajweed: word.tajweed || '', codeV2: word.codeV2 || '' }))
   }))
 });
 function AyahMedallion({ number, className }: { number: number; className: string }) {
@@ -352,7 +373,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
           <div className="mushaf-page-running-header" dir="ltr"><span>{activeSurah?.transliteration || pageData.ayahs[0]?.surahName || 'Al-Qur’an'}</span><span>Juz {pageJuz}</span></div>
           {pageData.ayahs[0]?.numberInSurah === 1 && activeSurah && <div className="mushaf-page-surah-opening"><div className="mushaf-page-surah-title"><span lang="ar" dir="rtl">{activeSurah.arabic}</span><b>{activeSurah.transliteration}</b></div>{activeSurahNumber !== 1 && activeSurahNumber !== 9 && <div className="mushaf-page-bismillah" lang="ar" dir="rtl">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>}</div>}
           <div className="mushaf-page-lines">
-            {readingLines.length > 0 ? readingLines.map(({ lineNumber, words }) => <div className="mushaf-fs-qcf-line" data-line={lineNumber} key={lineNumber} style={{ fontFamily: "'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', serif", fontSize: `${arabicFontSize}px`, fontWeight: 500, letterSpacing: 0, lineHeight: 2.05 }}>{words.map((word, index) => word.charTypeName === 'end' ? <AyahMedallion key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" number={word.numberInSurah}/> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-qcf-word">{stripAyahEndMarker(word.text)}</span>)}</div>) :
+            {readingLines.length > 0 ? readingLines.map(({ lineNumber, words }) => <div className="mushaf-fs-qcf-line" data-line={lineNumber} key={lineNumber} style={{ fontFamily: "'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', serif", fontSize: `${arabicFontSize}px`, fontWeight: 500, letterSpacing: 0, lineHeight: 2.05 }}>{words.map((word, index) => word.charTypeName === 'end' ? <AyahMedallion key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" number={word.numberInSurah}/> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-qcf-word">{renderTajweedMarkup(word.tajweed || word.text)}</span>)}</div>) :
               readingLines.length > 0 ? <div className="mushaf-fs-unicode-lines" dir="rtl">{readingLines.map(({ lineNumber, words }) => <div className="mushaf-fs-qcf-line" key={lineNumber} style={{ fontSize: `${arabicFontSize}px` }}>{words.map((word, index) => word.charTypeName === 'end' ? <AyahMedallion key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" number={word.numberInSurah}/> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index}>{stripAyahEndMarker(word.text)}</span>)}</div>)}</div> :
               <div className="mushaf-fs-unicode-flow" dir="rtl" lang="ar" style={{ fontSize: `${arabicFontSize}px` }}>{pageData.ayahs.map(ayah => <button type="button" key={ayah.surahNumber + ':' + ayah.numberInSurah} className={'mushaf-ayah ' + (selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah ? 'is-selected' : '')} onClick={event => { event.stopPropagation(); selectAyah(ayah); }} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>{stripAyahEndMarker(ayah.text)}<AyahMedallion className="mushaf-ayah-number" number={ayah.numberInSurah}/></button>)}</div>}
           </div>
@@ -365,7 +386,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
           {!surahLoading && surahAyahs.map((ayah, index) => <article className="mushaf-fs-verse-row" key={ayah.surahNumber + ':' + ayah.numberInSurah}>
             {index === 0 && ayah.surahNumber !== 1 && ayah.surahNumber !== 9 && <BismillahOrnament/>}
             <div className="mushaf-fs-verse-topline"><div className="mushaf-fs-verse-actionbar"><div className="mushaf-fs-verse-actions"><small>{ayah.surahNumber}:{ayah.numberInSurah}</small><button type="button" aria-label="Bookmark verse" aria-pressed={starredAyahs.some(item => item.surah === ayah.surahNumber && item.ayah === ayah.numberInSurah)} onClick={() => toggleStarredAyah(ayah)}><Bookmark size={14}/></button><button type="button" className="mushaf-fs-verse-copy" aria-label="Copy verse" onClick={() => { void navigator.clipboard?.writeText(ayah.text + '\n' + ayah.surahNumber + ':' + ayah.numberInSurah); }}><Copy size={13}/></button></div></div>
-            <button type="button" className={'mushaf-fs-verse-arabic ' + (selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah ? 'is-selected' : '')} style={{ fontFamily: "'Noto Naskh Arabic', 'Amiri Quran', serif", fontSize: `${arabicFontSize}px`, fontWeight: 500, lineHeight: 2.15, wordSpacing: '2px' }} onClick={() => selectAyah(ayah)}>{stripAyahEndMarker(ayah.text)}<AyahMedallion className="mushaf-ayah-number" number={ayah.numberInSurah}/></button></div>
+            <button type="button" className={'mushaf-fs-verse-arabic ' + (selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah ? 'is-selected' : '')} style={{ fontFamily: "'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', serif", fontSize: `${arabicFontSize}px`, fontWeight: 500, lineHeight: 2.15, wordSpacing: '2px' }} onClick={() => selectAyah(ayah)}>{renderTajweedMarkup(ayah.tajweedText || ayah.text)}<AyahMedallion className="mushaf-ayah-number" number={ayah.numberInSurah}/></button></div>
             <div className="mushaf-fs-verse-translation"><span>{ayah.translation || 'Translation unavailable.'}</span><small>{ayah.surahNumber}:{ayah.numberInSurah}</small></div>
           </article>)}
         </div>}
