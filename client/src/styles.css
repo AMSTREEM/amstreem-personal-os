@@ -5677,7 +5677,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
 }
 .mushaf-desktop-header .mushaf-desktop-surah-trigger{min-width:170px;text-align:left;background:transparent;border-color:transparent;color:var(--m-text);font-weight:700}
 .mushaf-desktop-header-center{display:flex;align-items:center;gap:9px;color:var(--m-muted);font-size:11px;white-space:nowrap}
-.mushaf-header-autosaved{display:inline-flex;align-items:center;min-height:20px;padding:0 8px;border:1px solid color-mix(in srgb,var(--success) 35%,var(--m-line));border-radius:999px;background:color-mix(in srgb,var(--success) 10%,transparent);color:var(--success);font:500 10px "DM Sans",sans-serif}
+.mushaf-header-autosaved{display:inline-flex;align-items:center;min-height:20px;padding:0 8px;border:1px solid color-mix(in srgb,var(--m-accent-strong) 35%,var(--m-line));border-radius:999px;background:color-mix(in srgb,var(--m-accent-strong) 10%,transparent);color:var(--m-accent-strong);font:500 10px "DM Sans",sans-serif}
 .mushaf-desktop-header-actions{display:flex;align-items:center;gap:6px}
 .mushaf-desktop-reading-switch,.mushaf-desktop-mode{display:flex;align-items:center;gap:3px;padding:3px;border:1px solid var(--m-line);border-radius:10px;background:var(--m-paper)}
 .mushaf-desktop-header .mushaf-desktop-reading-switch button,.mushaf-desktop-header .mushaf-desktop-mode button{min-height:27px;padding:0 9px;border-color:transparent;background:transparent;color:var(--m-muted);font-size:10px}
@@ -5813,8 +5813,8 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .tajweed-rule{font:inherit}
 .tajweed-ham_wasl,.tajweed-slnt,.tajweed-laam_shamsiyah,.tajweed-idgham_mutajanisayn,.tajweed-idgham_mutaqaribayn{color:var(--m-muted)}
 .tajweed-madda_normal,.tajweed-madda_permissible,.tajweed-madda_necessary,.tajweed-madda_obligatory,.tajweed-madda_obligatory_mottasel,.tajweed-madda_obligatory_monfasel{color:var(--m-accent-strong)}
-.tajweed-qalaqah{color:var(--danger)}
-.tajweed-ikhafa_shafawi,.tajweed-ikhafa,.tajweed-idgham_shafawi,.tajweed-idgham_ghunnah,.tajweed-idgham_wo_ghunnah{color:var(--success)}
+.tajweed-qalaqah{color:var(--m-accent-strong)}
+.tajweed-ikhafa_shafawi,.tajweed-ikhafa,.tajweed-idgham_shafawi,.tajweed-idgham_ghunnah,.tajweed-idgham_wo_ghunnah{color:var(--m-accent)}
 .tajweed-iqlab,.tajweed-ghunnah{color:color-mix(in srgb,var(--m-accent) 70%,var(--m-text))}
 
 @media(min-width:768px){
