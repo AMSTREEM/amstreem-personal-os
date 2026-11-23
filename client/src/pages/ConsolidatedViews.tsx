@@ -5,6 +5,7 @@ import { InsightsPage } from './InsightsPage';
 import { RitualsPage } from './RitualsPage';
 import { SelfControlPage } from './SelfControlPage';
 import { PageHeader } from '../components/ui';
+import { RhythmConstellation } from '../components/fx/RhythmConstellation';
 
 export function HabitsSelfControlView() {
   const [workspace,setWorkspace]=useState<'habits'|'self-control'|'all'>('habits');
@@ -12,7 +13,8 @@ export function HabitsSelfControlView() {
     {([{id:'habits',label:'Daily Habits'},{id:'self-control',label:'Self-Control'},{id:'all',label:'Show All'}] as const).map(tab=><button key={tab.id} type="button" className={workspace===tab.id?'is-active':''} aria-pressed={workspace===tab.id} onClick={()=>setWorkspace(tab.id)}>{tab.label}</button>)}
   </nav>;
   return <div className="stack habits-self-control-view daily-rhythm-sanctuary">
-    <PageHeader eyebrow="ROOM 02 / DAILY RHYTHM" title="Habits & Self-Control" description="Build the routines you want to keep, honour your personal commitments, and learn from the days that do not go to plan." />
+    <PageHeader eyebrow="HABITS / CONSISTENCY" title="Habits & Self-Control" description="Build the routines you want to keep, honour your personal commitments, and learn from the days that do not go to plan." />
+    <RhythmConstellation />
     <SelfControlPage embedded afterHeatmap={switcher} showTrackerContent={workspace==='self-control'||workspace==='all'} />
     {(workspace==='habits'||workspace==='all') && <section className="habits-module-section habits-module-section--positive">
       <div className="habits-module-heading"><span className="module-kicker">DAILY POSITIVE HABITS</span><h2>Small actions, repeated.</h2><p>Check off the routines you want to build and watch consistency take shape.</p></div>
