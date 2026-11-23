@@ -352,10 +352,10 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
               </div>
             </Fragment>;
           }) : readingLines.length > 0 ? <div className="mushaf-fs-unicode-lines" dir="rtl">
-            {readingLines.map(({ lineNumber, words }) => <div className="mushaf-fs-qcf-line" key={lineNumber}>
+            {readingLines.map(({ lineNumber, words }) => <div className="mushaf-fs-qcf-line" key={lineNumber} style={{ fontSize: 'min(' + fontSize + 'px, 2.2vh, 5.2vw)' }}>
               {words.map((word, index) => word.charTypeName === 'end' ? <AyahMedallion key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" number={word.numberInSurah} /> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index}>{word.text}</span>)}
             </div>)}
-          </div> : <div className="mushaf-ayah-flow mushaf-fs-unicode-flow" dir="rtl" lang="ar">
+          </div> : <div className="mushaf-ayah-flow mushaf-fs-unicode-flow" dir="rtl" lang="ar" style={{ fontSize: 'min(' + fontSize + 'px, 2.2vh, 5.2vw)' }}>
             {pageData.ayahs.map(ayah => <Fragment key={ayah.surahNumber + ':' + ayah.numberInSurah}>
               {ayah.numberInSurah === 1 && <SurahCartouche arabicName={ayah.arabicName} englishName={QURAN_SURAHS[ayah.surahNumber - 1]?.english || ayah.surahName} ayahs={QURAN_SURAHS[ayah.surahNumber - 1]?.ayahs || 0} />}
               {ayah.numberInSurah === 1 && ayah.surahNumber !== 1 && ayah.surahNumber !== 9 && <BismillahOrnament />}
@@ -445,8 +445,8 @@ const mushafStyles = `
 .mushaf-fs-qcf-word{display:inline;white-space:pre;font:inherit}
 .mushaf-fs-stage.is-page-by-page .mushaf-fs-qcf-line{line-height:1.68}
 .mushaf-fs-unicode-lines{width:100%;max-width:580px;margin:0 auto;display:flex;flex-direction:column;justify-content:center;gap:0}
-.mushaf-fs-unicode-lines .mushaf-fs-qcf-line{font-family:"Amiri Quran","Scheherazade New","Traditional Arabic",serif;font-size:clamp(18px,2.4vh,25px);line-height:1.7;white-space:normal;overflow-wrap:anywhere}
-.mushaf-fs-unicode-flow{width:100%;max-width:580px;margin:0 auto;font-family:"Amiri Quran","Scheherazade New","Traditional Arabic",serif;font-size:clamp(19px,2.5vh,27px);line-height:1.9;text-align:justify;text-align-last:center}
+.mushaf-fs-unicode-lines .mushaf-fs-qcf-line{font-family:"Amiri Quran","Scheherazade New","Traditional Arabic",serif;font-size:clamp(15px,2.2vh,22px);line-height:1.62;white-space:normal;overflow-wrap:anywhere}
+.mushaf-fs-unicode-flow{width:100%;max-width:580px;margin:0 auto;font-family:"Amiri Quran","Scheherazade New","Traditional Arabic",serif;font-size:clamp(15px,2.2vh,22px);line-height:1.65;text-align:justify;text-align-last:center}
 .mushaf-fs-font-note{margin:12px 0 0;text-align:center;color:var(--text-muted);font:11px/1.5 "DM Sans",sans-serif}
 .mushaf-surah-cartouche{position:relative;width:min(100%,580px);height:42px;margin:3px auto 2px;display:grid;place-items:center;isolation:isolate}
 .mushaf-surah-cartouche>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
