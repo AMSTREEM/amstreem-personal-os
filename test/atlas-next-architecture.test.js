@@ -318,7 +318,7 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.match(reader, /atlas_mushaf_font_step_v1/);
   assert.match(reader, /mushaf-fs-qcf-line/);
   assert.match(reader, /mushaf-fs-ayah-medallion/);
-  assert.match(reader, /arabicNumber\(word\.numberInSurah\)/);
+  assert.match(reader, /number=\{word\.numberInSurah\}/);
   assert.match(reader, /function AyahMedallion/);
   assert.match(reader, /mushaf-ayah-medallion-frame/);
   assert.match(reader, /M18 1\.5 21\.8 8\.2/);
