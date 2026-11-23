@@ -29,11 +29,6 @@ export function ValuesPage() {
   const [activity, setActivity] = useState('memorisation');
   const [faithWorkspace, setFaithWorkspace] = useState<'primary'|'secondary'|'tertiary'|'all'>('primary');
   const [surah, setSurah] = useState('');
-  const selectedSurah = QURAN_SURAHS.find(item => item.transliteration === surah) || findSurah(surah);
-  const startNumber = ayahStart === '' ? null : Number(ayahStart);
-  const endNumber = ayahEnd === '' ? null : Number(ayahEnd);
-  const validAyahRange = !!selectedSurah && startNumber !== null && endNumber !== null && Number.isInteger(startNumber) && Number.isInteger(endNumber) && startNumber >= 1 && endNumber >= startNumber && endNumber <= selectedSurah.ayahs;
-  const rangeLocation = validAyahRange && selectedSurah ? getAyahRangeLocation(selectedSurah.number, startNumber!, endNumber!) : null;
   const [ayahStart, setAyahStart] = useState('');
   const [ayahEnd, setAyahEnd] = useState('');
   const [pages, setPages] = useState('0');
@@ -54,6 +49,11 @@ export function ValuesPage() {
   const [pray, setPray] = useState('');
   const [intercession, setIntercession] = useState('');
   const [intercessionDetail, setIntercessionDetail] = useState('');
+  const selectedSurah = QURAN_SURAHS.find(item => item.transliteration === surah) || findSurah(surah);
+  const startNumber = ayahStart === '' ? null : Number(ayahStart);
+  const endNumber = ayahEnd === '' ? null : Number(ayahEnd);
+  const validAyahRange = !!selectedSurah && startNumber !== null && endNumber !== null && Number.isInteger(startNumber) && Number.isInteger(endNumber) && startNumber >= 1 && endNumber >= startNumber && endNumber <= selectedSurah.ayahs;
+  const rangeLocation = validAyahRange && selectedSurah ? getAyahRangeLocation(selectedSurah.number, startNumber!, endNumber!) : null;
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Settings>('/settings') });
   const religion = settings.data?.faith_tradition || settings.data?.religion || 'none';
   const requestedTradition = searchParams.get('tradition');
