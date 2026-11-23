@@ -58,7 +58,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     const remoteMurajaah = remoteMark(settings.murajaah_bookmark, Number(settings.murajaah_page) || 1);
     setHifzMark(current => current.page === 1 && current.ayah === 1 ? remoteHifz : current);
     setMurajaahMark(current => current.page === 1 && current.ayah === 1 ? remoteMurajaah : current);
-  }, [settingsReady, settings.hifz_page, settings.murajaah_page]);
+  }, [settingsReady, settings.hifz_page, settings.murajaah_page, settings.hifz_bookmark, settings.murajaah_bookmark]);
 
   useEffect(() => {
     const mark = mode === 'hifz' ? hifzMark : murajaahMark;
