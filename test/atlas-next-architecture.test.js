@@ -260,7 +260,7 @@ test('Qur’an reader uses Quran.com two-mode chrome, QCF word rendering and stu
   assert.match(server, /quranPageCache = new Map\(\)/);
   assert.match(server, /page < 1 \|\| page > 604/);
   assert.match(server, /translations=131,20/);
-  assert.match(server, /word_fields=code_v2,line_number,page_number,text_uthmani,position,verse_key/);
+  assert.match(server, /word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,position,verse_key/);
   assert.match(server, /QURAN_API_TOKEN/);
   assert.match(server, /QURAN_CLIENT_ID/);
   assert.match(server, /font-src 'self'.*verses\.quran\.foundation/);
