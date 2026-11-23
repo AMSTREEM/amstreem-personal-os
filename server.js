@@ -177,11 +177,11 @@ function normalizeQuranCom(body, page) {
     }) };
 }
 function splitTajweedWords(markup) {
-  const tokens = String(markup || '').match(/<[^>]*>|[^<\\s]+|\\s+/g) || [];
+  const tokens = String(markup || '').match(/<[^>]*>|[^<\s]+|\s+/g) || [];
   const words = [];
   let current = '';
   for (const token of tokens) {
-    if (/^\\s+$/.test(token)) { if (current) words.push(current); current = ''; }
+    if (/^\s+$/.test(token)) { if (current) words.push(current); current = ''; }
     else current += token;
   }
   if (current) words.push(current);
