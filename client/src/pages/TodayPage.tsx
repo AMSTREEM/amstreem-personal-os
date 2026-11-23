@@ -346,10 +346,10 @@ export function TodayPage() {
           </motion.div>)}</AnimatePresence></div> : <div className="residence-priority-empty">Your pinned priorities will appear here after you save Morning Alignment. <button type="button" className="text-link" onClick={() => setEditingAlignment(true)}>Set today’s plan</button></div>}
         </Card>
         <Card className="today-tasks-card">
-          <div className="today-section-heading"><div><span className="eyebrow">PROJECTS & TASKS</span><h2>Today's priorities</h2><p>{todayTasks.filter(task => !task.done).length} due today · {openTasks.filter(task => task.due_date && task.due_date < today).length} overdue</p></div><Link className="text-link" to="/projects">Open projects <ArrowRight size={13}/></Link></div>
+          <div className="today-section-heading"><div><span className="eyebrow">TODAY / TASKS</span><h2>Today's tasks</h2><p>{todayTasks.filter(task => !task.done).length} due today · {openTasks.filter(task => task.due_date && task.due_date < today).length} overdue</p></div><Link className="text-link" to="/projects">Open projects <ArrowRight size={13}/></Link></div>
           <form className="today-quick-capture" onSubmit={event => { event.preventDefault(); if (quickTask.trim()) addTask.mutate(); }}>
-            <input value={quickTask} onChange={event => setQuickTask(event.target.value)} placeholder="Add a priority for today…" aria-label="New task title" maxLength={180} />
-            <button type="submit" disabled={!quickTask.trim() || addTask.isPending} aria-label="Add task"><Plus size={15}/> Add</button>
+            <input value={quickTask} onChange={event => setQuickTask(event.target.value)} placeholder="Add a task…" aria-label="New task title" maxLength={180} />
+            <button type="submit" disabled={!quickTask.trim() || addTask.isPending} aria-label="Add task"><Plus size={15}/> Add task</button>
           </form>
           {addTask.isError && <p className="inline-error">{addTask.error.message}</p>}
           {priorityTasks.length ? <div className="today-task-list"><AnimatePresence initial={false}>{priorityTasks.map(task => <motion.label layout initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ layout: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 }, opacity: { duration: 0.14 } }} whileTap={{ scale: 0.985 }} className="today-task-row" key={task.id}>
