@@ -298,7 +298,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     setPage(value); setSelected(location ? { surah: location.surahNumber, ayah: location.numberInSurah } : null);
     updateBookmark(value, location ? { surahNumber: location.surahNumber, numberInSurah: location.numberInSurah } : null);
   };
-  const changeMode = (next: 'hifz' | 'murajaah') => { if (next !== mode) { const active = mode === 'hifz' ? hifzMark : murajaahMark; updateBookmark(active.page, { surahNumber: active.surah, numberInSurah: active.ayah }); setMode(next); } };
+  const changeMode = (next: 'hifz' | 'murajaah') => { if (next !== mode) { const active = mode === 'hifz' ? hifzMark : murajaahMark; const target = next === 'hifz' ? hifzMark : murajaahMark; updateBookmark(active.page, { surahNumber: active.surah, numberInSurah: active.ayah }); if (target.page !== page) { setLoading(true); setPageData(null); setPageError(''); } setMode(next); } };
   const openReader = (next: 'hifz' | 'murajaah') => {
     const mark = next === 'hifz' ? hifzMark : murajaahMark;
     setMode(next);
