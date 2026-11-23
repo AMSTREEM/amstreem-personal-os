@@ -266,8 +266,8 @@ test('Qur’an reader uses a same-origin cached proxy and full-screen ayah study
   assert.doesNotMatch(reader, /fetch\('https:\/\/api\.alquran\.cloud/);
   assert.match(reader, /Open Full-Screen Mushaf/);
   assert.match(reader, /QURAN_SURAHS\.map/);
-  assert.match(reader, /mushaf-audio-controls/);
-  assert.match(reader, /Repeat/);
+  assert.match(reader, /mushaf-fs-verse-actions/);
+  assert.match(reader, /audio\.play\(\)/);
   assert.match(reader, /Mishary Alafasy/);
   assert.match(reader, /Complete & Log Page/);
   assert.match(reader, /hifz_bookmark/);
