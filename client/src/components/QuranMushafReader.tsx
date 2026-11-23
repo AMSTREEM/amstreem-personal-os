@@ -157,13 +157,14 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   };
   const logPage = async (event: MouseEvent<HTMLButtonElement>) => {
     if (!pageData?.ayahs?.length || logging) return;
+    const buttonRect = event.currentTarget.getBoundingClientRect();
     setLogging(true); setLogMessage('');
     const first = pageData.ayahs[0], last = pageData.ayahs[pageData.ayahs.length - 1];
     const sameSurah = first.surahNumber === last.surahNumber;
     const label = sameSurah ? (QURAN_SURAHS[first.surahNumber - 1]?.transliteration || first.surahName) : `Page ${page} · ${first.surahName}–${last.surahName}`;
     try {
       await api('/deen/quran', json('POST', { log_date: lagosDate(), activity: mode === 'hifz' ? 'memorisation' : 'revision', surah: label, ayah_start: sameSurah ? first.numberInSurah : null, ayah_end: sameSurah ? last.numberInSurah : null, pages: 1, juz: pageData.juz, reflection: `Mushaf page ${page}: ${first.surahName} ${first.numberInSurah}–${last.surahName} ${last.numberInSurah}. Completed in ${mode === 'hifz' ? 'Hifz' : 'Muraja’ah'}.` }));
-      const rect = event.currentTarget.getBoundingClientRect(); triggerSparkBurst(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      triggerSparkBurst(buttonRect.left + buttonRect.width / 2, buttonRect.top + buttonRect.height / 2);
       setLogMessage('Page ' + page + ' logged successfully.'); onLogged();
     } catch (error) { setLogMessage(error instanceof Error ? error.message : 'Could not log this page.'); }
     finally { setLogging(false); }
@@ -174,7 +175,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     <header className="mushaf-fs-header">
       <div className="mushaf-fs-header-left">
         <button type="button" className="mushaf-fs-surah-trigger" aria-label="Open surah navigation" onClick={() => setDrawerOpen(true)}>
-          <span>{currentSurahNumber}. {currentSurah?.transliteration || 'Al-Fatihah'} · Page {page}</span><ChevronRight size={15}/>
+          <span>{currentSurahNumber}. {currentSurah?.transliteration || 'Al-Fatihah'} · Page {page}</span><span aria-hidden="true">▾</span>
         </button>
       </div>
       <div className="mushaf-fs-view-switch" role="group" aria-label="Qur’an reading mode">
