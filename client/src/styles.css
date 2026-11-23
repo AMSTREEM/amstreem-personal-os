@@ -5913,10 +5913,11 @@ html, body, #root, .app-frame, .main-area, .page-container {
 @media(max-width:767px){.mushaf-fs-qcf-page{width:100%;min-height:calc(100dvh - 46px);aspect-ratio:auto;border:0;box-shadow:none;padding:12px 9px}.mushaf-page-lines{min-height:calc(100dvh - 140px)}.mushaf-page-lines>.mushaf-fs-qcf-line{font-size:clamp(13px,3.5vw,20px)!important;line-height:1.7!important}}
 
 
-/* Theme-aware Mushaf: all surfaces and accents follow the user's active app theme. */
+/* Theme-aware Mushaf: use the active app theme for every reader surface and control. */
 .mushaf-desktop-shell{
   --mushaf-paper:var(--bg);
-  --mushaf-paper-deep:var(--surface);
+  --mushaf-panel:var(--surface);
+  --mushaf-control:var(--surface-raised);
   --mushaf-ink:var(--text);
   --mushaf-muted:var(--muted);
   --mushaf-line:var(--line);
@@ -5925,127 +5926,93 @@ html, body, #root, .app-frame, .main-area, .page-container {
   color:var(--mushaf-ink)!important;
   color-scheme:inherit;
 }
-.mushaf-desktop-header,
-.mushaf-desktop-sidebar{
-  background:var(--mushaf-paper-deep)!important;
-  color:var(--mushaf-ink)!important;
-  border-color:var(--mushaf-line)!important;
+.mushaf-desktop-header,.mushaf-desktop-sidebar{
+  background:var(--mushaf-panel)!important;color:var(--mushaf-ink)!important;border-color:var(--mushaf-line)!important;
 }
-.mushaf-desktop-header button,
-.mushaf-desktop-sidebar-search,
-.mushaf-desktop-page-grid button,
-.mushaf-desktop-page-jump input,
+.mushaf-desktop-header button,.mushaf-desktop-sidebar-search,
+.mushaf-desktop-page-grid button,.mushaf-desktop-page-jump input,
 .mushaf-desktop-page-jump>button{
-  background:var(--surface-raised)!important;
-  color:var(--mushaf-ink)!important;
-  border-color:var(--mushaf-line)!important;
+  background:var(--mushaf-control)!important;color:var(--mushaf-ink)!important;border-color:var(--mushaf-line)!important;
 }
-.mushaf-desktop-header-center,
-.mushaf-desktop-sidebar-list>button,
-.mushaf-desktop-sidebar-list>button small,
-.mushaf-desktop-sidebar-tabs button,
+.mushaf-desktop-header-center,.mushaf-desktop-sidebar-list>button,
+.mushaf-desktop-sidebar-list>button small,.mushaf-desktop-sidebar-tabs button,
 .mushaf-desktop-sidebar-search{color:var(--mushaf-muted)!important}
-.mushaf-desktop-mode,
-.mushaf-desktop-reading-switch{
-  background:var(--surface-raised)!important;
-  border-color:var(--mushaf-line)!important;
+.mushaf-desktop-mode,.mushaf-desktop-reading-switch{
+  background:var(--mushaf-control)!important;border-color:var(--mushaf-line)!important;
 }
-.mushaf-desktop-mode button,
-.mushaf-desktop-reading-switch button{color:var(--muted)!important}
-.mushaf-desktop-mode button.is-active,
-.mushaf-desktop-reading-switch button.is-active,
+.mushaf-desktop-mode button,.mushaf-desktop-reading-switch button{color:var(--mushaf-muted)!important}
+.mushaf-desktop-mode button.is-active,.mushaf-desktop-reading-switch button.is-active,
 .mushaf-desktop-sidebar-tabs button.is-active{
-  background:var(--accent-wash)!important;
-  color:var(--accent-strong)!important;
+  background:var(--accent-wash)!important;color:var(--accent-strong)!important;
 }
 .mushaf-desktop-sidebar-list>button.is-active{
-  background:var(--accent-wash)!important;
-  border-color:color-mix(in srgb,var(--accent) 38%,var(--line))!important;
-  color:var(--accent-strong)!important;
+  background:var(--accent-wash)!important;border-color:color-mix(in srgb,var(--accent) 38%,var(--line))!important;color:var(--accent-strong)!important;
 }
-.mushaf-desktop-main,
-.mushaf-reading-screen,
-.mushaf-reading-canvas,
-.mushaf-reading-canvas.is-page-mode,
-.mushaf-fs-verse-list{
-  background:var(--mushaf-paper)!important;
-  color:var(--mushaf-ink)!important;
+.mushaf-desktop-main,.mushaf-reading-screen,.mushaf-reading-canvas,
+.mushaf-reading-canvas.is-page-mode,.mushaf-fs-verse-list{
+  background:var(--mushaf-paper)!important;color:var(--mushaf-ink)!important;
 }
 .mushaf-fs-surah-intro{
-  background:transparent!important;
-  border:0!important;
-  border-bottom:1px solid var(--mushaf-line)!important;
-  border-radius:0!important;
-  box-shadow:none!important;
+  background:transparent!important;border:0!important;border-bottom:1px solid var(--mushaf-line)!important;border-radius:0!important;box-shadow:none!important;
 }
-.mushaf-fs-surah-intro-copy h1,
-.mushaf-fs-surah-arabic-title,
-.mushaf-fs-verse-arabic,
-.mushaf-fs-qcf-line,
-.mushaf-page-bismillah{color:var(--mushaf-ink)!important}
-.mushaf-fs-surah-intro-copy p,
-.mushaf-fs-surah-intro-copy small,
-.mushaf-fs-surah-intro-copy>span,
-.mushaf-page-running-header,
-.mushaf-page-number,
-.mushaf-fs-verse-actions small{color:var(--mushaf-muted)!important}
+.mushaf-fs-surah-intro-copy h1,.mushaf-fs-surah-arabic-title,
+.mushaf-fs-verse-arabic,.mushaf-fs-qcf-line,.mushaf-page-bismillah,
+.mushaf-fs-unicode-flow{color:var(--mushaf-ink)!important}
+.mushaf-fs-surah-intro-copy p,.mushaf-fs-surah-intro-copy small,
+.mushaf-fs-surah-intro-copy>span,.mushaf-page-running-header,
+.mushaf-page-number,.mushaf-fs-verse-actions small{color:var(--mushaf-muted)!important}
 .mushaf-fs-surah-status span{
-  background:var(--surface-raised)!important;
-  border-color:var(--mushaf-line)!important;
-  color:var(--mushaf-muted)!important;
+  background:var(--mushaf-control)!important;border-color:var(--mushaf-line)!important;color:var(--mushaf-muted)!important;
 }
 .mushaf-fs-surah-status span.is-active{
-  background:var(--accent-wash)!important;
-  border-color:color-mix(in srgb,var(--accent) 42%,var(--line))!important;
-  color:var(--accent-strong)!important;
+  background:var(--accent-wash)!important;border-color:color-mix(in srgb,var(--accent) 42%,var(--line))!important;color:var(--accent-strong)!important;
 }
 .mushaf-fs-verse-row{border-color:var(--mushaf-line)!important}
-.mushaf-fs-verse-translation{color:var(--muted)!important}
-.mushaf-fs-verse-actions button{
-  background:var(--surface-raised)!important;
-  border-color:var(--mushaf-line)!important;
-  color:var(--accent-strong)!important;
+.mushaf-fs-verse-translation{color:var(--mushaf-muted)!important}
+.mushaf-fs-verse-actions button,.mushaf-page-desktop-arrows button{
+  background:var(--mushaf-control)!important;border-color:var(--mushaf-line)!important;color:var(--accent-strong)!important;
 }
-.mushaf-fs-verse-arabic.is-selected{
-  background:var(--accent-wash)!important;
-  border-radius:8px;
-}
-.mushaf-page-desktop-arrows button{
-  background:var(--surface-raised)!important;
-  border-color:var(--mushaf-line)!important;
-  color:var(--accent-strong)!important;
+.mushaf-fs-verse-arabic.is-selected,.mushaf-ayah.is-selected{
+  background:var(--accent-wash)!important;border-radius:8px;
 }
 .mushaf-fs-qcf-page{
-  background:var(--mushaf-paper)!important;
-  color:var(--mushaf-ink)!important;
-  border-color:var(--mushaf-line)!important;
-  box-shadow:0 8px 28px rgba(0,0,0,.12)!important;
+  background:var(--mushaf-paper)!important;color:var(--mushaf-ink)!important;
+  border-color:var(--mushaf-line)!important;box-shadow:0 8px 28px rgba(0,0,0,.12)!important;
 }
-.mushaf-page-running-header,
-.mushaf-page-number{border-color:var(--mushaf-line)!important}
-.mushaf-page-surah-title b,
-.mushaf-ayah-number{color:var(--accent-strong)!important}
-.mushaf-header-autosaved{border-color:color-mix(in srgb,var(--success) 35%,transparent)!important;background:color-mix(in srgb,var(--success) 12%,transparent)!important;color:var(--success)!important}
+.mushaf-page-running-header,.mushaf-page-number{border-color:var(--mushaf-line)!important}
+.mushaf-page-surah-title{
+  border-color:color-mix(in srgb,var(--accent) 42%,var(--mushaf-line))!important;
+  background:var(--accent-wash)!important;color:var(--accent-strong)!important;
+}
+.mushaf-page-surah-title b,.mushaf-ayah-number{color:var(--accent-strong)!important}
+.mushaf-ayah-medallion-frame path{
+  fill:var(--mushaf-panel)!important;stroke:var(--accent)!important;
+}
+.mushaf-ayah-medallion-frame circle{stroke:color-mix(in srgb,var(--accent) 55%,var(--mushaf-muted))!important}
+.mushaf-fs-ayah-number-text{color:var(--accent-strong)!important}
+.mushaf-header-autosaved{
+  border-color:color-mix(in srgb,var(--success) 35%,transparent)!important;
+  background:color-mix(in srgb,var(--success) 12%,transparent)!important;color:var(--success)!important;
+}
+.mushaf-desktop-header button:hover,.mushaf-desktop-sidebar-list>button:hover,
+.mushaf-fs-verse-actions button:hover,.mushaf-page-desktop-arrows button:hover{
+  border-color:color-mix(in srgb,var(--accent) 45%,var(--mushaf-line))!important;
+}
+.mushaf-desktop-header button:focus-visible,.mushaf-desktop-sidebar button:focus-visible,
+.mushaf-fs-verse-arabic:focus-visible{outline-color:var(--accent-strong)!important}
 
-/* Tajweed keeps rule distinctions, but derives its palette from the active theme. */
+/* Tajweed retains rule distinctions while using colours from the active theme. */
 .tajweed-rule{font-weight:inherit}
 .tajweed-ham_wasl,.tajweed-slnt,.tajweed-laam_shamsiyah,
-.tajweed-idgham_mutajanisayn,.tajweed-idgham_mutaqaribayn{
-  color:var(--muted)!important;
-}
+.tajweed-idgham_mutajanisayn,.tajweed-idgham_mutaqaribayn{color:var(--mushaf-muted)!important}
 .tajweed-madda_normal,.tajweed-madda_permissible,.tajweed-madda_necessary,
 .tajweed-madda_obligatory,.tajweed-madda_obligatory_mottasel,
-.tajweed-madda_obligatory_monfasel{
-  color:var(--accent-strong)!important;
-}
+.tajweed-madda_obligatory_monfasel{color:var(--accent-strong)!important}
 .tajweed-qalaqah{color:var(--danger)!important}
-.tajweed-ikhafa_shafawi,.tajweed-ikhafa,
-.tajweed-idgham_shafawi,.tajweed-idgham_ghunnah,
-.tajweed-idgham_wo_ghunnah{color:var(--success)!important}
-.tajweed-iqlab,.tajweed-ghunnah{
-  color:color-mix(in srgb,var(--accent) 68%,var(--text))!important;
-}
+.tajweed-ikhafa_shafawi,.tajweed-ikhafa,.tajweed-idgham_shafawi,
+.tajweed-idgham_ghunnah,.tajweed-idgham_wo_ghunnah{color:var(--success)!important}
+.tajweed-iqlab,.tajweed-ghunnah{color:color-mix(in srgb,var(--accent) 68%,var(--mushaf-ink))!important}
 @media(max-width:767px){
-  .mushaf-desktop-header,.mushaf-desktop-sidebar{background:var(--surface)!important}
-  .mushaf-fs-verse-list,.mushaf-fs-qcf-page{background:var(--bg)!important}
+  .mushaf-desktop-header,.mushaf-desktop-sidebar{background:var(--mushaf-panel)!important}
+  .mushaf-fs-verse-list,.mushaf-fs-qcf-page{background:var(--mushaf-paper)!important}
 }
