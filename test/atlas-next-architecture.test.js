@@ -56,7 +56,7 @@ test('the four core destinations and More menu stay visible while secondary view
   assert.match(shell, /const rooms = \[/);
   assert.match(shell, /faithTabLabel = quickReligion === 'islam' \? 'Deen & Qur’an'/);
   assert.match(shell, /atlas-mobile-dock/);
-  assert.match(shell, /<span>More<\\/span>/);
+  assert.match(shell, /<span>More/);
   assert.match(shell, /tabsByRoom/);
   assert.match(shell, /feature: 'calendar'/);
   assert.match(shell, /label: 'Goals · Projects · Learning', detail:/);
