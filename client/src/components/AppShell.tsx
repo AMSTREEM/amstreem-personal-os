@@ -160,10 +160,6 @@ export function AppShell() {
       document.querySelector('meta[name="theme-color"]')?.setAttribute('content', background);
     }
   }, [settings.data?.theme]);
-  const storedFeatures = settings.data?.features;
-  let enabledFeatures: string[] | null = null;
-  if (storedFeatures) { try { enabledFeatures = JSON.parse(storedFeatures).map((feature: string) => feature === 'values' ? 'deen' : feature); } catch { enabledFeatures = null; } }
-  // The six core pillars are always available; preferences only control secondary views.
   const current = rooms.find(item => item.paths.includes(location.pathname));
   useEffect(() => {
     if (focusActive && focusTimer.kind !== 'break') {
@@ -172,7 +168,6 @@ export function AppShell() {
     } else document.title = 'Amstreem Atlas';
     return () => { document.title = 'Amstreem Atlas'; };
   }, [focusActive, focusTimer.kind, focusClock, focusContext, current?.label]);
-  const faithTabLabel = quickReligion === 'islam' ? 'Deen & Reflection' : quickReligion === 'christianity' ? 'Faith & Devotion' : 'Clarity & Reflection';
   const tabsByRoom = { residence: [], execution: [], growth: [] };
   const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom] : [];
   return <div className={"app-frame" + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
