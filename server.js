@@ -176,6 +176,40 @@ function normalizeQuranCom(body, page) {
         translations, words };
     }) };
 }
+function splitTajweedWords(markup) {
+  const tokens = String(markup || '').match(/<[^>]*>|[^<\\s]+|\\s+/g) || [];
+  const words = [];
+  let current = '';
+  for (const token of tokens) {
+    if (/^\\s+$/.test(token)) { if (current) words.push(current); current = ''; }
+    else current += token;
+  }
+  if (current) words.push(current);
+  return words;
+}
+async function fetchOfficialTajweedPage(apiBase, headers, page) {
+  if (!headers['x-auth-token'] || !headers['x-client-id']) throw new Error('Quran Foundation credentials are not configured for complete Tajweed text.');
+  const url = apiBase + '/quran/verses/uthmani_tajweed?page_number=' + page + '&per_page=50';
+  const response = await fetch(url, { headers: { Accept: 'application/json', ...headers }, signal: AbortSignal.timeout(9000) });
+  if (!response.ok) throw new Error('Quran Foundation Tajweed endpoint returned HTTP ' + response.status + '.');
+  const body = await response.json();
+  const verses = Array.isArray(body?.verses) ? body.verses : [];
+  if (!verses.length) throw new Error('Quran Foundation returned no Tajweed verses for page ' + page + '.');
+  return new Map(verses.map(verse => [String(verse.verse_key || ''), String(verse.text_uthmani_tajweed || '')]));
+}
+function applyTajweedToPage(pagePayload, tajweedByVerse) {
+  const ayahs = pagePayload.ayahs.map(ayah => {
+    const tajweedText = tajweedByVerse.get(ayah.surahNumber + ':' + ayah.numberInSurah) || '';
+    if (!tajweedText) return { ...ayah, tajweedText: '' };
+    const markedWords = splitTajweedWords(tajweedText);
+    const textWords = (ayah.words || []).filter(word => word.charTypeName !== 'end');
+    const words = ayah.words?.length && markedWords.length === textWords.length
+      ? (() => { let index = 0; return ayah.words.map(word => word.charTypeName === 'end' ? word : { ...word, tajweed: markedWords[index++] }); })()
+      : ayah.words;
+    return { ...ayah, tajweedText, words };
+  });
+  return { ...pagePayload, ayahs, tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => Boolean(ayah.tajweedText)) };
+}
 async function fetchQuranMirror(url, normalizer, page, extraHeaders = {}) {
   const response = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'AmstreemAtlas/1.0', ...extraHeaders }, signal: AbortSignal.timeout(9000) });
   if (!response.ok) throw new Error(`Mirror returned HTTP ${response.status}.`);
@@ -219,18 +253,12 @@ app.get('/api/quran/page/:page', async (req, res) => {
         console.warn('Qur’an API returned Unicode text without QCF glyphs; trying the next source.');
       } catch (error) { console.warn('Qur’an word-level mirror failed:', error.message); }
     }
-    if (qcfPage) return qcfPage;
-    if (tajweedUnicodePage) return { ...tajweedUnicodePage, qcfAvailable: false };
-    if (qcfWithoutTajweed) return qcfWithoutTajweed;
-    try { return await fetchQuranMirror(`https://api.alquran.cloud/v1/page/${page}/editions/quran-uthmani,en.sahih`, normalizeAlQuranCloud, page); }
-    catch (error) { console.warn('Qur’an Uthmani fallback failed:', error.message); }
-    try {
-      const textOnly = await fetchQuranMirror(`https://api.quran.com/api/v4/verses/by_page/${page}?words=false&translations=20&fields=text_uthmani,text_qpc_hafs,verse_key,chapter_id,verse_number,juz_number&per_page=50`, normalizeQuranCom, page, quranHeaders);
-      return { ...textOnly, qcfAvailable: false };
-    } catch (error) { console.warn('Qur’an text fallback failed:', error.message); }
-    const offline = quranOfflinePages[String(page)];
-    if (offline?.ayahs?.length) return { ...offline, offlineFallback: true };
-    throw new Error('No online mirror or bundled offline page is available.');
+    const pageCandidate = qcfPage || tajweedUnicodePage || qcfWithoutTajweed;
+    if (!pageCandidate) throw new Error('Madani page metadata is unavailable.');
+    const tajweedByVerse = await fetchOfficialTajweedPage(officialQuranApiBase, quranHeaders, page);
+    const completedPage = applyTajweedToPage(pageCandidate, tajweedByVerse);
+    if (!completedPage.tajweedComplete) throw new Error('Tajweed text is incomplete for one or more verses on page ' + page + '.');
+    return { ...completedPage, qcfAvailable: Boolean(qcfPage?.qcfAvailable) };
   })();
   quranPageInflight.set(page, task);
   try {
