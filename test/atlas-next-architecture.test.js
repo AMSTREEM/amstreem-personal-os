@@ -348,9 +348,9 @@ test('Full-screen Mushaf opens without inline preview and uses a tap-to-toggle A
   assert.ok(reader.includes("CACHE_PREFIX = 'atlas_mushaf_page_v8_'"));
   assert.ok(server.includes('https://quran.foundation'));
   assert.ok(css.includes('.mushaf-header-autosaved'));
-  assert.ok(css.includes('.mushaf-reading-canvas{padding-bottom:64px}'));
+  assert.ok(css.includes('padding:22px 28px 60px'));
   assert.ok(reader.includes('mushaf-desktop-reading-switch'));
-  assert.ok(css.includes('width:280px;min-width:280px'));
+  assert.ok(css.includes('width:270px;min-width:270px'));
   assert.ok(css.includes('@media(min-width:768px)'));
   assert.ok(css.includes('@media(max-width:767px)'));
   assert.ok(css.includes('.mushaf-reading-screen{') && css.includes('100dvh'));
