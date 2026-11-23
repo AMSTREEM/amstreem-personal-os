@@ -318,7 +318,9 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.match(reader, /atlas_mushaf_font_step_v1/);
   assert.match(reader, /mushaf-fs-qcf-line/);
   assert.match(reader, /mushaf-fs-ayah-medallion/);
-  assert.match(reader, /number=\{word\.numberInSurah\}/);
+  assert.match(reader, /word\.charTypeName === 'end' \? ' is-end' : ''/);
+  assert.match(reader, /escapeGlyphHtml\(word\.codeV2 \|\| word\.text\)/);
+  assert.match(reader, /codeV2: word\.codeV2 \|\| ''/);
   assert.match(reader, /function AyahMedallion/);
   assert.match(reader, /mushaf-ayah-medallion-frame/);
   assert.match(reader, /M18 1\.5 21\.8 8\.2/);
@@ -412,7 +414,6 @@ test('Mushaf surah cartouches, calligraphic basmala, searchable index and page-f
 test('Mushaf saves the active page and ayah locally immediately and debounces workspace settings', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   assert.match(reader, /localStorage\.setItem\(key, JSON\.stringify\(mark\)\)/);
-  assert.match(reader, /setSaveStatus\('Auto-saved · Page ' \+ mark\.page\)/);
   assert.match(reader, /window\.setTimeout\(\(\) =>/);
   assert.match(reader, /}, 1200\)/);
   assert.match(reader, /window\.clearTimeout\(timer\)/);
@@ -423,7 +424,8 @@ test('Mushaf saves the active page and ayah locally immediately and debounces wo
   assert.match(reader, /changePage\(item\.pageStart, \{ surahNumber: number, numberInSurah: 1 \}\)/);
   assert.match(reader, /const target = savedAyah \|\| pageData\.ayahs\[0\]/);
   assert.match(reader, /changeReadingMode/);
-  assert.match(reader, /mushaf-save-status/);
+  assert.match(reader, /mushaf-fs-page-count/);
+  assert.doesNotMatch(reader, /mushaf-save-status/);
 });
 
 
@@ -434,7 +436,8 @@ test('Full-Screen Mushaf strips raw Qur’an ornaments, uses uniform 32px SVG me
   assert.match(reader, /mushaf-ayah-medallion-frame/);
   assert.doesNotMatch(reader, /Complete &amp; Log Page|Log Surah Reading/);
   assert.match(reader, /atlas_quran_auto_logged_pages_/);
-  assert.match(reader, /Auto-saved · Page/);
+  assert.match(reader, /Page \{page\} \/ 604/);
+  assert.doesNotMatch(reader, /Auto-saved · Page/);
   assert.match(css, /width: 32px !important/);
   assert.match(css, /width: min\(360px, 92vw\) !important/);
   assert.match(css, /overflow-x: hidden !important/);
