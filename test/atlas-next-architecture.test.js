@@ -291,7 +291,7 @@ test('Mushaf opens directly into one full-screen shell with a 40px single-row to
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const values = read('client/src/pages/ValuesPage.tsx');
   assert.match(values, /<QuranMushafReader settings=/);
-  assert.doesNotMatch(values, /<Card className="faith-section-secondary">|Open Full-Screen Mushaf|rhythm-quran-layout/);
+  assert.doesNotMatch(values, /<Card className="faith-section-secondary">\\s*<QuranMushafReader|Open Full-Screen Mushaf|rhythm-quran-layout|Save Qur’an record/);
   assert.match(reader, /Continue Hifz/);
   assert.match(reader, /Continue Muraja’ah/);
   assert.match(reader, /pageMemoryCache\.clear\(\)/);
@@ -339,7 +339,7 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.match(reader, /@media\(max-width:390px\)/);
   assert.match(reader, /mushaf-bismillah/);
   assert.doesNotMatch(reader, /\u06DD/);
-  assert.match(reader, /\[18, 20, 22, 24, 26\]/);
+  assert.match(reader, /\[16, 18, 20, 23, 26, 30, 34\]/);
   assert.match(reader, /atlas_mushaf_arabic_font_size_v2/);
   assert.match(reader, /mushaf-fs-qcf-line/);
   assert.match(reader, /mushaf-fs-ayah-medallion/);
