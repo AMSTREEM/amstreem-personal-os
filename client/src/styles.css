@@ -4953,9 +4953,10 @@ html, body, #root, .app-frame, .main-area, .page-container {
     width: calc(100vw - 24px);
     max-width: 420px;
     min-height: 64px;
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(4,minmax(0,1fr));
     align-items: center;
-    justify-content: space-around;
+    justify-content: stretch;
     gap: 3px;
     padding: 7px 8px;
     border: 1px solid color-mix(in srgb,var(--line) 78%,var(--text));
@@ -4969,6 +4970,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
   }
   .atlas-mobile-dock__rooms {
     min-width: 0;
+    display: contents;
     flex: 1;
     display: flex;
     align-items: center;
@@ -5007,19 +5009,25 @@ html, body, #root, .app-frame, .main-area, .page-container {
     color: var(--accent-strong);
   }
   .atlas-mobile-dock__capture {
-    width: 46px;
-    height: 46px;
-    min-width: 44px;
+    width: 100%;
+    height: 48px;
+    min-width: 0;
     min-height: 44px;
-    flex: 0 0 46px;
-    display: grid;
-    place-items: center;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
     border: 1px solid color-mix(in srgb,var(--accent) 48%,var(--line));
     border-radius: 15px;
     background: linear-gradient(145deg,var(--accent-strong),var(--accent));
     color: #171710;
+    font-size: 8px;
+    font-weight: 700;
     box-shadow: 0 5px 16px color-mix(in srgb,var(--accent) 22%,transparent);
   }
+  .atlas-mobile-dock__capture svg { flex: none; }
   .atlas-install-prompt { bottom: calc(88px + env(safe-area-inset-bottom)); }
 }
 @media (min-width: 768px) {
