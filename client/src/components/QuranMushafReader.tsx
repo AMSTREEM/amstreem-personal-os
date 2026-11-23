@@ -50,10 +50,14 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
 
   useEffect(() => {
     if (!settingsReady) return;
-    const remoteHifz = Number(settings.hifz_page) || 1;
-    const remoteMurajaah = Number(settings.murajaah_page) || 1;
-    setHifzMark(current => current.page === 1 && remoteHifz > 1 ? { ...current, page: clampPage(remoteHifz) } : current);
-    setMurajaahMark(current => current.page === 1 && remoteMurajaah > 1 ? { ...current, page: clampPage(remoteMurajaah) } : current);
+    const remoteMark = (raw: string | undefined, fallbackPage: number) => {
+      try { const parsed = JSON.parse(raw || 'null'); if (parsed && typeof parsed === 'object') return { page: clampPage(Number(parsed.page) || fallbackPage), surah: Number(parsed.surah) || 1, ayah: Number(parsed.ayah) || 1 }; } catch { /* older page-only bookmark */ }
+      return { page: clampPage(fallbackPage), surah: 1, ayah: 1 };
+    };
+    const remoteHifz = remoteMark(settings.hifz_bookmark, Number(settings.hifz_page) || 1);
+    const remoteMurajaah = remoteMark(settings.murajaah_bookmark, Number(settings.murajaah_page) || 1);
+    setHifzMark(current => current.page === 1 && current.ayah === 1 ? remoteHifz : current);
+    setMurajaahMark(current => current.page === 1 && current.ayah === 1 ? remoteMurajaah : current);
   }, [settingsReady, settings.hifz_page, settings.murajaah_page]);
 
   useEffect(() => {
@@ -66,7 +70,10 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     const mark = mode === 'hifz' ? hifzMark : murajaahMark;
     const key = mode === 'hifz' ? HIFZ_KEY : MURAJAAH_KEY;
     try { localStorage.setItem(key, JSON.stringify(mark)); } catch { /* storage is optional */ }
-    void api('/settings', json('PATCH', { [mode === 'hifz' ? 'hifz_page' : 'murajaah_page']: String(mark.page) })).catch(() => undefined);
+    void api('/settings', json('PATCH', {
+      [mode === 'hifz' ? 'hifz_page' : 'murajaah_page']: String(mark.page),
+      [mode === 'hifz' ? 'hifz_bookmark' : 'murajaah_bookmark']: JSON.stringify(mark)
+    })).catch(() => undefined);
   }, [mode, hifzMark, murajaahMark]);
 
   useEffect(() => {
