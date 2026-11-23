@@ -39,8 +39,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   const [selected, setSelected] = useState<{ surah: number; ayah: number } | null>(null);
   const [readingMode, setReadingMode] = useState<'translation' | 'reading'>('reading');
   const [fontSize, setFontSize] = useState(() => {
-    try { const saved = Number(localStorage.getItem('atlas_mushaf_font_step_v1')); return [17, 19, 21, 25, 29].includes(saved) ? saved : 21; }
-    catch { return 21; }
+    try { const saved = Number(localStorage.getItem('atlas_mushaf_font_step_v1')); return [24, 26, 28, 30, 32].includes(saved) ? saved : 28; }
+    catch { return 28; }
   });
   const [reciter, setReciter] = useState('ar.alafasy');
   const [pageInput, setPageInput] = useState(String(page));
@@ -49,7 +49,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   const selectedAyah = pageData?.ayahs.find(item => item.surahNumber === selected?.surah && item.numberInSurah === selected?.ayah) || null;
   const pageJuz = useMemo(() => pageData?.juz || getPageJuz(page) || 1, [pageData, page]);
   const bookmark = mode === 'hifz' ? hifzMark : murajaahMark;
-  const fontSteps = [17, 19, 21, 25, 29];
+  const fontSteps = [24, 26, 28, 30, 32];
   const changeFontSize = (direction: -1 | 1) => setFontSize(current => {
     const index = fontSteps.indexOf(current);
     const next = fontSteps[Math.max(0, Math.min(fontSteps.length - 1, (index < 0 ? 2 : index) + direction))];
@@ -168,21 +168,30 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     } catch (error) { setLogMessage(error instanceof Error ? error.message : 'Could not log this page.'); }
     finally { setLogging(false); }
   };
+  const currentSurahNumber = pageData?.ayahs?.[0]?.surahNumber || bookmark.surah || 1;
+  const currentSurah = QURAN_SURAHS[currentSurahNumber - 1];
   const readerContent = <>
-    <header className="mushaf-fs-header mushaf-toolbar">
-      <div className="mushaf-fs-controls mushaf-fs-controls--left">
-        <button type="button" className="mushaf-surahs-trigger" aria-label="Open surah navigation" onClick={() => setDrawerOpen(true)}><Menu size={16}/><span>Surahs</span></button>
-        <div className="mushaf-mode-switch mushaf-fs-bookmark-switch" role="group" aria-label="Bookmark mode"><button type="button" className={mode === 'hifz' ? 'is-active' : ''} aria-pressed={mode === 'hifz'} onClick={() => changeMode('hifz')}>Hifz</button><button type="button" className={mode === 'murajaah' ? 'is-active' : ''} aria-pressed={mode === 'murajaah'} onClick={() => changeMode('murajaah')}>Muraja’ah</button></div>
+    <header className="mushaf-fs-header">
+      <div className="mushaf-fs-header-left">
+        <button type="button" className="mushaf-fs-surah-trigger" aria-label="Open surah navigation" onClick={() => setDrawerOpen(true)}>
+          <span>{currentSurahNumber}. {currentSurah?.transliteration || 'Al-Fatihah'} · Page {page}</span><ChevronRight size={15}/>
+        </button>
       </div>
-      <div className="mushaf-fs-view-switch" role="group" aria-label="Qur’an reading mode"><button type="button" className={readingMode === 'translation' ? 'is-active' : ''} aria-pressed={readingMode === 'translation'} onClick={() => setReadingMode('translation')}>Translation</button><button type="button" className={readingMode === 'reading' ? 'is-active' : ''} aria-pressed={readingMode === 'reading'} onClick={() => setReadingMode('reading')}>Reading</button></div>
-      <div className="mushaf-fs-controls mushaf-fs-controls--right">
+      <div className="mushaf-fs-view-switch" role="group" aria-label="Qur’an reading mode">
+        <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} aria-pressed={readingMode === 'translation'} onClick={() => setReadingMode('translation')}>Translation</button>
+        <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} aria-pressed={readingMode === 'reading'} onClick={() => setReadingMode('reading')}>Reading</button>
+      </div>
+      <div className="mushaf-fs-header-right">
+        <div className="mushaf-mode-switch mushaf-fs-bookmark-switch" role="group" aria-label="Bookmark mode">
+          <button type="button" className={mode === 'hifz' ? 'is-active' : ''} aria-pressed={mode === 'hifz'} onClick={() => changeMode('hifz')}>Hifz</button>
+          <button type="button" className={mode === 'murajaah' ? 'is-active' : ''} aria-pressed={mode === 'murajaah'} onClick={() => changeMode('murajaah')}>Muraja’ah</button>
+        </div>
         <div className="mushaf-top-font"><button type="button" aria-label="Decrease Arabic font size" onClick={() => changeFontSize(-1)}>A-</button><button type="button" aria-label="Increase Arabic font size" onClick={() => changeFontSize(1)}>A+</button></div>
-        <button type="button" className="mushaf-exit-button" onClick={() => { setDrawerOpen(false); setFullScreen(false); }}><X size={16}/> Exit</button>
+        <button type="button" className="mushaf-fs-close" aria-label="Close Mushaf" onClick={() => { setDrawerOpen(false); setFullScreen(false); }}><X size={18}/></button>
       </div>
     </header>
     <div className="mushaf-fs-stage mushaf-reading-layout">
       <main className="mushaf-fs-sheet mushaf-page-wrap" ref={readerRef}>
-        <div className="mushaf-page-heading"><span>{pageData?.ayahs?.[0]?.surahName || 'Al-Qur’an'}</span><span>JUZ {pageJuz} · PAGE {page} / 604</span></div>
         {loading && <p className="mushaf-loading" role="status">Loading Mushaf page {page}…</p>}
         {!loading && pageError && <div className="mushaf-error" role="alert"><WifiOff size={24}/><p>{pageError}</p><button type="button" onClick={() => changePage(page)}>Retry page</button></div>}
         {!loading && pageData && readingMode === 'reading' && <div className={`mushaf-ayah-flow mushaf-fs-arabic mushaf-fs-arabic--${fontSize}`} dir="rtl" lang="ar">
@@ -205,10 +214,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
               {beginsSurah && <div className="mushaf-surah-banner mushaf-fs-verse-surah"><span className="mushaf-surah-ornament">۞</span><b>{ayah.arabicName}</b><small>{ayah.surahName}</small><span className="mushaf-surah-ornament">۞</span></div>}
               {beginsSurah && ayah.surahNumber !== 9 && ayah.numberInSurah === 1 && <div className="mushaf-bismillah mushaf-fs-verse-bismillah" lang="ar" dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
               <div className="mushaf-fs-verse-arabic-line" dir="rtl" lang="ar">
-                <div className="mushaf-fs-verse-actions">
-                  <button type="button" aria-label={`Play ${ayah.surahNumber}:${ayah.numberInSurah}`} onClick={() => { selectAyah(ayah); playAyah(ayah); }}><Play size={15}/></button>
-                  <button type="button" aria-label={`Bookmark ${ayah.surahNumber}:${ayah.numberInSurah}`} onClick={() => { selectAyah(ayah); updateBookmark(page, ayah); }}><Bookmark size={15}/></button>
-                </div>
+                <div className="mushaf-fs-verse-actions"><small>{ayah.surahNumber}:{ayah.numberInSurah}</small><button type="button" aria-label={`Play ${ayah.surahNumber}:${ayah.numberInSurah}`} onClick={() => { selectAyah(ayah); playAyah(ayah); }}><Play size={14}/></button></div>
                 <button type="button" className={'mushaf-fs-verse-arabic ' + (isSelected ? 'is-selected' : '')} onClick={() => selectAyah(ayah)} aria-pressed={isSelected}>
                   {ayah.text}<span className="mushaf-ayah-number" aria-label={`Ayah ${ayah.numberInSurah}`}>﴿{arabicNumber(ayah.numberInSurah)}﴾</span>
                 </button>
@@ -223,10 +229,12 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
       </main>
       {drawerOpen && <><button type="button" className="mushaf-drawer-scrim" aria-label="Close surah navigation" onClick={() => setDrawerOpen(false)}/><aside className="mushaf-surah-drawer" aria-label="114 Surahs"><header><div><b>Surah index</b><small>114 chapters · Madani Mushaf</small></div><button type="button" aria-label="Close surah index" onClick={() => setDrawerOpen(false)}><X size={18}/></button></header><div className="mushaf-drawer-jumps"><label>Page <input type="number" min="1" max="604" value={pageInput} onChange={event => setPageInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { changePage(Number(pageInput) || page); setDrawerOpen(false); } }}/></label><label>Juz <select defaultValue={pageJuz} onChange={event => { jumpJuz(Number(event.target.value)); setDrawerOpen(false); }}>{Array.from({length:30},(_,i)=><option key={i+1} value={i+1}>Juz {i+1}</option>)}</select></label></div><div className="mushaf-surah-list">{QURAN_SURAHS.map(item => <button type="button" key={item.number} className={page >= item.pageStart && page <= item.pageEnd ? 'is-current' : ''} onClick={() => jumpSurah(item.number)}><span className="mushaf-surah-number">{item.number}</span><span className="mushaf-surah-names"><b>{item.transliteration}</b><small>{item.english} · {item.ayahs} ayahs · p.{item.pageStart}</small></span><strong lang="ar" dir="rtl">{item.arabic}</strong></button>)}</div></aside></>}
     </div>
-    <footer className="mushaf-fs-footer mushaf-bottom-bar">
-      <button type="button" className="mushaf-page-control" disabled={page <= 1} onClick={() => changePage(page - 1)}><ChevronLeft size={16}/> Previous</button>
-      <button type="button" className="button button--primary mushaf-complete-button" disabled={!pageData?.ayahs?.length || loading || logging} onClick={logPage}><Check size={15}/>{logging ? 'Logging…' : 'Complete & Log Page'}</button>
-      <button type="button" className="mushaf-page-control" disabled={page >= 604} onClick={() => changePage(page + 1)}>Next <ChevronRight size={16}/></button>
+    <footer className="mushaf-fs-footer">
+      <div className="mushaf-fs-page-pill">
+        <button type="button" className="mushaf-fs-page-nav" disabled={page <= 1} onClick={() => changePage(page - 1)}><ChevronLeft size={16}/> Previous Page</button>
+        <button type="button" className="mushaf-fs-log-page" disabled={!pageData?.ayahs?.length || loading || logging} onClick={logPage}>Page {page} / 604 · {logging ? 'Logging…' : 'Log Page'}</button>
+        <button type="button" className="mushaf-fs-page-nav" disabled={page >= 604} onClick={() => changePage(page + 1)}>Next Page <ChevronRight size={16}/></button>
+      </div>
       <span className="mushaf-log-message" role="status">{logMessage}</span>
     </footer>
     <audio ref={audioRef} />
@@ -329,6 +337,80 @@ const mushafStyles = `
  .mushaf-fs-verse-translation{font-size:14px}
  .mushaf-fs-footer{padding-left:6px;padding-right:6px;gap:6px}
  .mushaf-fs-footer button{padding:0 8px;font-size:10px}
+}
+
+/* Spacious Quran.com-inspired full-screen canvas and controls. */
+.mushaf-fs-overlay{grid-template-rows:56px minmax(0,1fr) 76px;background:var(--bg-canvas)}
+.mushaf-fs-header{height:56px;min-height:56px;width:100%;max-width:900px;padding:0 20px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:18px;justify-content:stretch;border:0;background:var(--bg-canvas);overflow:visible}
+.mushaf-fs-header-left{justify-self:start;min-width:0}
+.mushaf-fs-header-right{justify-self:end;display:flex;align-items:center;gap:12px;min-width:0}
+.mushaf-fs-surah-trigger{height:38px!important;max-width:100%;padding:0 10px!important;display:flex;align-items:center;gap:8px;border:0!important;background:transparent!important;color:var(--text-primary)!important;font:600 13px/1.2 "DM Sans",sans-serif!important}
+.mushaf-fs-view-switch{justify-self:center;padding:4px;gap:3px;border:0;border-radius:999px;background:var(--bg-elevated)}
+.mushaf-fs-view-switch button{height:34px;min-height:34px;padding:0 18px;font-size:12px;border-radius:999px}
+.mushaf-fs-view-switch button.is-active{background:var(--bg-canvas);box-shadow:0 1px 5px rgba(0,0,0,.12)}
+.mushaf-fs-header-right .mushaf-mode-switch{padding:3px;border:0;background:var(--bg-elevated)}
+.mushaf-fs-header-right .mushaf-mode-switch button{height:30px;min-height:30px;padding:0 10px;border:0;background:transparent;font-size:11px}
+.mushaf-fs-header-right .mushaf-mode-switch button.is-active{background:var(--bg-canvas);box-shadow:0 1px 5px rgba(0,0,0,.12)}
+.mushaf-fs-header-right .mushaf-top-font{display:flex;align-items:center;gap:3px}
+.mushaf-fs-header-right .mushaf-top-font button{height:32px;min-height:32px;padding:0 7px;border:0;background:transparent;font-size:12px}
+.mushaf-fs-close{width:34px;height:34px!important;min-height:34px!important;display:grid;place-items:center;padding:0!important;border:0!important;border-radius:50%!important;background:var(--bg-elevated)!important;color:var(--text-primary)!important}
+.mushaf-fs-stage{width:100%;height:100%;min-height:0;display:block;overflow-y:auto;padding:0;place-items:unset}
+.mushaf-fs-sheet{width:100%;max-width:700px;min-height:100%;margin:0 auto;padding:32px 24px 96px;border:0;border-radius:0;background:var(--bg-canvas);box-shadow:none;text-align:center}
+.mushaf-fs-sheet .mushaf-ayah-flow{width:100%;max-width:none;padding:0;margin:0;direction:rtl;text-align:justify;text-align-last:center;font-family:"Amiri Quran","Scheherazade New",serif;font-size:28px;line-height:2.35;color:var(--text-primary)}
+.mushaf-fs-sheet .mushaf-ayah{display:inline;padding:0;border:0;background:transparent;font:inherit;line-height:inherit}
+.mushaf-fs-sheet .mushaf-ayah-number{display:inline-flex;margin:0 .12em;color:var(--accent,#b69b63);border-color:color-mix(in srgb,var(--accent,#b69b63) 60%,transparent);font-size:.52em}
+.mushaf-fs-sheet .mushaf-surah-banner{display:flex;gap:12px;margin:0 auto 16px;padding:12px 14px;border:0;border-radius:0;background:transparent}
+.mushaf-fs-sheet .mushaf-surah-banner b{font:28px/1.5 "Amiri Quran","Scheherazade New",serif}
+.mushaf-fs-sheet .mushaf-surah-banner small{font:11px "DM Sans",sans-serif}
+.mushaf-fs-sheet .mushaf-bismillah{margin:8px 0 18px;font:26px/1.8 "Amiri Quran","Scheherazade New",serif}
+.mushaf-fs-verse-list{width:100%;max-width:700px;margin:0 auto;text-align:left}
+.mushaf-fs-verse-row{padding:24px 0;border-bottom:1px solid var(--border-hairline)}
+.mushaf-fs-verse-arabic-line{display:flex;flex-direction:row;align-items:center;gap:20px;width:100%;direction:ltr}
+.mushaf-fs-verse-actions{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:10px;flex:0 0 auto;direction:ltr}
+.mushaf-fs-verse-actions small{color:var(--text-muted);font:500 11px/1.4 "DM Sans",sans-serif}
+.mushaf-fs-verse-actions button{width:30px;height:30px;display:grid;place-items:center;padding:0;border:0;border-radius:50%;background:transparent;color:var(--text-muted)}
+.mushaf-fs-verse-arabic{display:block;flex:1;min-width:0;padding:0;border:0;background:transparent;color:var(--text-primary);font:28px/2.3 "Amiri Quran","Scheherazade New",serif;text-align:right;direction:rtl;cursor:pointer}
+.mushaf-fs-verse-arabic .mushaf-ayah-number{color:var(--accent,#b69b63)}
+.mushaf-fs-verse-translation{display:block;margin-top:14px;text-align:left;direction:ltr;font:400 16px/1.7 "DM Sans",sans-serif;color:var(--text-secondary,var(--text-muted))}
+.mushaf-fs-verse-translation small{display:block;margin-top:5px;padding:0;background:transparent;font:500 10px/1.4 "DM Sans",sans-serif;color:var(--text-muted)}
+.mushaf-fs-footer{position:relative;width:100%;max-width:900px;height:76px;min-height:76px;margin:0 auto;padding:0 16px;display:flex;align-items:center;justify-content:center;border:0;background:var(--bg-canvas);overflow:visible}
+.mushaf-fs-page-pill{display:flex;align-items:center;justify-content:center;gap:12px;padding:7px 10px;border:1px solid var(--border-hairline);border-radius:999px;background:var(--bg-surface);box-shadow:0 5px 22px rgba(0,0,0,.08)}
+.mushaf-fs-page-pill button{height:38px;min-height:38px;padding:0 13px;border:0;border-radius:999px;background:transparent;color:var(--text-primary);font:500 12px/1 "DM Sans",sans-serif;white-space:nowrap}
+.mushaf-fs-page-pill .mushaf-fs-log-page{background:var(--bg-elevated);font-weight:600}
+.mushaf-fs-page-pill button:disabled{opacity:.35}
+.mushaf-fs-footer>.mushaf-log-message{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:10px}
+.mushaf-fs-arabic--24 .mushaf-fs-verse-arabic{font-size:24px}
+.mushaf-fs-arabic--26 .mushaf-fs-verse-arabic{font-size:26px}
+.mushaf-fs-arabic--28 .mushaf-fs-verse-arabic{font-size:28px}
+.mushaf-fs-arabic--30 .mushaf-fs-verse-arabic{font-size:30px}
+.mushaf-fs-arabic--32 .mushaf-fs-verse-arabic{font-size:32px}
+@media(max-width:700px){
+ .mushaf-fs-header{padding:0 10px;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:5px}
+ .mushaf-fs-surah-trigger{font-size:10px!important;padding:0 4px!important;gap:3px}
+ .mushaf-fs-header-right{gap:4px}
+ .mushaf-fs-header-right .mushaf-mode-switch button{padding:0 6px;font-size:9px}
+ .mushaf-fs-header-right .mushaf-top-font button{padding:0 4px;font-size:10px}
+ .mushaf-fs-view-switch{padding:3px;gap:1px}
+ .mushaf-fs-view-switch button{padding:0 8px;font-size:10px}
+ .mushaf-fs-close{width:28px;height:28px!important;min-height:28px!important}
+ .mushaf-fs-sheet{padding:24px 18px 72px}
+ .mushaf-fs-sheet .mushaf-ayah-flow{font-size:28px;line-height:2.25}
+ .mushaf-fs-verse-row{padding:22px 0}
+ .mushaf-fs-verse-arabic-line{gap:8px}
+ .mushaf-fs-verse-actions{gap:5px}
+ .mushaf-fs-verse-arabic{font-size:26px;line-height:2.2}
+ .mushaf-fs-verse-translation{font-size:15px}
+ .mushaf-fs-page-pill{gap:2px;padding:5px}
+ .mushaf-fs-page-pill button{padding:0 8px;font-size:10px}
+}
+@media(max-width:390px){
+ .mushaf-fs-header{padding:0 5px;gap:2px}
+ .mushaf-fs-surah-trigger{font-size:9px!important}
+ .mushaf-fs-header-right{gap:2px}
+ .mushaf-fs-header-right .mushaf-mode-switch button{padding:0 4px;font-size:8px}
+ .mushaf-fs-view-switch button{padding:0 6px;font-size:9px}
+ .mushaf-fs-sheet{padding-left:14px;padding-right:14px}
+ .mushaf-fs-page-pill button{padding:0 6px;font-size:9px}
 }
 
 `;
