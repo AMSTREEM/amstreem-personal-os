@@ -302,6 +302,13 @@ test('Full-screen Mushaf opens without inline preview and uses a tap-to-toggle A
   assert.ok(reader.includes('mushaf-desktop-sidebar-tabs'));
   assert.ok(reader.includes('mushaf-desktop-page-grid'));
   assert.ok(reader.includes('mushaf-page-desktop-arrows'));
+  assert.match(reader, /readingMode === 'reading' && <div className="mushaf-page-desktop-arrows"/);
+  assert.ok(reader.includes('mushaf-header-autosaved'));
+  assert.doesNotMatch(reader, /mushaf-minimal-page-pill"><b>\{page\}<\/b><span>Auto-saved/);
+  assert.doesNotMatch(reader, /mushaf-hud-autosaved/);
+  assert.ok(reader.includes("fontFamily: \"'Amiri Quran', 'Scheherazade New', serif\""));
+  assert.ok(css.includes('.mushaf-header-autosaved'));
+  assert.ok(css.includes('.mushaf-reading-canvas{padding-bottom:64px}'));
   assert.ok(reader.includes('mushaf-desktop-reading-switch'));
   assert.ok(css.includes('width:280px;min-width:280px'));
   assert.ok(css.includes('@media(min-width:768px)'));
