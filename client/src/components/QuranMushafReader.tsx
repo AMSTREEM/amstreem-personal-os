@@ -12,7 +12,7 @@ type MushafPage = { page: number; juz: number; tajweedComplete?: boolean; qcfAva
 type MushafLineWord = MushafWord & { surahNumber: number; numberInSurah: number };
 const escapeGlyphHtml = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void; autoOpen?: boolean };
-const CACHE_PREFIX = 'atlas_mushaf_page_v7_';
+const CACHE_PREFIX = 'atlas_mushaf_page_v8_';
 const pageMemoryCache = new Map<number, MushafPage>();
 const HIFZ_KEY = 'atlas_hifz_bookmark_v2';
 const MURAJAAH_KEY = 'atlas_murajaah_bookmark_v2';
@@ -194,12 +194,12 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     let cancelled = false;
     setLoading(true); setPageError(''); setPageData(null); setPageInput(String(page));
     const memory = pageMemoryCache.get(page);
-    if (memory?.ayahs?.length && (readingMode !== 'reading' || (memory.tajweedComplete && memory.qcfAvailable && memory.ayahs.every(ayah => ayah.tajweedText && (ayah.words || []).every(word => word.charTypeName === 'end' || word.tajweed))))) { setPageData(memory); setLoading(false); return () => { cancelled = true; }; }
+    if (memory?.ayahs?.length) { setPageData(memory); setLoading(false); return () => { cancelled = true; }; }
     try {
       const cached = localStorage.getItem(CACHE_PREFIX + page);
       if (cached) {
         const parsed = sanitizeMushafPage(JSON.parse(cached) as MushafPage);
-        if (parsed?.ayahs?.length && (readingMode !== 'reading' || (parsed.tajweedComplete && parsed.qcfAvailable && parsed.ayahs.every(ayah => ayah.tajweedText && (ayah.words || []).every(word => word.charTypeName === 'end' || word.tajweed))))) { pageMemoryCache.set(page, parsed); setPageData(parsed); setLoading(false); return () => { cancelled = true; }; }
+        if (parsed?.ayahs?.length) { pageMemoryCache.set(page, parsed); setPageData(parsed); setLoading(false); return () => { cancelled = true; }; }
       }
     } catch { /* ignore unavailable or malformed browser cache */ }
     fetch('/api/quran/page/' + page)
@@ -207,8 +207,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       .then(payload => {
         const result = payload ? sanitizeMushafPage(payload as MushafPage) : undefined;
         if (!result?.ayahs?.length) throw new Error('No Qur’an text was returned for this page.');
-        if (readingMode === 'reading' && (!result.tajweedComplete || !result.qcfAvailable || result.ayahs.some(ayah => !ayah.tajweedText))) throw new Error('Complete colour-coded Tajweed and Madani page data are unavailable for this page. Reconnect and retry; plain text will not be shown as a Tajweed Mushaf.');
-        if (readingMode === 'reading' && (result.ayahs.some(ayah => (ayah.words || []).some(word => word.charTypeName !== 'end' && !word.tajweed)) || new Set(result.ayahs.flatMap(ayah => (ayah.words || []).filter(word => word.charTypeName !== 'end').map(word => word.lineNumber))).size !== 15)) throw new Error('Tajweed word alignment or the 15-line Madani page layout is incomplete. Reconnect and retry.');
         if (cancelled) return;
         pageMemoryCache.set(page, result); setPageData(result); setLoading(false);
         try { localStorage.setItem(CACHE_PREFIX + page, JSON.stringify(result)); } catch { /* retain memory cache */ }
@@ -375,9 +373,9 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
           <div className="mushaf-page-running-header" dir="ltr"><span>{activeSurah?.transliteration || pageData.ayahs[0]?.surahName || 'Al-Qur’an'}</span><span>Juz {pageJuz}</span></div>
           {pageData.ayahs[0]?.numberInSurah === 1 && activeSurah && <div className="mushaf-page-surah-opening"><div className="mushaf-page-surah-title"><span lang="ar" dir="rtl">{activeSurah.arabic}</span><b>{activeSurah.transliteration}</b></div>{activeSurahNumber !== 1 && activeSurahNumber !== 9 && <div className="mushaf-page-bismillah" lang="ar" dir="rtl">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>}</div>}
           <div className="mushaf-page-lines">
-            {readingLines.length === 15 ? readingLines.map(({ lineNumber, words }) => <div className="mushaf-fs-qcf-line" data-line={lineNumber} key={lineNumber} style={{ fontFamily: "'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', serif", fontSize: `${arabicFontSize}px`, fontWeight: 500, letterSpacing: 0, lineHeight: 2.05 }}>{words.map((word, index) => word.charTypeName === 'end' ? <AyahMedallion key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" number={word.numberInSurah}/> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-qcf-word">{renderTajweedMarkup(word.tajweed)}</span>)}</div>) :
+            {readingLines.length === 15 ? readingLines.map(({ lineNumber, words }) => <div className="mushaf-fs-qcf-line" data-line={lineNumber} key={lineNumber} style={{ fontFamily: "'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', serif", fontSize: `${arabicFontSize}px`, fontWeight: 500, letterSpacing: 0, lineHeight: 2.05 }}>{words.map((word, index) => word.charTypeName === 'end' ? <AyahMedallion key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" number={word.numberInSurah}/> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-qcf-word">{renderTajweedMarkup(word.tajweed || word.text)}</span>)}</div>) :
               readingLines.length === 15 ? <div className="mushaf-fs-unicode-lines" dir="rtl">{readingLines.map(({ lineNumber, words }) => <div className="mushaf-fs-qcf-line" key={lineNumber} style={{ fontSize: `${arabicFontSize}px` }}>{words.map((word, index) => word.charTypeName === 'end' ? <AyahMedallion key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" number={word.numberInSurah}/> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index}>{stripAyahEndMarker(word.text)}</span>)}</div>)}</div> :
-              <div className="mushaf-fs-unicode-flow" dir="rtl" lang="ar" style={{ fontSize: `${arabicFontSize}px` }}>{pageData.ayahs.map(ayah => <button type="button" key={ayah.surahNumber + ':' + ayah.numberInSurah} className={'mushaf-ayah ' + (selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah ? 'is-selected' : '')} onClick={event => { event.stopPropagation(); selectAyah(ayah); }} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>{stripAyahEndMarker(ayah.text)}<AyahMedallion className="mushaf-ayah-number" number={ayah.numberInSurah}/></button>)}</div>}
+              <div className="mushaf-fs-unicode-flow" dir="rtl" lang="ar" style={{ fontSize: `${arabicFontSize}px` }}>{pageData.ayahs.map(ayah => <button type="button" key={ayah.surahNumber + ':' + ayah.numberInSurah} className={'mushaf-ayah ' + (selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah ? 'is-selected' : '')} onClick={event => { event.stopPropagation(); selectAyah(ayah); }} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>{renderTajweedMarkup(ayah.tajweedText || ayah.text)}<AyahMedallion className="mushaf-ayah-number" number={ayah.numberInSurah}/></button>)}</div>}
           </div>
           <div className="mushaf-page-number" dir="ltr"><span>{page}</span></div>
         </div>}
