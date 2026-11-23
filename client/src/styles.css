@@ -5445,3 +5445,61 @@ html, body, #root, .app-frame, .main-area, .page-container {
     filter: none !important;
   }
 }
+
+
+/* Mobile rendering + navigation dock correction.
+   Keep the header text out of transformed/filtered compositing layers on iOS.
+   Use a true five-column grid so all four rooms and capture share equal slots. */
+@media (max-width: 767px) {
+  .atlas-workspace-boot {
+    transform: none !important;
+    filter: none !important;
+    -webkit-filter: none !important;
+    will-change: auto !important;
+  }
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 65;
+    transform: none !important;
+    filter: none !important;
+    -webkit-filter: none !important;
+    contain: none !important;
+    background: var(--bg) !important;
+    opacity: 1 !important;
+    isolation: auto;
+  }
+  .topbar-context,
+  .topbar-context b,
+  .mobile-more-trigger {
+    transform: none !important;
+    filter: none !important;
+    -webkit-filter: none !important;
+    opacity: 1 !important;
+    text-shadow: none !important;
+  }
+  .atlas-mobile-dock {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: center;
+    justify-items: stretch;
+    justify-content: center;
+    gap: 0;
+    padding: 7px 8px;
+  }
+  .atlas-mobile-dock__rooms {
+    display: contents;
+  }
+  .atlas-mobile-dock__room {
+    width: 100%;
+    min-width: 0;
+    flex: none;
+    justify-self: stretch;
+    align-self: stretch;
+  }
+  .atlas-mobile-dock__capture {
+    justify-self: center;
+    align-self: center;
+    margin: 0;
+  }
+}
