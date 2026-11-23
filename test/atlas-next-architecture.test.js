@@ -263,6 +263,9 @@ test('Qur’an reader uses Quran.com two-mode chrome, QCF word rendering and stu
   assert.match(server, /word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,position,verse_key,char_type_name/);
   assert.match(server, /QURAN_API_TOKEN/);
   assert.match(server, /QURAN_CLIENT_ID/);
+  assert.match(server, /QURAN_CLIENT_SECRET/);
+  assert.match(server, /oauth2\/token/);
+  assert.match(server, /grant_type: 'client_credentials'/);
   assert.match(server, /font-src 'self'.*verses\.quran\.foundation/);
   assert.match(server, /media-src 'self'.*islamic\.network.*everyayah\.com/);
   assert.match(reader, /fetch\('\/api\/quran\/page\/' \+ page\)/);
