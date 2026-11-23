@@ -199,23 +199,26 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   const currentSurah = QURAN_SURAHS[currentSurahNumber - 1];
   const readerContent = <>
     <header className="mushaf-fs-header">
-      <div className="mushaf-fs-header-left">
-        <button type="button" className="mushaf-fs-surah-trigger" aria-label="Open surah navigation" onClick={() => setDrawerOpen(true)}>
-          <span>{currentSurahNumber}. {currentSurah?.transliteration || 'Al-Fatihah'} · Page {page}</span><span aria-hidden="true">▾</span>
-        </button>
-      </div>
-      <div className="mushaf-fs-view-switch" role="group" aria-label="Qur’an reading mode">
-        <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} aria-pressed={readingMode === 'translation'} onClick={() => setReadingMode('translation')}>Translation</button>
-        <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} aria-pressed={readingMode === 'reading'} onClick={() => setReadingMode('reading')}>Reading</button>
-      </div>
-      <div className="mushaf-fs-header-right">
-        <div className="mushaf-mode-switch mushaf-fs-bookmark-switch" role="group" aria-label="Bookmark mode">
-          <button type="button" className={mode === 'hifz' ? 'is-active' : ''} aria-pressed={mode === 'hifz'} onClick={() => changeMode('hifz')}>Hifz</button>
-          <button type="button" className={mode === 'murajaah' ? 'is-active' : ''} aria-pressed={mode === 'murajaah'} onClick={() => changeMode('murajaah')}>Muraja’ah</button>
+      <div className="mushaf-fs-top-row">
+        <div className="mushaf-fs-header-left">
+          <button type="button" className="mushaf-fs-surah-trigger" aria-label="Open surah navigation" onClick={() => setDrawerOpen(true)}>
+            <span>{currentSurahNumber}. {currentSurah?.transliteration || 'Al-Fatihah'} ▾</span>
+          </button>
+          <span className="mushaf-fs-page-meta">Page {page} · Juz {pageJuz}</span>
         </div>
-        <div className="mushaf-top-font"><button type="button" aria-label="Decrease Arabic font size" onClick={() => changeFontSize(-1)}>A-</button><button type="button" aria-label="Increase Arabic font size" onClick={() => changeFontSize(1)}>A+</button></div>
-        <button type="button" className="mushaf-fs-close" aria-label="Close Mushaf" onClick={() => { setDrawerOpen(false); setFullScreen(false); }}><X size={18}/></button>
+        <div className="mushaf-fs-header-right">
+          <div className="mushaf-mode-switch mushaf-fs-bookmark-switch" role="group" aria-label="Bookmark mode">
+            <button type="button" className={mode === 'hifz' ? 'is-active' : ''} aria-pressed={mode === 'hifz'} onClick={() => changeMode('hifz')}>Hifz</button>
+            <button type="button" className={mode === 'murajaah' ? 'is-active' : ''} aria-pressed={mode === 'murajaah'} onClick={() => changeMode('murajaah')}>Muraja’ah</button>
+          </div>
+          <div className="mushaf-top-font"><button type="button" aria-label="Decrease Arabic font size" onClick={() => changeFontSize(-1)}>A-</button><button type="button" aria-label="Increase Arabic font size" onClick={() => changeFontSize(1)}>A+</button></div>
+          <button type="button" className="mushaf-fs-close" aria-label="Close Mushaf" onClick={() => { setDrawerOpen(false); setFullScreen(false); }}><X size={18}/></button>
+        </div>
       </div>
+      <nav className="mushaf-fs-tabs" aria-label="Qur’an display mode">
+        <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} aria-pressed={readingMode === 'translation'} onClick={() => setReadingMode('translation')}>Verse by Verse</button>
+        <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} aria-pressed={readingMode === 'reading'} onClick={() => setReadingMode('reading')}>Reading</button>
+      </nav>
     </header>
     <div className="mushaf-fs-stage mushaf-reading-layout">
       <main className="mushaf-fs-sheet mushaf-page-wrap" ref={readerRef}>
