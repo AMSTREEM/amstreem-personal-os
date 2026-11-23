@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
-import { ArrowLeft, BookOpen, Check, ChevronDown, ChevronLeft, ChevronRight, Copy, Headphones, Maximize2, Menu, Minus, Pause, Play, Plus, Repeat, Share2, Volume2, WifiOff, X } from 'lucide-react';
+import { ArrowLeft, BookOpen, Check, ChevronLeft, ChevronRight, Copy, Headphones, Maximize2, Menu, Pause, Play, Repeat, Share2, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz } from '../data/quranSurahs';
 import { triggerSparkBurst } from './fx/SparkBurst';
@@ -177,13 +177,11 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   </>;
 
   return <>
-    <section className="mushaf-launch-card"><div><span className="module-kicker">YOUR PRIVATE 604-PAGE MUSHAF</span><h3>Qur’an reading & memorisation</h3><p>Continue at your saved {mode === 'hifz' ? 'Hifz' : 'Muraja’ah'} position, or open the full-screen reader.</p><small>Hifz · page {hifzMark.page} &nbsp; / &nbsp; Muraja’ah · page {murajaahMark.page}</small></div><button type="button" className="button button--primary" onClick={() => setFullScreen(true)}><Maximize2 size={16}/> Open Full-Screen Mushaf</button></section>
+    <section className="mushaf-launch-card"><div><h3>Qur’an reading & memorisation</h3><p>Continue at your saved {mode === 'hifz' ? 'Hifz' : 'Muraja’ah'} position, or open the full-screen reader.</p><small>Hifz · page {hifzMark.page} &nbsp; / &nbsp; Muraja’ah · page {murajaahMark.page}</small></div><button type="button" className="button button--primary" onClick={() => setFullScreen(true)}><Maximize2 size={16}/> Open Full-Screen Mushaf</button></section>
     {fullScreen && <div className="mushaf-fullscreen" role="dialog" aria-modal="true" aria-label="Full-screen Qur’an Mushaf"><style>{mushafStyles}</style>{readerContent}</div>}
     {!fullScreen && <style>{mushafStyles}</style>}
   </>;
 }
-
-function Minimize2Fallback({ full }: { full: boolean }) { return full ? <ArrowLeft size={16}/> : <Maximize2 size={16}/>; }
 
 const mushafStyles = `
 .mushaf-launch-card{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:20px;border:1px solid var(--border-subtle,rgba(255,255,255,.12));border-radius:16px;background:var(--surface-card,rgba(255,255,255,.035))}
