@@ -1,5 +1,4 @@
 {
-  "attribution": "Arabic Uthmani text from Tanzil Project. CC BY 3.0. Reproduce verbatim; retain this notice and link to https://tanzil.net.",
   "pages": {
     "1": {
       "page": 1,
@@ -475,5 +474,6 @@
         }
       ]
     }
-  }
+  },
+  "note": "Offline Arabic seed for pages 1 and 602–604. Canonical Uthmani text and English translation are supplied by the live mirrors when available."
 }
