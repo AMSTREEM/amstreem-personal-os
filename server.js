@@ -292,7 +292,16 @@ app.get('/service-worker.js', (req, res) => {
     })()));
   `);
 });
-app.use(express.static(frontendDist));
+app.use(express.static(frontendDist, {
+  setHeaders(res, filePath) {
+    const relativePath = path.relative(frontendDist, filePath).split(path.sep).join('/');
+    if (relativePath === 'index.html') {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    } else if (relativePath.startsWith('assets/') && /-[a-f0-9]{8,}\.(?:js|css|woff2?|svg|png|jpe?g|webp|ico)$/i.test(path.basename(filePath))) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+  }
+}));
 app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
 // A short per-account queue prevents overlapping requests from overwriting
