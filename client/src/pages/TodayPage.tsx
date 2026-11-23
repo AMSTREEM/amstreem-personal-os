@@ -345,6 +345,20 @@ export function TodayPage() {
             <Link className="residence-pinned-focus" to={'/focus?task=' + task.id} aria-label={'Focus on ' + task.title}><Timer size={13}/> Focus</Link>
           </motion.div>)}</AnimatePresence></div> : <div className="residence-priority-empty">Your pinned priorities will appear here after you save Morning Alignment. <button type="button" className="text-link" onClick={() => setEditingAlignment(true)}>Set today’s plan</button></div>}
         </Card>
+        <Card className="today-tasks-card">
+          <div className="today-section-heading"><div><span className="eyebrow">PROJECTS & TASKS</span><h2>Today's priorities</h2><p>{todayTasks.filter(task => !task.done).length} due today · {openTasks.filter(task => task.due_date && task.due_date < today).length} overdue</p></div><Link className="text-link" to="/projects">Open projects <ArrowRight size={13}/></Link></div>
+          <form className="today-quick-capture" onSubmit={event => { event.preventDefault(); if (quickTask.trim()) addTask.mutate(); }}>
+            <input value={quickTask} onChange={event => setQuickTask(event.target.value)} placeholder="Add a priority for today…" aria-label="New task title" maxLength={180} />
+            <button type="submit" disabled={!quickTask.trim() || addTask.isPending} aria-label="Add task"><Plus size={15}/> Add</button>
+          </form>
+          {addTask.isError && <p className="inline-error">{addTask.error.message}</p>}
+          {priorityTasks.length ? <div className="today-task-list"><AnimatePresence initial={false}>{priorityTasks.map(task => <motion.label layout initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ layout: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 }, opacity: { duration: 0.14 } }} whileTap={{ scale: 0.985 }} className="today-task-row" key={task.id}>
+            <motion.span whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }}><input className="check-control" type="checkbox" checked={!!task.done} onChange={() => toggleTask.mutate(task)} /></motion.span>
+            <span><b>{task.title}</b>{task.detail && <small>{task.detail}</small>}</span><time>{task.due_date ? (task.due_date < today ? 'Overdue · ' : task.due_date === today ? 'Today · ' : '') + new Date(task.due_date + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'No date'}</time>
+          </motion.label>)}</AnimatePresence></div> : <EmptyState title="You're clear for now." detail="Add a priority or open your projects to plan the next step." />}
+          <div className="today-card-footer"><span>{openTasks.length} open across your workspace</span><Link to="/tasks" className="text-link">All tasks <ArrowRight size={13}/></Link></div>
+        </Card>
+
         {religion === 'islam' ? <Card className="residence-faith-card">
           <div className="residence-section-heading"><div><span className="eyebrow">DEEN & REFLECTION</span><h2>Today's Salah</h2><p>{prayerCount} of 5 salah recorded · {rhythmSummary.data?.completed || 0} additional practices completed</p></div><Link to="/values" className="text-link">Open Deen <ArrowRight size={13}/></Link></div>
           <div className="residence-prayer-list">{(deen.data?.prayers || []).map(item => <label className={'residence-prayer ' + (item.completed ? 'is-complete' : '')} key={item.prayer}><input type="checkbox" checked={!!item.completed} onChange={() => togglePrayer.mutate(item)} /><span>{item.prayer}</span><small>{item.completed ? 'Recorded' : 'Not recorded'}</small></label>)}</div>
@@ -367,19 +381,7 @@ export function TodayPage() {
           <div className="today-card-footer"><span>{completedHabits === habitList.length && habitList.length ? 'All habits completed for today' : (habitList.length - completedHabits) + ' remaining today'}</span><Link to="/self-control" className="text-link">Open Self-Control <ArrowRight size={13}/></Link></div>
         </Card>
 
-        <Card className="today-tasks-card">
-          <div className="today-section-heading"><div><span className="eyebrow">PROJECTS & TASKS</span><h2>Today's priorities</h2><p>{todayTasks.filter(task => !task.done).length} due today · {openTasks.filter(task => task.due_date && task.due_date < today).length} overdue</p></div><Link className="text-link" to="/projects">Open projects <ArrowRight size={13}/></Link></div>
-          <form className="today-quick-capture" onSubmit={event => { event.preventDefault(); if (quickTask.trim()) addTask.mutate(); }}>
-            <input value={quickTask} onChange={event => setQuickTask(event.target.value)} placeholder="Add a priority for today…" aria-label="New task title" maxLength={180} />
-            <button type="submit" disabled={!quickTask.trim() || addTask.isPending} aria-label="Add task"><Plus size={15}/> Add</button>
-          </form>
-          {addTask.isError && <p className="inline-error">{addTask.error.message}</p>}
-          {priorityTasks.length ? <div className="today-task-list"><AnimatePresence initial={false}>{priorityTasks.map(task => <motion.label layout initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ layout: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 }, opacity: { duration: 0.14 } }} whileTap={{ scale: 0.985 }} className="today-task-row" key={task.id}>
-            <motion.span whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }}><input className="check-control" type="checkbox" checked={!!task.done} onChange={() => toggleTask.mutate(task)} /></motion.span>
-            <span><b>{task.title}</b>{task.detail && <small>{task.detail}</small>}</span><time>{task.due_date ? (task.due_date < today ? 'Overdue · ' : task.due_date === today ? 'Today · ' : '') + new Date(task.due_date + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'No date'}</time>
-          </motion.label>)}</AnimatePresence></div> : <EmptyState title="You're clear for now." detail="Add a priority or open your projects to plan the next step." />}
-          <div className="today-card-footer"><span>{openTasks.length} open across your workspace</span><Link to="/tasks" className="text-link">All tasks <ArrowRight size={13}/></Link></div>
-        </Card>
+
       </section>
 
       <aside className="residence-side-column">
