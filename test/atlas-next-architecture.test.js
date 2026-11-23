@@ -278,7 +278,7 @@ test('Qur’an reader uses Quran.com two-mode chrome, QCF word rendering and stu
   assert.match(reader, /mushaf-fs-tabs/);
   assert.match(reader, /mushaf-fs-verse-actions/);
   assert.match(reader, /mushaf-fs-verse-copy/);
-  assert.match(reader, /Complete &amp; Log Page/);
+  assert.doesNotMatch(reader, /Complete &amp; Log Page|Log Surah Reading/);
   assert.match(reader, /audio\.play\(\)/);
   assert.match(reader, /Mishary Alafasy/);
   assert.match(reader, /hifz_bookmark/);
@@ -329,7 +329,7 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.match(reader, /font-variant-numeric:tabular-nums/);
   assert.match(reader, /position:absolute;inset:0;display:grid;place-items:center/);
   assert.match(reader, /unicode-bidi:isolate/);
-  assert.ok(reader.includes(String.raw`value.replace(/\u06DD/g, '')`));
+  assert.ok(reader.includes(String.raw`value.replace(/[\u06DD\u06DE\u06E9\u06DF-\u06E8\u06EA-\u06ED]/g, '').trim()`));
   assert.match(reader, /sanitizeMushafPage\(payload as MushafPage\)/);
   assert.match(reader, /document\.documentElement/);
   assert.match(reader, /root\.style\.overflow = 'hidden'/);
@@ -341,7 +341,7 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.match(reader, /Previous Page<\/button>/);
   assert.match(reader, />Next Page <ChevronRight/);
   assert.match(reader, /Bookmark/);
-  assert.match(reader, /Complete &amp; Log Page/);
+  assert.doesNotMatch(reader, /Complete &amp; Log Page|Log Surah Reading/);
   assert.match(reader, /safe-area-inset-bottom/);
   assert.match(reader, /mushaf-fs-qcf-page/);
   assert.match(reader, /mushaf-fs-header/);
@@ -412,12 +412,31 @@ test('Mushaf surah cartouches, calligraphic basmala, searchable index and page-f
 test('Mushaf saves the active page and ayah locally immediately and debounces workspace settings', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   assert.match(reader, /localStorage\.setItem\(key, JSON\.stringify\(mark\)\)/);
-  assert.match(reader, /setSaveStatus\('Saved · Page ' \+ mark\.page\)/);
+  assert.match(reader, /setSaveStatus\('Auto-saved · Page ' \+ mark\.page\)/);
   assert.match(reader, /window\.setTimeout\(\(\) =>/);
   assert.match(reader, /}, 500\)/);
   assert.match(reader, /window\.clearTimeout\(timer\)/);
+  assert.match(reader, /atlas_quran_auto_logged_pages_/);
+  assert.match(reader, /autoLoggedPagesRef/);
+  assert.match(reader, /api\('\/deen\/quran'/);
+  assert.doesNotMatch(reader, /Complete &amp; Log Page|Log Surah Reading/);
   assert.match(reader, /changePage\(item\.pageStart, \{ surahNumber: number, numberInSurah: 1 \}\)/);
   assert.match(reader, /const target = savedAyah \|\| pageData\.ayahs\[0\]/);
   assert.match(reader, /changeReadingMode/);
   assert.match(reader, /mushaf-save-status/);
+});
+
+
+test('Full-Screen Mushaf strips raw Qur’an ornaments, uses uniform 32px SVG medallions, and logs pages automatically', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const css = read('client/src/styles.css');
+  assert.ok(reader.includes(String.raw`value.replace(/[\u06DD\u06DE\u06E9\u06DF-\u06E8\u06EA-\u06ED]/g, '').trim()`));
+  assert.match(reader, /mushaf-ayah-medallion-frame/);
+  assert.doesNotMatch(reader, /Complete &amp; Log Page|Log Surah Reading/);
+  assert.match(reader, /atlas_quran_auto_logged_pages_/);
+  assert.match(reader, /Auto-saved · Page/);
+  assert.match(css, /width: 32px !important/);
+  assert.match(css, /width: min\(360px, 92vw\) !important/);
+  assert.match(css, /overflow-x: hidden !important/);
+  assert.match(css, /padding: 6px 10px/);
 });
