@@ -6,8 +6,11 @@ import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz } from '../
 import { triggerSparkBurst } from './fx/SparkBurst';
 
 type Settings = Record<string, string>;
-type MushafAyah = { number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; translation: string };
-type MushafPage = { page: number; juz: number; ayahs: MushafAyah[]; offlineFallback?: boolean };
+type MushafWord = { text: string; codeV2: string; lineNumber: number; pageNumber: number; position: number; charTypeName: string };
+type MushafAyah = { number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; translation: string; translations?: Array<{ id: number; name: string; text: string }>; words?: MushafWord[] };
+type MushafPage = { page: number; juz: number; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
+type MushafLineWord = MushafWord & { surahNumber: number; numberInSurah: number };
+const escapeGlyphHtml = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void };
 const CACHE_PREFIX = 'atlas_mushaf_page_v3_';
 const pageMemoryCache = new Map<number, MushafPage>();
@@ -38,6 +41,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selected, setSelected] = useState<{ surah: number; ayah: number } | null>(null);
   const [readingMode, setReadingMode] = useState<'translation' | 'reading'>('reading');
+  const [qcfFontStatus, setQcfFontStatus] = useState<'loading' | 'ready' | 'fallback'>('fallback');
   const [fontSize, setFontSize] = useState(() => {
     try { const saved = Number(localStorage.getItem('atlas_mushaf_font_step_v1')); return [24, 26, 28, 30, 32].includes(saved) ? saved : 28; }
     catch { return 28; }
@@ -49,6 +53,16 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   const selectedAyah = pageData?.ayahs.find(item => item.surahNumber === selected?.surah && item.numberInSurah === selected?.ayah) || null;
   const pageJuz = useMemo(() => pageData?.juz || getPageJuz(page) || 1, [pageData, page]);
   const bookmark = mode === 'hifz' ? hifzMark : murajaahMark;
+  const readingLines = useMemo(() => {
+    const grouped = new Map<number, MushafLineWord[]>();
+    for (const ayah of pageData?.ayahs || []) for (const word of ayah.words || []) {
+      if (word.pageNumber !== page || !word.lineNumber) continue;
+      const line = grouped.get(word.lineNumber) || [];
+      line.push({ ...word, surahNumber: ayah.surahNumber, numberInSurah: ayah.numberInSurah });
+      grouped.set(word.lineNumber, line);
+    }
+    return [...grouped.entries()].sort((a,b) => a[0]-b[0]).map(([lineNumber, words]) => ({ lineNumber, words: words.sort((a,b) => a.position-b.position) }));
+  }, [pageData, page]);
   const fontSteps = [24, 26, 28, 30, 32];
   const changeFontSize = (direction: -1 | 1) => setFontSize(current => {
     const index = fontSteps.indexOf(current);
@@ -56,6 +70,18 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     try { localStorage.setItem('atlas_mushaf_font_step_v1', String(next)); } catch { /* storage is optional */ }
     return next;
   });
+
+  useEffect(() => {
+    let cancelled = false;
+    if (readingMode !== 'reading' || !pageData?.qcfAvailable || !pageData.ayahs.some(ayah => ayah.words?.some(word => word.codeV2))) { setQcfFontStatus('fallback'); return; }
+    setQcfFontStatus('loading');
+    const family = 'QCF_P' + page;
+    if ([...document.fonts].some(font => font.family === family && font.status === 'loaded')) { setQcfFontStatus('ready'); return; }
+    const font = new FontFace(family, 'url(https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p' + page + '.woff2)');
+    font.display = 'swap';
+    font.load().then(loaded => { if (!cancelled) { document.fonts.add(loaded); setQcfFontStatus('ready'); } }).catch(() => { if (!cancelled) setQcfFontStatus('fallback'); });
+    return () => { cancelled = true; };
+  }, [page, pageData, readingMode]);
 
   useEffect(() => {
     if (!fullScreen) return;
