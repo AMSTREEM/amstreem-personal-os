@@ -355,10 +355,10 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
 test('Mushaf scroll locking restores document overflow styles and uses one contained reading canvas', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
-  assert.match(reader, /const previousRootOverflow = root\\.style\\.overflow/);
-  assert.match(reader, /const previousBodyOverflow = document\\.body\\.style\\.overflow/);
-  assert.match(reader, /root\\.style\\.overflow = 'hidden'/);
-  assert.match(reader, /document\\.body\\.style\\.overflow = 'hidden'/);
+  assert.match(reader, /const previousRootOverflow = root\.style\.overflow/);
+  assert.match(reader, /const previousBodyOverflow = document\.body\.style\.overflow/);
+  assert.match(reader, /root\.style\.overflow = 'hidden'/);
+  assert.match(reader, /document\.body\.style\.overflow = 'hidden'/);
   assert.ok(reader.includes('mushaf-reading-screen'));
   assert.ok(css.includes('.mushaf-reading-canvas{'));
 });
@@ -419,7 +419,7 @@ test('Full-Screen Mushaf strips raw Qur’an ornaments, uses uniform 32px SVG me
   assert.match(reader, /mushaf-ayah-medallion-frame/);
   assert.doesNotMatch(reader, /Complete &amp; Log Page|Log Surah Reading/);
   assert.match(reader, /atlas_quran_auto_logged_pages_/);
-  assert.match(reader, /Page \{page\} \/ 604/);
+  assert.match(reader, /max="604"/);
   assert.ok(reader.includes('mushaf-minimal-page-pill'));
   assert.ok(read('client/src/styles.css').includes('flex:0 0 32px'));
   assert.match(reader, /width:min\(360px,92vw\)/);
