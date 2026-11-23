@@ -168,8 +168,7 @@ export function AppShell() {
     } else document.title = 'Amstreem Atlas';
     return () => { document.title = 'Amstreem Atlas'; };
   }, [focusActive, focusTimer.kind, focusClock, focusContext, current?.label]);
-  const tabsByRoom = { residence: [], execution: [], growth: [] };
-  const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom] : [];
+  const activeTabs: { label: string; to: string }[] = [];
   return <div className={"app-frame" + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
     <CursorAura/><SparkBurst/><EnergyVortex/>
     <MobileInstallPrompt />
