@@ -79,7 +79,7 @@ test('Daily Rhythm separates planned from completed records and updates Residenc
   assert.match(rhythm, /value:'qada'/);
   assert.match(rhythm, /Jumu’ah checklist/);
   assert.match(rhythm, /P-R-A-Y Reflection|P-R-A-Y REFLECTION/);
-  assert.match(rhythm, /<QuranMushafReader settings=/);
+  assert.match(rhythm, /<QuranMushafReader (?:autoOpen=\{[^}]+\} )?settings=/);
   assert.match(rhythm, /Start Devotional Focus/);
   assert.match(rhythm, /Clarity & Reflection/);
   assert.match(rhythm, /invalidateQueries\(\{ queryKey: \['rhythm-summary'\] \}\)/);
