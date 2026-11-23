@@ -5882,3 +5882,22 @@ html, body, #root, .app-frame, .main-area, .page-container {
  .mushaf-desktop-mode{display:flex;gap:0;padding:2px}
  .mushaf-desktop-mode button{height:25px;padding:0 5px;font-size:8px}
 }
+
+
+/* Uthmani Hafs script with Quran Foundation Tajweed rule colours. */
+.mushaf-fs-verse-arabic,.mushaf-fs-surah-arabic-title,.mushaf-bismillah-ornament b,.mushaf-page-bismillah,.mushaf-page-surah-title span{font-family:"KFGQPC Uthmanic Script HAFS","Amiri Quran",serif!important}
+.mushaf-fs-verse-arabic{font-weight:500;line-height:2.15;word-spacing:2px}
+.mushaf-fs-qcf-line,.mushaf-fs-unicode-flow,.mushaf-fs-unicode-lines{font-family:"KFGQPC Uthmanic Script HAFS","Amiri Quran",serif}
+.tajweed-rule{font:inherit}
+.tajweed-ham_wasl,.tajweed-slnt,.tajweed-laam_shamsiyah{color:#a8a8a8}
+.tajweed-madda_normal{color:#72a0ff}
+.tajweed-madda_permissible{color:#7185ff}
+.tajweed-madda_necessary{color:#7f8cff}
+.tajweed-madda_obligatory,.tajweed-madda_obligatory_mottasel,.tajweed-madda_obligatory_monfasel{color:#8ea4ff}
+.tajweed-qalaqah{color:#ff5b62}
+.tajweed-ikhafa_shafawi{color:#ed78d4}
+.tajweed-ikhafa{color:#c17add}
+.tajweed-iqlab{color:#55c9f5}
+.tajweed-idgham_shafawi,.tajweed-idgham_ghunnah,.tajweed-idgham_wo_ghunnah{color:#80d66a}
+.tajweed-idgham_mutajanisayn,.tajweed-idgham_mutaqaribayn{color:#b7b7b7}
+.tajweed-ghunnah{color:#ff9a4d}
