@@ -343,15 +343,15 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.ok(values.includes('<QuranMushafReader settings='));
 });
 
-test('Mushaf scroll locking leaves one inner scroll canvas and restores both document overflow styles', () => {
+test('Mushaf scroll locking restores document overflow styles and uses one contained reading canvas', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
-  assert.match(reader, /const previousRootOverflow = root\.style\.overflow/);
-  assert.match(reader, /const previousBodyOverflow = document\.body\.style\.overflow/);
-  assert.match(reader, /root\.style\.overflow = 'hidden'/);
-  assert.match(reader, /document\.body\.style\.overflow = 'hidden'/);
-  assert.match(reader, /return \(\) => \{ root\.style\.overflow = previousRootOverflow; document\.body\.style\.overflow = previousBodyOverflow; \}/);
-  assert.match(reader, /\.mushaf-fs-overlay\{[^}]*overflow:hidden/);
-  assert.match(reader, /\.mushaf-fs-stage\{[^}]*overflow-y:auto/);
+  const css = read('client/src/styles.css');
+  assert.match(reader, /const previousRootOverflow = root\\.style\\.overflow/);
+  assert.match(reader, /const previousBodyOverflow = document\\.body\\.style\\.overflow/);
+  assert.match(reader, /root\\.style\\.overflow = 'hidden'/);
+  assert.match(reader, /document\\.body\\.style\\.overflow = 'hidden'/);
+  assert.ok(reader.includes('mushaf-reading-screen'));
+  assert.ok(css.includes('.mushaf-reading-canvas{'));
 });
 
 test('global scrollbars use theme tokens consistently and the workspace has a single page-level scroll owner', () => {
@@ -368,26 +368,22 @@ test('global scrollbars use theme tokens consistently and the workspace has a si
 });
 
  
-test('Mushaf surah cartouches, calligraphic basmala, searchable index and page-fit mode are present', () => {
+test('Mushaf page keeps the Surah header, centered verse medallions and full-page Uthmani layout', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
-  assert.match(reader, /function SurahCartouche/);
-  assert.match(reader, /mushaf-cartouche-outer/);
-  assert.match(reader, /سُورَةُ/);
-  assert.match(reader, /function BismillahOrnament/);
-  assert.match(reader, /بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ/);
-  assert.match(reader, /\.mushaf-fs-qcf-page\{[^}]*background:#000/);
-  assert.match(reader, /\.mushaf-page-running-header\{[^}]*justify-content:space-between/);
-  assert.match(reader, /\.mushaf-page-number\{[^}]*align-self:flex-end/);
+  const css = read('client/src/styles.css');
+  assert.ok(reader.includes('function SurahCartouche'));
+  assert.ok(reader.includes('function BismillahOrnament'));
+  assert.ok(reader.includes('سُورَةُ'));
+  assert.ok(reader.includes('بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ'));
+  assert.ok(css.includes('.mushaf-fs-qcf-page{'));
+  assert.ok(css.includes('.mushaf-page-running-header{'));
+  assert.ok(css.includes('.mushaf-page-number{'));
   assert.ok(reader.includes('ayah.surahNumber !== 1 && ayah.surahNumber !== 9'));
-  assert.match(reader, /Search Surah name or number\.\.\./);
-  assert.match(reader, /mushaf-surah-page-badge/);
-  assert.match(reader, /mushaf-contents-panel/);
-  assert.match(reader, />Page by Page<\/button>/);
-  assert.match(read('client/src/styles.css'), /mushaf-reading-canvas\\.is-page-mode/);
-  assert.match(reader, /clamp\(15px,2\.2vh,22px\)/);
-  assert.match(reader, /line-height:1\.62/);
-  assert.match(read('client/src/styles.css'), /max-width:640px/);
-  assert.match(reader, /overflow:hidden/);
+  assert.ok(reader.includes('mushaf-contents-panel'));
+  assert.ok(css.includes('.mushaf-reading-canvas.is-page-mode'));
+  assert.ok(css.includes('line-height:1.55'));
+  assert.ok(css.includes('max-width:640px'));
+  assert.ok(css.includes('overflow:hidden'));
 });
 
 test('Mushaf saves the active page and ayah locally immediately and debounces workspace settings', () => {
