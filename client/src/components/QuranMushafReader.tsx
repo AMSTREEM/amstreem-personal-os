@@ -644,10 +644,10 @@ const mushafStyles = `
 /* Frosted-glass Surah index with a sticky search surface. */
 .mushaf-surah-drawer--designed{background:color-mix(in srgb,var(--bg-surface) 84%,transparent);backdrop-filter:blur(24px) saturate(145%);-webkit-backdrop-filter:blur(24px) saturate(145%);border-right:1px solid color-mix(in srgb,var(--accent-primary) 24%,var(--border-hairline))}
 .mushaf-surah-drawer--designed .mushaf-surah-drawer-header{position:sticky;top:0;z-index:3;flex:none;background:color-mix(in srgb,var(--bg-surface) 92%,transparent);backdrop-filter:blur(18px);padding:15px 16px}
-.mushaf-surah-search{position:sticky;top:52px,z-index:2;display:flex;align-items:center;gap:9px;margin:10px 12px 0;padding:0 12px;height:42px;flex:none;border:1px solid var(--border-hairline);border-radius:11px;background:color-mix(in srgb,var(--bg-elevated) 88%,transparent);color:var(--text-muted)}
+.mushaf-surah-search{position:sticky;top:52px;z-index:2;display:flex;align-items:center;gap:9px;margin:10px 12px 0;padding:0 12px;height:42px;flex:none;border:1px solid var(--border-hairline);border-radius:11px;background:color-mix(in srgb,var(--bg-elevated) 88%,transparent);color:var(--text-muted)}
 .mushaf-surah-search input{width:100%;min-width:0;height:100%;border:0;outline:0;background:transparent;color:var(--text-primary);font:500 11px "DM Sans",sans-serif}
 .mushaf-surah-search input::placeholder{color:var(--text-muted)}
-.mushaf-surah-drawer--designed .mushaf-drawer-jumps{position:sticky;top:0;z-index:1;background:color-mix(in srgb,var(--bg-surface) 92%,transparent);padding:9px 14px}
+.mushaf-surah-drawer--designed .mushaf-drawer-jumps{position:sticky;top:104px;z-index:1;background:color-mix(in srgb,var(--bg-surface) 92%,transparent);padding:9px 14px}
 .mushaf-surah-drawer--designed .mushaf-surah-list{flex:1;min-height:0;overscroll-behavior:contain;padding:8px 10px 20px}
 .mushaf-surah-drawer--designed .mushaf-surah-list>button{gap:10px;padding:10px;border:1px solid transparent;border-radius:10px}
 .mushaf-surah-drawer--designed .mushaf-surah-list>button.is-current{border-color:color-mix(in srgb,var(--accent-primary) 45%,var(--border-hairline));background:color-mix(in srgb,var(--accent-primary) 11%,var(--bg-elevated));box-shadow:inset 3px 0 var(--accent-primary)}
