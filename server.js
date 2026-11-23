@@ -303,7 +303,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
       qcfAvailable: Boolean(qcfPage?.qcfAvailable),
       tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => Boolean(ayah.tajweedText))
     };
-  })();;
+  })();
   quranPageInflight.set(page, task);
   try {
     const payload = await task;
