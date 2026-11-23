@@ -269,7 +269,7 @@ const buildRevision = String(process.env.RENDER_GIT_COMMIT || process.env.BUILD_
 app.use((req, res, next) => {
   if (req.path === '/' || req.path.toLowerCase().endsWith('.html')) {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-  } else if (req.path.startsWith('/assets/') && /-[a-f0-9]{8,}\.(?:js|css|woff2?|svg|png|jpe?g|webp|ico)$/i.test(path.basename(req.path))) {
+  } else if (req.path.startsWith('/assets/') && /-[A-Za-z0-9_-]{8,}\.(?:js|css|woff2?|svg|png|jpe?g|webp|ico)$/i.test(path.basename(req.path))) {
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   }
   next();
@@ -297,7 +297,7 @@ app.use(express.static(frontendDist, {
     const relativePath = path.relative(frontendDist, filePath).split(path.sep).join('/');
     if (relativePath === 'index.html') {
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-    } else if (relativePath.startsWith('assets/') && /-[a-f0-9]{8,}\.(?:js|css|woff2?|svg|png|jpe?g|webp|ico)$/i.test(path.basename(filePath))) {
+    } else if (relativePath.startsWith('assets/') && /-[A-Za-z0-9_-]{8,}\.(?:js|css|woff2?|svg|png|jpe?g|webp|ico)$/i.test(path.basename(filePath))) {
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     }
   }
@@ -954,6 +954,7 @@ app.get('*',(req,res,next)=>{
   if (!fs.existsSync(frontendEntry)) {
     return res.status(503).type('text/plain').send('Atlas frontend build is missing. Please retry the deployment.');
   }
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.sendFile(frontendEntry, error => { if(error) next(error); });
 });
 
