@@ -40,3 +40,12 @@ test('Qur’an reference contains all 114 Surahs for the 604-page Madani Mushaf'
   assert.deepEqual(juzBoundaries[1], { juz: 2, surah: 2, ayah: 142 });
   assert.deepEqual(juzBoundaries[29], { juz: 30, surah: 78, ayah: 1 });
 });
+
+
+test('Hifz logging clamps ayahs and derives pages and Juz from the selected Surah', () => {
+  const values = fs.readFileSync(path.join(__dirname, '../client/src/pages/ValuesPage.tsx'), 'utf8');
+  assert.match(values, /max=\{selectedSurah\?\.ayahCount \|\| 1\}/);
+  assert.match(values, /getJuzForAyah\(selectedSurah\.number,Number\(bounded\)\)/);
+  assert.match(values, /selectedSurah\.endPage-selectedSurah\.startPage\+1/);
+  assert.match(values, /setPagesManuallyEdited\(true\)/);
+});
