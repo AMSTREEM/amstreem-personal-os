@@ -98,7 +98,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
       const staleKeys: string[] = [];
       for (let index = 0; index < localStorage.length; index += 1) {
         const key = localStorage.key(index);
-        if (key && (/^atlas_mushaf_page_v\\d+_/.test(key) || /^atlas_mushaf_cache_/.test(key) || /^atlas_quran_page_cache_/.test(key))) staleKeys.push(key);
+        if (key && (/^atlas_mushaf_page_v\d+_/.test(key) || /^atlas_mushaf_cache_/.test(key) || /^atlas_quran_page_cache_/.test(key))) staleKeys.push(key);
       }
       staleKeys.forEach(key => localStorage.removeItem(key));
     } catch { /* local storage is optional */ }
@@ -436,7 +436,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
 const mushafStyles = `
 /* Atlas Mushaf — one layout system, isolated from the rest of the workspace. */
 .mushaf-launch-card{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:20px;border:1px solid var(--border-subtle,rgba(255,255,255,.12));border-radius:16px;background:var(--surface-card,rgba(255,255,255,.035))}
-.mushaf-launch-card h3{margin:5px 0;font-size:18px}.mushaf-launch-card p{margin:4px 0;color:var(--text-muted)}.mushaf-launch-card small{color:var(--text-muted);font-size:11px}
+.mushaf-launch-copy{display:grid;gap:6px;min-width:0}.mushaf-launch-card h3{margin:0;font-size:17px}.mushaf-launch-card p{margin:0;color:var(--text-muted);font-size:12px}.mushaf-bookmark-positions{display:flex;flex-wrap:wrap;gap:8px}.mushaf-bookmark-positions span{padding:5px 8px;border:1px solid var(--border-hairline);border-radius:7px;color:var(--text-secondary,var(--text-muted));font:600 10px/1.2 "DM Sans",sans-serif}.mushaf-launch-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.mushaf-launch-actions button{min-height:36px;padding:0 12px;white-space:nowrap}
 .mushaf-fs-overlay,.mushaf-fs-overlay *{box-sizing:border-box}
  .mushaf-fs-overlay{position:fixed;inset:0;z-index:9999;width:100vw;height:100vh;height:100dvh;display:grid;grid-template-rows:40px minmax(0,1fr) 62px;overflow:hidden;background:var(--bg-canvas);color:var(--text-primary);font-family:"DM Sans",system-ui,sans-serif}
 .mushaf-fs-header{width:100%;height:40px;min-height:40px;max-height:40px;padding:0 12px;display:flex;align-items:center;justify-content:space-between;gap:6px;border-bottom:1px solid var(--border-hairline);box-sizing:border-box;background:var(--bg-surface);overflow:hidden}
@@ -448,7 +448,7 @@ const mushafStyles = `
 .mushaf-fs-surah-trigger{min-width:0;max-width:112px;overflow:hidden;text-overflow:ellipsis;border:1px solid var(--border-hairline);border-radius:7px;background:var(--bg-elevated);color:var(--text-primary);font-weight:600}
 .mushaf-fs-page-meta{flex:0 0 auto;color:var(--text-muted);font:500 10px/1 "DM Sans",sans-serif;white-space:nowrap}
 .mushaf-mode-switch{display:flex;align-items:center;gap:2px;padding:2px;border:1px solid var(--border-hairline);border-radius:8px;background:var(--bg-elevated)}
-.mushaf-mode-switch button{border:0;border-radius:5px;background:transparent;color:var(--text-muted);font:600 11px/1 "DM Sans",sans-serif}
+ .mushaf-mode-switch button{border:0;border-radius:5px;background:transparent;color:var(--text-muted);font:600 11.5px/1 "DM Sans",sans-serif}
 .mushaf-mode-switch button.is-active{background:var(--bg-canvas);color:var(--text-primary);box-shadow:0 1px 4px rgba(0,0,0,.1)}
 .mushaf-fs-header-center button{padding:2px 8px}
 .mushaf-top-font{display:flex;align-items:center;gap:2px;flex:0 0 auto}
