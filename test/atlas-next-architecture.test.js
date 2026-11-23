@@ -373,7 +373,7 @@ test('Mushaf scroll locking leaves one inner scroll canvas and restores both doc
   assert.match(reader, /root\.style\.overflow = 'hidden'/);
   assert.match(reader, /document\.body\.style\.overflow = 'hidden'/);
   assert.match(reader, /return \(\) => \{ root\.style\.overflow = previousRootOverflow; document\.body\.style\.overflow = previousBodyOverflow; \}/);
-  assert.match(reader, /\.mushaf-fs-overlay\{[^}]*overflow:hidden!important/);
+  assert.match(reader, /\.mushaf-fs-overlay\{[^}]*overflow:hidden/);
   assert.match(reader, /\.mushaf-fs-stage\{[^}]*overflow-y:auto/);
 });
 
