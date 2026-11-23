@@ -5904,3 +5904,63 @@ html, body, #root, .app-frame, .main-area, .page-container {
  .mushaf-contents-list>button strong{max-width:40px}
 }
 @media(prefers-reduced-motion:reduce){.mushaf-desktop-shell *{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+
+
+/* Open Mushaf canvas: remove enclosing cards without changing the reader controls. */
+.mushaf-reading-screen{background:var(--bg-canvas,var(--m-paper))}
+.mushaf-reading-canvas{background:transparent}
+.mushaf-reading-canvas.is-page-mode,.mushaf-reading-canvas.is-verse-mode{background:transparent}
+.mushaf-fs-verse-list{background:transparent;border:0;border-radius:0;box-shadow:none}
+.mushaf-fs-qcf-page{
+  display:flex;flex-direction:column;justify-content:center;
+  width:min(100%,540px);min-height:calc(100dvh - 52px);
+  margin:0 auto;padding:24px 20px 64px;
+  border:0;border-radius:0;background:transparent;box-shadow:none;
+  color:var(--m-text);overflow:visible;
+}
+.mushaf-page-running-header{border-bottom:0}
+.mushaf-page-surah-opening{gap:8px;padding:8px 0 12px}
+.mushaf-page-surah-title{
+  width:100%;min-height:0;display:flex;flex-direction:column;gap:3px;
+  padding:0;border:0;border-radius:0;background:transparent;
+}
+.mushaf-page-surah-title span{font-size:30px;line-height:1.65}
+.mushaf-page-surah-title b{font-size:11px}
+.mushaf-page-bismillah{padding:2px 0 8px;text-align:center}
+.mushaf-page-lines{width:100%;max-width:100%;overflow:visible}
+.mushaf-page-lines>.mushaf-fs-qcf-line{
+  justify-content:space-between;text-align:justify;text-align-last:center;
+  line-height:2.15!important;word-spacing:3px;white-space:pre;
+}
+.mushaf-fs-qcf-word{word-spacing:3px}
+.mushaf-fs-unicode-flow{
+  width:100%;max-width:100%;line-height:2.15;text-align:justify;
+  text-align-last:center;word-spacing:3px;
+}
+.mushaf-page-number{
+  display:flex;justify-content:center;align-items:center;align-self:center;
+  width:fit-content;margin:18px auto 0;padding:10px 18px 0;
+  border-top:1px solid var(--m-line);color:var(--m-muted);
+  font:500 11px/1.5 "DM Sans",sans-serif;letter-spacing:.04em;
+}
+.mushaf-page-number span{display:block}
+.mushaf-fs-surah-intro{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;margin:0 auto 22px;padding:12px 0;
+  border:0;border-radius:0;background:transparent;box-shadow:none;text-align:center;
+}
+.mushaf-fs-surah-arabic-title{font-size:34px;line-height:1.7}
+.mushaf-fs-surah-intro-copy{display:flex;flex-direction:column;align-items:center;gap:2px}
+.mushaf-fs-surah-intro-copy>span,.mushaf-fs-surah-intro-copy small,
+.mushaf-fs-surah-status{display:none}
+.mushaf-fs-surah-intro-copy h1{margin:0;font-size:14px;font-weight:600}
+.mushaf-fs-surah-intro-copy p{font-size:11px}
+.mushaf-bismillah-ornament{gap:0;margin:14px auto 8px}
+.mushaf-bismillah-ornament>span,.mushaf-bismillah-ornament small{display:none}
+.mushaf-bismillah-ornament b{font-size:26px}
+.mushaf-fs-verse-row{border-bottom:1px solid color-mix(in srgb,var(--m-line) 72%,transparent)}
+@media(max-width:767px){
+  .mushaf-fs-qcf-page{width:100%;min-height:calc(100dvh - 52px);padding:20px 16px 64px}
+  .mushaf-fs-surah-intro{padding:10px 0;margin-bottom:16px}
+  .mushaf-fs-surah-arabic-title{font-size:29px}
+}
