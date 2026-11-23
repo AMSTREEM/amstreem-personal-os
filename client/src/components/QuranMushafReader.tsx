@@ -14,6 +14,7 @@ type MushafAyah = {
 type MushafPage = { ayahs: MushafAyah[] };
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void };
 const CACHE_PREFIX = 'atlas_mushaf_page_v1_';
+const pageMemoryCache = new Map<number, MushafPage>();
 const HIFZ_KEY = 'atlas_hifz_page';
 const MURAJAAH_KEY = 'atlas_murajaah_page';
 const clampPage = (value: number) => Math.max(1, Math.min(604, Number.isInteger(value) ? value : 1));
@@ -63,11 +64,18 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     setPageError('');
     setLogMessage('');
     setPageData(null);
+    const memoryCached = pageMemoryCache.get(page);
+    if (memoryCached?.ayahs?.length) {
+      setPageData(memoryCached);
+      setLoading(false);
+      return () => { cancelled = true; };
+    }
     try {
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
         const parsed = JSON.parse(cached) as MushafPage;
         if (parsed?.ayahs?.length) {
+          pageMemoryCache.set(page, parsed);
           setPageData(parsed);
           setLoading(false);
           return () => { cancelled = true; };
@@ -80,6 +88,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
         const result = payload?.data as MushafPage | undefined;
         if (!result?.ayahs?.length) throw new Error('No Arabic text was returned for this page.');
         if (cancelled) return;
+        pageMemoryCache.set(page, result);
         setPageData(result);
         setLoading(false);
         try { localStorage.setItem(cacheKey, JSON.stringify(result)); } catch { /* keep the in-memory page */ }
