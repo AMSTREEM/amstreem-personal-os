@@ -355,7 +355,10 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.match(reader, /mushaf-fs-page-meta/);
   assert.match(reader, /max-width:580px/);
   assert.match(reader, /max-width:740px/);
-  assert.ok(reader.includes("fontSize: 'min(' + fontSize + 'px, 2.3vh, 5.5vw)'"));
+  assert.ok(reader.includes("fontSize: fontSize + 'px'"));
+  assert.match(reader, /const fontSteps = \[14, 16, 18, 20, 22, 24, 26, 28, 30\]/);
+  assert.match(reader, /grid-template-rows:68px minmax\(0,1fr\) 62px/);
+  assert.match(reader, /grid-template-rows:64px minmax\(0,1fr\) 58px/);
   assert.match(reader, /font-size:25px/);
   assert.doesNotMatch(reader, /showTranslation/);
   assert.match(read('client/index.html'), /Amiri\+Quran/);
