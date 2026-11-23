@@ -258,7 +258,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
     const tajweedByVerse = await fetchOfficialTajweedPage(officialQuranApiBase, quranHeaders, page);
     const completedPage = applyTajweedToPage(pageCandidate, tajweedByVerse);
     if (!completedPage.tajweedComplete) throw new Error('Tajweed text is incomplete for one or more verses on page ' + page + '.');
-    return { ...completedPage, qcfAvailable: Boolean(qcfPage?.qcfAvailable) };
+    return { ...completedPage, qcfAvailable: Boolean(pageCandidate.qcfAvailable) };
   })();
   quranPageInflight.set(page, task);
   try {
