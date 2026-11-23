@@ -24,7 +24,7 @@ const sanitizeMushafPage = (payload: MushafPage): MushafPage => ({
   ayahs: (payload.ayahs || []).map(ayah => ({
     ...ayah, text: stripAyahEndMarker(ayah.text || ''), translation: stripAyahEndMarker(ayah.translation || ''),
     translations: ayah.translations?.map(translation => ({ ...translation, text: stripAyahEndMarker(translation.text || '') })),
-    words: ayah.words?.map(word => ({ ...word, text: stripAyahEndMarker(word.text || ''), codeV2: stripAyahEndMarker(word.codeV2 || '') }))
+    words: ayah.words?.map(word => ({ ...word, text: stripAyahEndMarker(word.text || ''), codeV2: word.codeV2 || '' }))
   }))
 });
 function AyahMedallion({ number, className }: { number: number; className: string }) {
@@ -79,7 +79,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   const [fullScreen, setFullScreen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [surahSearch, setSurahSearch] = useState('');
-  const [saveStatus, setSaveStatus] = useState('');
   const [selected, setSelected] = useState<{ surah: number; ayah: number } | null>(null);
   const [readingMode, setReadingMode] = useState<'translation' | 'reading'>('reading');
   const [qcfFontStatus, setQcfFontStatus] = useState<'loading' | 'ready' | 'fallback'>('fallback');
@@ -164,7 +163,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     const mark = mode === 'hifz' ? hifzMark : murajaahMark;
     const key = mode === 'hifz' ? HIFZ_KEY : MURAJAAH_KEY;
     try { localStorage.setItem(key, JSON.stringify(mark)); } catch { /* storage is optional */ }
-    setSaveStatus('Auto-saved · Page ' + mark.page);
     if (!settingsReady) return;
     const timer = window.setTimeout(() => {
       void api('/settings', json('PATCH', {
@@ -350,7 +348,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
               {surah && <SurahCartouche arabicName={surah.arabicName} englishName={QURAN_SURAHS[surah.surahNumber - 1]?.english || surah.surahName} ayahs={QURAN_SURAHS[surah.surahNumber - 1]?.ayahs || 0} />}
               {surah && surah.surahNumber !== 1 && surah.surahNumber !== 9 && <BismillahOrnament />}
               <div className="mushaf-fs-qcf-line" data-line={lineNumber} style={fontSize === 18 ? undefined : { fontSize: fontSize + 'px' }}>
-                {words.map((word, index) => word.charTypeName === 'end' ? <AyahMedallion key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" number={word.numberInSurah} /> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-qcf-word" style={{ fontFamily: 'QCF_P' + page }} dangerouslySetInnerHTML={{ __html: escapeGlyphHtml(word.codeV2 || word.text) }} />)}
+                {words.map((word, index) => <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className={'mushaf-fs-qcf-word' + (word.charTypeName === 'end' ? ' is-end' : '')} style={{ fontFamily: 'QCF_P' + page }} dangerouslySetInnerHTML={{ __html: escapeGlyphHtml(word.codeV2 || word.text) }} />)}
               </div>
             </Fragment>;
           }) : readingLines.length > 0 ? <div className="mushaf-fs-unicode-lines" dir="rtl">
@@ -404,7 +402,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     <footer className="mushaf-fs-footer">
       <div className="mushaf-fs-page-pill">
         {readingMode === 'reading' && <button type="button" className="mushaf-fs-page-nav" disabled={page <= 1} onClick={() => changePage(page - 1)}><ChevronLeft size={16}/> Previous Page</button>}
-        <span className="mushaf-save-status" role="status">{saveStatus || 'Auto-save enabled'}</span>
+        <span className="mushaf-fs-page-count" aria-live="off">Page {page} / 604</span>
         {readingMode === 'reading' && <button type="button" className="mushaf-fs-page-nav" disabled={page >= 604} onClick={() => changePage(page + 1)}>Next Page <ChevronRight size={16}/></button>}
       </div>
     </footer>
@@ -828,6 +826,59 @@ const mushafStyles = `
  .mushaf-fs-footer .mushaf-fs-page-pill{gap:3px;padding:4px}
  .mushaf-fs-footer .mushaf-fs-page-pill button{padding:6px;font-size:9px}
  .mushaf-fs-footer .mushaf-save-status{padding:5px 7px;font-size:8px}
+}
+
+
+/* Final Quran.com-style QCF rendering: preserve the API's original end glyphs. */
+.mushaf-fs-overlay,
+.mushaf-fs-overlay * { box-sizing:border-box; min-width:0; }
+.mushaf-fs-overlay { width:100vw; max-width:100vw; overflow:hidden; }
+.mushaf-fs-header { width:100%; max-width:none; min-width:0; padding:6px clamp(8px,2vw,20px); overflow:hidden; }
+.mushaf-fs-top-row { width:100%; max-width:900px; min-width:0; gap:8px; }
+.mushaf-fs-header-left,.mushaf-fs-header-right { min-width:0; max-width:100%; }
+.mushaf-fs-header-left { flex:1 1 auto; overflow:hidden; }
+.mushaf-fs-header-right { flex:0 1 auto; gap:6px; }
+.mushaf-fs-surah-trigger { min-width:0; max-width:min(42vw,260px); overflow:hidden; text-overflow:ellipsis; }
+.mushaf-fs-stage { min-width:0; width:100%; max-width:100%; overflow-x:hidden; }
+.mushaf-fs-stage.is-page-by-page { padding:8px clamp(6px,2vw,20px); }
+.mushaf-fs-stage.is-page-by-page .mushaf-fs-sheet { width:100%; max-width:740px; min-width:0; height:100%; min-height:0; max-height:100%; padding:clamp(8px,2vh,22px) clamp(6px,2vw,18px); overflow:hidden; }
+.mushaf-fs-stage.is-page-by-page .mushaf-fs-qcf-page { width:100%; max-width:620px; height:100%; min-height:0; margin:0 auto; display:flex; flex-direction:column; justify-content:space-evenly; align-items:stretch; gap:0; overflow:hidden; }
+.mushaf-fs-stage.is-page-by-page .mushaf-fs-qcf-line { display:flex; flex:0 1 auto; align-items:center; justify-content:space-between; gap:0; width:100%; max-width:100%; min-width:0; min-height:1.45em; overflow:visible; direction:rtl; white-space:nowrap; text-align:initial; line-height:1.5; font-size:clamp(15px,2.15vh,23px); }
+.mushaf-fs-stage.is-page-by-page .mushaf-fs-qcf-word { display:inline; flex:0 0 auto; min-width:0; max-width:none; white-space:pre; font-family:inherit; }
+.mushaf-fs-stage.is-page-by-page .mushaf-fs-qcf-word.is-end { display:inline; font-family:inherit!important; font-size:1em; }
+.mushaf-fs-stage.is-page-by-page .mushaf-surah-cartouche { flex:0 0 auto; width:min(100%,620px); max-width:100%; }
+.mushaf-fs-stage.is-page-by-page .mushaf-bismillah-ornament { flex:0 0 auto; width:min(100%,620px); max-width:100%; }
+.mushaf-fs-footer { width:100%; max-width:none; min-width:0; padding:0 8px; overflow:hidden; }
+.mushaf-fs-footer .mushaf-fs-page-pill { width:min(100%,560px); max-width:100%; min-width:0; display:flex; align-items:center; justify-content:space-between; gap:clamp(3px,1vw,10px); }
+.mushaf-fs-footer .mushaf-fs-page-pill button { min-width:0; max-width:48%; flex:0 1 auto; padding:6px clamp(5px,1.5vw,12px); font-size:clamp(9px,1.4vw,12px); white-space:nowrap; }
+.mushaf-fs-page-count { flex:0 0 auto; color:var(--text-muted); font:500 10px/1 "DM Sans",sans-serif; white-space:nowrap; }
+.mushaf-surah-drawer { width:min(360px,92vw); max-width:92vw; overflow-x:hidden; }
+.mushaf-surah-list,.mushaf-surah-list>button,.mushaf-surah-names { min-width:0; max-width:100%; }
+.mushaf-surah-list>button strong { flex:0 1 auto; max-width:28%; overflow:hidden; }
+.mushaf-surah-cartouche,.mushaf-bismillah-ornament { min-width:0; max-width:100%; }
+.mushaf-surah-cartouche>svg { max-width:100%; }
+@media(max-width:480px) {
+ .mushaf-fs-overlay { grid-template-rows:auto minmax(0,1fr) 58px; }
+ .mushaf-fs-header { min-height:88px; height:auto; gap:2px; padding:4px 5px; }
+ .mushaf-fs-top-row { min-height:44px; height:auto; flex-wrap:nowrap; gap:3px; }
+ .mushaf-fs-header-left { gap:3px; }
+ .mushaf-fs-header-right { gap:2px; }
+ .mushaf-fs-header button { padding:5px 6px; font-size:9px; }
+ .mushaf-fs-surah-trigger { max-width:36vw; font-size:9px!important; }
+ .mushaf-fs-page-meta { font-size:8px; }
+ .mushaf-fs-header-right .mushaf-mode-switch button { padding:4px 5px; font-size:8px; }
+ .mushaf-fs-header-right .mushaf-top-font button { padding:4px; font-size:9px; }
+ .mushaf-fs-close { width:26px; min-width:26px; padding:0!important; }
+ .mushaf-fs-tabs { height:36px; min-height:36px; gap:8px; }
+ .mushaf-fs-tabs button { min-width:0; flex:1 1 0; padding:0 8px; font-size:10px; }
+ .mushaf-fs-stage.is-page-by-page { padding:4px 3px; }
+ .mushaf-fs-stage.is-page-by-page .mushaf-fs-sheet { padding:3px 2px; }
+ .mushaf-fs-stage.is-page-by-page .mushaf-fs-qcf-page { max-width:100%; }
+ .mushaf-fs-stage.is-page-by-page .mushaf-fs-qcf-line { font-size:clamp(13px,2.05vh,18px); line-height:1.42; }
+ .mushaf-fs-footer { height:58px; min-height:58px; }
+ .mushaf-fs-footer .mushaf-fs-page-pill { gap:2px; padding:3px; }
+ .mushaf-fs-footer .mushaf-fs-page-pill button { padding:5px 4px; font-size:8px; }
+ .mushaf-fs-page-count { font-size:8px; }
 }
 
 
