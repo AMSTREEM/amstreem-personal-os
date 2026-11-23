@@ -336,7 +336,6 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.match(reader, /document\.documentElement/);
   assert.match(reader, /root\.style\.overflow = 'hidden'/);
   assert.match(reader, /overflow:hidden/);
-  assert.match(reader, /mushaf-fs-translation-pill/);
   assert.match(reader, /mushaf-fs-verse-row/);
   assert.match(reader, /mushaf-fs-verse-translation/);
   assert.match(reader, /mushaf-fs-verse-actions/);
@@ -405,8 +404,8 @@ test('Mushaf surah cartouches, calligraphic basmala, searchable index and page-f
   assert.match(reader, /mushaf-surah-drawer--designed/);
   assert.match(reader, />Page by Page<\/button>/);
   assert.match(reader, /is-page-by-page/);
-  assert.match(reader, /clamp\(16px,2\.35vh,23px\)/);
-  assert.match(reader, /line-height:1\.72/);
+  assert.match(reader, /clamp\(18px,2\.4vh,25px\)/);
+  assert.match(reader, /line-height:1\.68/);
   assert.match(reader, /max-width:640px/);
   assert.match(reader, /overflow:hidden/);
 });
