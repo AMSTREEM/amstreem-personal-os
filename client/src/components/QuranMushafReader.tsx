@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, BookOpen, Bookmark, Check, ChevronLeft, ChevronRight, Copy, Headphones, Maximize2, Menu, Pause, Play, Repeat, Share2, WifiOff, X } from 'lucide-react';
+import { ArrowLeft, BookOpen, Bookmark, Check, ChevronLeft, ChevronRight, Copy, Maximize2, Menu, Play, Share2, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz } from '../data/quranSurahs';
 import { triggerSparkBurst } from './fx/SparkBurst';
@@ -144,7 +144,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     audio.currentTime = 0;
     void audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
   };
-  const togglePlay = () => { if (playing) { audioRef.current?.pause(); setPlaying(false); } else playAyah(); };
+  
   const copyAyah = async () => {
     if (!selectedAyah) return;
     const surah = QURAN_SURAHS[selectedAyah.surahNumber - 1];
@@ -199,7 +199,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
             </span>;
           })}
         </div>}
-        {!loading && pageData && readingMode === 'translation' && <div className="mushaf-fs-verse-list" dir="ltr" lang="en">
+        {!loading && pageData && readingMode === 'translation' && <div className={`mushaf-fs-verse-list mushaf-fs-arabic mushaf-fs-arabic--${fontSize}`} dir="ltr" lang="en">
           {pageData.ayahs.map((ayah, index) => {
             const beginsSurah = index === 0 || pageData.ayahs[index - 1].surahNumber !== ayah.surahNumber;
             const isSelected = selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah;
@@ -271,6 +271,14 @@ const mushafStyles = `
  .mushaf-surah-drawer{top:0;width:min(330px,92vw)}.mushaf-drawer-scrim{inset:0}
 }
 /* Isolated Full-Screen Mushaf system. Keep this block last to defeat legacy reader styles. */
+.mushaf-fs-arabic--17 .mushaf-fs-verse-arabic{font-size:17px}
+.mushaf-fs-arabic--19 .mushaf-fs-verse-arabic{font-size:19px}
+.mushaf-fs-arabic--21 .mushaf-fs-verse-arabic{font-size:21px}
+.mushaf-fs-arabic--25 .mushaf-fs-verse-arabic{font-size:25px}
+.mushaf-fs-arabic--29 .mushaf-fs-verse-arabic{font-size:29px}
+.mushaf-fs-verse-arabic-line{direction:ltr}
+.mushaf-fs-verse-arabic{direction:rtl;text-align:right}
+
 .mushaf-fs-overlay{position:fixed;inset:0;width:100vw;height:100dvh;z-index:9999;background:var(--bg-canvas);display:grid;grid-template-rows:52px minmax(0,1fr) 60px;overflow:hidden;box-sizing:border-box;font-family:"DM Sans",system-ui,sans-serif}
 .mushaf-fs-overlay *{box-sizing:border-box}
 .mushaf-fs-header{width:100%;max-width:100%;margin:0 auto;height:52px;min-height:52px;padding:0 12px;display:flex;align-items:center;justify-content:center;gap:12px;border-bottom:1px solid var(--border-hairline);background:var(--bg-surface);white-space:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
