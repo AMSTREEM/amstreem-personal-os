@@ -300,7 +300,7 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.deepEqual(Object.keys(offline.pages).sort(), ['1', '602', '603', '604']);
   for (const page of ['1', '602', '603', '604']) assert.ok(offline.pages[page].ayahs.length > 0);
   assert.match(reader, /atlas_mushaf_page_v4_/);
-  assert.match(reader, /const result = payload as MushafPage/);
+  assert.match(reader, /const result = payload \? sanitizeMushafPage\(payload as MushafPage\) : undefined/);
   assert.match(reader, /readingLines = useMemo/);
   assert.match(reader, /word\.pageNumber !== page/);
   assert.match(reader, /word\.lineNumber/);
@@ -329,7 +329,7 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.match(reader, /font-variant-numeric:tabular-nums/);
   assert.match(reader, /position:absolute;inset:0;display:grid;place-items:center/);
   assert.match(reader, /unicode-bidi:isolate/);
-  assert.match(reader, /value\.replace\(\/\\\\u06DD\/g, ''\)/);
+  assert.ok(reader.includes(String.raw`value.replace(/\u06DD/g, '')`));
   assert.match(reader, /sanitizeMushafPage\(payload as MushafPage\)/);
   assert.match(reader, /document\.documentElement/);
   assert.match(reader, /root\.style\.overflow = 'hidden'/);
