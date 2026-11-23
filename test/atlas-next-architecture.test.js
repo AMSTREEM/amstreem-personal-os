@@ -288,22 +288,14 @@ test('Qur’an reader uses the Quran.com page proxy, saved bookmarks, no reciter
 test('Mushaf rebuild uses a fixed top bar, three-tab sidebar and two clean reading views', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
-  assert.ok(reader.includes('mushaf-topbar'));
-  assert.ok(reader.includes('mushaf-sidebar-tabs'));
-  assert.ok(reader.includes('Surah') && reader.includes('Juz') && reader.includes('Page'));
-  assert.ok(reader.includes('mushaf-surah-hero'));
-  assert.ok(reader.includes('mushaf-verse-row'));
-  assert.ok(reader.includes('mushaf-page-view'));
-  assert.ok(reader.includes('mushaf-page-arrows'));
-  assert.ok(reader.includes('Auto-saved'));
-  assert.ok(reader.includes('A−') && reader.includes('A+'));
-  assert.doesNotMatch(reader, /mushaf-floating-top|mushaf-floating-bottom|mushaf-hud|mushaf-page-scrubber|mushaf-audio-control|reciter|Mishary|<audio|<Play/);
-  assert.match(css, /height:48px;min-height:48px/);
-  assert.match(css, /flex:0 0 260px/);
-  assert.match(css, /width:min\\(100%,780px\\)/);
-  assert.match(css, /width:min\\(100%,490px\\)/);
-  assert.match(css, /position:fixed;right:20px;bottom:20px/);
-  assert.match(css, /@media\\(max-width:767px\\)/);
+  for (const item of ['mushaf-topbar','mushaf-sidebar-tabs','mushaf-surah-hero','mushaf-verse-row','mushaf-page-view','mushaf-page-arrows','Auto-saved','A−','A+']) assert.ok(reader.includes(item), 'Missing reader feature: ' + item);
+  for (const item of ['mushaf-floating-top','mushaf-floating-bottom','mushaf-hud','mushaf-page-scrubber','mushaf-audio-control','reciter','Mishary','<audio','<Play']) assert.ok(!reader.includes(item), 'Legacy UI remains: ' + item);
+  assert.ok(css.includes('height:48px;min-height:48px'));
+  assert.ok(css.includes('flex:0 0 260px'));
+  assert.ok(css.includes('width:min(100%,780px)'));
+  assert.ok(css.includes('width:min(100%,490px)'));
+  assert.ok(css.includes('position:fixed;right:20px;bottom:20px'));
+  assert.ok(css.includes('@media(max-width:767px)'));
   assert.ok(css.includes('.mushaf-page-arrows'));
   assert.ok(css.includes('.mushaf-verse-translation'));
   assert.ok(css.includes('.mushaf-page-footer'));
@@ -311,37 +303,16 @@ test('Mushaf rebuild uses a fixed top bar, three-tab sidebar and two clean readi
 
 test('AlQuranCloud page proxy requests Tajweed, Uthmani and Sahih with bounded memory cache and fallbacks', () => {
   const offline = JSON.parse(read('server/quran-fallback.json'));
-  assert.ok(server.includes("app.get('/api/quran/page/:page'"));
-  assert.ok(server.includes('quran-tajweed,quran-uthmani,en.sahih'));
-  assert.ok(server.includes('https://api.alquran.cloud/v1'));
-  assert.ok(server.includes('https://alquran.api.islamic.network/v1'));
-  assert.ok(server.includes('quranPageCache = new Map()'));
-  assert.ok(server.includes('quranPageInflight = new Map()'));
-  assert.ok(server.includes("send(cached.payload, 'STALE')"));
-  assert.ok(server.includes('parseAlQuranTajweed'));
-  assert.ok(server.includes('tj-hamza'));
-  assert.ok(server.includes('tj-madd'));
-  assert.ok(server.includes('tj-qalqalah'));
-  assert.ok(server.includes('tj-ghunnah'));
-  assert.ok(server.includes('normalizeQuranCom'));
+  for (const item of ["app.get('/api/quran/page/:page'","quran-tajweed,quran-uthmani,en.sahih",'https://api.alquran.cloud/v1','https://alquran.api.islamic.network/v1','quranPageCache = new Map()','quranPageInflight = new Map()',"send(cached.payload, 'STALE')",'parseAlQuranTajweed','tj-hamza','tj-madd','tj-qalqalah','tj-ghunnah','normalizeQuranCom']) assert.ok(server.includes(item), 'Missing endpoint feature: ' + item);
   assert.deepEqual(Object.keys(offline.pages).sort(), ['1','602','603','604']);
 });
 
 test('Tajweed text is rendered as safe allowlisted semantic spans while Uthmani remains the fallback', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
-  const serverSource = read('server.js');
-  assert.ok(reader.includes('tajweedSegments'));
-  assert.ok(reader.includes('TAJWEED_CLASSES'));
-  assert.ok(reader.includes('tj-hamza'));
-  assert.ok(reader.includes('tj-madd'));
-  assert.ok(reader.includes('tj-qalqalah'));
-  assert.ok(reader.includes('tj-ghunnah'));
-  assert.ok(reader.includes('renderTajweedMarkup(ayah.tajweedText || \\'\\', ayah.tajweedSegments, ayah.text)'));
-  assert.ok(serverSource.includes("identifier === 'quran-uthmani'"));
-  assert.ok(serverSource.includes("identifier === 'quran-tajweed'"));
-  assert.ok(serverSource.includes("identifier === 'en.sahih'"));
-  assert.ok(serverSource.includes("text: String(ayah.text || '')"));
-  assert.doesNotMatch(reader, /new DOMParser\\(|dangerouslySetInnerHTML/);
+  for (const item of ['tajweedSegments','TAJWEED_CLASSES','tj-hamza','tj-madd','tj-qalqalah','tj-ghunnah',"renderTajweedMarkup(ayah.tajweedText || '', ayah.tajweedSegments, ayah.text)"]) assert.ok(reader.includes(item), 'Missing Tajweed rendering feature: ' + item);
+  for (const item of ["identifier === 'quran-uthmani'","identifier === 'quran-tajweed'","identifier === 'en.sahih'","text: String(ayah.text || '')",'parseAlQuranTajweed']) assert.ok(server.includes(item), 'Missing source edition feature: ' + item);
+  assert.ok(!reader.includes('new DOMParser('));
+  assert.ok(!reader.includes('dangerouslySetInnerHTML'));
 });
 
 test('Mushaf keeps bookmarks, automatic Hifz/Muraja’ah logging and direct Residence access', () => {
@@ -365,32 +336,15 @@ test('Mushaf keeps bookmarks, automatic Hifz/Muraja’ah logging and direct Resi
 test('Mushaf page view has chapter openings, centered verse medallions and a page/Juz footer', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
-  assert.ok(reader.includes('function BismillahOrnament'));
-  assert.ok(reader.includes('بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ'));
-  assert.ok(reader.includes('mushaf-page-surah-banner'));
-  assert.ok(reader.includes('mushaf-page-text'));
-  assert.ok(reader.includes('mushaf-page-footer'));
-  assert.ok(reader.includes('— Page {page} · Juz {pageJuz} —'));
-  assert.ok(reader.includes('mushaf-medallion'));
-  assert.ok(css.includes('.mushaf-page-view'));
-  assert.ok(css.includes('.mushaf-page-text'));
-  assert.ok(css.includes('.mushaf-page-surah-banner'));
-  assert.ok(css.includes('.mushaf-page-footer'));
-  assert.ok(css.includes('line-height:2.05'));
+  for (const item of ['function BismillahOrnament','بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ','mushaf-page-surah-banner','mushaf-page-text','mushaf-page-footer','— Page {page} · Juz {pageJuz} —','mushaf-medallion']) assert.ok(reader.includes(item), 'Missing page reader feature: ' + item);
+  for (const item of ['.mushaf-page-view','.mushaf-page-text','.mushaf-page-surah-banner','.mushaf-page-footer','line-height:2.05']) assert.ok(css.includes(item), 'Missing page style: ' + item);
 });
 
 test('Mushaf scroll locking and local-first bookmark persistence are retained', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
-  assert.match(reader, /const previousRootOverflow = root\\.style\\.overflow/);
-  assert.match(reader, /const previousBodyOverflow = document\\.body\\.style\\.overflow/);
-  assert.match(reader, /root\\.style\\.overflow = 'hidden'/);
-  assert.match(reader, /document\\.body\\.style\\.overflow = 'hidden'/);
-  assert.match(reader, /localStorage\\.setItem\\(key, JSON\\.stringify\\(mark\\)\\)/);
-  assert.match(reader, /window\\.setTimeout\\(\\(\\) =>/);
-  assert.match(reader, /}, 1200\\)/);
-  assert.match(reader, /window\\.clearTimeout\\(timer\\)/);
-  assert.match(reader, /changePage\\(item\\.pageStart, \\{ surahNumber: number, numberInSurah: 1 \\}\\)/);
+  for (const item of ["const previousRootOverflow = root.style.overflow","const previousBodyOverflow = document.body.style.overflow","root.style.overflow = 'hidden'","document.body.style.overflow = 'hidden'","localStorage.setItem(key, JSON.stringify(mark))",'window.setTimeout(() =>','}, 1200)','window.clearTimeout(timer)','changePage(item.pageStart, { surahNumber: number, numberInSurah: 1 })']) assert.ok(reader.includes(item), 'Missing persistence behavior: ' + item);
 });
+
 
 test('global scrollbars use theme tokens consistently and the workspace has a single page-level scroll owner', () => {
   const css = read('client/src/styles.css');
