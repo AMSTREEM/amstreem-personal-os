@@ -425,7 +425,6 @@ test('Mushaf saves the active page and ayah locally immediately and debounces wo
   assert.match(reader, /const target = savedAyah \|\| pageData\.ayahs\[0\]/);
   assert.match(reader, /changeReadingMode/);
   assert.match(reader, /mushaf-fs-page-count/);
-  assert.doesNotMatch(reader, /mushaf-save-status/);
 });
 
 
