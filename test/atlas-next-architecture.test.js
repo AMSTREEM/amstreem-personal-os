@@ -289,9 +289,15 @@ test('Qur’an page proxy falls back across mirrors and serves bundled offline p
   for (const page of ['1', '602', '603', '604']) assert.ok(offline.pages[page].ayahs.length > 0);
   assert.match(reader, /const result = payload as MushafPage/);
   assert.match(reader, /ayah\.surahNumber/);
+  assert.match(reader, /createPortal\([\s\S]*?document\.body/);
+  assert.match(reader, /document\.body\.style\.overflow = 'hidden'/);
   assert.match(reader, /z-index:9999/);
-  assert.match(reader, /mushaf-top-jump/);
-  assert.match(reader, /720px/);
+  assert.match(reader, /mushaf-surah-banner/);
+  assert.match(reader, /mushaf-bismillah/);
+  assert.match(reader, /﴿/);
+  assert.match(reader, /height:56px/);
+  assert.match(reader, /max-width:680px/);
+  assert.match(reader, /safe-area-inset-bottom/);
   assert.match(values, /PageHeader[\s\S]*?deen-tradition-switcher/);
   assert.match(values, /RhythmConstellation\/>[\s\S]*?Choose faith workspace/);
   assert.doesNotMatch(values, /YOUR FAITH & REFLECTION SPACE/);
