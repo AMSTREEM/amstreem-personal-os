@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { BookOpen, ChevronLeft, ChevronRight, WifiOff } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz } from '../data/quranSurahs';
@@ -100,7 +100,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   const changeMode = (next: 'hifz' | 'murajaah') => {
     if (next === mode) return;
     setMode(next);
-    changePage(next === 'hifz' ? hifzPage : murajaahPage);
+    setPage(next === 'hifz' ? hifzPage : murajaahPage);
   };
   const jumpSurah = (number: number) => {
     const item = QURAN_SURAHS[number - 1];
@@ -110,7 +110,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     const start = QURAN_JUZ_STARTS[number - 1];
     if (start) changePage(getAyahLocation(start[1], start[2])?.page || 1);
   };
-  const logPage = async (event: React.MouseEvent<HTMLButtonElement>) => {
+  const logPage = async (event: MouseEvent<HTMLButtonElement>) => {
     if (!pageData?.ayahs?.length || logging) return;
     setLogging(true);
     setLogMessage('');
