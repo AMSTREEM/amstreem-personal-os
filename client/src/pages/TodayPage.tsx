@@ -48,6 +48,13 @@ function readTimer(): StoredTimer {
   } catch { /* A malformed local timer should not break Residence. */ }
   return { remaining: 25 * 60, deadline: null };
 }
+function readHifzPage() {
+  try {
+    const bookmark = JSON.parse(localStorage.getItem('atlas_hifz_bookmark_v2') || '{}');
+    const page = Number(bookmark.page);
+    return Number.isInteger(page) && page >= 1 && page <= 604 ? page : 1;
+  } catch { return 1; }
+}
 function formatMinutes(minutes: number) {
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
@@ -62,6 +69,7 @@ export function TodayPage() {
   const [selectedPriorityId, setSelectedPriorityId] = useState<number | null>(null);
   const [ritualMode,setRitualMode]=useState<'morning'|'evening'|null>(null);
   const [artifactOpen,setArtifactOpen]=useState(false);
+  const [hifzPage] = useState(readHifzPage);
   const [wallClock, setWallClock] = useState(() => Date.now());
   const today = todayKey();
   const localHour = Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',hourCycle:'h23'}).format(new Date()));
@@ -257,6 +265,7 @@ export function TodayPage() {
       : rhythm === 'morning' ? <><div><span className="eyebrow">SET YOUR DIRECTION</span><b>{religion === 'islam' ? prayerCount + ' of 5 prayers recorded so far' : priorityTasks.length ? 'Your first priorities are ready' : 'Choose your first priority'}</b><p>{priorityTasks.length ? priorityTasks.slice(0,3).map(task => task.title).join(' · ') : 'Keep the start of the day simple: intention, one anchor, and a meaningful next step.'}</p></div><Link to={religion === 'islam' ? '/values' : '/tasks'}>{religion === 'islam' ? 'Open Deen' : 'Set priorities'} <ArrowRight size={13}/></Link></>
       : rhythm === 'day' ? <><div><span className="eyebrow">PROTECT DEEP WORK</span><b>{openTasks.length} open priorities · {totalLessons ? completedLessons + '/' + totalLessons + ' lessons complete' : 'Learning progress when you add a path'}</b><p>{focusRunning ? 'Your focus block is already underway. Keep your attention on the current session.' : 'Choose one important task, then give it a protected block of attention.'}</p></div><Link to={focusRunning ? '/focus' : '/tasks'}>{focusRunning ? 'Return to focus' : 'Choose a task'} <ArrowRight size={13}/></Link></>
       : <><div><span className="eyebrow">CLOSE THE DAY GENTLY</span><b>{pendingHabits} habits remaining{religion === 'islam' ? ' · ' + (5-prayerCount) + ' prayers not yet recorded' : ''}</b><p>{tomorrowTasks.length ? tomorrowTasks.length + ' task' + (tomorrowTasks.length === 1 ? '' : 's') + ' already planned for tomorrow.' : 'Review today honestly, then leave tomorrow one clear next step.'}</p></div><Link to="/reviews">Open daily reflection <ArrowRight size={13}/></Link></>}
+    {religion === 'islam' && <Link className="residence-quran-resume" to="/values?openMushaf=1"><BookOpen size={15}/> Continue Qur’an · Hifz P.{hifzPage} <ArrowRight size={13}/></Link>}
     </section>
       <section className="residence-day-ribbon" aria-label="Day progress">
         <div className="residence-day-ribbon__head"><span>DAY PROGRESS</span><b>{timeParts.find(item => item.type === 'hour')?.value}:{timeParts.find(item => item.type === 'minute')?.value} <small>WAT</small></b></div>
