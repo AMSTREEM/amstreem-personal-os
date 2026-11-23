@@ -11,7 +11,7 @@ type MushafAyah = { number: number; numberInSurah: number; surahNumber: number; 
 type MushafPage = { page: number; juz: number; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
 type MushafLineWord = MushafWord & { surahNumber: number; numberInSurah: number };
 const escapeGlyphHtml = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void };
+type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void; autoOpen?: boolean };
 const CACHE_PREFIX = 'atlas_mushaf_page_v5_';
 const pageMemoryCache = new Map<number, MushafPage>();
 const HIFZ_KEY = 'atlas_hifz_bookmark_v2';
@@ -58,7 +58,7 @@ function BismillahOrnament() {
 }
 const readBookmark = (key: string) => { try { const value = JSON.parse(localStorage.getItem(key) || '{}'); return { page: clampPage(Number(value.page) || 1), surah: Number(value.surah) || 1, ayah: Number(value.ayah) || 1 }; } catch { return { page: 1, surah: 1, ayah: 1 }; } };
 function lagosDate() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
-export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) {
+export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen = false }: Props) {
   const [mode, setMode] = useState<'hifz' | 'murajaah'>('hifz');
   const [hifzMark, setHifzMark] = useState(() => readBookmark(HIFZ_KEY));
   const [murajaahMark, setMurajaahMark] = useState(() => readBookmark(MURAJAAH_KEY));
@@ -300,6 +300,12 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     setLoading(true); setPageData(null); setPageError('');
     setFullScreen(true);
   };
+  const autoOpenHandled = useRef(false);
+  useEffect(() => {
+    if (!autoOpen || !settingsReady || autoOpenHandled.current) return;
+    autoOpenHandled.current = true;
+    openReader('hifz');
+  }, [autoOpen, settingsReady]);
   const changeReadingMode = (next: 'translation' | 'reading') => { if (next !== readingMode) { updateBookmark(page, selectedAyah); setReadingMode(next); } };
   const jumpSurah = (number: number) => { const item = QURAN_SURAHS[number - 1]; if (item) { changePage(item.pageStart, { surahNumber: number, numberInSurah: 1 }); setDrawerOpen(false); setSurahSearch(''); } };
   const jumpJuz = (number: number) => { const start = QURAN_JUZ_STARTS[number - 1]; if (start) changePage(getAyahLocation(start[1], start[2])?.page || 1); };
