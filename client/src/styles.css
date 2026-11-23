@@ -5769,3 +5769,11 @@ html, body, #root, .app-frame, .main-area, .page-container {
 
 @media(min-width:768px){.mushaf-fs-surah-arabic-title{display:block;margin:8px 0;color:#e8d9b5;font:400 34px/1.6 "Amiri Quran","Noto Naskh Arabic",serif}.mushaf-fs-surah-intro{max-width:820px}.mushaf-fs-verse-arabic{font-size:30px;line-height:2}}
 @media(max-width:767px){.mushaf-hud-autosaved{flex:0 0 auto;color:#9cdaa9;font:500 9px "DM Sans",sans-serif;white-space:nowrap}}
+
+/* Final Mushaf polish: keep page controls mode-specific and status out of the text area. */
+.mushaf-header-autosaved{display:inline-flex;align-items:center;min-height:20px;padding:0 8px;border:1px solid rgba(110,190,130,.2);border-radius:999px;background:rgba(72,150,91,.1);color:#9bd5a7;font:500 10px/1 "DM Sans",sans-serif;white-space:nowrap}
+.mushaf-reading-canvas{padding-bottom:64px}
+.mushaf-reading-canvas.is-page-mode{padding-bottom:64px}
+.mushaf-fs-qcf-line{font-family:"Amiri Quran","Scheherazade New",serif}
+.mushaf-fs-qcf-word{font-family:inherit}
+@media(min-width:768px){.mushaf-reading-canvas.is-page-mode{padding-bottom:64px}.mushaf-minimal-page-pill{bottom:14px}}
