@@ -348,7 +348,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
               {surah && <SurahCartouche arabicName={surah.arabicName} englishName={QURAN_SURAHS[surah.surahNumber - 1]?.english || surah.surahName} ayahs={QURAN_SURAHS[surah.surahNumber - 1]?.ayahs || 0} />}
               {surah && surah.surahNumber !== 1 && surah.surahNumber !== 9 && <BismillahOrnament />}
               <div className="mushaf-fs-qcf-line" data-line={lineNumber} style={fontSize === 18 ? undefined : { fontSize: fontSize + 'px' }}>
-                {words.map((word, index) => <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className={'mushaf-fs-qcf-word' + (word.charTypeName === 'end' ? ' is-end' : '')} style={{ fontFamily: 'QCF_P' + page }} dangerouslySetInnerHTML={{ __html: escapeGlyphHtml(word.codeV2 || word.text) }} />)}
+                {words.map((word, index) => <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className={'mushaf-fs-qcf-word' + (word.charTypeName === 'end' ? ' is-end' : '')} style={{ fontFamily: 'QCF_P' + page, fontSize: 'min(' + fontSize + 'px, 2.35vh, 3.8vw)' }} dangerouslySetInnerHTML={{ __html: escapeGlyphHtml(word.codeV2 || word.text) }} />)}
               </div>
             </Fragment>;
           }) : readingLines.length > 0 ? <div className="mushaf-fs-unicode-lines" dir="rtl">
