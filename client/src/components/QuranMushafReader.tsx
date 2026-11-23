@@ -8,7 +8,7 @@ import { triggerSparkBurst } from './fx/SparkBurst';
 type Settings = Record<string, string>;
 type MushafWord = { text: string; tajweed: string; codeV2: string; lineNumber: number; pageNumber: number; position: number; charTypeName: string };
 type MushafAyah = { number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; tajweedText?: string; translation: string; translations?: Array<{ id: number; name: string; text: string }>; words?: MushafWord[] };
-type MushafPage = { page: number; juz: number; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
+type MushafPage = { page: number; juz: number; tajweedComplete?: boolean; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
 type MushafLineWord = MushafWord & { surahNumber: number; numberInSurah: number };
 const escapeGlyphHtml = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void; autoOpen?: boolean };
