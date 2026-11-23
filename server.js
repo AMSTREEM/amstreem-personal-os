@@ -280,7 +280,7 @@ app.use((req, res, next) => {
 app.get('/service-worker.js', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.type('application/javascript').send(`
-    const CACHE_VERSION = 'atlas-shell-\${buildRevision}';
+    const CACHE_VERSION = 'atlas-shell-${buildRevision}';
     self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));
     self.addEventListener('activate', event => event.waitUntil((async () => {
       const keys = await caches.keys();
