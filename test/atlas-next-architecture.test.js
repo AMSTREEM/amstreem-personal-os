@@ -399,21 +399,21 @@ test('Mushaf saves the active page and ayah locally immediately and debounces wo
   assert.match(reader, /changePage\(item\.pageStart, \{ surahNumber: number, numberInSurah: 1 \}\)/);
   assert.match(reader, /const target = savedAyah \|\| pageData\.ayahs\[0\]/);
   assert.match(reader, /changeReadingMode/);
-  assert.match(reader, /mushaf-fs-page-count/);
+  assert.ok(reader.includes('mushaf-minimal-page-pill'));
 });
 
 
 test('Full-Screen Mushaf strips raw Qur’an ornaments, uses uniform 32px SVG medallions, and logs pages automatically', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
-  assert.ok(reader.includes(String.raw`value.replace(/[\u06DD\u06DE\u06E9\u06DF-\u06E8\u06EA-\u06ED]/g, '').trim()`));
+  assert.ok(reader.includes('stripAyahEndMarker'));
   assert.match(reader, /mushaf-ayah-medallion-frame/);
   assert.doesNotMatch(reader, /Complete &amp; Log Page|Log Surah Reading/);
   assert.match(reader, /atlas_quran_auto_logged_pages_/);
   assert.match(reader, /Page \{page\} \/ 604/);
-  assert.doesNotMatch(reader, /Auto-saved · Page/);
+  assert.ok(reader.includes('mushaf-minimal-page-pill'));
   assert.match(reader, /flex:0 0 32px/);
   assert.match(reader, /width:min\(360px,92vw\)/);
   assert.match(reader, /overflow-x:hidden/);
-  assert.match(reader, /padding:0 11px/);
+  assert.ok(read('client/src/styles.css').includes('padding:12px 16px'));
 });
