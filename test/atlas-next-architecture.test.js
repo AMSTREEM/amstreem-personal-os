@@ -495,7 +495,7 @@ test('Quran.com-inspired Mushaf chrome, reading proportions and mobile quick acc
   assert.match(reader, /window\.matchMedia\('\(min-width: 768px\)'\)\.matches/);
   assert.match(css, /height:50px;min-height:50px/);
   assert.match(css, /width:270px;min-width:270px/);
-  assert.match(css, /max-width:780px/);
+  assert.match(css, /width:min\(100%,780px\)/);
   assert.match(css, /width:min\(100%,640px\)/);
   assert.match(css, /position:fixed;right:22px;bottom:22px/);
   assert.match(css, /mushaf-mobile-sidebar-scrim/);
