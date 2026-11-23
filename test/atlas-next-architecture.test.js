@@ -301,7 +301,7 @@ test('Qur’an page proxy falls back across mirrors and serves bundled offline p
   assert.match(reader, /atlas_mushaf_font_step_v1/);
   assert.match(reader, /line-height:1\.85/);
   assert.match(reader, /height:54px/);
-  assert.match(reader, /setShowTranslation\(false\)/);
+  assert.match(reader, /useState\(false\)/);
   assert.match(reader, /safe-area-inset-bottom/);
   assert.match(values, /PageHeader[\s\S]*?deen-tradition-switcher/);
   assert.match(values, /RhythmConstellation\/>[\s\S]*?Choose faith workspace/);
