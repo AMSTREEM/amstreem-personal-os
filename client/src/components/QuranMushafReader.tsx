@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeft, BookOpen, Bookmark, Check, ChevronLeft, ChevronRight, Copy, Maximize2, Menu, Play, Share2, WifiOff, X } from 'lucide-react';
+import { ArrowLeft, BookOpen, Bookmark, Check, ChevronLeft, ChevronRight, Copy, Maximize2, Menu, Play, Search, Share2, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz } from '../data/quranSurahs';
 import { triggerSparkBurst } from './fx/SparkBurst';
@@ -36,6 +36,26 @@ function AyahMedallion({ number, className }: { number: number; className: strin
     <span className="mushaf-fs-ayah-number-text">{arabicNumber(number)}</span>
   </span>;
 }
+function SurahCartouche({ arabicName, englishName, ayahs }: { arabicName: string; englishName: string; ayahs: number }) {
+  return <div className="mushaf-surah-cartouche" role="group" aria-label={englishName + ', ' + ayahs + ' ayahs'}>
+    <svg viewBox="0 0 620 74" preserveAspectRatio="none" aria-hidden="true">
+      <path className="mushaf-cartouche-outer" d="M8 37 27 8H593L612 37 593 66H27Z"/>
+      <path className="mushaf-cartouche-inner" d="M18 37 33 15H587L602 37 587 59H33Z"/>
+      <path className="mushaf-cartouche-flourish" d="M38 37h42m-28-8 8 8-8 8m528-8h-42m28-8-8 8 8 8M310 5l7 7-7 7-7-7Z"/>
+    </svg>
+    <div className="mushaf-surah-cartouche-copy">
+      <b lang="ar" dir="rtl">{arabicName}</b>
+      <span>{englishName} <i>·</i> {ayahs} Ayahs</span>
+    </div>
+  </div>;
+}
+function BismillahOrnament() {
+  return <div className="mushaf-bismillah-ornament" lang="ar" dir="rtl">
+    <span aria-hidden="true"/>
+    <b>بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</b>
+    <span aria-hidden="true"/>
+  </div>;
+}
 const readBookmark = (key: string) => { try { const value = JSON.parse(localStorage.getItem(key) || '{}'); return { page: clampPage(Number(value.page) || 1), surah: Number(value.surah) || 1, ayah: Number(value.ayah) || 1 }; } catch { return { page: 1, surah: 1, ayah: 1 }; } };
 function lagosDate() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
 const reciters = [
@@ -57,12 +77,14 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   const [logMessage, setLogMessage] = useState('');
   const [fullScreen, setFullScreen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [surahSearch, setSurahSearch] = useState('');
+  const [saveStatus, setSaveStatus] = useState('');
   const [selected, setSelected] = useState<{ surah: number; ayah: number } | null>(null);
   const [readingMode, setReadingMode] = useState<'translation' | 'reading'>('reading');
   const [qcfFontStatus, setQcfFontStatus] = useState<'loading' | 'ready' | 'fallback'>('fallback');
   const [fontSize, setFontSize] = useState(() => {
-    try { const saved = Number(localStorage.getItem('atlas_mushaf_font_step_v1')); return [24, 26, 28, 30, 32].includes(saved) ? saved : 28; }
-    catch { return 28; }
+    try { const saved = Number(localStorage.getItem('atlas_mushaf_font_step_v1')); return [18, 20, 22, 24, 26].includes(saved) ? saved : 18; }
+    catch { return 18; }
   });
   const [reciter, setReciter] = useState('ar.alafasy');
   const [pageInput, setPageInput] = useState(String(page));
@@ -81,7 +103,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     }
     return [...grouped.entries()].sort((a,b) => a[0]-b[0]).map(([lineNumber, words]) => ({ lineNumber, words }));
   }, [pageData, page]);
-  const fontSteps = [24, 26, 28, 30, 32];
+  const fontSteps = [18, 20, 22, 24, 26];
   const changeFontSize = (direction: -1 | 1) => setFontSize(current => {
     const index = fontSteps.indexOf(current);
     const next = fontSteps[Math.max(0, Math.min(fontSteps.length - 1, (index < 0 ? 2 : index) + direction))];
@@ -140,11 +162,16 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     const mark = mode === 'hifz' ? hifzMark : murajaahMark;
     const key = mode === 'hifz' ? HIFZ_KEY : MURAJAAH_KEY;
     try { localStorage.setItem(key, JSON.stringify(mark)); } catch { /* storage is optional */ }
-    void api('/settings', json('PATCH', {
-      [mode === 'hifz' ? 'hifz_page' : 'murajaah_page']: String(mark.page),
-      [mode === 'hifz' ? 'hifz_bookmark' : 'murajaah_bookmark']: JSON.stringify(mark)
-    })).catch(() => undefined);
-  }, [mode, hifzMark, murajaahMark]);
+    setSaveStatus('Saved · Page ' + mark.page);
+    if (!settingsReady) return;
+    const timer = window.setTimeout(() => {
+      void api('/settings', json('PATCH', {
+        [mode === 'hifz' ? 'hifz_page' : 'murajaah_page']: String(mark.page),
+        [mode === 'hifz' ? 'hifz_bookmark' : 'murajaah_bookmark']: JSON.stringify(mark)
+      })).catch(() => undefined);
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [mode, hifzMark, murajaahMark, settingsReady]);
 
   useEffect(() => {
     let cancelled = false;
@@ -174,11 +201,15 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   const updateBookmark = useCallback((nextPage: number, ayah?: MushafAyah | null) => {
     const current = mode === 'hifz' ? hifzMark : murajaahMark;
     const next = { page: clampPage(nextPage), surah: ayah?.surahNumber ?? current.surah, ayah: ayah?.numberInSurah ?? current.ayah };
+    if (current.page === next.page && current.surah === next.surah && current.ayah === next.ayah) return;
     if (mode === 'hifz') setHifzMark(next); else setMurajaahMark(next);
   }, [mode, hifzMark, murajaahMark]);
-  const changePage = (next: number) => { const value = clampPage(next); setPage(value); setSelected(null); updateBookmark(value, null); };
-  const changeMode = (next: 'hifz' | 'murajaah') => { if (next !== mode) setMode(next); };
-  const jumpSurah = (number: number) => { const item = QURAN_SURAHS[number - 1]; if (item) { changePage(item.pageStart); setSelected({ surah: number, ayah: 1 }); setDrawerOpen(false); } };
+  const changePage = (next: number, location?: { surahNumber: number; numberInSurah: number }) => {
+    const value = clampPage(next); setPage(value); setSelected(location ? { surah: location.surahNumber, ayah: location.numberInSurah } : null);
+    updateBookmark(value, location ? { surahNumber: location.surahNumber, numberInSurah: location.numberInSurah } as MushafAyah : null);
+  };
+  const changeMode = (next: 'hifz' | 'murajaah') => { if (next !== mode) { const active = mode === 'hifz' ? hifzMark : murajaahMark; updateBookmark(active.page, { surahNumber: active.surah, numberInSurah: active.ayah } as MushafAyah); setMode(next); } };
+  const jumpSurah = (number: number) => { const item = QURAN_SURAHS[number - 1]; if (item) { changePage(item.pageStart, { surahNumber: number, numberInSurah: 1 }); setDrawerOpen(false); setSurahSearch(''); } };
   const jumpJuz = (number: number) => { const start = QURAN_JUZ_STARTS[number - 1]; if (start) changePage(getAyahLocation(start[1], start[2])?.page || 1); };
   const selectAyah = (ayah: MushafAyah) => { setSelected({ surah: ayah.surahNumber, ayah: ayah.numberInSurah }); updateBookmark(page, ayah); };
   const playAyah = (ayah = selectedAyah) => {
@@ -216,13 +247,20 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     } catch (error) { setLogMessage(error instanceof Error ? error.message : 'Could not log this page.'); }
     finally { setLogging(false); }
   };
+  useEffect(() => {
+    if (!pageData?.ayahs?.length || loading) return;
+    const savedAyah = pageData.ayahs.find(ayah => ayah.surahNumber === bookmark.surah && ayah.numberInSurah === bookmark.ayah);
+    const target = savedAyah || pageData.ayahs[0];
+    if (!savedAyah) setSelected({ surah: target.surahNumber, ayah: target.numberInSurah });
+    updateBookmark(page, target);
+  }, [pageData, loading, page, bookmark.surah, bookmark.ayah, bookmark.page, updateBookmark]);
   const currentSurahNumber = pageData?.ayahs?.[0]?.surahNumber || bookmark.surah || 1;
   const currentSurah = QURAN_SURAHS[currentSurahNumber - 1];
   const readerContent = <>
     <header className="mushaf-fs-header">
       <div className="mushaf-fs-top-row">
         <div className="mushaf-fs-header-left">
-          <button type="button" className="mushaf-fs-surah-trigger" aria-label="Open surah navigation" onClick={() => setDrawerOpen(true)}>
+          <button type="button" className="mushaf-fs-surah-trigger" aria-label="Open surah navigation" onClick={() => { setDrawerOpen(true); setSurahSearch(''); }}>
             <span>{currentSurahNumber}. {currentSurah?.transliteration || 'Al-Fatihah'} ▾</span>
           </button>
           <span className="mushaf-fs-page-meta">Page {page} · Juz {pageJuz}</span>
@@ -238,10 +276,10 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
       </div>
       <nav className="mushaf-fs-tabs" aria-label="Qur’an display mode">
         <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} aria-pressed={readingMode === 'translation'} onClick={() => setReadingMode('translation')}>Verse by Verse</button>
-        <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} aria-pressed={readingMode === 'reading'} onClick={() => setReadingMode('reading')}>Reading</button>
+        <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} aria-pressed={readingMode === 'reading'} onClick={() => setReadingMode('reading')}>Page by Page</button>
       </nav>
     </header>
-    <div className="mushaf-fs-stage mushaf-reading-layout">
+    <div className={'mushaf-fs-stage mushaf-reading-layout ' + (readingMode === 'reading' ? 'is-page-by-page' : 'is-verse-by-verse')}>
       <main className="mushaf-fs-sheet mushaf-page-wrap" ref={readerRef}>
         {loading && <p className="mushaf-loading" role="status">Loading Mushaf page {page}…</p>}
         {!loading && pageError && <div className="mushaf-error" role="alert"><WifiOff size={24}/><p>{pageError}</p><button type="button" onClick={() => changePage(page)}>Retry page</button></div>}
@@ -250,9 +288,9 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
             const firstWord = words[0];
             const surah = firstWord?.numberInSurah === 1 ? pageData.ayahs.find(ayah => ayah.surahNumber === firstWord.surahNumber) : null;
             return <Fragment key={lineNumber}>
-              {surah && <div className="mushaf-surah-banner"><span className="mushaf-surah-ornament">۞</span><b>{surah.arabicName}</b><small>{surah.surahName}</small><span className="mushaf-surah-ornament">۞</span></div>}
-              {surah && surah.surahNumber !== 1 && surah.surahNumber !== 9 && <div className="mushaf-bismillah" lang="ar">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
-              <div className="mushaf-fs-qcf-line" data-line={lineNumber} style={{ fontSize: fontSize + 'px' }}>
+              {surah && <SurahCartouche arabicName={surah.arabicName} englishName={QURAN_SURAHS[surah.surahNumber - 1]?.transliteration || surah.surahName} ayahs={QURAN_SURAHS[surah.surahNumber - 1]?.ayahs || 0} />}
+              {surah && surah.surahNumber !== 1 && surah.surahNumber !== 9 && <BismillahOrnament />}
+              <div className="mushaf-fs-qcf-line" data-line={lineNumber} style={fontSize === 18 ? undefined : { fontSize: fontSize + 'px' }}>
                 {words.map((word, index) => word.charTypeName === 'end' ? <AyahMedallion key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" number={word.numberInSurah} /> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-qcf-word" style={{ fontFamily: 'QCF_P' + page }} dangerouslySetInnerHTML={{ __html: escapeGlyphHtml(word.codeV2 || word.text) }} />)}
               </div>
             </Fragment>;
@@ -262,7 +300,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
             </div>)}
           </div> : <div className="mushaf-ayah-flow mushaf-fs-unicode-flow" dir="rtl" lang="ar">
             {pageData.ayahs.map(ayah => <Fragment key={ayah.surahNumber + ':' + ayah.numberInSurah}>
-              {ayah.numberInSurah === 1 && <div className="mushaf-surah-banner"><span className="mushaf-surah-ornament">۞</span><b>{ayah.arabicName}</b><small>{ayah.surahName}</small><span className="mushaf-surah-ornament">۞</span></div>}
+              {ayah.numberInSurah === 1 && <SurahCartouche arabicName={ayah.arabicName} englishName={QURAN_SURAHS[ayah.surahNumber - 1]?.transliteration || ayah.surahName} ayahs={QURAN_SURAHS[ayah.surahNumber - 1]?.ayahs || 0} />}
               {ayah.numberInSurah === 1 && ayah.surahNumber !== 1 && ayah.surahNumber !== 9 && <div className="mushaf-bismillah" lang="ar">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
               <button type="button" className={'mushaf-ayah ' + (selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah ? 'is-selected' : '')} onClick={() => selectAyah(ayah)} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>
                 {ayah.text}<AyahMedallion className="mushaf-ayah-number" number={ayah.numberInSurah} />
@@ -277,8 +315,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
             const beginsSurah = index === 0 || pageData.ayahs[index - 1].surahNumber !== ayah.surahNumber;
             const isSelected = selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah;
             return <article className="mushaf-fs-verse-row" key={ayah.surahNumber + ':' + ayah.numberInSurah}>
-              {beginsSurah && <div className="mushaf-surah-banner mushaf-fs-verse-surah"><span className="mushaf-surah-ornament">۞</span><b>{ayah.arabicName}</b><small>{ayah.surahName}</small><span className="mushaf-surah-ornament">۞</span></div>}
-              {beginsSurah && ayah.surahNumber !== 1 && ayah.surahNumber !== 9 && ayah.numberInSurah === 1 && <div className="mushaf-bismillah mushaf-fs-verse-bismillah" lang="ar" dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
+              {beginsSurah && <SurahCartouche arabicName={ayah.arabicName} englishName={QURAN_SURAHS[ayah.surahNumber - 1]?.transliteration || ayah.surahName} ayahs={QURAN_SURAHS[ayah.surahNumber - 1]?.ayahs || 0} />}
+              {beginsSurah && ayah.surahNumber !== 1 && ayah.surahNumber !== 9 && ayah.numberInSurah === 1 && <BismillahOrnament />}
               <div className="mushaf-fs-verse-actionbar">
                 <div className="mushaf-fs-verse-actions"><small>{ayah.surahNumber}:{ayah.numberInSurah}</small><button type="button" aria-label={'Play ' + ayah.surahNumber + ':' + ayah.numberInSurah} onClick={() => { selectAyah(ayah); playAyah(ayah); }}><Play size={14}/></button><button type="button" aria-label={'Bookmark ' + ayah.surahNumber + ':' + ayah.numberInSurah} onClick={() => selectAyah(ayah)}><Bookmark size={14}/></button></div>
                 <button type="button" className="mushaf-fs-verse-copy" onClick={() => { void navigator.clipboard?.writeText(ayah.text + '\n\n' + ayah.translation + '\n\n' + ayah.surahNumber + ':' + ayah.numberInSurah); }}><Copy size={13}/> Copy</button>
@@ -296,7 +334,12 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
           })}
         </div>}
       </main>
-      {drawerOpen && <><button type="button" className="mushaf-drawer-scrim" aria-label="Close surah navigation" onClick={() => setDrawerOpen(false)}/><aside className="mushaf-surah-drawer" aria-label="114 Surahs"><header><div><b>Surah index</b><small>114 chapters · Madani Mushaf</small></div><button type="button" aria-label="Close surah index" onClick={() => setDrawerOpen(false)}><X size={18}/></button></header><div className="mushaf-drawer-jumps"><label>Page <input type="number" min="1" max="604" value={pageInput} onChange={event => setPageInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { changePage(Number(pageInput) || page); setDrawerOpen(false); } }}/></label><label>Juz <select defaultValue={pageJuz} onChange={event => { jumpJuz(Number(event.target.value)); setDrawerOpen(false); }}>{Array.from({length:30},(_,i)=><option key={i+1} value={i+1}>Juz {i+1}</option>)}</select></label></div><div className="mushaf-surah-list">{QURAN_SURAHS.map(item => <button type="button" key={item.number} className={page >= item.pageStart && page <= item.pageEnd ? 'is-current' : ''} onClick={() => jumpSurah(item.number)}><span className="mushaf-surah-number">{item.number}</span><span className="mushaf-surah-names"><b>{item.transliteration}</b><small>{item.english} · {item.ayahs} ayahs · p.{item.pageStart}</small></span><strong lang="ar" dir="rtl">{item.arabic}</strong></button>)}</div></aside></>}
+      {drawerOpen && <><button type="button" className="mushaf-drawer-scrim" aria-label="Close surah navigation" onClick={() => setDrawerOpen(false)}/><aside className="mushaf-surah-drawer mushaf-surah-drawer--designed" aria-label="114 Surahs">
+      <header className="mushaf-surah-drawer-header"><div><b>Surah index</b><small>114 chapters · Madani Mushaf</small></div><button type="button" aria-label="Close surah index" onClick={() => setDrawerOpen(false)}><X size={18}/></button></header>
+      <div className="mushaf-surah-search"><Search size={16}/><input type="search" value={surahSearch} onChange={event => setSurahSearch(event.target.value)} placeholder="Search Surah name or number..." aria-label="Search Surah name or number"/></div>
+      <div className="mushaf-drawer-jumps"><label>Page <input type="number" min="1" max="604" value={pageInput} onChange={event => setPageInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { changePage(Number(pageInput) || page); setDrawerOpen(false); } }}/></label><label>Juz <select value={pageJuz} onChange={event => { jumpJuz(Number(event.target.value)); setDrawerOpen(false); }}>{Array.from({length:30},(_,i)=><option key={i+1} value={i+1}>Juz {i+1}</option>)}</select></label></div>
+      <div className="mushaf-surah-list">{QURAN_SURAHS.filter(item => { const q=surahSearch.trim().toLowerCase(); return !q || String(item.number)===q || item.transliteration.toLowerCase().includes(q) || item.english.toLowerCase().includes(q) || item.arabic.includes(surahSearch.trim()); }).map(item => <button type="button" key={item.number} className={page >= item.pageStart && page <= item.pageEnd ? 'is-current' : ''} onClick={() => jumpSurah(item.number)}><span className="mushaf-surah-number"><i>{item.number}</i></span><span className="mushaf-surah-names"><b>{item.transliteration}</b><small>{item.english} · {item.ayahs} ayahs</small></span><strong lang="ar" dir="rtl">{item.arabic}</strong><em className="mushaf-surah-page-badge">p.{item.pageStart}</em></button>)}</div>
+    </aside></>}
     </div>
     <footer className="mushaf-fs-footer">
       <div className="mushaf-fs-page-pill">
@@ -304,7 +347,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
         <button type="button" className="mushaf-fs-log-page" disabled={!pageData?.ayahs?.length || loading || logging} onClick={logPage}>Complete &amp; Log Page</button>
         <button type="button" className="mushaf-fs-page-nav" disabled={page >= 604} onClick={() => changePage(page + 1)}>Next Page <ChevronRight size={16}/></button>
       </div>
-      <span className="mushaf-log-message" role="status">{logMessage}</span>
+      <span className="mushaf-save-status" role="status">{saveStatus}</span><span className="mushaf-log-message" role="status">{logMessage}</span>
     </footer>
     <audio ref={audioRef} />
   </>;
