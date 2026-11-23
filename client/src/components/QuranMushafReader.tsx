@@ -31,7 +31,7 @@ function renderTajweedMarkup(markup: string): ReactNode {
     if (['script','style','iframe','object','svg','math'].includes(tag)) return null;
     const children = Array.from(element.childNodes).map((child, index) => visit(child, key + '.' + index));
     if (tag === 'rule') {
-      const rule = (element.getAttribute('class') || '').trim().split(/\\s+/)[0];
+      const rule = (element.getAttribute('class') || '').trim().split(/\s+/)[0];
       return <span key={key} className={'tajweed-rule' + (TAJWEED_RULES.has(rule) ? ' tajweed-' + rule : '')}>{children}</span>;
     }
     return <Fragment key={key}>{children}</Fragment>;
