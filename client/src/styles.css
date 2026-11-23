@@ -5625,3 +5625,10 @@ html, body, #root, .app-frame, .main-area, .page-container {
     gap: 10px;
   }
 }
+
+/* Shared theme-aware scrollbar treatment; Mushaf geometry lives with its component. */
+*{scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent}
+*::-webkit-scrollbar{width:6px;height:6px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:999px}
+*::-webkit-scrollbar-thumb:hover{background:var(--accent-primary)}
