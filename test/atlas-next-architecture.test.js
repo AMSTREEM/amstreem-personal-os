@@ -319,7 +319,10 @@ test('Full-screen Mushaf opens without inline preview and uses a tap-to-toggle A
   assert.doesNotMatch(reader, /mushaf-hud-autosaved/);
   assert.ok(reader.includes("fontFamily: \"'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', serif\""));
   assert.ok(reader.includes('renderTajweedMarkup(ayah.tajweedText || ayah.text)'));
-  assert.ok(reader.includes('word.tajweed || word.text'));
+  assert.ok(reader.includes('renderTajweedMarkup(word.tajweed)'));
+  assert.ok(reader.includes('readingLines.length === 15'));
+  assert.ok(reader.includes('Tajweed word alignment or the 15-line Madani page layout is incomplete'));
+  assert.ok(css.includes('grid-template-rows:repeat(15,minmax(0,1fr))'));
   assert.ok(reader.includes("wordSpacing: '2px'"));
   assert.ok(css.includes('UthmanicHafs1Ver18.woff2'));
   assert.ok(css.includes('family=Noto+Naskh+Arabic'));
@@ -332,9 +335,12 @@ test('Full-screen Mushaf opens without inline preview and uses a tap-to-toggle A
   assert.ok(server.includes('text_qpc_hafs'));
   assert.ok(server.includes('text_uthmani_tajweed'));
   assert.ok(server.includes('mushaf=19'));
+  assert.ok(server.includes('/quran/verses/uthmani_tajweed?page_number='));
+  assert.ok(server.includes('applyTajweedToPage'));
+  assert.ok(server.includes('tajweedComplete: ayahs.length > 0'));
   assert.ok(server.includes('tajweed: String(word.text_uthmani_tajweed || \'\')'));
   assert.ok(server.includes('tajweedText: words.map(word => word.tajweed)'));
-  assert.ok(reader.includes("CACHE_PREFIX = 'atlas_mushaf_page_v6_'"));
+  assert.ok(reader.includes("CACHE_PREFIX = 'atlas_mushaf_page_v7_'"));
   assert.ok(server.includes('https://quran.foundation'));
   assert.ok(css.includes('.mushaf-header-autosaved'));
   assert.ok(css.includes('.mushaf-reading-canvas{padding-bottom:64px}'));
@@ -376,7 +382,7 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.ok(server.includes('qcfAvailable'));
   assert.deepEqual(Object.keys(offline.pages).sort(), ['1', '602', '603', '604']);
   for (const page of ['1', '602', '603', '604']) assert.ok(offline.pages[page].ayahs.length > 0);
-  assert.ok(reader.includes('atlas_mushaf_page_v6_'));
+  assert.ok(reader.includes('atlas_mushaf_page_v7_'));
   assert.ok(reader.includes('sanitizeMushafPage(payload as MushafPage)'));
   assert.ok(reader.includes('readingLines = useMemo'));
   assert.ok(reader.includes('word.pageNumber !== page'));
