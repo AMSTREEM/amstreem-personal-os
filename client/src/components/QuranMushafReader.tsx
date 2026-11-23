@@ -43,8 +43,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     catch { return 21; }
   });
   const [reciter, setReciter] = useState('ar.alafasy');
-  const [repeatMode, setRepeatMode] = useState<'off' | 'ayah' | 'page'>('off');
-  const [playing, setPlaying] = useState(false);
   const [pageInput, setPageInput] = useState(String(page));
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const readerRef = useRef<HTMLDivElement | null>(null);
@@ -142,7 +140,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     if (!audio) return;
     audio.src = `https://islamic.network/quran/audio/128/${reciter}/${ayah.number}.mp3`;
     audio.currentTime = 0;
-    void audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+    void audio.play().catch(() => undefined);
   };
   
   const copyAyah = async () => {
@@ -231,7 +229,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
       <button type="button" className="mushaf-page-control" disabled={page >= 604} onClick={() => changePage(page + 1)}>Next Page <ChevronRight size={16}/></button>
       <span className="mushaf-log-message" role="status">{logMessage}</span>
     </footer>
-    <audio ref={audioRef} onEnded={() => { if (repeatMode === 'ayah' && selectedAyah) playAyah(selectedAyah); else if (repeatMode === 'page' && pageData?.ayahs?.length) { const index = pageData.ayahs.findIndex(item => item.number === selectedAyah?.number); const next = pageData.ayahs[index + 1] || pageData.ayahs[0]; setSelected({ surah: next.surahNumber, ayah: next.numberInSurah }); playAyah(next); } else setPlaying(false); }} onPause={() => setPlaying(false)} onPlay={() => setPlaying(true)} />
+    <audio ref={audioRef} />
   </>;
   return <>
     <section className="mushaf-launch-card"><div><h3>Qur’an reading & memorisation</h3><p>Continue at your saved {mode === 'hifz' ? 'Hifz' : 'Muraja’ah'} position, or open the full-screen reader.</p><small>Hifz · page {hifzMark.page} &nbsp; / &nbsp; Muraja’ah · page {murajaahMark.page}</small></div><button type="button" className="button button--primary" onClick={() => setFullScreen(true)}><Maximize2 size={16}/> Open Full-Screen Mushaf</button></section>
