@@ -9,6 +9,7 @@ import { Cascade } from '../components/Cascade';
 import { playAtlasFeedback } from '../lib/microFeedback';
 import { RhythmConstellation } from '../components/fx/RhythmConstellation';
 import { triggerSparkBurst } from '../components/fx/SparkBurst';
+import { quranSurahs } from '../data/quranSurahs';
 
 type Settings = Record<string, string>;
 type Prayer = { prayer: string; completed: number; on_time: number };
@@ -27,7 +28,9 @@ export function ValuesPage() {
   const date = dateKey();
   const [activity, setActivity] = useState('memorisation');
   const [faithWorkspace, setFaithWorkspace] = useState<'primary'|'secondary'|'tertiary'|'all'>('primary');
-  const [surah, setSurah] = useState('');
+  const [surahSearch, setSurahSearch] = useState('');
+  const [pagesManuallyEdited, setPagesManuallyEdited] = useState(false);
+  const selectedSurah = quranSurahs.find(item => item.name.toLowerCase() === surahSearch.trim().toLowerCase() || item.arabicName === surahSearch.trim() || String(item.number) === surahSearch.trim()) || null;
   const [ayahStart, setAyahStart] = useState('');
   const [ayahEnd, setAyahEnd] = useState('');
   const [pages, setPages] = useState('0');
@@ -70,8 +73,8 @@ export function ValuesPage() {
     onSuccess: () => { void client.invalidateQueries({ queryKey: ['deen', date] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });
   const quran = useMutation({
-    mutationFn: () => api('/deen/quran', json('POST', { log_date: date, activity, surah, ayah_start: ayahStart || null, ayah_end: ayahEnd || null, pages: Number(pages), juz: juz || null, reflection: quranReflection })),
-    onSuccess: () => { setSurah(''); setAyahStart(''); setAyahEnd(''); setPages('0'); setJuz(''); setQuranReflection(''); void client.invalidateQueries({ queryKey: ['quran-logs'] }); void client.invalidateQueries({ queryKey: ['deen', date] }); void client.invalidateQueries({ queryKey: ['rhythm-summary'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
+    mutationFn: () => api('/deen/quran', json('POST', { log_date: date, activity, surah: selectedSurah?.name || '', ayah_start: ayahStart || null, ayah_end: ayahEnd || null, pages: Number(pages), juz: juz || null, reflection: quranReflection })),
+    onSuccess: () => { setSurahSearch(''); setAyahStart(''); setAyahEnd(''); setPages('0'); setPagesManuallyEdited(false); setJuz(''); setQuranReflection(''); void client.invalidateQueries({ queryKey: ['quran-logs'] }); void client.invalidateQueries({ queryKey: ['deen', date] }); void client.invalidateQueries({ queryKey: ['rhythm-summary'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });
   const recordsFor = (type: string) => (records.data || []).filter(item => item.record_type === type);
   const add = (type: string, title: string, detail = '', status: RhythmRecord['status'] = 'completed') => createRecord.mutate({ record_type: type, title, detail, status });
@@ -102,12 +105,12 @@ export function ValuesPage() {
       </div>
       <Card className="faith-section-secondary"><div className="module-panel-head"><div><span className="module-kicker">HIFZ / RECITATION / REVISION</span><h2>Qur’an reading & Hifz</h2></div><BookOpen size={18}/></div>
         <div className="rhythm-stats"><div><b>{memorisedPages}</b><small>MEMORISED PAGES</small></div><div><b>{revisedPages}</b><small>REVISED PAGES</small></div><div><b>{quranToday.length}</b><small>SESSIONS TODAY</small></div></div>
-        <div className="rhythm-quran-layout"><details className="atlas-add-disclosure"><summary>+ Add record</summary><form className="form-stack" onSubmit={event=>{event.preventDefault();if(surah.trim())quran.mutate();}}>
-          <div className="field-row"><Field label="ACTIVITY"><select className="field-input" value={activity} onChange={event=>setActivity(event.target.value)}><option value="memorisation">Hifz · memorisation</option><option value="revision">Revision</option></select></Field><Field label="SURAH"><TextInput value={surah} onChange={event=>setSurah(event.target.value)} placeholder="Surah name" required maxLength={80}/></Field></div>
-          <div className="field-row"><Field label="STARTING AYAH"><TextInput type="number" min="1" max="286" value={ayahStart} onChange={event=>setAyahStart(event.target.value)}/></Field><Field label="ENDING AYAH"><TextInput type="number" min="1" max="286" value={ayahEnd} onChange={event=>setAyahEnd(event.target.value)}/></Field></div>
-          <div className="field-row"><Field label="PAGES"><TextInput type="number" min="0" max="100" value={pages} onChange={event=>setPages(event.target.value)}/></Field><Field label="JUZ"><TextInput type="number" min="1" max="30" value={juz} onChange={event=>setJuz(event.target.value)}/></Field></div>
+        <div className="rhythm-quran-layout"><details className="atlas-add-disclosure"><summary>+ Add record</summary><form className="form-stack" onSubmit={event=>{event.preventDefault();if(selectedSurah)quran.mutate();}}>
+          <div className="field-row"><Field label="ACTIVITY"><select className="field-input" value={activity} onChange={event=>setActivity(event.target.value)}><option value="memorisation">Hifz · memorisation</option><option value="revision">Revision</option></select></Field><Field label="SURAH"><input className="field-input" list="atlas-quran-surahs" value={surahSearch} onChange={event=>{const value=event.target.value;setSurahSearch(value);const match=quranSurahs.find(item=>item.name.toLowerCase()===value.trim().toLowerCase()||item.arabicName===value.trim()||String(item.number)===value.trim());if(match){setJuz(String(match.juz));setAyahStart('');setAyahEnd('');if(!pagesManuallyEdited)setPages('0');}}} placeholder="Search 114 Surahs…" autoComplete="off" required/><datalist id="atlas-quran-surahs">{quranSurahs.map(item=><option key={item.number} value={item.name}>{`#${item.number} · ${item.arabicName} · ${item.ayahCount} ayahs · p. ${item.startPage}`}</option>)}</datalist>{selectedSurah&&<small className="field__hint">#{selectedSurah.number} {selectedSurah.name} · {selectedSurah.ayahCount} ayahs · pages {selectedSurah.startPage}–{selectedSurah.endPage}</small>}</Field></div>
+          <div className="field-row"><Field label="STARTING AYAH"><TextInput type="number" min="1" max={selectedSurah?.ayahCount || 1} value={ayahStart} onChange={event=>{const value=event.target.value;if(!value){setAyahStart('');return;}const bounded=String(Math.min(selectedSurah?.ayahCount||1,Math.max(1,Number(value)||1)));setAyahStart(bounded);if(ayahEnd&&Number(ayahEnd)<Number(bounded))setAyahEnd(bounded);if(!pagesManuallyEdited&&selectedSurah){const span=Math.max(1,Number(ayahEnd||bounded)-Number(bounded)+1);setPages(String(Math.max(1,Math.ceil(span/selectedSurah.ayahCount*(selectedSurah.endPage-selectedSurah.startPage+1)))));}}}/></Field><Field label="ENDING AYAH"><TextInput type="number" min={ayahStart||1} max={selectedSurah?.ayahCount || 1} value={ayahEnd} onChange={event=>{const value=event.target.value;if(!value){setAyahEnd('');return;}const bounded=String(Math.min(selectedSurah?.ayahCount||1,Math.max(Number(ayahStart)||1,Number(value)||1)));setAyahEnd(bounded);if(!pagesManuallyEdited&&selectedSurah){const span=Math.max(1,Number(bounded)-Number(ayahStart||1)+1);setPages(String(Math.max(1,Math.ceil(span/selectedSurah.ayahCount*(selectedSurah.endPage-selectedSurah.startPage+1)))));}}}/></Field></div>
+          <div className="field-row"><Field label="PAGES"><TextInput type="number" min="0" max="604" value={pages} onChange={event=>{setPagesManuallyEdited(true);setPages(String(Math.min(604,Math.max(0,Number(event.target.value)||0))));}}/></Field><Field label="JUZ"><TextInput type="number" min="1" max="30" value={juz} onChange={event=>setJuz(String(Math.min(30,Math.max(1,Number(event.target.value)||1))))}/></Field></div>
           <Field label="REFLECTION (OPTIONAL)"><TextArea value={quranReflection} onChange={event=>setQuranReflection(event.target.value)} placeholder="What did you memorise, revise or notice?"/></Field>
-          <div><Button type="submit" disabled={quran.isPending||!surah.trim()}>{quran.isPending?'Saving…':'Save Qur’an record'}</Button></div>
+          <div><Button type="submit" disabled={quran.isPending||!selectedSurah}>{quran.isPending?'Saving…':'Save Qur’an record'}</Button></div>
         </form></details><div className="rhythm-record-list">{quranToday.slice(0,8).map(log=><div className="rhythm-record-row" key={log.id}><span className="rhythm-record-status rhythm-record-status--completed"><Check size={13}/></span><div><b>{log.surah} · {log.activity}</b><small>{log.ayah_start?'Ayah '+log.ayah_start+(log.ayah_end?'–'+log.ayah_end:'')+' · ':''}{log.pages+' pages'}{log.juz?' · Juz '+log.juz:''}</small></div></div>)}</div></div>
         <div className="rhythm-focus-link"><span>Ready for a dedicated block?</span><Link className="button button--secondary" to="/focus?focus=Qur%27an%20Hifz%20and%20Revision"><Timer size={14}/> Start Qur’an Focus</Link></div>
       </Card>
