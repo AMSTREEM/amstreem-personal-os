@@ -92,6 +92,40 @@ const quranPageInflight = new Map();
 const quranOfflinePages = require('./server/quran-fallback.json').pages;
 const quranSurahLabels = {"1":{"surahName":"Al-Faatiha","arabicName":"الفاتحة"},"2":{"surahName":"Al-Baqara","arabicName":"البقرة"},"3":{"surahName":"Aal-i-Imraan","arabicName":"آل عمران"},"4":{"surahName":"An-Nisaa","arabicName":"النساء"},"5":{"surahName":"Al-Maaida","arabicName":"المائدة"},"6":{"surahName":"Al-An'aam","arabicName":"الأنعام"},"7":{"surahName":"Al-A'raaf","arabicName":"الأعراف"},"8":{"surahName":"Al-Anfaal","arabicName":"الأنفال"},"9":{"surahName":"At-Tawba","arabicName":"التوبة"},"10":{"surahName":"Yunus","arabicName":"يونس"},"11":{"surahName":"Hud","arabicName":"هود"},"12":{"surahName":"Yusuf","arabicName":"يوسف"},"13":{"surahName":"Ar-Ra'd","arabicName":"الرعد"},"14":{"surahName":"Ibrahim","arabicName":"ابراهيم"},"15":{"surahName":"Al-Hijr","arabicName":"الحجر"},"16":{"surahName":"An-Nahl","arabicName":"النحل"},"17":{"surahName":"Al-Israa","arabicName":"الإسراء"},"18":{"surahName":"Al-Kahf","arabicName":"الكهف"},"19":{"surahName":"Maryam","arabicName":"مريم"},"20":{"surahName":"Taa-Haa","arabicName":"طه"},"21":{"surahName":"Al-Anbiyaa","arabicName":"الأنبياء"},"22":{"surahName":"Al-Hajj","arabicName":"الحج"},"23":{"surahName":"Al-Muminoon","arabicName":"المؤمنون"},"24":{"surahName":"An-Noor","arabicName":"النور"},"25":{"surahName":"Al-Furqaan","arabicName":"الفرقان"},"26":{"surahName":"Ash-Shu'araa","arabicName":"الشعراء"},"27":{"surahName":"An-Naml","arabicName":"النمل"},"28":{"surahName":"Al-Qasas","arabicName":"القصص"},"29":{"surahName":"Al-Ankaboot","arabicName":"العنكبوت"},"30":{"surahName":"Ar-Room","arabicName":"الروم"},"31":{"surahName":"Luqman","arabicName":"لقمان"},"32":{"surahName":"As-Sajda","arabicName":"السجدة"},"33":{"surahName":"Al-Ahzaab","arabicName":"الأحزاب"},"34":{"surahName":"Saba","arabicName":"سبإ"},"35":{"surahName":"Faatir","arabicName":"فاطر"},"36":{"surahName":"Yaseen","arabicName":"يس"},"37":{"surahName":"As-Saaffaat","arabicName":"الصافات"},"38":{"surahName":"Saad","arabicName":"ص"},"39":{"surahName":"Az-Zumar","arabicName":"الزمر"},"40":{"surahName":"Al-Ghaafir","arabicName":"غافر"},"41":{"surahName":"Fussilat","arabicName":"فصلت"},"42":{"surahName":"Ash-Shura","arabicName":"الشورى"},"43":{"surahName":"Az-Zukhruf","arabicName":"الزخرف"},"44":{"surahName":"Ad-Dukhaan","arabicName":"الدخان"},"45":{"surahName":"Al-Jaathiya","arabicName":"الجاثية"},"46":{"surahName":"Al-Ahqaf","arabicName":"الأحقاف"},"47":{"surahName":"Muhammad","arabicName":"محمد"},"48":{"surahName":"Al-Fath","arabicName":"الفتح"},"49":{"surahName":"Al-Hujuraat","arabicName":"الحجرات"},"50":{"surahName":"Qaaf","arabicName":"ق"},"51":{"surahName":"Adh-Dhaariyat","arabicName":"الذاريات"},"52":{"surahName":"At-Tur","arabicName":"الطور"},"53":{"surahName":"An-Najm","arabicName":"النجم"},"54":{"surahName":"Al-Qamar","arabicName":"القمر"},"55":{"surahName":"Ar-Rahmaan","arabicName":"الرحمن"},"56":{"surahName":"Al-Waaqia","arabicName":"الواقعة"},"57":{"surahName":"Al-Hadid","arabicName":"الحديد"},"58":{"surahName":"Al-Mujaadila","arabicName":"المجادلة"},"59":{"surahName":"Al-Hashr","arabicName":"الحشر"},"60":{"surahName":"Al-Mumtahana","arabicName":"الممتحنة"},"61":{"surahName":"As-Saff","arabicName":"الصف"},"62":{"surahName":"Al-Jumu'a","arabicName":"الجمعة"},"63":{"surahName":"Al-Munaafiqoon","arabicName":"المنافقون"},"64":{"surahName":"At-Taghaabun","arabicName":"التغابن"},"65":{"surahName":"At-Talaaq","arabicName":"الطلاق"},"66":{"surahName":"At-Tahrim","arabicName":"التحريم"},"67":{"surahName":"Al-Mulk","arabicName":"الملك"},"68":{"surahName":"Al-Qalam","arabicName":"القلم"},"69":{"surahName":"Al-Haaqqa","arabicName":"الحاقة"},"70":{"surahName":"Al-Ma'aarij","arabicName":"المعارج"},"71":{"surahName":"Nooh","arabicName":"نوح"},"72":{"surahName":"Al-Jinn","arabicName":"الجن"},"73":{"surahName":"Al-Muzzammil","arabicName":"المزمل"},"74":{"surahName":"Al-Muddaththir","arabicName":"المدثر"},"75":{"surahName":"Al-Qiyaama","arabicName":"القيامة"},"76":{"surahName":"Al-Insaan","arabicName":"الانسان"},"77":{"surahName":"Al-Mursalaat","arabicName":"المرسلات"},"78":{"surahName":"An-Naba","arabicName":"النبإ"},"79":{"surahName":"An-Naazi'aat","arabicName":"النازعات"},"80":{"surahName":"Abasa","arabicName":"عبس"},"81":{"surahName":"At-Takwir","arabicName":"التكوير"},"82":{"surahName":"Al-Infitaar","arabicName":"الإنفطار"},"83":{"surahName":"Al-Mutaffifin","arabicName":"المطففين"},"84":{"surahName":"Al-Inshiqaaq","arabicName":"الإنشقاق"},"85":{"surahName":"Al-Burooj","arabicName":"البروج"},"86":{"surahName":"At-Taariq","arabicName":"الطارق"},"87":{"surahName":"Al-A'laa","arabicName":"الأعلى"},"88":{"surahName":"Al-Ghaashiya","arabicName":"الغاشية"},"89":{"surahName":"Al-Fajr","arabicName":"الفجر"},"90":{"surahName":"Al-Balad","arabicName":"البلد"},"91":{"surahName":"Ash-Shams","arabicName":"الشمس"},"92":{"surahName":"Al-Lail","arabicName":"الليل"},"93":{"surahName":"Ad-Dhuhaa","arabicName":"الضحى"},"94":{"surahName":"Ash-Sharh","arabicName":"الشرح"},"95":{"surahName":"At-Tin","arabicName":"التين"},"96":{"surahName":"Al-Alaq","arabicName":"العلق"},"97":{"surahName":"Al-Qadr","arabicName":"القدر"},"98":{"surahName":"Al-Bayyina","arabicName":"البينة"},"99":{"surahName":"Az-Zalzala","arabicName":"الزلزلة"},"100":{"surahName":"Al-Aadiyaat","arabicName":"العاديات"},"101":{"surahName":"Al-Qaari'a","arabicName":"القارعة"},"102":{"surahName":"At-Takaathur","arabicName":"التكاثر"},"103":{"surahName":"Al-Asr","arabicName":"العصر"},"104":{"surahName":"Al-Humaza","arabicName":"الهمزة"},"105":{"surahName":"Al-Fil","arabicName":"الفيل"},"106":{"surahName":"Quraish","arabicName":"قريش"},"107":{"surahName":"Al-Maa'un","arabicName":"الماعون"},"108":{"surahName":"Al-Kawthar","arabicName":"الكوثر"},"109":{"surahName":"Al-Kaafiroon","arabicName":"الكافرون"},"110":{"surahName":"An-Nasr","arabicName":"النصر"},"111":{"surahName":"Al-Masad","arabicName":"المسد"},"112":{"surahName":"Al-Ikhlaas","arabicName":"الإخلاص"},"113":{"surahName":"Al-Falaq","arabicName":"الفلق"},"114":{"surahName":"An-Naas","arabicName":"الناس"}};
 const QURAN_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+let quranAccessTokenCache = { accessToken: '', expiresAt: 0 };
+async function getQuranApiAuth() {
+  const clientId = process.env.QURAN_CLIENT_ID || '';
+  const clientSecret = process.env.QURAN_CLIENT_SECRET || '';
+  const environment = process.env.QURAN_API_ENV === 'prelive' ? 'prelive' : 'production';
+  const apiBase = environment === 'prelive'
+    ? 'https://apis-prelive.quran.foundation/content/api/v4'
+    : 'https://apis.quran.foundation/content/api/v4';
+  if (!clientId) return { headers: {}, apiBase };
+  if (process.env.QURAN_API_TOKEN) return { headers: { 'x-auth-token': process.env.QURAN_API_TOKEN, 'x-client-id': clientId }, apiBase };
+  if (!clientSecret) return { headers: {}, apiBase };
+  if (!quranAccessTokenCache.accessToken || Date.now() >= quranAccessTokenCache.expiresAt - 60_000) {
+    const oauthBase = environment === 'prelive' ? 'https://prelive-oauth2.quran.foundation' : 'https://oauth2.quran.foundation';
+    const scope = process.env.QURAN_API_SCOPE || 'content.quran.read content.translations.read';
+    const tokenResponse = await fetch(oauthBase + '/oauth2/token', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Basic ' + Buffer.from(clientId + ':' + clientSecret).toString('base64'),
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Accept: 'application/json'
+      },
+      body: new URLSearchParams({ grant_type: 'client_credentials', scope }),
+      signal: AbortSignal.timeout(9000)
+    });
+    if (!tokenResponse.ok) throw new Error('Quran Foundation token request returned HTTP ' + tokenResponse.status + '.');
+    const tokenBody = await tokenResponse.json();
+    if (!tokenBody?.access_token) throw new Error('Quran Foundation did not return an access token.');
+    quranAccessTokenCache = {
+      accessToken: String(tokenBody.access_token),
+      expiresAt: Date.now() + Math.max(60, Number(tokenBody.expires_in) || 3600) * 1000
+    };
+  }
+  return { headers: { 'x-auth-token': quranAccessTokenCache.accessToken, 'x-client-id': clientId }, apiBase };
+}
 
 function normalizeAlQuranCloud(body, page) {
   const editions = Array.isArray(body?.data) ? body.data : [];
@@ -155,16 +189,20 @@ app.get('/api/quran/page/:page', async (req, res) => {
     try { return send(await quranPageInflight.get(page), 'COALESCED'); } catch { /* fall through to offline seed */ }
   }
   const task = (async () => {
-    const quranHeaders = {};
-    if (process.env.QURAN_API_TOKEN) quranHeaders['x-auth-token'] = process.env.QURAN_API_TOKEN;
-    if (process.env.QURAN_CLIENT_ID) quranHeaders['x-client-id'] = process.env.QURAN_CLIENT_ID;
+    let quranHeaders = {};
+    let officialQuranApiBase = 'https://apis.quran.foundation/content/api/v4';
+    try {
+      const auth = await getQuranApiAuth();
+      quranHeaders = auth.headers;
+      officialQuranApiBase = auth.apiBase;
+    } catch (error) { console.warn('Quran Foundation authentication unavailable:', error.message); }
     const quranQuery = `?mushaf=1&words=true&translations=131,20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,position,verse_key,char_type_name&fields=text_uthmani,verse_key,chapter_id,verse_number,juz_number&page=1&per_page=50`;
     const qcfSources = [
       `https://quran.com/api/proxy/content/api/qdc/verses/by_page/${page}${quranQuery}`,
       `https://api.quran.com/api/v4/verses/by_page/${page}${quranQuery}`
     ];
-    if (process.env.QURAN_API_TOKEN && process.env.QURAN_CLIENT_ID) {
-      qcfSources.push(`https://apis.quran.foundation/content/api/v4/verses/by_page/${page}${quranQuery}`);
+    if (quranHeaders['x-auth-token'] && quranHeaders['x-client-id']) {
+      qcfSources.push(officialQuranApiBase + '/verses/by_page/' + page + quranQuery);
     }
     let qcfPage = null;
     for (const sourceUrl of qcfSources) {
