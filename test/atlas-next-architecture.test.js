@@ -280,6 +280,9 @@ test('Qur’an reader uses the Quran.com page proxy, saved bookmarks, no reciter
   assert.ok(values.includes('<QuranMushafReader autoOpen={searchParams.get(\'openMushaf\') === \'1\'}'));
   assert.ok(reader.includes('autoOpen?: boolean'));
   assert.ok(reader.includes('autoOpenHandled.current = true'));
+  assert.ok(reader.includes('tajweedEnabled'));
+  assert.ok(reader.includes('aria-pressed={tajweedEnabled}'));
+  assert.ok(reader.includes('mushaf-app--tajweed-off'));
   assert.ok(reader.includes("openReader('hifz')"));
   assert.ok(values.includes('<QuranMushafReader settings=') || values.includes('<QuranMushafReader autoOpen='));
   assert.doesNotMatch(values, /Open Full-Screen Mushaf|rhythm-quran-layout|Save Qur’an record/);
@@ -288,12 +291,18 @@ test('Qur’an reader uses the Quran.com page proxy, saved bookmarks, no reciter
 test('Mushaf rebuild uses a fixed top bar, three-tab sidebar and two clean reading views', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
-  for (const item of ['mushaf-topbar','mushaf-sidebar-tabs','mushaf-surah-hero','mushaf-verse-row','mushaf-page-view','mushaf-page-arrows','Auto-saved','A−','A+']) assert.ok(reader.includes(item), 'Missing reader feature: ' + item);
+  for (const item of ['mushaf-topbar','mushaf-sidebar-tabs','mushaf-surah-hero','mushaf-verse-row','mushaf-page-view','mushaf-page-arrows','mushaf-tajweed-toggle','Auto-saved','A−','A+']) assert.ok(reader.includes(item), 'Missing reader feature: ' + item);
   for (const item of ['mushaf-floating-top','mushaf-floating-bottom','mushaf-hud','mushaf-page-scrubber','mushaf-audio-control','reciter','Mishary','<audio','<Play']) assert.ok(!reader.includes(item), 'Legacy UI remains: ' + item);
   assert.ok(css.includes('height:48px;min-height:48px'));
   assert.ok(css.includes('flex:0 0 260px'));
   assert.ok(css.includes('width:min(100%,780px)'));
   assert.ok(css.includes('width:min(100%,490px)'));
+  assert.ok(css.includes('width:28px;height:28px;min-width:28px'));
+  assert.ok(css.includes('inset 0 0 0 2px var(--bg-canvas)'));
+  assert.ok(css.includes('mushaf-medallion--wide'));
+  assert.ok(css.includes('line-height:2.25'));
+  assert.ok(css.includes('.mushaf-tajweed-toggle.is-active'));
+  assert.ok(css.includes('@media(max-width:420px)'));
   assert.ok(css.includes('position:fixed;right:20px;bottom:20px'));
   assert.ok(css.includes('@media(max-width:767px)'));
   assert.ok(css.includes('.mushaf-page-arrows'));
