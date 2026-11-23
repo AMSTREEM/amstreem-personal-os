@@ -61,7 +61,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
       line.push({ ...word, surahNumber: ayah.surahNumber, numberInSurah: ayah.numberInSurah });
       grouped.set(word.lineNumber, line);
     }
-    return [...grouped.entries()].sort((a,b) => a[0]-b[0]).map(([lineNumber, words]) => ({ lineNumber, words: words.sort((a,b) => a.position-b.position) }));
+    return [...grouped.entries()].sort((a,b) => a[0]-b[0]).map(([lineNumber, words]) => ({ lineNumber, words }));
   }, [pageData, page]);
   const fontSteps = [24, 26, 28, 30, 32];
   const changeFontSize = (direction: -1 | 1) => setFontSize(current => {
