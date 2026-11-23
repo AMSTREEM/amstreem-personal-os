@@ -258,7 +258,7 @@ test('first-run walkthrough explains the five current Atlas rooms and follows ca
   assert.match(residence, /Good \$\{rhythm/);
 });
 
-test('Qur’an reader uses the Quran.com page proxy, saved bookmarks, audio and a single portal launcher', () => {
+test('Qur’an reader uses the Quran.com page proxy, saved bookmarks, no reciter UI and a single portal launcher', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const values = read('client/src/pages/ValuesPage.tsx');
   assert.ok(server.includes("app.get('/api/quran/page/:page'"));
@@ -268,7 +268,7 @@ test('Qur’an reader uses the Quran.com page proxy, saved bookmarks, audio and 
   assert.ok(reader.includes('Continue Hifz'));
   assert.ok(reader.includes('Continue Muraja’ah'));
   assert.ok(reader.includes('createPortal(') && reader.includes('document.body'));
-  assert.ok(reader.includes('Mishary Alafasy'));
+  assert.doesNotMatch(reader, /reciters|reciter|Mishary|isPlaying|audioRef|playAyah|togglePlayback|<audio|aria-label="Play verse"|<Play/);
   assert.ok(reader.includes('hifz_bookmark') && reader.includes('murajaah_bookmark'));
   assert.ok(values.includes('<QuranMushafReader settings='));
   assert.doesNotMatch(values, /Open Full-Screen Mushaf|rhythm-quran-layout|Save Qur’an record/);
@@ -285,8 +285,8 @@ test('Full-screen Mushaf opens without inline preview and uses a tap-to-toggle A
   assert.ok(reader.includes('mushaf-floating-bottom'));
   assert.ok(reader.includes('mushaf-page-scrubber'));
   assert.ok(reader.includes('mushaf-quick-jump'));
-  assert.ok(reader.includes('mushaf-audio-control'));
-  assert.ok(reader.includes('Settings'));
+  assert.doesNotMatch(reader, /mushaf-audio-control|reciter|Mishary|<audio|<Play|Play verse|Play recitation|Settings/);
+  assert.doesNotMatch(css, /mushaf-audio-control|mushaf-floating-bottom select/);
   assert.ok(reader.includes('Page by Page') && reader.includes('Verse by Verse'));
   assert.ok(reader.includes('fontSteps = [16, 18, 20, 23, 26, 30, 34]'));
   assert.ok(reader.includes('style={{ fontSize: `${arabicFontSize}px` }}'));
@@ -297,6 +297,15 @@ test('Full-screen Mushaf opens without inline preview and uses a tap-to-toggle A
   assert.ok(reader.includes('word.charTypeName === \'end\' ? <AyahMedallion'));
   assert.ok(reader.includes('{item.ayahs} verses · {item.revelation}'));
   assert.ok(reader.includes('atlas_mushaf_starred_ayahs_v1'));
+  assert.ok(reader.includes('mushaf-desktop-header'));
+  assert.ok(reader.includes('mushaf-desktop-sidebar'));
+  assert.ok(reader.includes('mushaf-desktop-sidebar-tabs'));
+  assert.ok(reader.includes('mushaf-desktop-page-grid'));
+  assert.ok(reader.includes('mushaf-page-desktop-arrows'));
+  assert.ok(reader.includes('mushaf-desktop-reading-switch'));
+  assert.ok(css.includes('width:280px;min-width:280px'));
+  assert.ok(css.includes('@media(min-width:768px)'));
+  assert.ok(css.includes('@media(max-width:767px)'));
   assert.ok(css.includes('.mushaf-reading-screen{') && css.includes('100dvh'));
   assert.ok(css.includes('backdrop-filter:blur(16px)'));
   assert.ok(css.includes('max-width:640px'));
