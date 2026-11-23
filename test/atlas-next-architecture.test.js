@@ -308,6 +308,9 @@ test('Qur’an page proxy falls back across mirrors and serves bundled offline p
   assert.match(reader, /mushaf-fs-stage/);
   assert.match(reader, /mushaf-fs-sheet/);
   assert.match(reader, /mushaf-fs-footer/);
+  assert.match(reader, /mushaf-fs-header\{width:100%;max-width:720px/);
+  assert.match(reader, /mushaf-fs-footer\{width:100%;max-width:720px/);
+  assert.match(reader, /justify-content:center;gap:4px;padding:0 4px/);
   assert.match(reader, /readingMode === 'translation'/);
   assert.match(reader, /readingMode === 'reading'/);
   assert.match(reader, /Translation/);
