@@ -130,7 +130,6 @@ export function ValuesPage() {
       <Card className="faith-section-secondary"><div className="module-panel-head"><div><span className="module-kicker">EVENING REFLECTION</span><h2>Close the day with clarity.</h2></div><MoonStar size={18}/></div><details className="atlas-add-disclosure"><summary>+ Add record</summary><form className="form-stack" onSubmit={event=>{event.preventDefault();if(evening.trim())add('evening_reflection','Evening reflection',evening);setEvening('');}}><Field label="WHAT MOVED FORWARD, WHAT DID YOU LEARN, AND WHAT COMES NEXT?"><TextArea value={evening} onChange={event=>setEvening(event.target.value)} rows={4} placeholder="Notice the day without judgement. Name one meaningful next step."/></Field><Button type="submit" disabled={!evening.trim()||createRecord.isPending}>Save reflection</Button></form></details>{recordList(['evening_reflection']).map(item=>recordRow(item))}</Card>
     </div>}
     {createRecord.isError && <p className="inline-error">{createRecord.error.message}</p>}
-    {quran.isError && <p className="inline-error">{quran.error.message}</p>}
     {prayer.isError && <p className="inline-error">{prayer.error.message}</p>}
     <style>{deenPageStyles}</style>
   </Cascade>;
