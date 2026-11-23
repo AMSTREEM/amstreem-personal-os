@@ -40,10 +40,10 @@ app.use((req,res,next)=>{
     "form-action 'self'",
     "script-src 'self' https://cdn.jsdelivr.net",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com data:",
+    "font-src 'self' https://fonts.gstatic.com https://verses.quran.foundation https://quran.foundation data:",
     "img-src 'self' data: blob: https:",
     `connect-src 'self' ${supabaseOrigin} wss://${supabaseHost} https://alquran.cloud https://api.alquran.cloud https://api.quran.com https://islamic.network https://everyayah.com`,
-    "media-src 'self' blob: https://alquran.cloud https://api.alquran.cloud https://islamic.network https://everyayah.com",
+    "media-src 'self' blob: https://alquran.cloud https://api.alquran.cloud https://islamic.network https://everyayah.com https://quran.foundation https://verses.quran.foundation",
     "upgrade-insecure-requests"
   ].join('; '));
   if (process.env.NODE_ENV === 'production' && req.secure) {
@@ -98,30 +98,49 @@ function normalizeAlQuranCloud(body, page) {
   const arabic = editions.find(item => item?.edition?.identifier === 'quran-uthmani') || editions[0];
   const english = editions.find(item => item?.edition?.identifier === 'en.sahih') || editions[1];
   if (body?.code !== 200 || !Array.isArray(arabic?.ayahs) || !arabic.ayahs.length) throw new Error('Primary mirror returned an incomplete page.');
-  return { page, juz: Number(arabic.ayahs[0]?.juz) || 1, ayahs: arabic.ayahs.map((ayah, index) => {
+  return { page, juz: Number(arabic.ayahs[0]?.juz) || 1, qcfAvailable: false, translationSource: 'Sahih International', ayahs: arabic.ayahs.map((ayah, index) => {
     const surahNumber = Number(ayah?.surah?.number);
     const label = quranSurahLabels[surahNumber] || {};
     return { number: Number(ayah.number), numberInSurah: Number(ayah.numberInSurah), surahNumber,
       surahName: ayah?.surah?.englishName || label.surahName || `Surah ${surahNumber}`,
       arabicName: ayah?.surah?.name || label.arabicName || '', text: String(ayah.text || ''),
-      translation: String(english?.ayahs?.[index]?.text || '') };
+      translation: String(english?.ayahs?.[index]?.text || ''), translations: [], words: [] };
   }) };
 }
 function normalizeQuranCom(body, page) {
   const verses = Array.isArray(body?.verses) ? body.verses : [];
   if (!verses.length) throw new Error('Quran.com mirror returned an incomplete page.');
-  return { page, juz: Number(verses[0]?.juz_number) || 1, ayahs: verses.map(verse => {
-    const [surahRaw, ayahRaw] = String(verse.verse_key || '').split(':');
-    const surahNumber = Number(verse.chapter_id || surahRaw);
-    const label = quranSurahLabels[surahNumber] || {};
-    const translation = Array.isArray(verse.translations) ? verse.translations[0]?.text : '';
-    return { number: Number(verse.id), numberInSurah: Number(verse.verse_number || ayahRaw), surahNumber,
-      surahName: label.surahName || `Surah ${surahNumber}`, arabicName: label.arabicName || '',
-      text: String(verse.text_uthmani || ''), translation: String(translation || '').replace(/<[^>]*>/g, '').trim() };
-  }) };
+  const firstWords = verses.flatMap(verse => Array.isArray(verse.words) ? verse.words : []);
+  const qcfAvailable = firstWords.some(word => typeof word?.code_v2 === 'string' && word.code_v2.length > 0);
+  return { page, juz: Number(verses[0]?.juz_number) || 1, qcfAvailable,
+    translationSource: 'The Clear Quran · Dr. Mustafa Khattab',
+    ayahs: verses.map(verse => {
+      const [surahRaw, ayahRaw] = String(verse.verse_key || '').split(':');
+      const surahNumber = Number(verse.chapter_id || surahRaw);
+      const label = quranSurahLabels[surahNumber] || {};
+      const translations = Array.isArray(verse.translations) ? verse.translations.map(item => ({
+        id: Number(item.resource_id || item.id), name: String(item.name || item.resource_name || ''),
+        text: String(item.text || '').replace(/<[^>]*>/g, '').trim()
+      })) : [];
+      const clearQuran = translations.find(item => item.id === 131);
+      const sahih = translations.find(item => item.id === 20);
+      const words = Array.isArray(verse.words) ? verse.words.map(word => ({
+        text: String(word.text_uthmani || ''),
+        codeV2: String(word.code_v2 || ''),
+        lineNumber: Number(word.line_number || word.line_v2 || 0),
+        pageNumber: Number(word.page_number || word.v2_page || page),
+        position: Number(word.position || word.location || 0),
+        charTypeName: String(word.char_type_name || '')
+      })) : [];
+      return { number: Number(verse.id), numberInSurah: Number(verse.verse_number || ayahRaw), surahNumber,
+        surahName: label.surahName || `Surah ${surahNumber}`, arabicName: label.arabicName || '',
+        text: String(verse.text_uthmani || words.map(word => word.text).join(' ')),
+        translation: clearQuran?.text || sahih?.text || '',
+        translations, words };
+    }) };
 }
-async function fetchQuranMirror(url, normalizer, page) {
-  const response = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'AmstreemAtlas/1.0' }, signal: AbortSignal.timeout(6000) });
+async function fetchQuranMirror(url, normalizer, page, extraHeaders = {}) {
+  const response = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'AmstreemAtlas/1.0', ...extraHeaders }, signal: AbortSignal.timeout(9000) });
   if (!response.ok) throw new Error(`Mirror returned HTTP ${response.status}.`);
   return normalizer(await response.json(), page);
 }
@@ -135,10 +154,21 @@ app.get('/api/quran/page/:page', async (req, res) => {
     try { return send(await quranPageInflight.get(page), 'COALESCED'); } catch { /* fall through to offline seed */ }
   }
   const task = (async () => {
+    const quranHeaders = {};
+    if (process.env.QURAN_API_TOKEN) quranHeaders['x-auth-token'] = process.env.QURAN_API_TOKEN;
+    if (process.env.QURAN_CLIENT_ID) quranHeaders['x-client-id'] = process.env.QURAN_CLIENT_ID;
+    const quranUrl = `https://api.quran.com/api/v4/verses/by_page/${page}?mushaf=1&words=true&translations=131,20&word_fields=code_v2,line_number,page_number,text_uthmani,char_type_name,position,verse_key&fields=text_uthmani,verse_key,chapter_id,verse_number,juz_number&page=1&per_page=50`;
+    try {
+      const qcf = await fetchQuranMirror(quranUrl, normalizeQuranCom, page, quranHeaders);
+      if (qcf.qcfAvailable) return qcf;
+      console.warn('Qur’an API returned verse data without QCF V2 word glyphs; trying the text mirror.');
+    } catch (error) { console.warn('Qur’an word-level mirror failed:', error.message); }
     try { return await fetchQuranMirror(`https://api.alquran.cloud/v1/page/${page}/editions/quran-uthmani,en.sahih`, normalizeAlQuranCloud, page); }
-    catch (error) { console.warn('Qur’an primary mirror failed:', error.message); }
-    try { return await fetchQuranMirror(`https://api.quran.com/api/v4/verses/by_page/${page}?words=false&translations=20&fields=text_uthmani,verse_key,chapter_id,verse_number,juz_number&per_page=50`, normalizeQuranCom, page); }
-    catch (error) { console.warn('Qur’an secondary mirror failed:', error.message); }
+    catch (error) { console.warn('Qur’an Uthmani fallback failed:', error.message); }
+    try {
+      const textOnly = await fetchQuranMirror(`https://api.quran.com/api/v4/verses/by_page/${page}?words=false&translations=20&fields=text_uthmani,verse_key,chapter_id,verse_number,juz_number&per_page=50`, normalizeQuranCom, page, quranHeaders);
+      return { ...textOnly, qcfAvailable: false };
+    } catch (error) { console.warn('Qur’an text fallback failed:', error.message); }
     const offline = quranOfflinePages[String(page)];
     if (offline?.ayahs?.length) return { ...offline, offlineFallback: true };
     throw new Error('No online mirror or bundled offline page is available.');
