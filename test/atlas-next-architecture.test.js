@@ -460,3 +460,21 @@ test('Full-Screen Mushaf strips raw Qur’an ornaments, uses uniform 32px SVG me
   assert.ok(css.includes('overflow-x:hidden'));
   assert.ok(read('client/src/styles.css').includes('padding:12px 16px'));
 });
+
+
+test('Quran.com-inspired Mushaf chrome, reading proportions and mobile quick access remain in place', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const css = read('client/src/styles.css');
+  const shell = read('client/src/components/AppShell.tsx');
+  assert.match(reader, /<Bookmark size=\{14\}\/><span>Page \{page\} · Juz \{pageJuz\}<\/span>/);
+  assert.match(reader, /mushaf-fs-verse-topline/);
+  assert.match(reader, /In the Name of Allah—the Most Compassionate, Most Merciful/);
+  assert.match(reader, /window\.matchMedia\('\(min-width: 768px\)'\)\.matches/);
+  assert.match(css, /height:46px;min-height:46px/);
+  assert.match(css, /width:270px;min-width:270px/);
+  assert.match(css, /max-width:780px/);
+  assert.match(css, /max-width:540px/);
+  assert.match(css, /position:fixed;right:20px;bottom:20px/);
+  assert.match(css, /mushaf-mobile-sidebar-scrim/);
+  assert.match(shell, /atlas-mobile-dock__quran/);
+});
