@@ -83,7 +83,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   const [readingMode, setReadingMode] = useState<'translation' | 'reading'>('reading');
   const [qcfFontStatus, setQcfFontStatus] = useState<'loading' | 'ready' | 'fallback'>('fallback');
   const [fontSize, setFontSize] = useState(() => {
-    try { const saved = Number(localStorage.getItem('atlas_mushaf_font_step_v1')); return [18, 20, 22, 24, 26].includes(saved) ? saved : 18; }
+    try { const saved = Number(localStorage.getItem('atlas_mushaf_font_step_v1')); return [14, 16, 18, 20, 22, 24, 26, 28, 30].includes(saved) ? saved : 18; }
     catch { return 18; }
   });
   const [reciter, setReciter] = useState('ar.alafasy');
@@ -104,7 +104,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     }
     return [...grouped.entries()].sort((a,b) => a[0]-b[0]).map(([lineNumber, words]) => ({ lineNumber, words }));
   }, [pageData, page]);
-  const fontSteps = [18, 20, 22, 24, 26];
+  const fontSteps = [14, 16, 18, 20, 22, 24, 26, 28, 30];
   const changeFontSize = (direction: -1 | 1) => setFontSize(current => {
     const index = fontSteps.indexOf(current);
     const next = fontSteps[Math.max(0, Math.min(fontSteps.length - 1, (index < 0 ? 2 : index) + direction))];
@@ -347,15 +347,15 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
             return <Fragment key={lineNumber}>
               {surah && <SurahCartouche arabicName={surah.arabicName} englishName={QURAN_SURAHS[surah.surahNumber - 1]?.english || surah.surahName} ayahs={QURAN_SURAHS[surah.surahNumber - 1]?.ayahs || 0} />}
               {surah && surah.surahNumber !== 1 && surah.surahNumber !== 9 && <BismillahOrnament />}
-              <div className="mushaf-fs-qcf-line" data-line={lineNumber} style={{ fontFamily: 'QCF2' + String(page).padStart(3, '0'), fontSize: 'min(' + fontSize + 'px, 2.3vh, 5.5vw)' }}>
+              <div className="mushaf-fs-qcf-line" data-line={lineNumber} style={{ fontFamily: 'QCF2' + String(page).padStart(3, '0'), fontSize: fontSize + 'px' }}>
                 {words.map((word, index) => <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className={'mushaf-fs-qcf-word' + (word.charTypeName === 'end' ? ' is-end' : '')} dangerouslySetInnerHTML={{ __html: escapeGlyphHtml(word.codeV2 || word.text) }} />)}
               </div>
             </Fragment>;
           }) : readingLines.length > 0 ? <div className="mushaf-fs-unicode-lines" dir="rtl">
-            {readingLines.map(({ lineNumber, words }) => <div className="mushaf-fs-qcf-line" key={lineNumber} style={{ fontSize: 'min(' + fontSize + 'px, 2.2vh, 5.2vw)' }}>
+            {readingLines.map(({ lineNumber, words }) => <div className="mushaf-fs-qcf-line" key={lineNumber} style={{ fontSize: fontSize + 'px' }}>
               {words.map((word, index) => word.charTypeName === 'end' ? <AyahMedallion key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index} className="mushaf-fs-ayah-medallion" number={word.numberInSurah} /> : <span key={word.surahNumber + ':' + word.numberInSurah + ':' + word.position + ':' + index}>{word.text}</span>)}
             </div>)}
-          </div> : <div className="mushaf-ayah-flow mushaf-fs-unicode-flow" dir="rtl" lang="ar" style={{ fontSize: 'min(' + fontSize + 'px, 2.2vh, 5.2vw)' }}>
+          </div> : <div className="mushaf-ayah-flow mushaf-fs-unicode-flow" dir="rtl" lang="ar" style={{ fontSize: fontSize + 'px' }}>
             {pageData.ayahs.map(ayah => <Fragment key={ayah.surahNumber + ':' + ayah.numberInSurah}>
               {ayah.numberInSurah === 1 && <SurahCartouche arabicName={ayah.arabicName} englishName={QURAN_SURAHS[ayah.surahNumber - 1]?.english || ayah.surahName} ayahs={QURAN_SURAHS[ayah.surahNumber - 1]?.ayahs || 0} />}
               {ayah.numberInSurah === 1 && ayah.surahNumber !== 1 && ayah.surahNumber !== 9 && <BismillahOrnament />}
@@ -420,21 +420,21 @@ const mushafStyles = `
 .mushaf-launch-card{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:20px;border:1px solid var(--border-subtle,rgba(255,255,255,.12));border-radius:16px;background:var(--surface-card,rgba(255,255,255,.035))}
 .mushaf-launch-card h3{margin:5px 0;font-size:18px}.mushaf-launch-card p{margin:4px 0;color:var(--text-muted)}.mushaf-launch-card small{color:var(--text-muted);font-size:11px}
 .mushaf-fs-overlay,.mushaf-fs-overlay *{box-sizing:border-box}
-.mushaf-fs-overlay{position:fixed;inset:0;z-index:9999;width:100vw;height:100vh;height:100dvh;display:grid;grid-template-rows:88px minmax(0,1fr) 62px;overflow:hidden;background:var(--bg-canvas);color:var(--text-primary);font-family:"DM Sans",system-ui,sans-serif}
-.mushaf-fs-header{width:100%;min-width:0;min-height:88px;padding:8px 20px 6px;display:grid;grid-template-rows:42px 32px;align-content:center;gap:2px;border-bottom:1px solid var(--border-hairline);background:var(--bg-surface)}
-.mushaf-fs-top-row{width:min(100%,1120px);min-width:0;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.mushaf-fs-header-left,.mushaf-fs-header-right{display:flex;align-items:center;gap:10px;min-width:0}
+.mushaf-fs-overlay{position:fixed;inset:0;z-index:9999;width:100vw;height:100vh;height:100dvh;display:grid;grid-template-rows:68px minmax(0,1fr) 62px;overflow:hidden;background:var(--bg-canvas);color:var(--text-primary);font-family:"DM Sans",system-ui,sans-serif}
+.mushaf-fs-header{width:100%;min-width:0;min-height:68px;padding:4px 16px 3px;display:grid;grid-template-rows:30px 26px;align-content:center;gap:1px;border-bottom:1px solid var(--border-hairline);background:var(--bg-surface)}
+.mushaf-fs-top-row{width:min(100%,1120px);min-width:0;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mushaf-fs-header-left,.mushaf-fs-header-right{display:flex;align-items:center;gap:7px;min-width:0}
 .mushaf-fs-header-right{flex:0 0 auto}
-.mushaf-fs-surah-trigger{max-width:260px;min-width:0;height:34px;padding:0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid var(--border-hairline);border-radius:9px;background:var(--bg-elevated);color:var(--text-primary);font:600 12px/1 "DM Sans",sans-serif}
+.mushaf-fs-surah-trigger{max-width:260px;min-width:0;height:27px;padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid var(--border-hairline);border-radius:9px;background:var(--bg-elevated);color:var(--text-primary);font:600 12px/1 "DM Sans",sans-serif}
 .mushaf-fs-page-meta{flex:0 0 auto;color:var(--text-muted);font:500 10px/1.2 "DM Sans",sans-serif;white-space:nowrap}
-.mushaf-mode-switch{display:flex;align-items:center;gap:2px;padding:3px;border:1px solid var(--border-hairline);border-radius:9px;background:var(--bg-elevated)}
-.mushaf-mode-switch button{height:27px;min-height:27px;padding:0 9px;border:0;border-radius:6px;background:transparent;color:var(--text-muted);font:600 10px/1 "DM Sans",sans-serif;white-space:nowrap}
+.mushaf-mode-switch{display:flex;align-items:center;gap:2px;padding:2px;border:1px solid var(--border-hairline);border-radius:9px;background:var(--bg-elevated)}
+.mushaf-mode-switch button{height:23px;min-height:23px;padding:0 7px;border:0;border-radius:6px;background:transparent;color:var(--text-muted);font:600 10px/1 "DM Sans",sans-serif;white-space:nowrap}
 .mushaf-mode-switch button.is-active{background:var(--bg-canvas);color:var(--text-primary);box-shadow:0 1px 4px rgba(0,0,0,.1)}
 .mushaf-top-font{display:flex;align-items:center;gap:2px}
-.mushaf-top-font button{height:30px;min-height:30px;min-width:30px;padding:0 6px;border:1px solid var(--border-hairline);border-radius:7px;background:var(--bg-elevated);color:var(--text-primary);font:600 11px/1 "DM Sans",sans-serif}
-.mushaf-fs-close{width:32px;height:32px;min-height:32px;display:grid;place-items:center;padding:0;border:0;border-radius:8px;background:var(--bg-elevated);color:var(--text-primary)}
-.mushaf-fs-tabs{width:min(100%,1120px);height:32px;min-width:0;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:5px}
-.mushaf-fs-tabs button{height:28px;min-height:28px;padding:0 16px;border:0;border-radius:7px;background:transparent;color:var(--text-muted);font:600 11px/1 "DM Sans",sans-serif;white-space:nowrap}
+.mushaf-top-font button{height:25px;min-height:25px;min-width:26px;padding:0 5px;border:1px solid var(--border-hairline);border-radius:7px;background:var(--bg-elevated);color:var(--text-primary);font:600 11px/1 "DM Sans",sans-serif}
+.mushaf-fs-close{width:26px;height:26px;min-height:26px;display:grid;place-items:center;padding:0;border:0;border-radius:8px;background:var(--bg-elevated);color:var(--text-primary)}
+.mushaf-fs-tabs{width:min(100%,1120px);height:26px;min-width:0;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:5px}
+.mushaf-fs-tabs button{height:23px;min-height:23px;padding:0 13px;border:0;border-radius:7px;background:transparent;color:var(--text-muted);font:600 11px/1 "DM Sans",sans-serif;white-space:nowrap}
 .mushaf-fs-tabs button.is-active{background:var(--bg-elevated);color:var(--text-primary);box-shadow:inset 0 0 0 1px var(--border-hairline)}
 .mushaf-fs-stage{width:100%;min-width:0;min-height:0;overflow-x:hidden;overflow-y:auto;padding:18px 16px;overscroll-behavior:contain}
 .mushaf-fs-stage.is-page-by-page{display:flex;align-items:center;justify-content:center;overflow:hidden;padding:6px 12px}
@@ -513,15 +513,15 @@ const mushafStyles = `
 .mushaf-error button{height:34px;padding:0 12px;border:1px solid var(--border-hairline);border-radius:8px;background:var(--bg-elevated);color:var(--text-primary)}
 .mushaf-loading{margin:20px auto;text-align:center;color:var(--text-muted);font:12px/1.5 "DM Sans",sans-serif}
 @media(max-width:700px){
- .mushaf-fs-overlay{grid-template-rows:86px minmax(0,1fr) 58px}
- .mushaf-fs-header{min-height:86px;padding:6px 9px;grid-template-rows:40px 32px}
- .mushaf-fs-top-row{gap:5px}.mushaf-fs-header-left,.mushaf-fs-header-right{gap:5px}
- .mushaf-fs-surah-trigger{max-width:145px;height:30px;padding:0 7px;font-size:10px}
+  .mushaf-fs-overlay{grid-template-rows:64px minmax(0,1fr) 58px}
+  .mushaf-fs-header{min-height:64px;padding:3px 9px;grid-template-rows:28px 24px;gap:1px}
+  .mushaf-fs-top-row{gap:4px}.mushaf-fs-header-left,.mushaf-fs-header-right{gap:4px}
+  .mushaf-fs-surah-trigger{max-width:145px;height:25px;padding:0 6px;font-size:10px}
  .mushaf-fs-page-meta{font-size:9px}
- .mushaf-mode-switch{gap:1px;padding:2px}.mushaf-mode-switch button{height:25px;min-height:25px;padding:0 6px;font-size:9px}
- .mushaf-top-font button{height:28px;min-height:28px;min-width:27px;padding:0 4px;font-size:10px}
- .mushaf-fs-close{width:28px;height:28px;min-height:28px}
- .mushaf-fs-tabs button{height:27px;min-height:27px;padding:0 12px;font-size:10px}
+  .mushaf-mode-switch{gap:1px;padding:1px}.mushaf-mode-switch button{height:21px;min-height:21px;padding:0 5px;font-size:9px}
+  .mushaf-top-font button{height:23px;min-height:23px;min-width:24px;padding:0 3px;font-size:9px}
+  .mushaf-fs-close{width:24px;height:24px;min-height:24px}
+  .mushaf-fs-tabs button{height:21px;min-height:21px;padding:0 10px;font-size:9px}
  .mushaf-fs-stage{padding:12px 8px}.mushaf-fs-stage.is-page-by-page{padding:2px 4px}
  .mushaf-fs-stage.is-page-by-page .mushaf-fs-sheet{padding:0 2px}
  .mushaf-fs-qcf-line{line-height:1.62}
@@ -539,7 +539,7 @@ const mushafStyles = `
  .mushaf-surah-cartouche-copy{gap:1px}
  .mushaf-surah-cartouche-copy b{font-size:15px}
  .mushaf-surah-cartouche-copy span{font-size:8px;letter-spacing:0}
- .mushaf-fs-header{padding-left:5px;padding-right:5px}
+  .mushaf-fs-header{padding-left:5px;padding-right:5px}
  .mushaf-fs-header-left,.mushaf-fs-header-right{gap:3px}
  .mushaf-fs-surah-trigger{max-width:118px;padding:0 5px;font-size:9px}
  .mushaf-fs-page-meta{font-size:8px}
