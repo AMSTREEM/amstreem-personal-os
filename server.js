@@ -112,8 +112,9 @@ function normalizeQuranCom(body, page) {
   if (!verses.length) throw new Error('Quran.com mirror returned an incomplete page.');
   const firstWords = verses.flatMap(verse => Array.isArray(verse.words) ? verse.words : []);
   const qcfAvailable = firstWords.some(word => typeof word?.code_v2 === 'string' && word.code_v2.length > 0);
-  return { page, juz: Number(verses[0]?.juz_number) || 1, qcfAvailable,
-    translationSource: 'The Clear Quran · Dr. Mustafa Khattab',
+  const firstTranslationIds = Array.isArray(verses[0]?.translations) ? verses[0].translations.map(item => Number(item.resource_id || item.id)) : [];
+  const translationSource = firstTranslationIds.includes(131) ? 'The Clear Quran · Dr. Mustafa Khattab' : 'Sahih International';
+  return { page, juz: Number(verses[0]?.juz_number) || 1, qcfAvailable, translationSource,
     ayahs: verses.map(verse => {
       const [surahRaw, ayahRaw] = String(verse.verse_key || '').split(':');
       const surahNumber = Number(verse.chapter_id || surahRaw);
