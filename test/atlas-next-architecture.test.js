@@ -253,3 +253,23 @@ test('first-run walkthrough explains the five current Atlas rooms and follows ca
   assert.match(shell, /onOpenCommand=\{\(\) => \{ setCommandOpen\(true\);/);
   assert.match(residence, /Good \$\{rhythm/);
 });
+
+\ntest('Qur’an reader uses a same-origin cached proxy and full-screen ayah study controls', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  assert.match(server, /app\\.get\\('\\/api\\/quran\\/page\\/:page'/);
+  assert.match(server, /quranPageCache = new Map\\(\\)/);
+  assert.match(server, /page < 1 \\|\\| page > 604/);
+  assert.match(server, /quran-uthmani,en\\.sahih/);
+  assert.match(server, /media-src 'self'.*islamic\\.network.*everyayah\\.com/);
+  assert.match(server, /connect-src 'self'.*alquran\\.cloud.*islamic\\.network/);
+  assert.match(reader, /fetch\\('\\/api\\/quran\\/page\\/' \\+ page\\)/);
+  assert.doesNotMatch(reader, /fetch\\('https:\\/\\/api\\.alquran\\.cloud/);
+  assert.match(reader, /Open Full-Screen Mushaf/);
+  assert.match(reader, /QURAN_SURAHS\\.map/);
+  assert.match(reader, /Ayah loop/);
+  assert.match(reader, /Page loop/);
+  assert.match(reader, /Mishary Alafasy/);
+  assert.match(reader, /Complete & Log Page/);
+  assert.match(reader, /hifz_bookmark/);
+  assert.match(reader, /murajaah_bookmark/);
+});
