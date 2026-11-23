@@ -163,8 +163,8 @@ function normalizeQuranCom(body, page) {
         text: String(word.text_uthmani || word.text_qpc_hafs || ''),
         tajweed: String(word.text_uthmani_tajweed || ''),
         codeV2: String(word.code_v2 || ''),
-        lineNumber: Number(word.line_number || word.line_v2 || 0),
-        pageNumber: Number(word.page_number || word.v2_page || page),
+        lineNumber: Number(word.line_v2 || word.line_number || 0),
+        pageNumber: Number(word.v2_page || word.page_number || page),
         position: Number(word.position || word.location || 0),
         charTypeName: String(word.char_type_name || '')
       })) : [];
