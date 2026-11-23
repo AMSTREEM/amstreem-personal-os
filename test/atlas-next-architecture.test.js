@@ -319,15 +319,21 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.match(reader, /mushaf-fs-qcf-line/);
   assert.match(reader, /mushaf-fs-ayah-medallion/);
   assert.match(reader, /arabicNumber\(word\.numberInSurah\)/);
-  assert.match(reader, /mushaf-fs-ayah-medallion:before/);
-  assert.match(reader, /mushaf-fs-ayah-medallion:after/);
-  assert.match(reader, /display:inline-grid;place-items:center;flex:0 0 auto/);
-  assert.match(reader, /align-items:center;justify-content:center;gap:4px/);
-  assert.match(reader, /transform:none;align-self:center/);
-  assert.match(reader, /unicode-bidi:isolate/);
-  assert.match(reader, /className="mushaf-fs-ayah-number-text"/);
+  assert.match(reader, /function AyahMedallion/);
+  assert.match(reader, /mushaf-ayah-medallion-frame/);
+  assert.match(reader, /M18 1\.5 21\.8 8\.2/);
+  assert.match(reader, /display:inline-flex;align-items:center;justify-content:center;vertical-align:middle/);
+  assert.match(reader, /flex:0 0 32px/);
+  assert.match(reader, /is-three-digit/);
+  assert.match(reader, /Plus Jakarta Sans/);
+  assert.match(reader, /font-variant-numeric:tabular-nums/);
   assert.match(reader, /position:absolute;inset:0;display:grid;place-items:center/);
-  assert.match(reader, /Noto Naskh Arabic/);
+  assert.match(reader, /unicode-bidi:isolate/);
+  assert.match(reader, /value\.replace\(\/\\\\u06DD\/g, ''\)/);
+  assert.match(reader, /sanitizeMushafPage\(payload as MushafPage\)/);
+  assert.match(reader, /document\.documentElement/);
+  assert.match(reader, /root\.style\.overflow = 'hidden'/);
+  assert.match(reader, /overflow:hidden!important/);
   assert.match(reader, /mushaf-fs-translation-pill/);
   assert.match(reader, /mushaf-fs-verse-row/);
   assert.match(reader, /mushaf-fs-verse-translation/);
@@ -355,4 +361,29 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.doesNotMatch(values, /YOUR FAITH & REFLECTION SPACE/);
   assert.doesNotMatch(values, /DEEN · DAILY PRACTICE/);
   assert.doesNotMatch(values, /HIFZ \/ RECITATION \/ REVISION/);
+});
+
+
+test('Mushaf scroll locking leaves one inner scroll canvas and restores both document overflow styles', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  assert.match(reader, /const previousRootOverflow = root\.style\.overflow/);
+  assert.match(reader, /const previousBodyOverflow = document\.body\.style\.overflow/);
+  assert.match(reader, /root\.style\.overflow = 'hidden'/);
+  assert.match(reader, /document\.body\.style\.overflow = 'hidden'/);
+  assert.match(reader, /return \(\) => \{ root\.style\.overflow = previousRootOverflow; document\.body\.style\.overflow = previousBodyOverflow; \}/);
+  assert.match(reader, /\.mushaf-fs-overlay\{[^}]*overflow:hidden!important/);
+  assert.match(reader, /\.mushaf-fs-stage\{[^}]*overflow-y:auto/);
+});
+
+test('global scrollbars use theme tokens consistently and the workspace has a single page-level scroll owner', () => {
+  const css = read('client/src/styles.css');
+  const shell = read('client/src/components/AppShell.tsx');
+  assert.match(css, /scrollbar-width:thin;\s*scrollbar-color:var\(--border-strong\) transparent/);
+  assert.match(css, /\*::-webkit-scrollbar \{ width:6px; height:6px; \}/);
+  assert.match(css, /\*::-webkit-scrollbar-track \{ background:transparent; \}/);
+  assert.match(css, /\*::-webkit-scrollbar-thumb \{ background:var\(--border-strong\); border-radius:999px; \}/);
+  assert.match(css, /\*::-webkit-scrollbar-thumb:hover \{ background:var\(--accent-primary\); \}/);
+  assert.match(css, /\.app-frame, \.main-area, \.page-container \{ overflow-y:visible; \}/);
+  assert.match(css, /\.primary-nav \{ overflow: auto;/);
+  assert.ok(shell.includes('className="page-container"'));
 });
