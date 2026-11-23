@@ -158,12 +158,23 @@ app.get('/api/quran/page/:page', async (req, res) => {
     const quranHeaders = {};
     if (process.env.QURAN_API_TOKEN) quranHeaders['x-auth-token'] = process.env.QURAN_API_TOKEN;
     if (process.env.QURAN_CLIENT_ID) quranHeaders['x-client-id'] = process.env.QURAN_CLIENT_ID;
-    const quranUrl = `https://api.quran.com/api/v4/verses/by_page/${page}?mushaf=1&words=true&translations=131,20&word_fields=code_v2,line_number,page_number,text_uthmani,position,verse_key&fields=text_uthmani,verse_key,chapter_id,verse_number,juz_number&page=1&per_page=50`;
-    try {
-      const qcf = await fetchQuranMirror(quranUrl, normalizeQuranCom, page, quranHeaders);
-      if (qcf.qcfAvailable) return qcf;
-      console.warn('Qur’an API returned verse data without QCF V2 word glyphs; trying the text mirror.');
-    } catch (error) { console.warn('Qur’an word-level mirror failed:', error.message); }
+    const quranQuery = `?mushaf=1&words=true&translations=131,20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,position,verse_key&fields=text_uthmani,verse_key,chapter_id,verse_number,juz_number&page=1&per_page=50`;
+    const qcfSources = [
+      `https://quran.com/api/proxy/content/api/qdc/verses/by_page/${page}${quranQuery}`,
+      `https://api.quran.com/api/v4/verses/by_page/${page}${quranQuery}`
+    ];
+    if (process.env.QURAN_API_TOKEN && process.env.QURAN_CLIENT_ID) {
+      qcfSources.push(`https://apis.quran.foundation/content/api/v4/verses/by_page/${page}${quranQuery}`);
+    }
+    let qcfPage = null;
+    for (const sourceUrl of qcfSources) {
+      try {
+        const candidate = await fetchQuranMirror(sourceUrl, normalizeQuranCom, page, quranHeaders);
+        if (candidate.qcfAvailable) { qcfPage = candidate; break; }
+        console.warn('Qur’an API returned verse data without QCF V2 word glyphs; trying the next source.');
+      } catch (error) { console.warn('Qur’an word-level mirror failed:', error.message); }
+    }
+    if (qcfPage) return qcfPage;
     try { return await fetchQuranMirror(`https://api.alquran.cloud/v1/page/${page}/editions/quran-uthmani,en.sahih`, normalizeAlQuranCloud, page); }
     catch (error) { console.warn('Qur’an Uthmani fallback failed:', error.message); }
     try {
