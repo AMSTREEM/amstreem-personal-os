@@ -439,7 +439,7 @@ test('Mushaf surah cartouches, calligraphic basmala, searchable index and page-f
   assert.match(reader, />Page by Page<\/button>/);
   assert.match(reader, /is-page-by-page/);
   assert.match(reader, /clamp\(15px,2\.2vh,22px\)/);
-  assert.match(reader, /line-height:1\.68/);
+  assert.match(reader, /line-height:1\.62/);
   assert.match(reader, /max-width:640px/);
   assert.match(reader, /overflow:hidden/);
 });
