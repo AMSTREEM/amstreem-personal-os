@@ -22,10 +22,10 @@ import { useSpotlightGrid } from './fx/useSpotlightGrid';
 const MotionNavLink = motion.create(NavLink);
 
 const rooms = [
-  { id: 'residence', label: 'Residence', to: '/residence', icon: House, paths: ['/residence'] },
-  { id: 'rhythm', label: 'Daily Rhythm', to: '/values', icon: MoonStar, paths: ['/values', '/habits'] },
-  { id: 'execution', label: 'Execution & Focus', to: '/execution', icon: Compass, paths: ['/execution', '/focus', '/calendar'] },
-  { id: 'growth', label: 'Growth & Direction', to: '/goals', icon: GraduationCap, paths: ['/goals', '/learning-library', '/reviews-insights'] }
+  { id: 'residence', label: 'Today', to: '/residence', icon: House, paths: ['/residence'] },
+  { id: 'rhythm', label: 'Deen & Qur’an', to: '/values', icon: MoonStar, paths: ['/values'] },
+  { id: 'execution', label: 'Focus', to: '/focus', icon: Compass, paths: ['/focus', '/execution'] },
+  { id: 'growth', label: 'Goals', to: '/goals', icon: GraduationCap, paths: ['/goals'] }
 ];
 
 const commandDestinations = [
@@ -173,12 +173,12 @@ export function AppShell() {
     } else document.title = 'Amstreem Atlas';
     return () => { document.title = 'Amstreem Atlas'; };
   }, [focusActive, focusTimer.kind, focusClock, focusContext, current?.label]);
-  const faithTabLabel = quickReligion === 'islam' ? 'Deen & Reflection' : quickReligion === 'christianity' ? 'Faith & Devotion' : 'Clarity & Reflection';
+  const faithTabLabel = quickReligion === 'islam' ? 'Deen & Qur’an' : quickReligion === 'christianity' ? 'Faith & Reflection' : 'Daily Reflection';
   const tabsByRoom = {
     residence: [],
-    rhythm: [{ label: faithTabLabel, to: '/values' }, { label: 'Habits & Self-Control', to: '/habits' }],
-    execution: [{ label: 'Tasks', to: '/execution' }, { label: 'Focus Room', to: '/focus' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
-    growth: [{ label: 'Goals · Projects · Learning', to: '/goals' }, { label: 'Private Library', to: '/learning-library' }, { label: 'Reviews & Insights', to: '/reviews-insights' }]
+    rhythm: [{ label: 'Habits & Self-Control', to: '/habits' }],
+    execution: [{ label: 'Tasks', to: '/execution' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
+    growth: [{ label: 'Projects & Learning', to: '/learning-library' }, { label: 'Reviews & Insights', to: '/reviews-insights' }]
   };
   const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => role === 'admin' || !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
   return <div className={"app-frame" + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
@@ -188,14 +188,15 @@ export function AppShell() {
     <motion.aside className={'sidebar ' + (mobileOpen ? 'sidebar--open' : '')} initial={reduceMotion ? false : { x: -12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
       <NavLink to="/residence" className="sidebar-brand" onClick={() => setMobileOpen(false)}><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><span><b>AMSTREEM</b><small>ATLAS</small></span></NavLink>
       <div className="sidebar-caption">YOUR PRIVATE WORKSPACE</div>
-      <nav className="primary-nav" aria-label="Atlas rooms">
+      <nav className="primary-nav" aria-label="Primary navigation">
         <div className="nav-group">
-          <div className="nav-group__label">YOUR FOUR ROOMS</div>
+          <div className="nav-group__label">YOUR WORKSPACE</div>
           {rooms.map((item,index) => {
             const Icon = item.icon;
-            const active = item.paths.includes(location.pathname);
-            return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={'nav-link room-nav-link ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>⌘ {index+1}</kbd></MotionNavLink>;
+            const active = item.paths.includes(location.pathname) || (item.id === 'execution' && location.pathname === '/execution');
+            return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={'nav-link room-nav-link ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<item.icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>⌘ {index+1}</kbd></MotionNavLink>;
           })}
+          <button type="button" className="nav-link room-nav-link" onClick={() => setMobileOpen(true)}><SlidersHorizontal size={17}/><span>More</span><kbd>···</kbd></button>
         </div>
       </nav>
       <div className="sidebar-bottom">
@@ -208,6 +209,14 @@ export function AppShell() {
       </div>
     </motion.aside>
     {mobileOpen && <><button className="mobile-more-scrim" type="button" aria-label="Close More menu" onClick={() => setMobileOpen(false)} /><motion.aside className="mobile-more-drawer" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 18 }} aria-label="More navigation"><div className="mobile-more-drawer__head"><b>More</b><button type="button" aria-label="Close menu" onClick={() => setMobileOpen(false)}><X size={17}/></button></div><nav>{commandDestinations.map(item => { const Icon=item.icon; return <NavLink key={item.to} to={item.to} onClick={() => setMobileOpen(false)}><Icon size={17}/><span>{item.label}</span><ArrowRight size={14}/></NavLink>; })}<NavLink to="/settings" onClick={() => setMobileOpen(false)}><SlidersHorizontal size={17}/><span>Settings</span><ArrowRight size={14}/></NavLink>{role === 'admin' && <NavLink to="/admin" onClick={() => setMobileOpen(false)}><Settings size={17}/><span>Administration</span><ArrowRight size={14}/></NavLink>}<button type="button" onClick={() => { setMobileOpen(false); void signOut(); }}><LogOut size={17}/><span>Sign out</span></button></nav></motion.aside></>}
+    <nav className="atlas-mobile-dock" aria-label="Primary navigation">
+      {rooms.map(item => <NavLink key={item.id} to={item.to} end className={({isActive}) => 'atlas-mobile-dock__item ' + (isActive || (item.id === 'execution' && location.pathname === '/execution') ? 'is-active' : '')} onClick={() => setMobileOpen(false)}><item.icon size={19}/><span>{item.label}</span></NavLink>)}
+      <button type="button" className="atlas-mobile-dock__item" onClick={() => setMobileOpen(true)}><SlidersHorizontal size={19}/><span>More</span></button>
+    </nav>
+    <style>{`
+      .atlas-mobile-dock{display:none}
+      @media(max-width:760px){.atlas-mobile-dock{position:fixed;z-index:60;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;padding:7px;background:var(--surface-elevated,rgba(12,14,20,.94));border:1px solid var(--border-subtle,rgba(255,255,255,.12));border-radius:18px;box-shadow:0 10px 35px rgba(0,0,0,.28);backdrop-filter:blur(18px)}.atlas-mobile-dock__item{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:7px 2px;border:0;border-radius:11px;background:transparent;color:var(--text-muted, #999);font:inherit;text-decoration:none;font-size:10px;white-space:nowrap}.atlas-mobile-dock__item.is-active{background:var(--surface-hover,rgba(255,255,255,.08));color:var(--text-primary,white)}.main-area{padding-bottom:88px}}
+    `}</style>
     <main className="main-area">
       <motion.div ref={bootContentRef} className="atlas-workspace-boot" initial={reduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.24, ease: [0.16, 1, 0.3, 1] }}>
       <motion.header className="topbar" initial={reduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.18, delay: 0.04 }}>
