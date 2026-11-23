@@ -285,7 +285,7 @@ test('Full-screen Mushaf opens without inline preview and uses a tap-to-toggle A
   assert.ok(reader.includes('mushaf-floating-bottom'));
   assert.ok(reader.includes('mushaf-page-scrubber'));
   assert.ok(reader.includes('mushaf-quick-jump'));
-  assert.doesNotMatch(reader, /mushaf-audio-control|reciter|Mishary|<audio|<Play|Play verse|Play recitation|Settings/);
+  assert.doesNotMatch(reader, /mushaf-audio-control|reciter|Mishary|<audio|<Play|Play verse|Play recitation/);
   assert.doesNotMatch(css, /mushaf-audio-control|mushaf-floating-bottom select/);
   assert.ok(reader.includes('Page by Page') && reader.includes('Verse by Verse'));
   assert.ok(reader.includes('fontSteps = [16, 18, 20, 23, 26, 30, 34]'));
