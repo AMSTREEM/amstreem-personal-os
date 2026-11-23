@@ -5777,3 +5777,11 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .mushaf-fs-qcf-line{font-family:"Amiri Quran","Scheherazade New",serif}
 .mushaf-fs-qcf-word{font-family:inherit}
 @media(min-width:768px){.mushaf-reading-canvas.is-page-mode{padding-bottom:64px}.mushaf-minimal-page-pill{bottom:14px}}
+
+/* Direct Qur'an access across the Atlas shell and Residence. */
+.nav-link--quran{margin-top:5px}
+.atlas-mobile-dock__quran{display:grid;place-items:center;color:var(--text-muted,#999);text-decoration:none}
+.atlas-mobile-dock__quran.is-active{color:var(--accent-strong,var(--text-primary))}
+.residence-quran-resume{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:34px;width:max-content;max-width:100%;margin-top:10px;padding:0 12px;border:1px solid var(--accent-border,var(--line));border-radius:999px;background:var(--accent-wash,rgba(80,160,110,.1));color:var(--accent-strong,var(--text-primary));font:600 11px/1.2 "DM Sans",sans-serif;text-decoration:none;white-space:nowrap;transition:background .18s,border-color .18s,transform .18s}
+.residence-quran-resume:hover{background:var(--surface-hover);border-color:var(--accent-strong);transform:translateY(-1px)}
+@media(max-width:767px){.residence-quran-resume{min-height:38px;font-size:10px}.atlas-mobile-dock__quran{border-radius:50%;background:var(--accent-wash,rgba(80,160,110,.12));border:1px solid var(--accent-border,var(--line))}}
