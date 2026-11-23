@@ -276,7 +276,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     setPage(mark.page);
     setPageInput(String(mark.page));
     setSelected(mark.surah && mark.ayah ? { surah: mark.surah, ayah: mark.ayah } : null);
-    setDrawerOpen(false);
+    setSidebarOpen(false);
     setLoading(true); setPageData(null); setPageError('');
     setFullScreen(true);
   };
@@ -287,7 +287,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     openReader('hifz');
   }, [autoOpen, settingsReady]);
   const changeReadingMode = (next: 'translation' | 'reading') => { if (next !== readingMode) { updateBookmark(page, selectedAyah); setReadingMode(next); } };
-  const jumpSurah = (number: number) => { const item = QURAN_SURAHS[number - 1]; if (item) { changePage(item.pageStart, { surahNumber: number, numberInSurah: 1 }); setDrawerOpen(false); setSurahSearch(''); } };
+  const jumpSurah = (number: number) => { const item = QURAN_SURAHS[number - 1]; if (item) { changePage(item.pageStart, { surahNumber: number, numberInSurah: 1 }); setSidebarOpen(false); setSurahSearch(''); } };
   const jumpJuz = (number: number) => { const start = QURAN_JUZ_STARTS[number - 1]; if (start) changePage(getAyahLocation(start[1], start[2])?.page || 1); };
   const selectAyah = (ayah: MushafAyah) => { const ayahPage = getAyahLocation(ayah.surahNumber, ayah.numberInSurah)?.page || page; setSelected({ surah: ayah.surahNumber, ayah: ayah.numberInSurah }); setPage(ayahPage); updateBookmark(ayahPage, ayah); };
   const toggleStarredAyah = (ayah: MushafAyah) => setStarredAyahs(current => {
