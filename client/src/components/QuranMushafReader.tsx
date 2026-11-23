@@ -251,7 +251,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
           {pageData.qcfAvailable && qcfFontStatus === 'fallback' && <p className="mushaf-fs-font-note">QCF page font unavailable — showing Uthmani text.</p>}
         </div>}
         {!loading && pageData && readingMode === 'translation' && <div className={`mushaf-fs-verse-list mushaf-fs-arabic mushaf-fs-arabic--${fontSize}`} dir="ltr" lang="en">
-          <div className="mushaf-fs-translation-pill">Translation: Dr. Mustafa Khattab / Sahih International</div>
+          <div className="mushaf-fs-translation-pill">Translation: {pageData.translationSource || 'Sahih International'}</div>
           {pageData.ayahs.map((ayah, index) => {
             const beginsSurah = index === 0 || pageData.ayahs[index - 1].surahNumber !== ayah.surahNumber;
             const isSelected = selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah;
