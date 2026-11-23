@@ -798,4 +798,37 @@ const mushafStyles = `
  .mushaf-fs-footer{height:62px;min-height:62px}
 }
 
+/* Final Full-Screen Mushaf containment overrides. */
+.mushaf-fs-overlay,.mushaf-fs-overlay *{box-sizing:border-box}
+.mushaf-fs-header,.mushaf-fs-stage,.mushaf-fs-footer,.mushaf-surah-banner,.mushaf-surah-cartouche,.mushaf-bismillah,.mushaf-bismillah-ornament,.mushaf-surah-drawer{box-sizing:border-box;max-width:100%;min-width:0}
+.mushaf-fs-overlay{max-width:100vw;overflow-x:hidden!important}
+.mushaf-fs-header{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
+.mushaf-fs-top-row,.mushaf-fs-header-left,.mushaf-fs-header-right,.mushaf-fs-stage,.mushaf-fs-sheet,.mushaf-fs-footer{min-width:0;max-width:100%}
+.mushaf-fs-stage{width:100%;overflow-x:hidden!important}
+.mushaf-fs-sheet,.mushaf-fs-verse-list,.mushaf-fs-verse-row,.mushaf-fs-verse-actionbar,.mushaf-fs-verse-arabic-line,.mushaf-fs-verse-arabic,.mushaf-fs-verse-translation,.mushaf-surah-cartouche-copy{box-sizing:border-box;min-width:0;max-width:100%}
+.mushaf-surah-drawer{width:min(360px,92vw)!important;max-width:92vw!important;overflow-x:hidden!important}
+.mushaf-surah-list,.mushaf-surah-list>button,.mushaf-surah-names{box-sizing:border-box;min-width:0;max-width:100%;overflow-x:hidden}
+.mushaf-fs-header button,.mushaf-fs-footer button{box-sizing:border-box;max-width:100%;min-width:0;padding:6px 10px;font-size:12px;white-space:nowrap}
+.mushaf-fs-ayah-medallion,.mushaf-ayah-number{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;flex:0 0 32px;flex-shrink:0;width:32px!important;height:32px;min-width:32px!important;max-width:32px!important;box-sizing:border-box;margin:0 5px;padding:0}
+.mushaf-fs-ayah-medallion.is-three-digit,.mushaf-ayah-number.is-three-digit{width:32px!important;min-width:32px!important;max-width:32px!important;flex-basis:32px}
+.mushaf-ayah-medallion-frame{display:block;width:32px;height:32px;max-width:32px}
+.mushaf-fs-ayah-number-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-family:"Plus Jakarta Sans",system-ui,sans-serif;font-size:11px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;text-align:center;direction:ltr;unicode-bidi:isolate}
+.mushaf-fs-footer .mushaf-fs-page-pill{width:min(100%,540px);max-width:100%;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:5px 7px;box-sizing:border-box}
+.mushaf-fs-footer .mushaf-fs-page-pill button{flex:0 1 auto;min-width:0;max-width:100%;padding:6px 10px;font-size:12px}
+.mushaf-fs-footer .mushaf-save-status{position:static!important;display:inline-flex;align-items:center;justify-content:center;max-width:100%;min-width:0;margin:0 auto;padding:6px 12px;border:1px solid var(--border-hairline);border-radius:999px;background:var(--bg-elevated);font:500 10px/1.2 "DM Sans",sans-serif;white-space:nowrap}
+@media(max-width:480px){
+ .mushaf-fs-header{padding:5px 6px;gap:4px}
+ .mushaf-fs-top-row{flex-wrap:wrap;justify-content:center;row-gap:4px}
+ .mushaf-fs-header-left,.mushaf-fs-header-right{gap:4px;max-width:100%}
+ .mushaf-fs-header button,.mushaf-fs-footer button{padding:6px 7px;font-size:10px}
+ .mushaf-fs-tabs{max-width:100%;gap:3px}
+ .mushaf-fs-tabs button{padding:6px 10px;font-size:10px}
+ .mushaf-fs-stage{padding-left:5px;padding-right:5px}
+ .mushaf-fs-sheet{width:100%;padding-left:8px;padding-right:8px}
+ .mushaf-fs-footer .mushaf-fs-page-pill{gap:3px;padding:4px}
+ .mushaf-fs-footer .mushaf-fs-page-pill button{padding:6px;font-size:9px}
+ .mushaf-fs-footer .mushaf-save-status{padding:5px 7px;font-size:8px}
+}
+
+
 `;
