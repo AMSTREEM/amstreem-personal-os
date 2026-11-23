@@ -311,8 +311,8 @@ test('Qur’an page proxy falls back across mirrors and serves bundled offline p
   assert.match(reader, /mushaf-fs-stage/);
   assert.match(reader, /mushaf-fs-sheet/);
   assert.match(reader, /mushaf-fs-footer/);
-  assert.match(reader, /mushaf-fs-header\{width:100%;max-width:900px/);
-  assert.match(reader, /mushaf-fs-footer\{position:relative;width:100%;max-width:900px/);
+  assert.match(reader, /mushaf-fs-header\{[\s\S]*max-width:900px/);
+  assert.match(reader, /mushaf-fs-footer\{[\s\S]*position:relative;width:100%;max-width:900px/);
   assert.match(reader, /grid-template-columns:minmax\(0,1fr\) auto minmax\(0,1fr\)/);
   assert.match(reader, /readingMode === 'translation'/);
   assert.match(reader, /readingMode === 'reading'/);
@@ -322,8 +322,8 @@ test('Qur’an page proxy falls back across mirrors and serves bundled offline p
   assert.match(reader, /mushaf-fs-verse-translation/);
   assert.match(reader, /mushaf-fs-verse-actions/);
   assert.match(reader, /<Fragment key=\{ayah\.surahNumber/);
-  assert.match(reader, /Previous<\/button>/);
-  assert.match(reader, />Next <ChevronRight/);
+  assert.match(reader, /Previous Page<\/button>/);
+  assert.match(reader, />Next Page <ChevronRight/);
   assert.match(reader, /Bookmark/);
   assert.match(reader, /mushaf-fs-arabic--\$\{fontSize\}/);
   assert.doesNotMatch(reader, /showTranslation/);
@@ -332,10 +332,10 @@ test('Qur’an page proxy falls back across mirrors and serves bundled offline p
   assert.match(read('client/index.html'), /fonts.googleapis.com\/css2/);
   assert.doesNotMatch(reader, /mushaf-ayah-flow[^>]*style=\{/);
   const mushafCss = read('client/src/styles.css');
-  assert.match(mushafCss, /\.mushaf-fs-overlay\s*\{[\s\S]*?grid-template-rows:56px minmax\(0,1fr\) 76px/);
-  assert.match(mushafCss, /\.mushaf-fs-sheet\s*\{[\s\S]*?max-width:700px/);
-  assert.match(mushafCss, /\.mushaf-fs-header\s*\{[\s\S]*?max-width:900px/);
-  assert.match(mushafCss, /\.mushaf-fs-footer\s*\{[\s\S]*?max-width:900px/);
+  assert.match(mushafCss, /\.mushaf-fs-overlay\s*\{[\s\S]*grid-template-rows:56px minmax\(0,1fr\) 76px/);
+  assert.match(mushafCss, /\.mushaf-fs-sheet\s*\{[\s\S]*max-width:700px/);
+  assert.match(mushafCss, /\.mushaf-fs-header\s*\{[\s\S]*max-width:900px/);
+  assert.match(mushafCss, /\.mushaf-fs-footer\s*\{[\s\S]*max-width:900px/);
   assert.match(values, /PageHeader[\s\S]*?deen-tradition-switcher/);
   assert.match(values, /RhythmConstellation\/>[\s\S]*?Choose faith workspace/);
   assert.doesNotMatch(values, /YOUR FAITH & REFLECTION SPACE/);
