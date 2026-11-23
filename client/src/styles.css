@@ -5716,3 +5716,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .mushaf-fs-sheet{padding:16px 12px;border-radius:12px}
   .mushaf-fs-footer{padding-left:8px;padding-right:8px;gap:8px;justify-content:center}
 }
+
+/* Full-Screen Mushaf font fallback; component-scoped layout overrides remain at the end of its style block. */
+.mushaf-fs-overlay{font-family:"DM Sans",system-ui,sans-serif}
+.mushaf-fs-arabic,.mushaf-fs-verse-arabic,.mushaf-fs-sheet .mushaf-bismillah,.mushaf-fs-sheet .mushaf-surah-banner b{font-family:"Amiri Quran","Scheherazade New","Traditional Arabic",Amiri,serif}
