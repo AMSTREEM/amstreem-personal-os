@@ -938,4 +938,4 @@ app.get('*',(req,res,next)=>{
 if (!fs.existsSync(frontendEntry)) {
   throw new Error('Atlas frontend build is missing: expected dist/index.html. Refusing to serve the legacy public HTML shell.');
 }
-app.listen(PORT,()=>console.log(`Amstreem Atlas running at http://localhost:${PORT}`));
+app.listen(PORT, '0.0.0.0',()=>console.log(`Amstreem Atlas running on 0.0.0.0:${PORT}`));
