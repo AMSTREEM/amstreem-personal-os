@@ -5911,3 +5911,134 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .mushaf-fs-qcf-word{color:inherit}
 .mushaf-page-number{color:#786b4e}
 @media(max-width:767px){.mushaf-fs-qcf-page{width:100%;min-height:calc(100dvh - 46px);aspect-ratio:auto;border:0;box-shadow:none;padding:12px 9px}.mushaf-page-lines{min-height:calc(100dvh - 140px)}.mushaf-page-lines>.mushaf-fs-qcf-line{font-size:clamp(13px,3.5vw,20px)!important;line-height:1.7!important}}
+
+
+/* Traditional Madinah Mushaf palette — unify Page and Verse reading modes. */
+.mushaf-desktop-shell{
+  --mushaf-paper:#fbf8ef;
+  --mushaf-paper-deep:#f3eddf;
+  --mushaf-ink:#29251d;
+  --mushaf-muted:#766d5d;
+  --mushaf-line:#e4dccb;
+  --mushaf-gold:#a4864b;
+  --mushaf-green:#477454;
+  background:var(--mushaf-paper)!important;
+  color:var(--mushaf-ink)!important;
+}
+.mushaf-desktop-header,
+.mushaf-desktop-sidebar{
+  background:var(--mushaf-paper-deep)!important;
+  color:var(--mushaf-ink)!important;
+  border-color:var(--mushaf-line)!important;
+}
+.mushaf-desktop-header button,
+.mushaf-desktop-sidebar-search,
+.mushaf-desktop-sidebar-page-jump,
+.mushaf-desktop-page-grid button{
+  background:rgba(255,255,255,.58)!important;
+  color:var(--mushaf-ink)!important;
+  border-color:var(--mushaf-line)!important;
+}
+.mushaf-desktop-header-center,
+.mushaf-desktop-sidebar-list>button,
+.mushaf-desktop-sidebar-list>button small,
+.mushaf-desktop-sidebar-tabs button,
+.mushaf-desktop-sidebar-search{color:var(--mushaf-muted)!important}
+.mushaf-desktop-mode,
+.mushaf-desktop-reading-switch{
+  background:#eae2d2!important;
+  border-color:#d9ceb9!important;
+}
+.mushaf-desktop-mode button,
+.mushaf-desktop-reading-switch button{color:#756b59!important}
+.mushaf-desktop-mode button.is-active,
+.mushaf-desktop-reading-switch button.is-active,
+.mushaf-desktop-sidebar-tabs button.is-active{
+  background:#d9e4d6!important;
+  color:#315c3d!important;
+}
+.mushaf-desktop-sidebar-list>button.is-active{
+  background:#e4ecdf!important;
+  border-color:#cbdac5!important;
+  color:#315c3d!important;
+}
+.mushaf-desktop-main{background:var(--mushaf-paper)!important}
+.mushaf-reading-screen,
+.mushaf-reading-canvas,
+.mushaf-reading-canvas.is-page-mode{background:var(--mushaf-paper)!important}
+.mushaf-fs-verse-list{
+  background:var(--mushaf-paper)!important;
+  color:var(--mushaf-ink)!important;
+}
+.mushaf-fs-surah-intro{
+  background:transparent!important;
+  border:0!important;
+  border-bottom:1px solid var(--mushaf-line)!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.mushaf-fs-surah-intro-copy h1,
+.mushaf-fs-surah-arabic-title{color:var(--mushaf-ink)!important}
+.mushaf-fs-surah-intro-copy p,
+.mushaf-fs-surah-intro-copy small,
+.mushaf-fs-surah-intro-copy>span{color:var(--mushaf-muted)!important}
+.mushaf-fs-surah-status span{
+  background:#f1ecdf!important;
+  border-color:#dfd4bf!important;
+  color:#75664d!important;
+}
+.mushaf-fs-surah-status span.is-active{
+  background:#e4ecdf!important;
+  border-color:#cbdac5!important;
+  color:#315c3d!important;
+}
+.mushaf-fs-verse-row{border-color:var(--mushaf-line)!important}
+.mushaf-fs-verse-arabic{color:var(--mushaf-ink)!important}
+.mushaf-fs-verse-translation{color:#625b50!important}
+.mushaf-fs-verse-actions small{color:var(--mushaf-muted)!important}
+.mushaf-fs-verse-actions button{
+  background:transparent!important;
+  border-color:#ded5c5!important;
+  color:#75664d!important;
+}
+.mushaf-fs-verse-arabic.is-selected{
+  background:rgba(164,134,75,.10)!important;
+  border-radius:8px;
+}
+.mushaf-page-desktop-arrows button{
+  background:#eee6d7!important;
+  border-color:#d8cbb4!important;
+  color:#554a37!important;
+}
+.mushaf-fs-qcf-page{
+  background:#fbf8ef!important;
+  color:#29251d!important;
+  border-color:#d6c8aa!important;
+  box-shadow:0 8px 28px rgba(69,53,25,.12)!important;
+}
+.mushaf-page-running-header,
+.mushaf-page-number{color:#8a7650!important;border-color:#d8cbb4!important}
+.mushaf-fs-qcf-line{color:#29251d!important}
+.mushaf-page-surah-title b{color:#76613a!important}
+.mushaf-page-bismillah{color:#29251d!important}
+.mushaf-ayah-number{color:#8a7650!important}
+
+/* Higher-contrast Tajweed rule colours on the light Madinah paper. */
+.tajweed-ham_wasl,.tajweed-slnt,.tajweed-laam_shamsiyah{color:#81796b!important}
+.tajweed-madda_normal,.tajweed-madda_permissible,.tajweed-madda_necessary,
+.tajweed-madda_obligatory,.tajweed-madda_obligatory_mottasel,
+.tajweed-madda_obligatory_monfasel{color:#245da8!important}
+.tajweed-qalaqah{color:#c33135!important}
+.tajweed-ikhafa_shafawi,.tajweed-ikhafa{color:#16804b!important}
+.tajweed-iqlab{color:#087d9c!important}
+.tajweed-idgham_shafawi,.tajweed-idgham_ghunnah,
+.tajweed-idgham_wo_ghunnah{color:#47713a!important}
+.tajweed-idgham_mutajanisayn,.tajweed-idgham_mutaqaribayn{color:#756b5a!important}
+.tajweed-ghunnah{color:#c05c19!important}
+.tajweed-rule{font-weight:inherit}
+@media(max-width:767px){
+  .mushaf-desktop-header{background:var(--mushaf-paper-deep)!important}
+  .mushaf-desktop-sidebar{background:var(--mushaf-paper-deep)!important}
+  .mushaf-fs-verse-list{background:var(--mushaf-paper)!important}
+  .mushaf-fs-qcf-page{background:var(--mushaf-paper)!important}
+}
