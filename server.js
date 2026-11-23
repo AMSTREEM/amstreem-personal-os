@@ -263,16 +263,29 @@ app.get('/supabase-config.js', (req, res) => {
 });
 const frontendDist = path.join(__dirname, 'dist');
 const frontendEntry = path.join(frontendDist, 'index.html');
+const buildRevision = String(process.env.RENDER_GIT_COMMIT || process.env.BUILD_ID || 'local').replace(/[^a-zA-Z0-9_-]/g, '');
 
-// Public assets remain available for shared brand files, but the legacy public
-// HTML shell must never become the application's root document.
+// HTML is always revalidated; only Vite's content-hashed /assets files are immutable.
+app.use((req, res, next) => {
+  if (req.path === '/' || req.path.toLowerCase().endsWith('.html')) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  } else if (req.path.startsWith('/assets/') && /-[a-f0-9]{8,}\\.(?:js|css|woff2?|svg|png|jpe?g|webp|ico)$/i.test(path.basename(req.path))) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  }
+  next();
+});
+
+// Versioned invalidation worker: every Render commit gets a distinct worker body.
+// It removes stale app caches and unregisters after forcing open tabs onto fresh HTML.
 app.get('/service-worker.js', (req, res) => {
-  res.setHeader('Cache-Control', 'no-store, max-age=0');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.type('application/javascript').send(`
+    const CACHE_VERSION = 'atlas-shell-\${buildRevision}';
     self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));
     self.addEventListener('activate', event => event.waitUntil((async () => {
       const keys = await caches.keys();
-      await Promise.all(keys.map(key => caches.delete(key)));
+      await Promise.all(keys.filter(key => key !== CACHE_VERSION).map(key => caches.delete(key)));
+      await caches.open(CACHE_VERSION);
       await self.registration.unregister();
       const clients = await self.clients.matchAll({ type: 'window' });
       clients.forEach(client => client.navigate(client.url));
