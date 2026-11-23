@@ -303,6 +303,17 @@ test('Qur’an page proxy falls back across mirrors and serves bundled offline p
   assert.match(reader, /height:54px/);
   assert.match(reader, /useState\(false\)/);
   assert.match(reader, /safe-area-inset-bottom/);
+  assert.match(reader, /mushaf-fs-overlay/);
+  assert.match(reader, /mushaf-fs-header/);
+  assert.match(reader, /mushaf-fs-stage/);
+  assert.match(reader, /mushaf-fs-sheet/);
+  assert.match(reader, /mushaf-fs-footer/);
+  assert.doesNotMatch(reader, /mushaf-ayah-flow[^>]*style=\{/);
+  const mushafCss = read('client/src/styles.css');
+  assert.match(mushafCss, /\.mushaf-fs-overlay\s*\{[\s\S]*?grid-template-rows:52px minmax\(0,1fr\) 60px/);
+  assert.match(mushafCss, /\.mushaf-fs-sheet\s*\{[\s\S]*?max-width:560px/);
+  assert.match(mushafCss, /\.mushaf-fs-header\s*\{[\s\S]*?max-width:720px/);
+  assert.match(mushafCss, /\.mushaf-fs-footer\s*\{[\s\S]*?max-width:720px/);
   assert.match(values, /PageHeader[\s\S]*?deen-tradition-switcher/);
   assert.match(values, /RhythmConstellation\/>[\s\S]*?Choose faith workspace/);
   assert.doesNotMatch(values, /YOUR FAITH & REFLECTION SPACE/);
