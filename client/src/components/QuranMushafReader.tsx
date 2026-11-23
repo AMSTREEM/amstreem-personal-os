@@ -79,6 +79,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   const [fullScreen, setFullScreen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [surahSearch, setSurahSearch] = useState('');
+  const [contentsTab, setContentsTab] = useState<'surah' | 'juz' | 'quarter'>('surah');
   const [selected, setSelected] = useState<{ surah: number; ayah: number } | null>(null);
   const [readingMode, setReadingMode] = useState<'translation' | 'reading'>('reading');
   const [qcfFontStatus, setQcfFontStatus] = useState<'loading' | 'ready' | 'fallback'>('fallback');
@@ -407,12 +408,27 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
           })}
         </div>}
       </main>
-      {drawerOpen && <><button type="button" className="mushaf-drawer-scrim" aria-label="Close surah navigation" onClick={() => setDrawerOpen(false)}/><aside className="mushaf-surah-drawer mushaf-surah-drawer--designed" aria-label="114 Surahs">
-      <header className="mushaf-surah-drawer-header"><div><b>Surah index</b><small>114 chapters · Madani Mushaf</small></div><button type="button" aria-label="Close surah index" onClick={() => setDrawerOpen(false)}><X size={18}/></button></header>
-      <div className="mushaf-surah-search"><Search size={16}/><input type="search" value={surahSearch} onChange={event => setSurahSearch(event.target.value)} placeholder="Search Surah name or number..." aria-label="Search Surah name or number"/></div>
-      <div className="mushaf-drawer-jumps"><label>Page <input type="number" min="1" max="604" value={pageInput} onChange={event => setPageInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { changePage(Number(pageInput) || page); setDrawerOpen(false); } }}/></label><label>Juz <select value={pageJuz} onChange={event => { jumpJuz(Number(event.target.value)); setDrawerOpen(false); }}>{Array.from({length:30},(_,i)=><option key={i+1} value={i+1}>Juz {i+1}</option>)}</select></label></div>
-      <div className="mushaf-surah-list">{QURAN_SURAHS.filter(item => { const q=surahSearch.trim().toLowerCase(); return !q || String(item.number)===q || item.transliteration.toLowerCase().includes(q) || item.english.toLowerCase().includes(q) || item.arabic.includes(surahSearch.trim()); }).map(item => <button type="button" key={item.number} className={page >= item.pageStart && page <= item.pageEnd ? 'is-current' : ''} onClick={() => jumpSurah(item.number)}><span className="mushaf-surah-number"><i>{item.number}</i></span><span className="mushaf-surah-names"><b>{item.transliteration}</b><small>{item.english} · {item.ayahs} ayahs</small></span><strong lang="ar" dir="rtl">{item.arabic}</strong><em className="mushaf-surah-page-badge">p.{item.pageStart}</em></button>)}</div>
-    </aside></>}
+      {drawerOpen && <><button type="button" className="mushaf-drawer-scrim" aria-label="Close contents" onClick={() => setDrawerOpen(false)}/><aside className="mushaf-surah-drawer mushaf-surah-drawer--designed mushaf-contents-screen" aria-label="Qur’an contents">
+        <header className="mushaf-contents-top">
+          <div className="mushaf-contents-tabs" role="tablist" aria-label="Contents type">
+            <button type="button" role="tab" aria-selected={contentsTab === 'surah'} className={contentsTab === 'surah' ? 'is-active' : ''} onClick={() => setContentsTab('surah')}>Surah</button>
+            <button type="button" role="tab" aria-selected={contentsTab === 'juz'} className={contentsTab === 'juz' ? 'is-active' : ''} onClick={() => setContentsTab('juz')}>Juz</button>
+            <button type="button" role="tab" aria-selected={contentsTab === 'quarter'} className={contentsTab === 'quarter' ? 'is-active' : ''} onClick={() => setContentsTab('quarter')}>Quarter</button>
+          </div>
+          <button type="button" className="mushaf-contents-close" aria-label="Return to Mushaf" onClick={() => setDrawerOpen(false)}><ChevronRight size={25}/></button>
+        </header>
+        <div className="mushaf-contents-search"><Search size={17}/><input type="search" value={surahSearch} onChange={event => setSurahSearch(event.target.value)} placeholder={contentsTab === 'surah' ? 'Search Surah name or number...' : 'Find a chapter...'} aria-label="Search contents"/></div>
+        <div className="mushaf-contents-body">
+          <div className="mushaf-contents-list">
+            {contentsTab === 'surah' && QURAN_SURAHS.filter(item => { const q=surahSearch.trim().toLowerCase(); return !q || String(item.number)===q || item.transliteration.toLowerCase().includes(q) || item.english.toLowerCase().includes(q) || item.arabic.includes(surahSearch.trim()); }).map(item => <button type="button" key={item.number} className={page >= item.pageStart && page <= item.pageEnd ? 'is-current' : ''} onClick={() => jumpSurah(item.number)}>
+              <span className="mushaf-contents-number">{item.number}</span><span className="mushaf-contents-names"><b>{item.transliteration}</b><small>{item.ayahs} verses · {item.english}</small></span><strong lang="ar" dir="rtl">{item.arabic}</strong><span className="mushaf-contents-page">{item.pageStart}</span><ChevronRight size={17}/>
+            </button>)}
+            {contentsTab === 'juz' && QURAN_JUZ_STARTS.map(([juz,surah,ayah]) => { const location=getAyahLocation(surah,ayah); const surahItem=QURAN_SURAHS[surah-1]; const current=page >= (location?.page || 1) && page < (getAyahLocation(QURAN_JUZ_STARTS[juz]?.[1] || 114,QURAN_JUZ_STARTS[juz]?.[2] || 1)?.page || 605); return <button type="button" key={juz} className={current ? 'is-current' : ''} onClick={() => { jumpJuz(juz); setDrawerOpen(false); }}><span className="mushaf-contents-number">{juz}</span><span className="mushaf-contents-names"><b>Juz {juz}</b><small>{surahItem?.transliteration || 'Qur’an'} · Ayah {ayah}</small></span><span className="mushaf-contents-page">{location?.page || ''}</span><ChevronRight size={17}/></button>; })}
+            {contentsTab === 'quarter' && <div className="mushaf-contents-empty"><b>Quarter navigation</b><span>Quarter markers are not yet included in the Qur’an page data. Surah and Juz navigation are available here.</span></div>}
+          </div>
+          <nav className="mushaf-contents-rail" aria-label="Juz quick navigation">{QURAN_JUZ_STARTS.map(([juz,surah,ayah]) => <button type="button" key={juz} className={getAyahLocation(surah,ayah)?.page === page ? 'is-current' : ''} onClick={() => { jumpJuz(juz); setDrawerOpen(false); }} aria-label={'Juz ' + juz + ', page ' + (getAyahLocation(surah,ayah)?.page || '')}>{getAyahLocation(surah,ayah)?.page || juz}<i/></button>)}</nav>
+        </div>
+      </aside></>}
     </div>
     <footer className="mushaf-fs-footer">
       <div className="mushaf-fs-page-pill">
@@ -513,6 +529,33 @@ const mushafStyles = `
 .mushaf-fs-page-pill button:disabled{opacity:.35;cursor:not-allowed}
 .mushaf-drawer-scrim{position:fixed;inset:0;z-index:10000;border:0;background:rgba(0,0,0,.38)}
 .mushaf-surah-drawer{position:fixed;z-index:10001;inset:0 auto 0 0;width:min(360px,92vw);max-width:92vw;min-width:0;display:flex;flex-direction:column;overflow-x:hidden;overflow-y:auto;background:var(--bg-surface);border-right:1px solid var(--border-hairline);box-shadow:12px 0 40px rgba(0,0,0,.16)}
+.mushaf-contents-screen{inset:0;width:100%;max-width:none;min-width:0;border:0;border-radius:0;background:#1c1c1e;color:#f5f5f7;box-shadow:none;overflow:hidden}
+.mushaf-contents-top{height:86px;flex:0 0 86px;display:flex;align-items:center;justify-content:center;gap:28px;padding:18px 24px;background:#1c1c1e;border:0}
+.mushaf-contents-tabs{display:flex;align-items:center;gap:4px;padding:5px;border:1px solid #55565a;border-radius:999px;background:#3a3a3c}
+.mushaf-contents-tabs button{min-width:92px;height:42px;padding:0 20px;border:0;border-radius:999px;background:transparent;color:#f4f4f5;font:650 14px "DM Sans",sans-serif}
+.mushaf-contents-tabs button.is-active{background:#202023;color:#fff;box-shadow:0 1px 5px #111}
+.mushaf-contents-close{width:48px;height:48px;display:grid;place-items:center;border:1px solid #55565a;border-radius:50%;background:#3a3a3c;color:#fff}
+.mushaf-contents-search{height:42px;flex:0 0 42px;margin:0 24px 12px;padding:0 14px;display:flex;align-items:center;gap:10px;border:1px solid #444448;border-radius:12px;background:#29292c;color:#a5a5ad}
+.mushaf-contents-search input{width:100%;height:100%;border:0;outline:0;background:transparent;color:#fff;font:500 13px "DM Sans",sans-serif}
+.mushaf-contents-body{min-height:0;flex:1;display:flex;gap:6px;overflow:hidden;padding:0 10px 12px 24px}
+.mushaf-contents-list{min-width:0;flex:1;overflow-y:auto;overscroll-behavior:contain;padding:0 0 24px}
+.mushaf-contents-list>button{width:100%;min-height:92px;margin:0 0 10px;padding:13px 18px 13px 22px;display:flex;align-items:center;gap:16px;border:1px solid transparent;border-radius:28px;background:#2c2c2e;color:#f5f5f7;text-align:left}
+.mushaf-contents-list>button.is-current{border-color:#3b9c5b;background:#303033}
+.mushaf-contents-number{width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;border-radius:50%;background:#444448;color:#b8b8c0;font:700 15px "DM Sans",sans-serif}
+.mushaf-contents-list>button.is-current .mushaf-contents-number{background:#55c978;color:#143b20}
+.mushaf-contents-names{min-width:0;flex:1;display:grid;gap:4px}
+.mushaf-contents-names b{font:700 19px/1.2 "DM Sans",sans-serif;color:#f7f7f8}
+.mushaf-contents-names small{font:500 14px/1.3 "DM Sans",sans-serif;color:#a4a4ac}
+.mushaf-contents-list>button strong{max-width:100px;overflow:hidden;color:#f5f5f7;font:500 20px "Amiri Quran","Noto Naskh Arabic",serif}
+.mushaf-contents-page{min-width:28px;color:#a5a5ad;text-align:right;font:600 16px "DM Sans",sans-serif}
+.mushaf-contents-list>button>svg{flex:0 0 auto;color:#74747b}
+.mushaf-contents-rail{width:26px;flex:0 0 26px;display:flex;flex-direction:column;align-items:center;gap:2px;overflow-y:auto;scrollbar-width:none}
+.mushaf-contents-rail button{min-height:25px;padding:0;border:0;background:transparent;color:#58c978;font:700 11px "DM Sans",sans-serif}
+.mushaf-contents-rail button i{display:block;width:6px;height:6px;margin:3px auto 0;border-radius:50%;background:#58c978}
+.mushaf-contents-rail button.is-current{color:#fff}
+.mushaf-contents-rail button.is-current i{width:8px;height:8px;background:#fff}
+.mushaf-contents-empty{margin:20px auto;max-width:420px;display:grid;gap:8px;text-align:center;color:#eee;font:14px/1.6 "DM Sans",sans-serif}
+.mushaf-contents-empty span{color:#a5a5ad;font-size:12px}
 .mushaf-surah-drawer--designed{background:color-mix(in srgb,var(--bg-surface) 94%,transparent);backdrop-filter:blur(20px) saturate(140%);-webkit-backdrop-filter:blur(20px) saturate(140%)}
 .mushaf-surah-drawer-header{position:sticky;top:0;z-index:3;min-width:0;flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px;background:var(--bg-surface);border-bottom:1px solid var(--border-hairline)}
 .mushaf-surah-drawer-header>div{display:grid;gap:3px}.mushaf-surah-drawer-header b{font-size:13px}.mushaf-surah-drawer-header small{color:var(--text-muted);font-size:10px}
@@ -537,6 +580,7 @@ const mushafStyles = `
 .mushaf-loading-skeleton.is-page span{height:22px;width:100%}.mushaf-loading-skeleton.is-page span:nth-child(3n){width:88%;margin-inline:auto}.mushaf-loading-skeleton.is-page span:nth-child(3n + 1){width:95%;margin-inline:auto}
 .mushaf-loading-skeleton.is-verses{align-content:start}.mushaf-loading-skeleton.is-verses span{height:86px;border-radius:10px}
 @keyframes mushaf-skeleton-pulse{0%{background-position:100% 0}100%{background-position:-100% 0}}
+@media(max-width:700px){.mushaf-contents-top{height:76px;flex-basis:76px;gap:12px;padding:12px 10px}.mushaf-contents-tabs button{min-width:70px;height:38px;padding:0 12px;font-size:12px}.mushaf-contents-close{width:42px;height:42px}.mushaf-contents-search{margin:0 12px 10px}.mushaf-contents-body{padding:0 5px 10px 10px}.mushaf-contents-list>button{min-height:76px;margin-bottom:8px;padding:10px 11px;gap:10px;border-radius:22px}.mushaf-contents-number{width:34px;height:34px;flex-basis:34px;font-size:13px}.mushaf-contents-names b{font-size:16px}.mushaf-contents-names small{font-size:11px}.mushaf-contents-list>button strong{max-width:66px;font-size:17px}.mushaf-contents-page{font-size:13px}.mushaf-contents-rail{width:22px;flex-basis:22px}.mushaf-contents-rail button{font-size:10px}}
 @media(max-width:700px){
   .mushaf-fs-overlay{grid-template-rows:40px minmax(0,1fr) 58px}
   .mushaf-fs-header{padding:0 6px;gap:2px}
