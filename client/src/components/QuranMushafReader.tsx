@@ -8,7 +8,7 @@ type Settings = Record<string, string>;
 type MushafAyah = { number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; translation: string };
 type MushafPage = { page: number; juz: number; ayahs: MushafAyah[]; offlineFallback?: boolean };
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void };
-const CACHE_PREFIX = 'atlas_mushaf_page_v2_';
+const CACHE_PREFIX = 'atlas_mushaf_page_v3_';
 const pageMemoryCache = new Map<number, MushafPage>();
 const HIFZ_KEY = 'atlas_hifz_bookmark_v2';
 const MURAJAAH_KEY = 'atlas_murajaah_bookmark_v2';
