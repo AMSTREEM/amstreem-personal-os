@@ -5796,3 +5796,17 @@ html, body, #root, .app-frame, .main-area, .page-container {
  .mushaf-fs-sheet{padding-left:14px;padding-right:14px}
  .mushaf-fs-page-pill button{padding:0 6px;font-size:9px}
 }
+
+
+.mushaf-drawer-scrim{inset:56px 0 0}
+.mushaf-surah-drawer{top:56px}
+@media(max-width:390px){
+ .mushaf-fs-header-right{gap:0}
+ .mushaf-fs-header-right .mushaf-mode-switch{gap:0;padding:2px}
+ .mushaf-fs-header-right .mushaf-mode-switch button{padding:0 3px;font-size:8px}
+ .mushaf-fs-header-right .mushaf-top-font{gap:0}
+ .mushaf-fs-header-right .mushaf-top-font button{padding:0 3px;font-size:9px}
+ .mushaf-fs-close{width:25px;height:25px!important;min-height:25px!important}
+ .mushaf-fs-surah-trigger{max-width:110px;overflow:hidden}
+ .mushaf-fs-surah-trigger span:first-child{overflow:hidden;text-overflow:ellipsis}
+}
