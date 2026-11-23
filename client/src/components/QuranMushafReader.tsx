@@ -477,7 +477,7 @@ const mushafStyles = `
 .mushaf-fs-stage{align-items:flex-start;padding:14px 16px;overflow-y:auto}
 .mushaf-fs-sheet{max-width:740px;width:100%;padding:22px 24px 48px;border:0;border-radius:0;background:transparent;box-shadow:none}
 .mushaf-fs-qcf-page{max-width:580px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:0;direction:rtl}
-.mushaf-fs-qcf-line{min-height:1.9em;width:100%;display:flex;align-items:baseline;justify-content:center;gap:4px;direction:rtl;text-align:center;white-space:nowrap;line-height:1.9;color:var(--text-primary)}
+.mushaf-fs-qcf-line{min-height:2.2em;width:100%;display:flex;align-items:center;justify-content:center;gap:4px;direction:rtl;text-align:center;white-space:nowrap;line-height:2.2;color:var(--text-primary)}
 .mushaf-fs-qcf-word{display:inline-block;white-space:pre}
 .mushaf-fs-unicode-lines .mushaf-fs-qcf-line{font-family:"Amiri Quran","Scheherazade New","Traditional Arabic",serif;white-space:normal;flex-wrap:wrap;font-size:26px}
 .mushaf-fs-unicode-flow{font-family:"Amiri Quran","Scheherazade New","Traditional Arabic",serif;font-size:28px;line-height:2.2}
@@ -538,27 +538,28 @@ const mushafStyles = `
 
 /* Ornamental ayah number medallions — shared by QCF, Unicode and verse views. */
 .mushaf-fs-ayah-medallion,.mushaf-ayah-number{
- position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;
- width:2.05em;height:2.05em;min-width:2.05em;margin:0 .22em;
- border:1px solid color-mix(in srgb,var(--accent,#b69b63) 78%,#8b6b32);
+ position:relative;isolation:isolate;display:inline-grid;place-items:center;flex:0 0 auto;
+ box-sizing:border-box;width:2.1em;height:2.1em;min-width:2.1em;aspect-ratio:1;margin:0 .2em;
+ padding:0;border:1px solid color-mix(in srgb,var(--accent,#b69b63) 78%,#8b6b32);
  border-radius:50%;background:radial-gradient(circle at 35% 28%,color-mix(in srgb,var(--accent,#b69b63) 15%,var(--bg-surface)),var(--bg-surface) 72%);
  color:var(--accent,#b69b63);font-family:"Amiri Quran","Scheherazade New","Traditional Arabic",serif;
- font-size:.48em;font-weight:600;line-height:1;white-space:nowrap;vertical-align:middle;
+ font-size:.48em;font-weight:600;line-height:1;text-align:center;white-space:nowrap;vertical-align:middle;
+ font-variant-numeric:normal;direction:ltr;unicode-bidi:isolate;
  box-shadow:inset 0 0 0 2px var(--bg-surface),inset 0 0 0 3px color-mix(in srgb,var(--accent,#b69b63) 38%,transparent),0 1px 3px rgba(0,0,0,.08);
 }
 .mushaf-fs-ayah-medallion:before,.mushaf-ayah-number:before{
- content:"";position:absolute;z-index:-1;inset:3px;border:1px solid color-mix(in srgb,var(--accent,#b69b63) 48%,transparent);
+ content:"";position:absolute;z-index:-1;inset:4px;border:1px solid color-mix(in srgb,var(--accent,#b69b63) 48%,transparent);
  border-radius:4px;transform:rotate(45deg);pointer-events:none;
 }
 .mushaf-fs-ayah-medallion:after,.mushaf-ayah-number:after{
  content:"";position:absolute;inset:-3px;border:1px dotted color-mix(in srgb,var(--accent,#b69b63) 44%,transparent);
  border-radius:50%;pointer-events:none;
 }
-.mushaf-fs-qcf-line .mushaf-fs-ayah-medallion{flex:0 0 auto;font-size:12px;vertical-align:middle;transform:translateY(-.08em)}
+.mushaf-fs-qcf-line .mushaf-fs-ayah-medallion{width:24px;height:24px;min-width:24px;font-size:12px;line-height:1;margin:0 5px;transform:none;align-self:center}
 .mushaf-fs-verse-arabic .mushaf-ayah-number{font-size:.43em;margin-inline:.28em}
-.mushaf-fs-sheet .mushaf-ayah-number{width:2.05em;height:2.05em;min-width:2.05em}
+.mushaf-fs-sheet .mushaf-ayah-number{width:2.1em;height:2.1em;min-width:2.1em}
 @media(max-width:600px){
- .mushaf-fs-qcf-line .mushaf-fs-ayah-medallion{font-size:11px}
+ .mushaf-fs-qcf-line .mushaf-fs-ayah-medallion{width:22px;height:22px;min-width:22px;font-size:11px;margin:0 4px}
  .mushaf-fs-verse-arabic .mushaf-ayah-number{font-size:.42em}
 }
 `;
