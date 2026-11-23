@@ -302,7 +302,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
           </div> : <div className="mushaf-ayah-flow mushaf-fs-unicode-flow" dir="rtl" lang="ar">
             {pageData.ayahs.map(ayah => <Fragment key={ayah.surahNumber + ':' + ayah.numberInSurah}>
               {ayah.numberInSurah === 1 && <SurahCartouche arabicName={ayah.arabicName} englishName={QURAN_SURAHS[ayah.surahNumber - 1]?.transliteration || ayah.surahName} ayahs={QURAN_SURAHS[ayah.surahNumber - 1]?.ayahs || 0} />}
-              {ayah.numberInSurah === 1 && ayah.surahNumber !== 1 && ayah.surahNumber !== 9 && <div className="mushaf-bismillah" lang="ar">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
+              {ayah.numberInSurah === 1 && ayah.surahNumber !== 1 && ayah.surahNumber !== 9 && <BismillahOrnament />}
               <button type="button" className={'mushaf-ayah ' + (selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah ? 'is-selected' : '')} onClick={() => selectAyah(ayah)} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>
                 {ayah.text}<AyahMedallion className="mushaf-ayah-number" number={ayah.numberInSurah} />
               </button>
