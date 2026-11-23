@@ -131,7 +131,7 @@ export function FocusWorkspace() {
 
   const isFocusRoute=location.pathname==='/focus';
   return <Cascade className={isFocusRoute ? "stack execution-workspace focus-room-only" : "stack execution-workspace"}>
-    <div className="execution-heading"><div><span className="eyebrow">ROOM 03 / EXECUTION & FOCUS</span><h1>{isFocusRoute?'Settle into deep work.':'Protect your attention.'}</h1><p>{isFocusRoute?'One clear intention. One protected block. Your progress is recorded alongside the work it supports.':'Choose the work. Protect your attention. Let each completed session strengthen the same record.'}</p></div><div className="execution-heading-stat"><b>{sessions.data?.length||0}</b><span>RECORDED SESSIONS</span></div></div>
+    <div className="execution-heading"><div><span className="eyebrow">FOCUS / CHRONOGRAPH</span><h1>{isFocusRoute?'Settle into deep work.':'Protect your attention.'}</h1><p>{isFocusRoute?'One clear intention. One protected block. Your progress is recorded alongside the work it supports.':'Choose the work. Protect your attention. Let each completed session strengthen the same record.'}</p></div><div className="execution-heading-stat"><b>{sessions.data?.length||0}</b><span>RECORDED SESSIONS</span></div></div>
     <div className={"execution-split "+(isFocusRoute?"focus-room-layout":"execution-projects-layout")+(inspectedTask&&!isFocusRoute?" has-task-inspector":"")}>
       {!isFocusRoute && <section className="execution-projects-panel">
         <Card className="execution-panel-card">
