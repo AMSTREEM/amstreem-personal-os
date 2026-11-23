@@ -258,17 +258,19 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
             return <article className="mushaf-fs-verse-row" key={ayah.surahNumber + ':' + ayah.numberInSurah}>
               {beginsSurah && <div className="mushaf-surah-banner mushaf-fs-verse-surah"><span className="mushaf-surah-ornament">۞</span><b>{ayah.arabicName}</b><small>{ayah.surahName}</small><span className="mushaf-surah-ornament">۞</span></div>}
               {beginsSurah && ayah.surahNumber !== 9 && ayah.numberInSurah === 1 && <div className="mushaf-bismillah mushaf-fs-verse-bismillah" lang="ar" dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>}
+              <div className="mushaf-fs-verse-actionbar">
+                <div className="mushaf-fs-verse-actions"><small>{ayah.surahNumber}:{ayah.numberInSurah}</small><button type="button" aria-label={'Play ' + ayah.surahNumber + ':' + ayah.numberInSurah} onClick={() => { selectAyah(ayah); playAyah(ayah); }}><Play size={14}/></button><button type="button" aria-label={'Bookmark ' + ayah.surahNumber + ':' + ayah.numberInSurah} onClick={() => selectAyah(ayah)}><Bookmark size={14}/></button></div>
+                <button type="button" className="mushaf-fs-verse-copy" onClick={() => { void navigator.clipboard?.writeText(ayah.text + '\n\n' + ayah.translation + '\n\n' + ayah.surahNumber + ':' + ayah.numberInSurah); }}><Copy size={13}/> Copy</button>
+              </div>
               <div className="mushaf-fs-verse-arabic-line" dir="rtl" lang="ar">
-                <div className="mushaf-fs-verse-actions"><small>{ayah.surahNumber}:{ayah.numberInSurah}</small><button type="button" aria-label={`Play ${ayah.surahNumber}:${ayah.numberInSurah}`} onClick={() => { selectAyah(ayah); playAyah(ayah); }}><Play size={14}/></button><button type="button" aria-label={`Bookmark ${ayah.surahNumber}:${ayah.numberInSurah}`} onClick={() => selectAyah(ayah)}><Bookmark size={14}/></button></div>
                 <button type="button" className={'mushaf-fs-verse-arabic ' + (isSelected ? 'is-selected' : '')} onClick={() => selectAyah(ayah)} aria-pressed={isSelected}>
-                  {ayah.text}<span className="mushaf-ayah-number" aria-label={`Ayah ${ayah.numberInSurah}`}>﴿{arabicNumber(ayah.numberInSurah)}﴾</span>
+                  {ayah.text}<span className="mushaf-ayah-number" aria-label={'Ayah ' + ayah.numberInSurah}>﴿{arabicNumber(ayah.numberInSurah)}﴾</span>
                 </button>
               </div>
               <div className="mushaf-fs-verse-translation" dir="ltr" lang="en">
                 <span>{ayah.translation || 'Translation unavailable for this verse.'}</span>
                 <small>{ayah.surahNumber}:{ayah.numberInSurah}</small>
               </div>
-              <div className="mushaf-fs-verse-copy"><button type="button" onClick={() => { void navigator.clipboard?.writeText(ayah.text + '\n\n' + ayah.translation + '\n\n' + ayah.surahNumber + ':' + ayah.numberInSurah); }}><Copy size={13}/> Copy</button></div>
             </article>;
           })}
         </div>}
@@ -525,4 +527,10 @@ const mushafStyles = `
  .mushaf-fs-page-pill{gap:3px;padding:4px}
  .mushaf-fs-page-pill button{padding:0 5px;font-size:8px}
 }
+
+.mushaf-fs-verse-actionbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.mushaf-fs-verse-actionbar .mushaf-fs-verse-actions{flex-direction:row;align-items:center}
+.mushaf-fs-verse-actionbar .mushaf-fs-verse-copy{display:inline-flex;align-items:center;gap:5px;margin:0;padding:5px;border:0;border-radius:6px;background:transparent;color:var(--text-muted);font:500 10px "DM Sans",sans-serif}
+.mushaf-fs-verse-actionbar .mushaf-fs-verse-copy:hover{background:var(--bg-elevated);color:var(--text-primary)}
+.mushaf-fs-verse-arabic-line{display:block;direction:rtl}
 `;
