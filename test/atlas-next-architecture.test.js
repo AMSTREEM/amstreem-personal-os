@@ -305,7 +305,7 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.match(reader, /word\.pageNumber !== page/);
   assert.match(reader, /word\.lineNumber/);
   assert.match(reader, /new FontFace/);
-  assert.match(reader, /QCF_P/);
+  assert.match(reader, /QCF2/);
   assert.match(reader, /verses\.quran\.foundation\/fonts\/quran\/hafs\/v2\/woff2/);
   assert.match(reader, /escapeGlyphHtml/);
   assert.match(reader, /createPortal\([\s\S]*?document\.body/);
@@ -352,7 +352,7 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.match(reader, /mushaf-fs-page-meta/);
   assert.match(reader, /max-width:580px/);
   assert.match(reader, /max-width:740px/);
-  assert.ok(reader.includes("fontSize: 'min(' + fontSize + 'px, 2.35vh, 3.8vw)'"));
+  assert.ok(reader.includes("fontSize: 'min(' + fontSize + 'px, 2.3vh, 5.5vw)'"));
   assert.match(reader, /font-size:25px/);
   assert.doesNotMatch(reader, /showTranslation/);
   assert.match(read('client/index.html'), /Amiri\+Quran/);
@@ -437,8 +437,8 @@ test('Full-Screen Mushaf strips raw Qur’an ornaments, uses uniform 32px SVG me
   assert.match(reader, /atlas_quran_auto_logged_pages_/);
   assert.match(reader, /Page \{page\} \/ 604/);
   assert.doesNotMatch(reader, /Auto-saved · Page/);
-  assert.match(css, /width: 32px !important/);
-  assert.match(css, /width: min\(360px, 92vw\) !important/);
-  assert.match(css, /overflow-x: hidden !important/);
-  assert.match(css, /padding: 6px 10px/);
+  assert.match(reader, /flex:0 0 32px/);
+  assert.match(reader, /width:min\(360px,92vw\)/);
+  assert.match(reader, /overflow-x:hidden/);
+  assert.match(reader, /padding:0 11px/);
 });
