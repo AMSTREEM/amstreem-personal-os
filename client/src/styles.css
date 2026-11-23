@@ -6059,3 +6059,44 @@ html, body, #root, .app-frame, .main-area, .page-container {
     max-width: 92vw !important;
   }
 }
+
+
+/* Keep the automatic-save badge between the page navigation controls. */
+.mushaf-fs-footer .mushaf-fs-page-pill {
+  width: min(100%, 540px);
+  max-width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 5px 7px;
+  box-sizing: border-box;
+}
+.mushaf-fs-footer .mushaf-fs-page-pill button {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  padding: 6px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.mushaf-fs-footer .mushaf-fs-page-pill .mushaf-save-status {
+  flex: 0 1 auto;
+  position: static !important;
+  margin: 0 auto;
+}
+@media (max-width: 480px) {
+  .mushaf-fs-footer .mushaf-fs-page-pill {
+    gap: 3px;
+    padding: 4px;
+  }
+  .mushaf-fs-footer .mushaf-fs-page-pill button {
+    padding: 6px 6px;
+    font-size: 9px;
+  }
+  .mushaf-fs-footer .mushaf-fs-page-pill .mushaf-save-status {
+    padding: 5px 7px;
+    font-size: 8px;
+  }
+}
