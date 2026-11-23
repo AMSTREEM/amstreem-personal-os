@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Bookmark, ChevronLeft, ChevronRight, Copy, Play, Search, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
@@ -322,7 +322,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     const target = selectedAyah || pageData?.ayahs[0];
     if (target) playAyah(target);
   };
-  const quickJump = (event: React.FormEvent<HTMLFormElement>) => { event.preventDefault(); const target = clampPage(Number(pageInput)); changePage(target); setHudVisible(false); };
+  const quickJump = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const target = clampPage(Number(pageInput)); changePage(target); setHudVisible(false); };
   const playAyah = (ayah = selectedAyah) => {
     if (!ayah) return;
     const audio = audioRef.current;
@@ -381,11 +381,11 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
         </div>}
         <div className="mushaf-minimal-page-pill"><b>{page}</b><span>Auto-saved</span></div>
       </main>
-      {!hudVisible && <button type="button" className="mushaf-hud-reveal" aria-label="Show reading controls" onClick={event => { event.stopPropagation(); setHudVisible(true); }}/>}
+      
       {hudVisible && <div className="mushaf-floating-top" onClick={event => event.stopPropagation()}>
         <button type="button" className="mushaf-hud-pill" onClick={() => { setContentsTab('surah'); setDrawerOpen(true); }}>☷ Contents</button>
         <div className="mushaf-hud-segment"><button type="button" className={mode === 'hifz' ? 'is-active' : ''} onClick={() => changeMode('hifz')}>Hifz</button><button type="button" className={mode === 'murajaah' ? 'is-active' : ''} onClick={() => changeMode('murajaah')}>Muraja’ah</button></div>
-        <div className="mushaf-hud-settings"><button type="button" className="mushaf-hud-pill" onClick={() => changeFontSize(-1)}>A−</button><button type="button" className="mushaf-hud-pill" onClick={() => changeFontSize(1)}>A+</button><button type="button" className="mushaf-hud-pill" onClick={() => changeReadingMode(readingMode === 'reading' ? 'translation' : 'reading')}>{readingMode === 'reading' ? 'Verse by Verse' : 'Page by Page'}</button><button type="button" className="mushaf-hud-exit" aria-label="Exit Mushaf" onClick={() => { setHudVisible(false); setFullScreen(false); }}>✕</button></div>
+        <div className="mushaf-hud-settings"><button type="button" className="mushaf-hud-pill" onClick={() => setContentsTab('bookmarks')}>Settings</button><button type="button" className="mushaf-hud-pill" onClick={() => changeFontSize(-1)}>A−</button><button type="button" className="mushaf-hud-pill" onClick={() => changeFontSize(1)}>A+</button><button type="button" className="mushaf-hud-pill" onClick={() => changeReadingMode(readingMode === 'reading' ? 'translation' : 'reading')}>{readingMode === 'reading' ? 'Verse by Verse' : 'Page by Page'}</button><button type="button" className="mushaf-hud-exit" aria-label="Exit Mushaf" onClick={() => { setHudVisible(false); setFullScreen(false); }}>✕</button></div>
       </div>}
       {hudVisible && <div className="mushaf-floating-bottom" onClick={event => event.stopPropagation()}>
         <div className="mushaf-audio-control"><button type="button" aria-label={isPlaying ? 'Pause recitation' : 'Play recitation'} onClick={togglePlayback}>{isPlaying ? 'Ⅱ' : <Play size={16}/>}</button><span>Mishary Alafasy</span></div>
