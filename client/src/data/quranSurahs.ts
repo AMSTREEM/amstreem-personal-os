@@ -1,7 +1,7 @@
 /**
  * Surah reference for the standard 604-page Madani Mushaf (Hafs/Kufan numbering).
  * Metadata source: Mushaf-Learning/quran-text, metadata/surahs.json.
- * Page spans end on the page before the next Surah begins; final span ends at 604.
+ * Page spans are inclusive; short Surahs may share a Mushaf page.
  */
 export type QuranSurah = {
   number: number;
@@ -749,7 +749,7 @@ export const quranSurahs: QuranSurah[] = [
     "arabicName": "الإنفطار",
     "ayahCount": 19,
     "startPage": 587,
-    "endPage": 586,
+    "endPage": 587,
     "juz": 30
   },
   {
@@ -785,7 +785,7 @@ export const quranSurahs: QuranSurah[] = [
     "arabicName": "الطارق",
     "ayahCount": 17,
     "startPage": 591,
-    "endPage": 590,
+    "endPage": 591,
     "juz": 30
   },
   {
@@ -830,7 +830,7 @@ export const quranSurahs: QuranSurah[] = [
     "arabicName": "الشمس",
     "ayahCount": 15,
     "startPage": 595,
-    "endPage": 594,
+    "endPage": 595,
     "juz": 30
   },
   {
@@ -848,7 +848,7 @@ export const quranSurahs: QuranSurah[] = [
     "arabicName": "الضحى",
     "ayahCount": 11,
     "startPage": 596,
-    "endPage": 595,
+    "endPage": 596,
     "juz": 30
   },
   {
@@ -866,7 +866,7 @@ export const quranSurahs: QuranSurah[] = [
     "arabicName": "التين",
     "ayahCount": 8,
     "startPage": 597,
-    "endPage": 596,
+    "endPage": 597,
     "juz": 30
   },
   {
@@ -884,7 +884,7 @@ export const quranSurahs: QuranSurah[] = [
     "arabicName": "القدر",
     "ayahCount": 5,
     "startPage": 598,
-    "endPage": 597,
+    "endPage": 598,
     "juz": 30
   },
   {
@@ -902,7 +902,7 @@ export const quranSurahs: QuranSurah[] = [
     "arabicName": "الزلزلة",
     "ayahCount": 8,
     "startPage": 599,
-    "endPage": 598,
+    "endPage": 599,
     "juz": 30
   },
   {
@@ -920,7 +920,7 @@ export const quranSurahs: QuranSurah[] = [
     "arabicName": "القارعة",
     "ayahCount": 11,
     "startPage": 600,
-    "endPage": 599,
+    "endPage": 600,
     "juz": 30
   },
   {
@@ -938,7 +938,7 @@ export const quranSurahs: QuranSurah[] = [
     "arabicName": "العصر",
     "ayahCount": 3,
     "startPage": 601,
-    "endPage": 600,
+    "endPage": 601,
     "juz": 30
   },
   {
@@ -947,7 +947,7 @@ export const quranSurahs: QuranSurah[] = [
     "arabicName": "الهمزة",
     "ayahCount": 9,
     "startPage": 601,
-    "endPage": 600,
+    "endPage": 601,
     "juz": 30
   },
   {
@@ -965,7 +965,7 @@ export const quranSurahs: QuranSurah[] = [
     "arabicName": "قريش",
     "ayahCount": 4,
     "startPage": 602,
-    "endPage": 601,
+    "endPage": 602,
     "juz": 30
   },
   {
@@ -974,7 +974,7 @@ export const quranSurahs: QuranSurah[] = [
     "arabicName": "الماعون",
     "ayahCount": 7,
     "startPage": 602,
-    "endPage": 601,
+    "endPage": 602,
     "juz": 30
   },
   {
@@ -992,7 +992,7 @@ export const quranSurahs: QuranSurah[] = [
     "arabicName": "الكافرون",
     "ayahCount": 6,
     "startPage": 603,
-    "endPage": 602,
+    "endPage": 603,
     "juz": 30
   },
   {
@@ -1001,7 +1001,7 @@ export const quranSurahs: QuranSurah[] = [
     "arabicName": "النصر",
     "ayahCount": 3,
     "startPage": 603,
-    "endPage": 602,
+    "endPage": 603,
     "juz": 30
   },
   {
@@ -1019,7 +1019,7 @@ export const quranSurahs: QuranSurah[] = [
     "arabicName": "الإخلاص",
     "ayahCount": 4,
     "startPage": 604,
-    "endPage": 603,
+    "endPage": 604,
     "juz": 30
   },
   {
@@ -1028,7 +1028,7 @@ export const quranSurahs: QuranSurah[] = [
     "arabicName": "الفلق",
     "ayahCount": 5,
     "startPage": 604,
-    "endPage": 603,
+    "endPage": 604,
     "juz": 30
   },
   {
