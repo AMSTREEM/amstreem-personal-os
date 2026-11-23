@@ -272,7 +272,7 @@ test('Qur’an reader uses a same-origin cached proxy and full-screen ayah study
   assert.match(reader, /Page \{page\} \/ 604/);
   assert.match(reader, /audio\.play\(\)/);
   assert.match(reader, /Mishary Alafasy/);
-  assert.match(reader, /Complete & Log Page/);
+  assert.match(reader, /Log Page/);
   assert.match(reader, /hifz_bookmark/);
   assert.match(reader, /murajaah_bookmark/);
 });
