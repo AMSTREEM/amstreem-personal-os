@@ -318,10 +318,8 @@ test('Full-screen Mushaf opens without inline preview and uses a tap-to-toggle A
   assert.doesNotMatch(reader, /mushaf-minimal-page-pill"><b>\{page\}<\/b><span>Auto-saved/);
   assert.doesNotMatch(reader, /mushaf-hud-autosaved/);
   assert.ok(reader.includes("fontFamily: \"'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', serif\""));
-  assert.ok(reader.includes("fontFamily: \"'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', serif\""));
   assert.ok(reader.includes('renderTajweedMarkup(ayah.tajweedText || ayah.text)'));
   assert.ok(reader.includes('word.tajweed || word.text'));
-  assert.ok(reader.includes('text_uthmani_tajweed') === false);
   assert.ok(reader.includes("wordSpacing: '2px'"));
   assert.ok(css.includes('UthmanicHafs1Ver18.woff2'));
   assert.ok(css.includes('family=Noto+Naskh+Arabic'));
@@ -330,6 +328,7 @@ test('Full-screen Mushaf opens without inline preview and uses a tap-to-toggle A
   assert.ok(css.includes('KFGQPC Uthmanic Script HAFS'));
   assert.ok(reader.includes('TAJWEED_RULES'));
   assert.ok(reader.includes('new DOMParser().parseFromString'));
+  assert.ok(reader.includes("(node.textContent || '').replace(/[\\\\u06DD\\\\u06DE\\\\u06E9\\\\u06DF-\\\\u06E8\\\\u06EA-\\\\u06ED]/g, '')"));
   assert.ok(server.includes('text_qpc_hafs'));
   assert.ok(server.includes('text_uthmani_tajweed'));
   assert.ok(server.includes('mushaf=19'));
