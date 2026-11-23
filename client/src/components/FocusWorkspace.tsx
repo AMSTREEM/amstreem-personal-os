@@ -114,13 +114,13 @@ export function FocusWorkspace() {
   function start(kind:'focus'|'break') {
     if(running)return;
     if(kind==='focus')primeAtlasAudio();
-    const seconds=kind==='break'?Math.max(1,Math.min(60,Number(breakMinutes)||5))*60:Math.max(1,Math.min(600,Number(preset==='custom'?customMinutes:preset)||25))*60;
+    const seconds=kind==='break'?Math.max(1,Math.min(60,Number(breakMinutes)||5))*60:Math.max(1,Math.min(600,Number(preset)||25))*60;
     const key=kind==='focus'?(globalThis.crypto?.randomUUID?.()||'atlas-'+Date.now()+'-'+Math.random().toString(36).slice(2)):null;
     setTimer(current=>({...current,remaining:seconds,durationSeconds:seconds,deadline:Date.now()+seconds*1000,kind,sessionKey:key,startedAt:Date.now(),focus:current.focus||contextLabel}));
     setNow(Date.now());
   }
   function pause(){setTimer(current=>({...current,remaining,deadline:null}));}
-  function reset(){const seconds=timer.kind==='break'?Math.max(1,Math.min(60,Number(breakMinutes)||5))*60:Math.max(1,Math.min(600,Number(preset==='custom'?customMinutes:preset)||25))*60;setTimer(current=>({...current,remaining:seconds,durationSeconds:seconds,deadline:null,sessionKey:null,startedAt:null}));}
+  function reset(){const seconds=timer.kind==='break'?Math.max(1,Math.min(60,Number(breakMinutes)||5))*60:Math.max(1,Math.min(600,Number(preset)||25))*60;setTimer(current=>({...current,remaining:seconds,durationSeconds:seconds,deadline:null,sessionKey:null,startedAt:null}));}
   function selectTask(task:Task){if(sessionInProgress)return;setTimer(current=>({...current,taskId:String(task.id),lessonId:'',projectId:task.project_id?String(task.project_id):'',focus:task.title}));}
   function focusProject(project:Project){if(sessionInProgress)return;setTimer(current=>({...current,taskId:'',lessonId:'',projectId:String(project.id),focus:project.title}));start('focus');navigate('/focus');}
   function selectLesson(lessonId:string){if(running)return;const lesson=learning.data?.flatMap(path=>path.lessons).find(item=>String(item.id)===lessonId);setTimer(current=>({...current,lessonId,focus:lesson?.title||current.focus}));}
