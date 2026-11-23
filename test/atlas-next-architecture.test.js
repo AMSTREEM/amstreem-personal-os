@@ -346,7 +346,7 @@ test('Mushaf page view has chapter openings, centered verse medallions and a pag
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
   for (const item of ['function BismillahOrnament','بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ','mushaf-page-surah-banner','mushaf-page-text','mushaf-page-footer','— Page {page} · Juz {pageJuz} —','mushaf-medallion']) assert.ok(reader.includes(item), 'Missing page reader feature: ' + item);
-  for (const item of ['.mushaf-page-view','.mushaf-page-text','.mushaf-page-surah-banner','.mushaf-page-footer','line-height:2.05']) assert.ok(css.includes(item), 'Missing page style: ' + item);
+  for (const item of ['.mushaf-page-view','.mushaf-page-text','.mushaf-page-surah-banner','.mushaf-page-footer','line-height:2.25']) assert.ok(css.includes(item), 'Missing page style: ' + item);
 });
 
 test('Mushaf scroll locking and local-first bookmark persistence are retained', () => {
