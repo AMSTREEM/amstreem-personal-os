@@ -5901,3 +5901,13 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .tajweed-idgham_shafawi,.tajweed-idgham_ghunnah,.tajweed-idgham_wo_ghunnah{color:#80d66a}
 .tajweed-idgham_mutajanisayn,.tajweed-idgham_mutaqaribayn{color:#b7b7b7}
 .tajweed-ghunnah{color:#ff9a4d}
+
+/* Madani page discipline: a restrained, paper-like fifteen-line Mushaf page. */
+.mushaf-page-lines{display:grid;grid-template-rows:repeat(15,minmax(0,1fr));align-content:stretch;min-height:clamp(660px,calc(100dvh - 112px),980px);gap:0}
+.mushaf-page-lines>.mushaf-fs-qcf-line{display:flex;align-items:center;justify-content:space-around;min-height:0;white-space:nowrap;overflow:visible;text-align:justify;text-align-last:justify;line-height:1.85!important}
+.mushaf-fs-qcf-page{width:min(100%,620px);min-height:calc(100dvh - 46px);aspect-ratio:210/297;margin:auto;background:#fbf7ec;color:#241f17;border:1px solid #c9b98f;box-shadow:0 12px 48px rgba(0,0,0,.28);padding:clamp(16px,2.4vh,28px) clamp(14px,3vw,30px);box-sizing:border-box}
+.mushaf-page-running-header{color:#786b4e;border-bottom:1px solid #c9b98f;padding-bottom:8px;margin-bottom:8px}
+.mushaf-fs-qcf-line{color:#241f17}
+.mushaf-fs-qcf-word{color:inherit}
+.mushaf-page-number{color:#786b4e}
+@media(max-width:767px){.mushaf-fs-qcf-page{width:100%;min-height:calc(100dvh - 46px);aspect-ratio:auto;border:0;box-shadow:none;padding:12px 9px}.mushaf-page-lines{min-height:calc(100dvh - 140px)}.mushaf-page-lines>.mushaf-fs-qcf-line{font-size:clamp(13px,3.5vw,20px)!important;line-height:1.7!important}}
