@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@200..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@200..800&family=Noto+Naskh+Arabic:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 :root {
@@ -5785,3 +5785,9 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .residence-quran-resume{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:34px;width:max-content;max-width:100%;margin-top:10px;padding:0 12px;border:1px solid var(--accent-border,var(--line));border-radius:999px;background:var(--accent-wash,rgba(80,160,110,.1));color:var(--accent-strong,var(--text-primary));font:600 11px/1.2 "DM Sans",sans-serif;text-decoration:none;white-space:nowrap;transition:background .18s,border-color .18s,transform .18s}
 .residence-quran-resume:hover{background:var(--surface-hover);border-color:var(--accent-strong);transform:translateY(-1px)}
 @media(max-width:767px){.residence-quran-resume{min-height:38px;font-size:10px}.atlas-mobile-dock__quran{border-radius:50%;background:var(--accent-wash,rgba(80,160,110,.12));border:1px solid var(--accent-border,var(--line))}}
+
+/* Quran Foundation Unicode QPC Hafs font (King Fahd Complex, v18). */
+@font-face{font-family:"KFGQPC Uthmanic Script HAFS";src:url("https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2") format("woff2");font-style:normal;font-weight:400 600;font-display:swap}
+.mushaf-fs-qcf-line{font-family:"KFGQPC Uthmanic Script HAFS","Amiri Quran",serif;font-weight:500;letter-spacing:0;line-height:2.05}
+.mushaf-fs-qcf-word{font-family:inherit}
+.mushaf-fs-verse-arabic{font-family:"Noto Naskh Arabic","Amiri Quran",serif;font-weight:500;line-height:2.15;word-spacing:2px}
