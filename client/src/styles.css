@@ -5766,3 +5766,6 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .mushaf-minimal-page-pill span{display:none}
   .mushaf-minimal-page-pill{padding:6px 13px}
 }
+
+@media(min-width:768px){.mushaf-fs-surah-arabic-title{display:block;margin:8px 0;color:#e8d9b5;font:400 34px/1.6 "Amiri Quran","Noto Naskh Arabic",serif}.mushaf-fs-surah-intro{max-width:820px}.mushaf-fs-verse-arabic{font-size:30px;line-height:2}}
+@media(max-width:767px){.mushaf-hud-autosaved{flex:0 0 auto;color:#9cdaa9;font:500 9px "DM Sans",sans-serif;white-space:nowrap}}
