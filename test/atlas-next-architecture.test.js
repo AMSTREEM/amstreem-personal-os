@@ -47,20 +47,26 @@ test('project, task, calendar, focus and review records can be linked', () => {
   assert.match(server, /study_minutes:studyMinutes/);
 });
 
-test('the four primary rooms stay visible while secondary views remain optional', () => {
+test('Today, Focus and Goals are primary while More keeps secondary views accessible', () => {
   const shell = read('client/src/components/AppShell.tsx');
   const settings = read('client/src/pages/SettingsPage.tsx');
-  for (const room of ['Residence', 'Daily Rhythm', 'Execution & Focus', 'Growth & Direction']) {
-    assert.ok(shell.includes("label: '" + room + "'"), 'Missing room ' + room);
+  for (const room of ['Today', 'Focus', 'Goals']) {
+    assert.ok(shell.includes("label: '" + room + "'"), 'Missing primary destination ' + room);
   }
   assert.match(shell, /const rooms = \[/);
-  assert.match(shell, /tabsByRoom/);
-  assert.match(shell, /feature: 'calendar'/);
-  assert.match(shell, /label: 'Goals · Projects · Learning', to: '\/goals'/);
-  assert.match(shell, /label: 'Private Library', to: '\/learning-library'/);
+  assert.match(shell, /label: 'Today', to: '\/residence'/);
+  assert.match(shell, /label: 'Focus', to: '\/focus'/);
+  assert.match(shell, /label: 'Goals', to: '\/goals'/);
+  for (const route of ['/values', '/habits', '/calendar', '/learning-library', '/reviews-insights']) {
+    assert.ok(shell.includes("to: '" + route + "'"), 'Missing More destination ' + route);
+  }
+  assert.match(shell, /label: 'Deen & Qur’an'/);
+  assert.match(shell, /label: 'Habits & Self-Control'/);
+  assert.match(shell, /label: 'Learning & Library'/);
+  assert.match(shell, /label: 'Reviews & Insights'/);
+  assert.match(shell, /to="\/settings"/);
   assert.match(settings, /Optional workspace views/);
 });
-
 test('canonical eight-view routes and legacy compatibility redirects cover the personal operating system', () => {
   for (const route of ['/residence', '/today', '/values', '/habits', '/execution', '/calendar', '/goals', '/learning-library', '/reviews-insights', '/projects', '/tasks', '/focus', '/rituals', '/self-control', '/learning', '/library', '/reviews', '/insights', '/settings', '/admin']) {
     assert.ok(app.includes('path="' + route + '"'), 'Missing route ' + route);
@@ -97,7 +103,7 @@ test('FocusWorkspace uses one shared timer store and owns the focus-session work
   assert.match(timerStore, /atlas-focus-timer-v1/);
   assert.match(timerStore, /useSyncExternalStore/);
   assert.match(timerStore, /localStorage\.setItem/);
-  assert.ok(read('client/src/pages/ExecutionFocusPage.tsx').includes('ROOM 03 / EXECUTION & FOCUS'));
+  assert.match(read('client/src/components/FocusWorkspace.tsx'), /FOCUS \/ CHRONOGRAPH/);
     assert.ok(read('client/src/App.tsx').includes('path="/focus"'));
   assert.match(read('client/src/pages/LearningPage.tsx'), /\/focus\?lesson=/);
   assert.match(read('client/src/pages/TodayPage.tsx'), /\/focus\?task=/);
