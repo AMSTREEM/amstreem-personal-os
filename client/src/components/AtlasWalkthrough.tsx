@@ -5,43 +5,43 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 type Props = { onClose: () => void; onOpenCommand?: () => void };
 
-const stepRoutes = ['/residence', '/values', '/execution', '/goals'];
+const stepRoutes = ['/residence', '/focus', '/goals'];
 
 const steps = [
   {
-    eyebrow: 'ROOM 01 · YOUR DAILY COMMAND CENTER',
-    title: 'Welcome to Residence.',
-    description: 'Set your Morning Intention, lock in your Top 3 Priorities, and watch your Activity Pulse and Ferrofluid Core respond as you move forward.',
-    rows: ['⌘ 1 · Residence', 'Morning Intention · Top 3 Priorities', 'Activity Pulse · Ferrofluid Core'],
-    label: 'START WITH WHAT MATTERS'
+    eyebrow: 'TODAY · YOUR DAILY HOME',
+    title: 'Start with today.',
+    description: 'See your Celestial Horizon, Activity Pulse and Ferrofluid Core, add a task in one line, then check off prayers and habits without leaving Home.',
+    rows: ['Today · one clear starting point', 'Activity Pulse · Ferrofluid Core', 'Tasks · Prayers · Habits'],
+    label: 'MAKE TODAY CLEAR'
   },
   {
-    eyebrow: 'ROOM 02 · YOUR DAILY RHYTHM',
-    title: 'Build a rhythm that reflects your values.',
-    description: 'Maintain your personal standards across Faith / Deen—adapted for Islam, Christianity, or general reflection—and Habits & Self-Control.',
-    rows: ['⌘ 2 · Daily Rhythm', 'Faith / Deen · Habits & Self-Control', '30-Day Rhythm Constellation'],
-    label: 'CONSISTENCY, YOUR WAY'
-  },
-  {
-    eyebrow: 'ROOM 03 · YOUR DAILY EXECUTION',
-    title: 'Turn priorities into focused action.',
-    description: 'Manage Tasks with project or goal filters, launch the Focus Chronograph for 25m, 50m, 80m, or a custom session, or check your Calendar.',
-    rows: ['⌘ 3 · Execution & Focus', 'Tasks · Project and goal filters', 'Focus Chronograph · Calendar'],
+    eyebrow: 'FOCUS · YOUR CHRONOGRAPH',
+    title: 'Give one thing your attention.',
+    description: 'Choose 25m, 50m or 80m, link a task or Qur’an Surah, and start. Your completed sessions appear directly below.',
+    rows: ['25m · 50m · 80m', 'Link a task or Surah', 'Start · Session history'],
     label: 'PROTECT YOUR ATTENTION'
   },
   {
-    eyebrow: 'ROOM 04 · YOUR LONG-TERM DIRECTION',
+    eyebrow: 'GOALS · YOUR LONG-TERM DIRECTION',
     title: 'Explore your Life Constellation.',
-    description: 'Connect Goals, Projects, and Learning Paths on an interactive star map—tap or drag a star to inspect it, or use the pill switcher below to focus on one area.',
-    rows: ['⌘ 4 · Growth & Direction', 'Goals · Projects · Learning Paths', 'Private Library · Reviews & Insights'],
+    description: 'See Goals, Projects and Learning connected in one star map. Your goals and projects are ready to work with directly beneath it.',
+    rows: ['Life Constellation', 'Goals · Projects', 'Learning paths · linked progress'],
     label: 'SEE HOW YOUR WORK CONNECTS'
   },
   {
-    eyebrow: 'ALWAYS WITHIN REACH',
-    title: 'Capture quickly. Move freely.',
-    description: 'Use the floating command dock to capture a task in seconds, jump between rooms, and choose from 10 curated themes in Settings.',
-    rows: ['⌘ K · Command Dock', 'Quick Capture · Room navigation', 'Settings · 10 curated themes'],
-    label: 'YOUR EVERYDAY SHORTCUTS'
+    eyebrow: 'MORE · EVERYTHING ELSE',
+    title: 'Your other spaces stay one tap away.',
+    description: 'Open More for Deen & Qur’an, Habits & Self-Control, Learning & Library, Calendar, Reviews & Insights and Settings. Your existing routes remain available.',
+    rows: ['Deen & Qur’an · Habits & Self-Control', 'Learning & Library · Calendar', 'Reviews & Insights · Settings'],
+    label: 'KEEP THE DAILY CORE SIMPLE'
+  },
+  {
+    eyebrow: 'THE AMSTREEM SIGNATURE',
+    title: 'Keep the instruments. Lose the clutter.',
+    description: 'Life Constellation, the 30-Day Rhythm Constellation, and the Ferrofluid Astrolabe Cores with Combo Sparks remain part of Atlas. Use Quick Capture when you need to move fast, and choose from 10 curated themes in Settings.',
+    rows: ['Life Constellation · Goals and Projects', '30-Day Rhythm Constellation · consistency', 'Ferrofluid Core · Astrolabe · Combo Sparks'],
+    label: 'YOUR VISUAL LANGUAGE, INTACT'
   }
 ];
 
@@ -53,8 +53,8 @@ export function AtlasWalkthrough({ onClose, onOpenCommand }: Props) {
 
   const finish = () => onClose();
   const advance = () => {
-    if (index < stepRoutes.length) {
-      navigate(stepRoutes[index]);
+    if (index < stepRoutes.length) navigate(stepRoutes[index]);
+    if (index < steps.length - 1) {
       setIndex(value => Math.min(steps.length - 1, value + 1));
       return;
     }
@@ -99,7 +99,7 @@ export function AtlasWalkthrough({ onClose, onOpenCommand }: Props) {
         <aside className="atlas-tour__intro">
           <span className="atlas-tour__eyebrow">A GUIDED INTRODUCTION</span>
           <h2>Make room for what matters.</h2>
-          <p>Five quick stops to see how Atlas supports your day, your rhythm, and your direction.</p>
+          <p>Five quick stops: Today, Focus, Goals, More, and the signature instruments.</p>
           <div className="atlas-tour__progress" aria-label={`Step ${index + 1} of ${steps.length}`}><i style={{ width: `${((index + 1) / steps.length) * 100}%` }} /></div>
           <nav className="atlas-tour__nav" aria-label="Walkthrough steps">
             {steps.map((item, i) => <button key={item.label} type="button" aria-label={`Go to step ${i + 1}: ${item.title}`} aria-current={i === index ? 'step' : undefined} onClick={() => setIndex(i)}>{String(i + 1).padStart(2, '0')}</button>)}
