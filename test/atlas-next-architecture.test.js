@@ -330,7 +330,7 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.ok(reader.includes('QCF2'));
   assert.ok(reader.includes('function AyahMedallion'));
   assert.ok(reader.includes('mushaf-ayah-medallion-frame'));
-  assert.ok(reader.includes(String.raw`value.replace(/[\\u06DD\\u06DE\\u06E9\\u06DF-\\u06E8\\u06EA-\\u06ED]/g, '').trim()`));
+  assert.ok(reader.includes('stripAyahEndMarker'));
   assert.ok(reader.includes("document.documentElement"));
   assert.ok(reader.includes("root.style.overflow = 'hidden'"));
   assert.ok(reader.includes('mushaf-fs-verse-row'));
