@@ -346,7 +346,7 @@ test('Tajweed text is rendered as safe allowlisted semantic spans while Uthmani 
 test('Mushaf keeps bookmarks, automatic Hifz/Muraja’ah logging and direct Residence access', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const values = read('client/src/pages/ValuesPage.tsx');
-  const residence = read('client/src/pages/ResidencePage.tsx');
+  const today = read('client/src/pages/TodayPage.tsx');
   const shell = read('client/src/components/AppShell.tsx');
   assert.ok(reader.includes('hifz_bookmark') && reader.includes('murajaah_bookmark'));
   assert.ok(reader.includes('atlas_quran_auto_logged_pages_'));
@@ -354,7 +354,7 @@ test('Mushaf keeps bookmarks, automatic Hifz/Muraja’ah logging and direct Resi
   assert.ok(reader.includes('Continue Hifz'));
   assert.ok(reader.includes('Continue Muraja’ah'));
   assert.ok(values.includes('<QuranMushafReader'));
-  assert.ok(residence.includes('residence-quran-resume'));
+  assert.ok(today.includes('Continue Qur’an · Hifz P.{hifzPage}'));
   assert.ok(shell.includes('nav-link--quran'));
   assert.ok(shell.includes('atlas-mobile-dock__quran'));
   assert.ok(reader.includes('createPortal(') && reader.includes('document.body'));
@@ -365,7 +365,7 @@ test('Mushaf page view has chapter openings, centered verse medallions and a pag
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
   assert.ok(reader.includes('function BismillahOrnament'));
-  assert.ok(reader.includes('مِ'));
+  assert.ok(reader.includes('بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ'));
   assert.ok(reader.includes('mushaf-page-surah-banner'));
   assert.ok(reader.includes('mushaf-page-text'));
   assert.ok(reader.includes('mushaf-page-footer'));
