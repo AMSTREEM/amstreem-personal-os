@@ -9,7 +9,7 @@ type MushafAyah = {
   text: string;
   numberInSurah: number;
   juz: number;
-  surah: { number: number; name: string; englishName: string; nameArabic: string };
+  surah: { number: number; name: string; englishName: string };
 };
 type MushafPage = { ayahs: MushafAyah[] };
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void };
@@ -160,7 +160,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
       {!loading && pageError && <div role="alert" style={{ textAlign: 'center', padding: 30 }}><WifiOff size={22}/><p>{pageError}</p><button type="button" className="button button--secondary" onClick={() => changePage(page)}>Retry page</button></div>}
       {!loading && pageData && <div dir="rtl" lang="ar" style={{ textAlign: 'justify', fontFamily: '"KFGQPC Uthmanic Script HAFS", "Amiri Quran", "Noto Naskh Arabic", serif', fontSize: 'clamp(25px, 3.3vw, 32px)', lineHeight: 2.15, color: 'var(--text-primary, inherit)', wordSpacing: 2 }}>
         {pageData.ayahs.map((ayah, index) => <span key={ayah.surah.number + ':' + ayah.numberInSurah}>
-          {(index === 0 || pageData.ayahs[index - 1].surah.number !== ayah.surah.number) && <span style={{ display: 'block', textAlign: 'center', margin: '22px 0 10px', padding: '8px 12px', border: '1px solid var(--border-subtle, rgba(255,255,255,.18))', borderRadius: 10, fontSize: 22 }}>{ayah.surah.nameArabic} · {ayah.surah.englishName}</span>}
+          {(index === 0 || pageData.ayahs[index - 1].surah.number !== ayah.surah.number) && <span style={{ display: 'block', textAlign: 'center', margin: '22px 0 10px', padding: '8px 12px', border: '1px solid var(--border-subtle, rgba(255,255,255,.18))', borderRadius: 10, fontSize: 22 }}>{ayah.surah.name} · {ayah.surah.englishName}</span>}
           {ayah.text} <span style={{ whiteSpace: 'nowrap', fontSize: '.78em', color: 'var(--accent-primary, #b9a6ff)' }}>﴿{arabicNumber(ayah.numberInSurah)}﴾ </span>
         </span>)}
       </div>}
