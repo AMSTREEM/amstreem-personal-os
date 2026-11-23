@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Bookmark, Copy, Maximize2, Play, Search, WifiOff, X } from 'lucide-react';
+import { Bookmark, ChevronLeft, ChevronRight, Copy, Maximize2, Play, Search, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz } from '../data/quranSurahs';
 import { triggerSparkBurst } from './fx/SparkBurst';
@@ -402,7 +402,11 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     </aside></>}
     </div>
     <footer className="mushaf-fs-footer">
-      <span className="mushaf-save-status" role="status">{saveStatus || 'Auto-save enabled'}</span>
+      <div className="mushaf-fs-page-pill">
+        {readingMode === 'reading' && <button type="button" className="mushaf-fs-page-nav" disabled={page <= 1} onClick={() => changePage(page - 1)}><ChevronLeft size={16}/> Previous Page</button>}
+        <span className="mushaf-save-status" role="status">{saveStatus || 'Auto-save enabled'}</span>
+        {readingMode === 'reading' && <button type="button" className="mushaf-fs-page-nav" disabled={page >= 604} onClick={() => changePage(page + 1)}>Next Page <ChevronRight size={16}/></button>}
+      </div>
     </footer>
     <audio ref={audioRef} />
   </>;
