@@ -429,7 +429,9 @@ test('Mushaf surah cartouches, calligraphic basmala, searchable index and page-f
   assert.match(reader, /سُورَةُ/);
   assert.match(reader, /function BismillahOrnament/);
   assert.match(reader, /بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ/);
-  assert.ok(reader.includes('surah.surahNumber !== 1 && surah.surahNumber !== 9'));
+  assert.match(reader, /\.mushaf-fs-qcf-page\{[^}]*background:#000/);
+  assert.match(reader, /\.mushaf-page-running-header\{[^}]*justify-content:space-between/);
+  assert.match(reader, /\.mushaf-page-number\{[^}]*align-self:flex-end/);
   assert.ok(reader.includes('ayah.surahNumber !== 1 && ayah.surahNumber !== 9'));
   assert.match(reader, /Search Surah name or number\.\.\./);
   assert.match(reader, /mushaf-surah-page-badge/);
