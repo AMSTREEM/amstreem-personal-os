@@ -269,7 +269,7 @@ const buildRevision = String(process.env.RENDER_GIT_COMMIT || process.env.BUILD_
 app.use((req, res, next) => {
   if (req.path === '/' || req.path.toLowerCase().endsWith('.html')) {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-  } else if (req.path.startsWith('/assets/') && /-[a-f0-9]{8,}\\.(?:js|css|woff2?|svg|png|jpe?g|webp|ico)$/i.test(path.basename(req.path))) {
+  } else if (req.path.startsWith('/assets/') && /-[a-f0-9]{8,}\.(?:js|css|woff2?|svg|png|jpe?g|webp|ico)$/i.test(path.basename(req.path))) {
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   }
   next();
