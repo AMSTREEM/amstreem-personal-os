@@ -128,10 +128,10 @@ async function getQuranApiAuth() {
 }
 
 function parseAlQuranTajweed(markup) {
-  const classByCode = { h:'tj-hamza',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-ikhfa',f:'tj-ikhfa',i:'tj-ikhfa',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham' };
+  const classByCode = { h:'tj-hamza',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-idgham',f:'tj-ikhfa',i:'tj-ikhfa',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham' };
   const segments = [];
   const source = String(markup || '');
-  const pattern = /\[([a-z])(?::\d+)?\[([\s\S]*?)\]/g;
+  const pattern = /\[([a-z])(?::\d+)?\[([\s\S]*?)\]\]?/g;
   let cursor = 0, match;
   while ((match = pattern.exec(source))) {
     if (match.index > cursor) segments.push({ text: source.slice(cursor, match.index), className: '' });
