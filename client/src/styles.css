@@ -5503,3 +5503,129 @@ html, body, #root, .app-frame, .main-area, .page-container {
     margin: 0;
   }
 }
+
+
+/* Self-Control spacing pass — consistent rhythm from section heading through
+   tracker empty state and private history, with a deliberate mobile layout. */
+.self-control-page {
+  gap: 22px;
+}
+.self-control-page .self-control-section-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px 18px;
+  margin: 0;
+}
+.self-control-section-head > div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.self-control-section-head .module-kicker {
+  line-height: 1.4;
+}
+.self-control-section-head h2 {
+  margin: 0;
+  font-size: clamp(18px, 2vw, 21px);
+  line-height: 1.25;
+}
+.self-control-section-head .module-count {
+  align-self: center;
+  padding: 7px 11px;
+  line-height: 1.2;
+}
+.self-control-page .tracker-grid {
+  grid-auto-rows: 1fr;
+  align-items: stretch;
+  gap: 16px;
+}
+.self-control-page .tracker-empty {
+  display: flex;
+  min-height: 0;
+  padding: 0 !important;
+}
+.self-control-page .tracker-empty .empty-state {
+  display: grid;
+  width: 100%;
+  min-height: 190px;
+  box-sizing: border-box;
+  align-content: center;
+  justify-items: center;
+  padding: 28px 24px;
+}
+.self-control-page .tracker-empty .empty-state h3 {
+  margin: 14px 0 7px;
+  line-height: 1.35;
+}
+.self-control-page .tracker-empty .empty-state p {
+  max-width: 36ch;
+  line-height: 1.7;
+}
+.self-control-page .self-control-history {
+  margin: 0;
+  padding: 22px 24px !important;
+}
+.self-control-page .self-control-history .module-panel-head {
+  align-items: center;
+  gap: 14px 18px;
+  margin-bottom: 18px;
+}
+.self-control-page .self-control-history .module-panel-head h2 {
+  margin-top: 6px;
+  line-height: 1.25;
+}
+.self-control-page .self-control-history > .empty-state {
+  min-height: 140px;
+  align-content: center;
+  padding: 22px 16px;
+}
+.self-control-page .self-control-history > .empty-state h3 {
+  margin-top: 12px;
+}
+@media (max-width: 767px) {
+  .self-control-page {
+    gap: 18px;
+  }
+  .self-control-page .self-control-section-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 11px 10px;
+  }
+  .self-control-section-head > div {
+    grid-column: 1 / -1;
+    gap: 5px;
+  }
+  .self-control-section-head h2 {
+    font-size: 19px;
+  }
+  .self-control-section-head .module-count {
+    justify-self: start;
+    padding: 6px 9px;
+  }
+  .self-control-page .tracker-grid {
+    gap: 14px;
+  }
+  .self-control-page .tracker-empty .empty-state {
+    min-height: 164px;
+    padding: 24px 18px;
+  }
+  .self-control-page .self-control-history {
+    padding: 18px !important;
+  }
+  .self-control-page .self-control-history .module-panel-head {
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .self-control-page .self-control-history > .empty-state {
+    min-height: 126px;
+    padding: 18px 10px;
+  }
+}
+@media (max-width: 380px) {
+  .self-control-page .self-control-section-head h2 {
+    font-size: 18px;
+  }
+  .self-control-page .self-control-history .module-panel-head {
+    gap: 10px;
+  }
+}
