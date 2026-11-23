@@ -440,7 +440,7 @@ const mushafStyles = `
 .mushaf-fs-stage.is-page-by-page{display:flex;align-items:center;justify-content:center;overflow:hidden;padding:6px 12px}
 .mushaf-fs-sheet{width:100%;max-width:740px;min-width:0;margin:0 auto;padding:12px 20px 28px;border:0;background:transparent;box-shadow:none}
 .mushaf-fs-stage.is-page-by-page .mushaf-fs-sheet{width:100%;max-width:660px;height:100%;max-height:100%;min-height:0;margin:0 auto;padding:0 8px;display:flex;align-items:center;justify-content:center;overflow:visible}
-.mushaf-fs-qcf-page{width:100%;max-width:580px;min-width:0;margin:0 auto;display:flex;flex-direction:column;justify-content:center;gap:0;direction:rtl;overflow:visible}
+.mushaf-fs-qcf-page{width:100%;max-width:640px;min-width:0;margin:0 auto;display:flex;flex-direction:column;justify-content:center;gap:0;direction:rtl;overflow:visible}
 .mushaf-fs-qcf-line{width:100%;min-width:0;min-height:0;margin:0 auto;overflow:visible;text-align:center;direction:rtl;white-space:nowrap;line-height:1.68;color:var(--text-primary);font-family:inherit;font-weight:400}
 .mushaf-fs-qcf-word{display:inline;white-space:pre;font:inherit}
 .mushaf-fs-stage.is-page-by-page .mushaf-fs-qcf-line{line-height:1.68}
@@ -485,7 +485,7 @@ const mushafStyles = `
 .mushaf-ayah-medallion-frame path{fill:color-mix(in srgb,var(--accent-primary,var(--accent)) 8%,var(--bg-surface));stroke:var(--accent-primary,var(--accent));stroke-width:1.15;stroke-linejoin:round}
 .mushaf-ayah-medallion-frame circle{fill:none;stroke:color-mix(in srgb,var(--accent-primary,var(--accent)) 62%,transparent);stroke-width:.7}
 .mushaf-fs-ayah-number-text{position:absolute;inset:0;display:grid;place-items:center;width:100%;height:100%;margin:0;padding:0;font:700 11px/1 "Plus Jakarta Sans",system-ui,sans-serif;text-align:center;direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums;color:var(--accent-primary,var(--accent));pointer-events:none}
-.mushaf-fs-footer{width:100%;min-width:0;height:62px;min-height:62px;padding:0 14px;display:flex;align-items:center;justify-content:center;border-top:1px solid var(--border-hairline);background:var(--bg-surface)}
+.mushaf-fs-footer{width:100%;min-width:0;height:62px;min-height:62px;padding:0 14px env(safe-area-inset-bottom,0px);display:flex;align-items:center;justify-content:center;border-top:1px solid var(--border-hairline);background:var(--bg-surface)}
 .mushaf-fs-page-pill{width:min(100%,540px);min-width:0;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 auto;padding:3px 5px}
 .mushaf-fs-page-count{flex:0 0 auto;color:var(--text-muted);font:600 10px/1 "DM Sans",sans-serif;white-space:nowrap}
 .mushaf-fs-page-pill button{min-width:0;height:36px;min-height:36px;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 11px;border:1px solid var(--border-hairline);border-radius:8px;background:var(--bg-elevated);color:var(--text-primary);font:600 10px/1 "DM Sans",sans-serif;white-space:nowrap}
