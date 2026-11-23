@@ -7,7 +7,6 @@ import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextArea, TextInput } from '../components/ui';
 import { Cascade } from '../components/Cascade';
 import { playAtlasFeedback } from '../lib/microFeedback';
-import { RhythmConstellation } from '../components/fx/RhythmConstellation';
 import { triggerSparkBurst } from '../components/fx/SparkBurst';
 import { getJuzForAyah, quranSurahs } from '../data/quranSurahs';
 
@@ -88,7 +87,6 @@ export function ValuesPage() {
 
   return <Cascade className="stack rhythm-page daily-rhythm-sanctuary">
     <PageHeader eyebrow="ROOM 02 / DAILY RHYTHM" title={tradition === 'islam' ? 'Deen & Reflection' : tradition === 'christianity' ? 'Faith & Devotion' : 'Clarity & Reflection'} description="A private place to record the practices and reflections that give your day its rhythm."/>
-    <RhythmConstellation/>
     {tradition === 'islam' && <div className="rhythm-branch" data-faith-workspace={faithWorkspace}>
       <section className="rhythm-intro surface-card"><div><span className="eyebrow">DEEN · DAILY PRACTICE</span><h2>Return to what matters.</h2><p>Record the five prayers, Qur’an work and optional acts of worship. A plan is not a completed act; keep the distinction honest.</p></div><div className="rhythm-intro-stat"><b>{prayerCount}/5</b><small>SALAH RECORDED</small></div></section>
       <nav className="growth-workspace-switcher atlas-segmented-switcher" aria-label="Choose faith workspace">{["Salah & Adhkar","Qur'an & Hifz","Jumu'ah & Muhasabah","Show All"].map((label,index)=><button key={label} type="button" className={faithWorkspace===(['primary','secondary','tertiary','all'][index])?'is-active':''} aria-pressed={faithWorkspace===(['primary','secondary','tertiary','all'][index])} onClick={()=>setFaithWorkspace(['primary','secondary','tertiary','all'][index] as 'primary'|'secondary'|'tertiary'|'all')}>{label}</button>)}</nav>
