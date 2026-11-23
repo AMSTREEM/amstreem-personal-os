@@ -24,7 +24,7 @@ function renderTajweedMarkup(markup: string): ReactNode {
   const parsed = new DOMParser().parseFromString('<div>' + markup + '</div>', 'text/html');
   const root = parsed.body.firstElementChild;
   const visit = (node: Node, key: string): ReactNode => {
-    if (node.nodeType === Node.TEXT_NODE) return stripAyahEndMarker(node.textContent || '');
+    if (node.nodeType === Node.TEXT_NODE) return (node.textContent || '').replace(/[\\u06DD\\u06DE\\u06E9\\u06DF-\\u06E8\\u06EA-\\u06ED]/g, '');
     if (node.nodeType !== Node.ELEMENT_NODE) return null;
     const element = node as HTMLElement;
     const tag = element.tagName.toLowerCase();
