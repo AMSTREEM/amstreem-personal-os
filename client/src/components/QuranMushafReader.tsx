@@ -12,7 +12,7 @@ type MushafPage = { page: number; juz: number; qcfAvailable?: boolean; translati
 type MushafLineWord = MushafWord & { surahNumber: number; numberInSurah: number };
 const escapeGlyphHtml = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void };
-const CACHE_PREFIX = 'atlas_mushaf_page_v3_';
+const CACHE_PREFIX = 'atlas_mushaf_page_v4_';
 const pageMemoryCache = new Map<number, MushafPage>();
 const HIFZ_KEY = 'atlas_hifz_bookmark_v2';
 const MURAJAAH_KEY = 'atlas_murajaah_bookmark_v2';
