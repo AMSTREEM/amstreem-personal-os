@@ -1,6 +1,6 @@
 import { Fragment, type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Bookmark, ChevronLeft, ChevronRight, Copy, Play, Search, WifiOff, X } from 'lucide-react';
+import { Bookmark, ChevronLeft, ChevronRight, Copy, Search, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz } from '../data/quranSurahs';
 import { triggerSparkBurst } from './fx/SparkBurst';
@@ -58,13 +58,6 @@ function BismillahOrnament() {
 }
 const readBookmark = (key: string) => { try { const value = JSON.parse(localStorage.getItem(key) || '{}'); return { page: clampPage(Number(value.page) || 1), surah: Number(value.surah) || 1, ayah: Number(value.ayah) || 1 }; } catch { return { page: 1, surah: 1, ayah: 1 }; } };
 function lagosDate() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
-const reciters = [
-  { id: 'ar.alafasy', label: 'Mishary Alafasy' },
-  { id: 'ar.husary', label: 'Al-Husary' },
-  { id: 'ar.minshawi', label: 'Al-Minshawi' },
-  { id: 'ar.abdulbasitmurattal', label: 'Abdul Basit' }
-];
-
 export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) {
   const [mode, setMode] = useState<'hifz' | 'murajaah'>('hifz');
   const [hifzMark, setHifzMark] = useState(() => readBookmark(HIFZ_KEY));
@@ -80,8 +73,9 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [surahSearch, setSurahSearch] = useState('');
   const [contentsTab, setContentsTab] = useState<'surah' | 'juz' | 'bookmarks'>('surah');
+  const [sidebarTab, setSidebarTab] = useState<'surah' | 'juz' | 'page'>('surah');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [hudVisible, setHudVisible] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [starredAyahs, setStarredAyahs] = useState<Array<{ surah: number; ayah: number }>>(() => { try { return JSON.parse(localStorage.getItem('atlas_mushaf_starred_ayahs_v1') || '[]'); } catch { return []; } });
   const [selected, setSelected] = useState<{ surah: number; ayah: number } | null>(null);
@@ -91,9 +85,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     try { const saved = Number(localStorage.getItem('atlas_mushaf_arabic_font_size_v2')); return [16, 18, 20, 23, 26, 30, 34].includes(saved) ? saved : 20; }
     catch { return 20; }
   });
-  const [reciter, setReciter] = useState('ar.alafasy');
   const [pageInput, setPageInput] = useState(String(page));
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const readerRef = useRef<HTMLDivElement | null>(null);
   const autoLoggedPagesRef = useRef(new Set<string>());
 
@@ -319,23 +311,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     try { localStorage.setItem('atlas_mushaf_starred_ayahs_v1', JSON.stringify(next)); } catch { /* storage is optional */ }
     return next;
   });
-  const togglePlayback = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (!audio.paused) { audio.pause(); setIsPlaying(false); return; }
-    const target = selectedAyah || pageData?.ayahs[0];
-    if (target) playAyah(target);
-  };
   const quickJump = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const target = clampPage(Number(pageInput)); changePage(target); setHudVisible(false); };
-  const playAyah = (ayah = selectedAyah) => {
-    if (!ayah) return;
-    const audio = audioRef.current;
-    if (!audio) return;
-    audio.src = `https://islamic.network/quran/audio/128/${reciter}/${ayah.number}.mp3`;
-    audio.currentTime = 0;
-    void audio.play().catch(() => undefined);
-  };
-  
   const copyAyah = async () => {
     if (!selectedAyah) return;
     const surah = QURAN_SURAHS[selectedAyah.surahNumber - 1];
@@ -379,7 +355,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
           {!surahLoading && surahError && <div className="mushaf-error" role="alert"><p>{surahError}</p><button type="button" onClick={() => setReadingMode('reading')}>Return to page</button></div>}
           {!surahLoading && surahAyahs.map((ayah, index) => <article className="mushaf-fs-verse-row" key={ayah.surahNumber + ':' + ayah.numberInSurah}>
             {index === 0 && ayah.surahNumber !== 1 && ayah.surahNumber !== 9 && <BismillahOrnament/>}
-            <div className="mushaf-fs-verse-actionbar"><div className="mushaf-fs-verse-actions"><small>{ayah.surahNumber}:{ayah.numberInSurah}</small><button type="button" aria-label="Play verse" onClick={() => { selectAyah(ayah); playAyah(ayah); }}><Play size={14}/></button><button type="button" aria-label="Star verse" aria-pressed={starredAyahs.some(item => item.surah === ayah.surahNumber && item.ayah === ayah.numberInSurah)} onClick={() => toggleStarredAyah(ayah)}><Bookmark size={14}/></button></div><button type="button" className="mushaf-fs-verse-copy" onClick={() => { void navigator.clipboard?.writeText(ayah.text + '\n' + ayah.surahNumber + ':' + ayah.numberInSurah); }}><Copy size={13}/> Copy</button></div>
+            <div className="mushaf-fs-verse-actionbar"><div className="mushaf-fs-verse-actions"><small>{ayah.surahNumber}:{ayah.numberInSurah}</small><button type="button" aria-label="Star verse" aria-pressed={starredAyahs.some(item => item.surah === ayah.surahNumber && item.ayah === ayah.numberInSurah)} onClick={() => toggleStarredAyah(ayah)}><Bookmark size={14}/></button></div><button type="button" className="mushaf-fs-verse-copy" onClick={() => { void navigator.clipboard?.writeText(ayah.text + '\n' + ayah.surahNumber + ':' + ayah.numberInSurah); }}><Copy size={13}/> Copy</button></div>
             <button type="button" className={'mushaf-fs-verse-arabic ' + (selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah ? 'is-selected' : '')} style={{ fontSize: `${arabicFontSize}px` }} onClick={() => selectAyah(ayah)}>{stripAyahEndMarker(ayah.text)}<AyahMedallion className="mushaf-ayah-number" number={ayah.numberInSurah}/></button>
             <div className="mushaf-fs-verse-translation"><span>{ayah.translation || 'Translation unavailable.'}</span><small>{ayah.surahNumber}:{ayah.numberInSurah}</small></div>
           </article>)}
@@ -393,14 +369,11 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
         <div className="mushaf-hud-settings"><button type="button" className="mushaf-hud-pill" onClick={() => setSettingsOpen(value => !value)}>Settings</button><button type="button" className="mushaf-hud-pill" onClick={() => changeFontSize(-1)}>A−</button><button type="button" className="mushaf-hud-pill" onClick={() => changeFontSize(1)}>A+</button><button type="button" className="mushaf-hud-pill" onClick={() => changeReadingMode(readingMode === 'reading' ? 'translation' : 'reading')}>{readingMode === 'reading' ? 'Verse by Verse' : 'Page by Page'}</button><button type="button" className="mushaf-hud-exit" aria-label="Exit Mushaf" onClick={() => { setHudVisible(false); setFullScreen(false); }}>✕</button></div>
       </div>}
       {hudVisible && <div className="mushaf-floating-bottom" onClick={event => event.stopPropagation()}>
-        <div className="mushaf-audio-control"><button type="button" aria-label={isPlaying ? 'Pause recitation' : 'Play recitation'} onClick={togglePlayback}>{isPlaying ? 'Ⅱ' : <Play size={16}/>}</button><span>{reciters.find(item => item.id === reciter)?.label || 'Mishary Alafasy'}</span></div>
         <button type="button" className="mushaf-hud-pill mushaf-prev" disabled={page <= 1} onClick={() => changePage(page - 1)}>Prev</button>
         <input className="mushaf-page-scrubber" type="range" min="1" max="604" value={page} aria-label="Mushaf page" onChange={event => changePage(Number(event.target.value))}/>
         <button type="button" className="mushaf-hud-pill mushaf-next" disabled={page >= 604} onClick={() => changePage(page + 1)}>Next</button>
         <form className="mushaf-quick-jump" onSubmit={quickJump}><input type="number" min="1" max="604" value={pageInput} onChange={event => setPageInput(event.target.value)} aria-label="Jump to page"/><button type="submit">Go</button></form>
-        <select aria-label="Reciter" value={reciter} onChange={event => setReciter(event.target.value)}>{reciters.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select>
       </div>}
-      {settingsOpen && hudVisible && <div className="mushaf-settings-popover" onClick={event => event.stopPropagation()}><b>Reading settings</b><label>Reciter<select value={reciter} onChange={event => setReciter(event.target.value)}>{reciters.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label><button type="button" onClick={() => setSettingsOpen(false)}>Done</button></div>}
       {drawerOpen && <div className="mushaf-contents-overlay" onClick={() => setDrawerOpen(false)}>
         <section className="mushaf-contents-panel" aria-label="Qur’an contents" onClick={event => event.stopPropagation()}>
           <header className="mushaf-contents-header"><div className="mushaf-contents-tabs" role="tablist" aria-label="Contents"><button type="button" role="tab" aria-selected={contentsTab === 'surah'} className={contentsTab === 'surah' ? 'is-active' : ''} onClick={() => setContentsTab('surah')}>Surah</button><button type="button" role="tab" aria-selected={contentsTab === 'juz'} className={contentsTab === 'juz' ? 'is-active' : ''} onClick={() => setContentsTab('juz')}>Juz</button><button type="button" role="tab" aria-selected={contentsTab === 'bookmarks'} className={contentsTab === 'bookmarks' ? 'is-active' : ''} onClick={() => setContentsTab('bookmarks')}>Bookmarks</button></div><button type="button" className="mushaf-contents-close" aria-label="Close contents" onClick={() => setDrawerOpen(false)}>›</button></header>
@@ -415,7 +388,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
           </div>
         </section>
       </div>}
-      <audio ref={audioRef} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} onEnded={() => setIsPlaying(false)}/>
     </div>
   </>;
 
