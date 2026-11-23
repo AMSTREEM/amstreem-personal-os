@@ -566,12 +566,13 @@ const mushafStyles = `
  .mushaf-surah-cartouche-copy b{font-size:15px}
  .mushaf-surah-cartouche-copy span{font-size:8px;letter-spacing:0}
   .mushaf-fs-header{padding-left:5px;padding-right:5px}
- .mushaf-fs-header-left,.mushaf-fs-header-right{gap:3px}
- .mushaf-fs-surah-trigger{max-width:118px;padding:0 5px;font-size:9px}
+ .mushaf-fs-header-left,.mushaf-fs-header-right{gap:2px}
+ .mushaf-fs-surah-trigger{max-width:68px;padding:0 3px;font-size:8px}
  .mushaf-fs-page-meta{font-size:8px}
- .mushaf-mode-switch button{padding:0 4px;font-size:8px}
- .mushaf-top-font button{min-width:25px;padding:0 3px;font-size:9px}
- .mushaf-fs-tabs button{padding:0 9px;font-size:9px}
+ .mushaf-mode-switch button{padding:2px 3px;font-size:8px}
+ .mushaf-fs-header-center button{padding:2px 3px;font-size:8px}
+ .mushaf-top-font button{min-width:20px;padding:2px;font-size:8px}
+ .mushaf-fs-close{width:20px;min-width:20px}
  .mushaf-fs-page-pill button{padding:0 5px;font-size:8px}
 }
 `;;
