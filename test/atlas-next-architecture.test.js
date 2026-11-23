@@ -325,6 +325,9 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.match(reader, /align-items:center;justify-content:center;gap:4px/);
   assert.match(reader, /transform:none;align-self:center/);
   assert.match(reader, /unicode-bidi:isolate/);
+  assert.match(reader, /className="mushaf-fs-ayah-number-text"/);
+  assert.match(reader, /position:absolute;inset:0;display:grid;place-items:center/);
+  assert.match(reader, /Noto Naskh Arabic/);
   assert.match(reader, /mushaf-fs-translation-pill/);
   assert.match(reader, /mushaf-fs-verse-row/);
   assert.match(reader, /mushaf-fs-verse-translation/);
