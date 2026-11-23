@@ -23,7 +23,7 @@ export function GoalsPage() {
   const [targetDate, setTargetDate] = useState('');
   const [category, setCategory] = useState('Personal');
   const [horizon,setHorizon]=useState<'short-term'|'long-term'>('long-term');
-  const [activeWorkspace,setActiveWorkspace]=useState<'goals'|'projects'|'learning'|'all'>('goals');
+  const [activeWorkspace,setActiveWorkspace]=useState<'goals'|'projects'|'learning'|'all'>('all');
   const [pendingConstellationTarget,setPendingConstellationTarget]=useState<{kind:'goal'|'project'|'learning';id:number}|null>(null);
   const goals = useQuery({ queryKey: ['goals'], queryFn: () => api<Goal[]>('/goals') });
   const projects = useQuery({ queryKey: ['projects'], queryFn: () => api<Project[]>('/projects') });
