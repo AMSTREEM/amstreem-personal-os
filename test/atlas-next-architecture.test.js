@@ -291,7 +291,7 @@ test('Mushaf opens directly into one full-screen shell with a 40px single-row to
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const values = read('client/src/pages/ValuesPage.tsx');
   assert.match(values, /<QuranMushafReader settings=/);
-  assert.doesNotMatch(values, /<Card className="faith-section-secondary">\\s*<QuranMushafReader|Open Full-Screen Mushaf|rhythm-quran-layout|Save Qur’an record/);
+  assert.doesNotMatch(values, /<Card className="faith-section-secondary">\s*<QuranMushafReader|Open Full-Screen Mushaf|rhythm-quran-layout|Save Qur’an record/);
   assert.match(reader, /Continue Hifz/);
   assert.match(reader, /Continue Muraja’ah/);
   assert.match(reader, /pageMemoryCache\.clear\(\)/);
