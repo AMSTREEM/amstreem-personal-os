@@ -44,7 +44,7 @@ function SurahCartouche({ arabicName, englishName, ayahs }: { arabicName: string
       <path className="mushaf-cartouche-flourish" d="M38 37h42m-28-8 8 8-8 8m528-8h-42m28-8-8 8 8 8M310 5l7 7-7 7-7-7Z"/>
     </svg>
     <div className="mushaf-surah-cartouche-copy">
-      <b lang="ar" dir="rtl">{arabicName}</b>
+      <b lang="ar" dir="rtl">سُورَةُ {arabicName}</b>
       <span>{englishName} <i>·</i> {ayahs} Ayahs</span>
     </div>
   </div>;
@@ -198,7 +198,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     return () => { cancelled = true; };
   }, [page]);
 
-  const updateBookmark = useCallback((nextPage: number, ayah?: MushafAyah | null) => {
+  const updateBookmark = useCallback((nextPage: number, ayah?: Pick<MushafAyah, 'surahNumber' | 'numberInSurah'> | null) => {
     const current = mode === 'hifz' ? hifzMark : murajaahMark;
     const next = { page: clampPage(nextPage), surah: ayah?.surahNumber ?? current.surah, ayah: ayah?.numberInSurah ?? current.ayah };
     if (current.page === next.page && current.surah === next.surah && current.ayah === next.ayah) return;
@@ -206,9 +206,10 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   }, [mode, hifzMark, murajaahMark]);
   const changePage = (next: number, location?: { surahNumber: number; numberInSurah: number }) => {
     const value = clampPage(next); setPage(value); setSelected(location ? { surah: location.surahNumber, ayah: location.numberInSurah } : null);
-    updateBookmark(value, location ? { surahNumber: location.surahNumber, numberInSurah: location.numberInSurah } as MushafAyah : null);
+    updateBookmark(value, location ? { surahNumber: location.surahNumber, numberInSurah: location.numberInSurah } : null);
   };
-  const changeMode = (next: 'hifz' | 'murajaah') => { if (next !== mode) { const active = mode === 'hifz' ? hifzMark : murajaahMark; updateBookmark(active.page, { surahNumber: active.surah, numberInSurah: active.ayah } as MushafAyah); setMode(next); } };
+  const changeMode = (next: 'hifz' | 'murajaah') => { if (next !== mode) { const active = mode === 'hifz' ? hifzMark : murajaahMark; updateBookmark(active.page, { surahNumber: active.surah, numberInSurah: active.ayah }); setMode(next); } };
+  const changeReadingMode = (next: 'translation' | 'reading') => { if (next !== readingMode) { updateBookmark(page, selectedAyah); setReadingMode(next); } };
   const jumpSurah = (number: number) => { const item = QURAN_SURAHS[number - 1]; if (item) { changePage(item.pageStart, { surahNumber: number, numberInSurah: 1 }); setDrawerOpen(false); setSurahSearch(''); } };
   const jumpJuz = (number: number) => { const start = QURAN_JUZ_STARTS[number - 1]; if (start) changePage(getAyahLocation(start[1], start[2])?.page || 1); };
   const selectAyah = (ayah: MushafAyah) => { setSelected({ surah: ayah.surahNumber, ayah: ayah.numberInSurah }); updateBookmark(page, ayah); };
@@ -275,8 +276,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
         </div>
       </div>
       <nav className="mushaf-fs-tabs" aria-label="Qur’an display mode">
-        <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} aria-pressed={readingMode === 'translation'} onClick={() => setReadingMode('translation')}>Verse by Verse</button>
-        <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} aria-pressed={readingMode === 'reading'} onClick={() => setReadingMode('reading')}>Page by Page</button>
+        <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} aria-pressed={readingMode === 'translation'} onClick={() => changeReadingMode('translation')}>Verse by Verse</button>
+        <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} aria-pressed={readingMode === 'reading'} onClick={() => changeReadingMode('reading')}>Page by Page</button>
       </nav>
     </header>
     <div className={'mushaf-fs-stage mushaf-reading-layout ' + (readingMode === 'reading' ? 'is-page-by-page' : 'is-verse-by-verse')}>
@@ -643,7 +644,7 @@ const mushafStyles = `
 /* Frosted-glass Surah index with a sticky search surface. */
 .mushaf-surah-drawer--designed{background:color-mix(in srgb,var(--bg-surface) 84%,transparent);backdrop-filter:blur(24px) saturate(145%);-webkit-backdrop-filter:blur(24px) saturate(145%);border-right:1px solid color-mix(in srgb,var(--accent-primary) 24%,var(--border-hairline))}
 .mushaf-surah-drawer--designed .mushaf-surah-drawer-header{position:sticky;top:0;z-index:3;flex:none;background:color-mix(in srgb,var(--bg-surface) 92%,transparent);backdrop-filter:blur(18px);padding:15px 16px}
-.mushaf-surah-search{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:9px;margin:10px 12px 0;padding:0 12px;height:42px;flex:none;border:1px solid var(--border-hairline);border-radius:11px;background:color-mix(in srgb,var(--bg-elevated) 88%,transparent);color:var(--text-muted)}
+.mushaf-surah-search{position:sticky;top:52px,z-index:2;display:flex;align-items:center;gap:9px;margin:10px 12px 0;padding:0 12px;height:42px;flex:none;border:1px solid var(--border-hairline);border-radius:11px;background:color-mix(in srgb,var(--bg-elevated) 88%,transparent);color:var(--text-muted)}
 .mushaf-surah-search input{width:100%;min-width:0;height:100%;border:0;outline:0;background:transparent;color:var(--text-primary);font:500 11px "DM Sans",sans-serif}
 .mushaf-surah-search input::placeholder{color:var(--text-muted)}
 .mushaf-surah-drawer--designed .mushaf-drawer-jumps{position:sticky;top:0;z-index:1;background:color-mix(in srgb,var(--bg-surface) 92%,transparent);padding:9px 14px}
