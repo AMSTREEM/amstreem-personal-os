@@ -42,7 +42,7 @@ app.use((req,res,next)=>{
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com data:",
     "img-src 'self' data: blob: https:",
-    `connect-src 'self' ${supabaseOrigin} wss://${supabaseHost} https://alquran.cloud https://api.alquran.cloud https://islamic.network https://everyayah.com`,
+    `connect-src 'self' ${supabaseOrigin} wss://${supabaseHost} https://alquran.cloud https://api.alquran.cloud https://api.quran.com https://islamic.network https://everyayah.com`,
     "media-src 'self' blob: https://alquran.cloud https://api.alquran.cloud https://islamic.network https://everyayah.com",
     "upgrade-insecure-requests"
   ].join('; '));
