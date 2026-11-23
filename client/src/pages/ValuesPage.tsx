@@ -25,7 +25,7 @@ function dateKey() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa
 export function ValuesPage() {
   const client = useQueryClient();
   const { role } = useAuth();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const date = dateKey();
   const [activity, setActivity] = useState('memorisation');
   const [faithWorkspace, setFaithWorkspace] = useState<'primary'|'secondary'|'tertiary'|'all'>('primary');
@@ -57,6 +57,10 @@ export function ValuesPage() {
   const rangeLocation = validAyahRange && selectedSurah ? getAyahRangeLocation(selectedSurah.number, startNumber!, endNumber!) : null;
   const surahCoverage = selectedSurah ? getAyahRangeLocation(selectedSurah.number, 1, selectedSurah.ayahs) : null;
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Settings>('/settings') });
+  const traditionMutation = useMutation({
+    mutationFn: (value: 'islam'|'christianity'|'general') => api<Settings>('/settings', json('PATCH', { faith_tradition: value })),
+    onSuccess: () => { void client.invalidateQueries({ queryKey: ['settings'] }); void client.invalidateQueries({ queryKey: ['overview'] }); void client.invalidateQueries({ queryKey: ['deen'] }); void client.invalidateQueries({ queryKey: ['quran-logs'] }); void client.invalidateQueries({ queryKey: ['rhythm-records'] }); void client.invalidateQueries({ queryKey: ['rhythm-summary'] }); }
+  });
   const religion = settings.data?.faith_tradition || settings.data?.religion || 'none';
   const requestedTradition = searchParams.get('tradition');
   const adminPreview = role === 'admin' && ['islam','christianity','general'].includes(requestedTradition || '') ? requestedTradition : null;
@@ -92,7 +96,13 @@ export function ValuesPage() {
   const recordRow = (item: RhythmRecord, answerable = false) => <div className="rhythm-record-row" key={item.id}><span className={'rhythm-record-status rhythm-record-status--' + item.status}>{item.status === 'completed' ? <Check size={13}/> : item.status === 'answered' ? <HeartHandshake size={13}/> : null}</span><div><b>{item.title}</b>{item.detail && <small>{item.detail}</small>}</div>{answerable && item.status === 'active' ? <button type="button" className="text-link" onClick={() => updateRecord.mutate({id:item.id,status:'answered'})}>Mark answered</button> : ['planned','completed'].includes(item.status) && ['sunnah','adhkar','jumuah','prayer_rhythm','daily_intention'].includes(item.record_type) ? <button type="button" className="text-link" onClick={() => updateRecord.mutate({id:item.id,status:item.status==='completed'?'planned':'completed'})}>{item.status==='completed'?'Return to plan':'Mark complete'}</button> : <span className="rhythm-record-label">{item.status}</span>}</div>;
 
   return <Cascade className="stack rhythm-page daily-rhythm-sanctuary">
-    <PageHeader eyebrow="ROOM 02 / DAILY RHYTHM" title={tradition === 'islam' ? 'Deen & Reflection' : tradition === 'christianity' ? 'Faith & Devotion' : 'Clarity & Reflection'} description="A private place to record the practices and reflections that give your day its rhythm."/>
+    <section className="surface-card" style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:16,flexWrap:'wrap',padding:'16px 18px'}}>
+      <div><span className="eyebrow">YOUR FAITH & REFLECTION SPACE</span><h2 style={{margin:'5px 0 0',fontSize:19}}>{tradition === 'islam' ? 'Deen & Qur’an' : tradition === 'christianity' ? 'Faith & Reflection' : 'General Reflection'}</h2><p className="muted" style={{margin:'4px 0 0',fontSize:13}}>Choose the experience that fits your practice.</p></div>
+      <div className="atlas-segmented-switcher" role="group" aria-label="Choose your tradition">
+        {(['islam','christianity','general'] as const).map(value => <button key={value} type="button" className={tradition===value?'is-active':''} aria-pressed={tradition===value} disabled={traditionMutation.isPending} onClick={() => { if(adminPreview) setSearchParams(value==='general'?{}:{tradition:value}); else traditionMutation.mutate(value); }}>{value==='islam'?'Islam':value==='christianity'?'Christianity':'General'}</button>)}
+      </div>
+    </section>
+    <PageHeader eyebrow={tradition === 'islam' ? 'FAITH / DEEN & QUR’AN' : tradition === 'christianity' ? 'FAITH & REFLECTION' : 'PERSONAL REFLECTION'} title={tradition === 'islam' ? 'Deen & Qur’an' : tradition === 'christianity' ? 'Faith & Reflection' : 'Clarity & Reflection'} description="A private place to record the practices and reflections that give your day its rhythm."/>
     <RhythmConstellation/>
     {tradition === 'islam' && <div className="rhythm-branch" data-faith-workspace={faithWorkspace}>
       <section className="rhythm-intro surface-card"><div><span className="eyebrow">DEEN · DAILY PRACTICE</span><h2>Return to what matters.</h2><p>Record the five prayers, Qur’an work and optional acts of worship. A plan is not a completed act; keep the distinction honest.</p></div><div className="rhythm-intro-stat"><b>{prayerCount}/5</b><small>SALAH RECORDED</small></div></section>
