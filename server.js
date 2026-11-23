@@ -296,6 +296,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
     return send(payload, payload.offlineFallback ? 'OFFLINE' : 'MISS');
   } catch (error) {
     console.error('Qur’an page providers exhausted:', error.message);
+    if (cached?.payload?.ayahs?.length) return send(cached.payload, 'STALE');
     return res.status(502).json({ error: 'This page could not be fetched right now. Saved pages remain available; retry when the connection returns.' });
   } finally { quranPageInflight.delete(page); }
 });
