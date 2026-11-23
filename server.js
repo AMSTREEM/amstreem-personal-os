@@ -160,7 +160,8 @@ function normalizeQuranCom(body, page) {
       const clearQuran = translations.find(item => item.id === 131);
       const sahih = translations.find(item => item.id === 20);
       const words = Array.isArray(verse.words) ? verse.words.map(word => ({
-        text: String(word.text_qpc_hafs || word.text_uthmani || ''),
+        text: String(word.text_uthmani || word.text_qpc_hafs || ''),
+        tajweed: String(word.text_uthmani_tajweed || ''),
         codeV2: String(word.code_v2 || ''),
         lineNumber: Number(word.line_number || word.line_v2 || 0),
         pageNumber: Number(word.page_number || word.v2_page || page),
@@ -169,7 +170,8 @@ function normalizeQuranCom(body, page) {
       })) : [];
       return { number: Number(verse.id), numberInSurah: Number(verse.verse_number || ayahRaw), surahNumber,
         surahName: label.surahName || `Surah ${surahNumber}`, arabicName: label.arabicName || '',
-        text: String(verse.text_qpc_hafs || verse.text_uthmani || words.map(word => word.text).join(' ')),
+        text: String(verse.text_uthmani || verse.text_qpc_hafs || words.map(word => word.text).join(' ')),
+        tajweedText: words.map(word => word.tajweed).filter(Boolean).join(' ') || String(verse.text_uthmani_tajweed || ''),
         translation: clearQuran?.text || sahih?.text || '',
         translations, words };
     }) };
@@ -196,7 +198,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
       quranHeaders = auth.headers;
       officialQuranApiBase = auth.apiBase;
     } catch (error) { console.warn('Quran Foundation authentication unavailable:', error.message); }
-    const quranQuery = `?mushaf=1&words=true&translations=131,20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,verse_key,chapter_id,verse_number,juz_number&page=1&per_page=50`;
+    const quranQuery = `?mushaf=19&words=true&translations=131,20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number&page=1&per_page=50`;
     const qcfSources = [
       `https://quran.com/api/proxy/content/api/qdc/verses/by_page/${page}${quranQuery}`,
       `https://api.quran.com/api/v4/verses/by_page/${page}${quranQuery}`
@@ -205,14 +207,17 @@ app.get('/api/quran/page/:page', async (req, res) => {
       qcfSources.push(officialQuranApiBase + '/verses/by_page/' + page + quranQuery);
     }
     let qcfPage = null;
+    let tajweedUnicodePage = null;
     for (const sourceUrl of qcfSources) {
       try {
         const candidate = await fetchQuranMirror(sourceUrl, normalizeQuranCom, page, quranHeaders);
         if (candidate.qcfAvailable) { qcfPage = candidate; break; }
-        console.warn('Qur’an API returned verse data without QCF V2 word glyphs; trying the next source.');
+        if (!tajweedUnicodePage && candidate.ayahs.some(ayah => ayah.tajweedText)) tajweedUnicodePage = candidate;
+        console.warn('Qur’an API returned Unicode text without QCF glyphs; trying the next source.');
       } catch (error) { console.warn('Qur’an word-level mirror failed:', error.message); }
     }
     if (qcfPage) return qcfPage;
+    if (tajweedUnicodePage) return { ...tajweedUnicodePage, qcfAvailable: false };
     try { return await fetchQuranMirror(`https://api.alquran.cloud/v1/page/${page}/editions/quran-uthmani,en.sahih`, normalizeAlQuranCloud, page); }
     catch (error) { console.warn('Qur’an Uthmani fallback failed:', error.message); }
     try {
