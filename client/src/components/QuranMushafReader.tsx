@@ -19,9 +19,9 @@ const TAJWEED_CLASSES = new Set(['tj-hamza','tj-silent','tj-madd','tj-qalqalah',
 function renderTajweedMarkup(markup: string, segments?: TajweedSegment[], fallback = ''): ReactNode {
   const source = String(markup || '');
   const parsed = segments?.length ? segments : (() => {
-    const classes: Record<string,string> = { h:'tj-hamza',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-ikhfa',f:'tj-ikhfa',i:'tj-ikhfa',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham' };
+    const classes: Record<string,string> = { h:'tj-hamza',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-idgham',f:'tj-ikhfa',i:'tj-ikhfa',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham' };
     const result: TajweedSegment[] = [];
-    const pattern = /\[([a-z])(?::\d+)?\[([\s\S]*?)\]/g;
+    const pattern = /\[([a-z])(?::\d+)?\[([\s\S]*?)\]\]?/g;
     let cursor = 0, match;
     while ((match = pattern.exec(source))) {
       if (match.index > cursor) result.push({ text: source.slice(cursor, match.index), className: '' });
