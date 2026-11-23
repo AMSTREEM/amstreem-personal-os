@@ -171,7 +171,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
     finally { setLogging(false); }
   };
   const readerContent = <>
-    <header className="mushaf-toolbar">
+    <header className="mushaf-fs-header mushaf-toolbar">
       <div className="mushaf-toolbar__left">
         <button type="button" className="mushaf-surahs-trigger" aria-label="Open surah navigation" onClick={() => setDrawerOpen(true)}><Menu size={17}/><span>Surahs</span></button>
         <div className="mushaf-toolbar__identity"><b>{pageData?.ayahs?.[0]?.surahName || 'Al-Qur’an'} <span>·</span> Juz {pageJuz} <span>·</span> Page {page} / 604</b></div>
@@ -183,12 +183,12 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
         <button type="button" className="mushaf-exit-button" onClick={() => { setDrawerOpen(false); setFullScreen(false); }}><X size={16}/> Exit</button>
       </div>
     </header>
-    <div className="mushaf-reading-layout">
-      <main className="mushaf-page-wrap" ref={readerRef}>
+    <div className="mushaf-fs-stage mushaf-reading-layout">
+      <main className="mushaf-fs-sheet mushaf-page-wrap" ref={readerRef}>
         <div className="mushaf-page-heading"><span>{pageData?.ayahs?.[0]?.surahName || 'Al-Qur’an'}</span><span>JUZ {pageJuz} · PAGE {page} / 604</span></div>
         {loading && <p className="mushaf-loading" role="status">Loading Mushaf page {page}…</p>}
         {!loading && pageError && <div className="mushaf-error" role="alert"><WifiOff size={24}/><p>{pageError}</p><button type="button" onClick={() => changePage(page)}>Retry page</button></div>}
-        {!loading && pageData && <div className="mushaf-ayah-flow" dir="rtl" lang="ar" style={{ fontSize: `${fontSize}px` }}>
+        {!loading && pageData && <div className={`mushaf-ayah-flow mushaf-fs-arabic mushaf-fs-arabic--${fontSize}`} dir="rtl" lang="ar">
           {pageData.ayahs.map((ayah, index) => {
             const beginsSurah = index === 0 || pageData.ayahs[index - 1].surahNumber !== ayah.surahNumber;
             return <span className="mushaf-ayah-unit" key={ayah.surahNumber + ':' + ayah.numberInSurah}>
@@ -204,7 +204,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
       </main>
       {drawerOpen && <><button type="button" className="mushaf-drawer-scrim" aria-label="Close surah navigation" onClick={() => setDrawerOpen(false)}/><aside className="mushaf-surah-drawer" aria-label="114 Surahs"><header><div><b>Surah index</b><small>114 chapters · Madani Mushaf</small></div><button type="button" aria-label="Close surah index" onClick={() => setDrawerOpen(false)}><X size={18}/></button></header><div className="mushaf-drawer-jumps"><label>Page <input type="number" min="1" max="604" value={pageInput} onChange={event => setPageInput(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { changePage(Number(pageInput) || page); setDrawerOpen(false); } }}/></label><label>Juz <select defaultValue={pageJuz} onChange={event => { jumpJuz(Number(event.target.value)); setDrawerOpen(false); }}>{Array.from({length:30},(_,i)=><option key={i+1} value={i+1}>Juz {i+1}</option>)}</select></label></div><div className="mushaf-surah-list">{QURAN_SURAHS.map(item => <button type="button" key={item.number} className={page >= item.pageStart && page <= item.pageEnd ? 'is-current' : ''} onClick={() => jumpSurah(item.number)}><span className="mushaf-surah-number">{item.number}</span><span className="mushaf-surah-names"><b>{item.transliteration}</b><small>{item.english} · {item.ayahs} ayahs · p.{item.pageStart}</small></span><strong lang="ar" dir="rtl">{item.arabic}</strong></button>)}</div></aside></>}
     </div>
-    <footer className="mushaf-bottom-bar">
+    <footer className="mushaf-fs-footer mushaf-bottom-bar">
       <button type="button" className="mushaf-page-control" disabled={page <= 1} onClick={() => changePage(page - 1)}><ChevronLeft size={16}/> Previous Page</button>
       {selectedAyah ? <div className="mushaf-audio-controls">
         <span className="mushaf-selected-ref">{selectedAyah.surahName} · {selectedAyah.surahNumber}:{selectedAyah.numberInSurah}</span>
@@ -221,7 +221,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
   return <>
     <section className="mushaf-launch-card"><div><h3>Qur’an reading & memorisation</h3><p>Continue at your saved {mode === 'hifz' ? 'Hifz' : 'Muraja’ah'} position, or open the full-screen reader.</p><small>Hifz · page {hifzMark.page} &nbsp; / &nbsp; Muraja’ah · page {murajaahMark.page}</small></div><button type="button" className="button button--primary" onClick={() => setFullScreen(true)}><Maximize2 size={16}/> Open Full-Screen Mushaf</button></section>
     <style>{mushafStyles}</style>
-    {fullScreen && createPortal(<div className="mushaf-fullscreen" role="dialog" aria-modal="true" aria-label="Full-screen Qur’an Mushaf">{readerContent}</div>, document.body)}
+    {fullScreen && createPortal(<div className="mushaf-fs-overlay" role="dialog" aria-modal="true" aria-label="Full-screen Qur’an Mushaf">{readerContent}</div>, document.body)}
   </>;
 }
 
