@@ -16,7 +16,7 @@ export type QuranSurah = {
 export const quranSurahs: QuranSurah[] = [
   {
     "number": 1,
-    "name": "Al-Faatiha",
+    "name": "Al-Fatihah",
     "arabicName": "الفاتحة",
     "ayahCount": 7,
     "startPage": 1,
@@ -25,7 +25,7 @@ export const quranSurahs: QuranSurah[] = [
   },
   {
     "number": 2,
-    "name": "Al-Baqara",
+    "name": "Al-Baqarah",
     "arabicName": "البقرة",
     "ayahCount": 286,
     "startPage": 2,
@@ -1033,7 +1033,7 @@ export const quranSurahs: QuranSurah[] = [
   },
   {
     "number": 114,
-    "name": "An-Naas",
+    "name": "An-Nas",
     "arabicName": "الناس",
     "ayahCount": 6,
     "startPage": 604,
