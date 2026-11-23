@@ -22,7 +22,8 @@ const stripAyahEndMarker = (value: string) => value.replace(/\u06DD/g, '');
 const sanitizeMushafPage = (payload: MushafPage): MushafPage => ({
   ...payload,
   ayahs: (payload.ayahs || []).map(ayah => ({
-    ...ayah, text: stripAyahEndMarker(ayah.text || ''),
+    ...ayah, text: stripAyahEndMarker(ayah.text || ''), translation: stripAyahEndMarker(ayah.translation || ''),
+    translations: ayah.translations?.map(translation => ({ ...translation, text: stripAyahEndMarker(translation.text || '') })),
     words: ayah.words?.map(word => ({ ...word, text: stripAyahEndMarker(word.text || ''), codeV2: stripAyahEndMarker(word.codeV2 || '') }))
   }))
 });
