@@ -273,3 +273,27 @@ test('Qur’an reader uses a same-origin cached proxy and full-screen ayah study
   assert.match(reader, /hifz_bookmark/);
   assert.match(reader, /murajaah_bookmark/);
 });
+
+\ntest('Qur’an page proxy falls back across mirrors and serves bundled offline pages', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const values = read('client/src/pages/ValuesPage.tsx');
+  const offline = JSON.parse(read('server/quran-fallback.json'));
+  assert.match(server, /AbortSignal\.timeout\(6000\)/);
+  assert.match(server, /User-Agent: 'AmstreemAtlas\/1\.0'/);
+  assert.match(server, /api\.quran\.com\/api\/v4\/verses\/by_page/);
+  assert.match(server, /normalizeQuranCom/);
+  assert.match(server, /quranOfflinePages\[String\(page\)\]/);
+  assert.match(server, /return \{ page, juz:/);
+  assert.deepEqual(Object.keys(offline.pages).sort(), ['1', '602', '603', '604']);
+  for (const page of ['1', '602', '603', '604']) assert.ok(offline.pages[page].ayahs.length > 0);
+  assert.match(reader, /const result = payload as MushafPage/);
+  assert.match(reader, /ayah\.surahNumber/);
+  assert.match(reader, /z-index:9999/);
+  assert.match(reader, /mushaf-top-jump/);
+  assert.match(reader, /max-width:720px/);
+  assert.match(values, /PageHeader[\s\S]*?deen-tradition-switcher/);
+  assert.match(values, /RhythmConstellation\/>[\s\S]*?Choose faith workspace/);
+  assert.doesNotMatch(values, /YOUR FAITH & REFLECTION SPACE/);
+  assert.doesNotMatch(values, /DEEN · DAILY PRACTICE/);
+  assert.doesNotMatch(values, /HIFZ \/ RECITATION \/ REVISION/);
+});
