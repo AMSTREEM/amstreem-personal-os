@@ -312,6 +312,10 @@ test('Qur’an page proxy falls back cleanly and the Mushaf groups QCF words by 
   assert.match(reader, /document\.body\.style\.overflow = 'hidden'/);
   assert.match(reader, /z-index:9999/);
   assert.match(reader, /mushaf-surah-cartouche/);
+  assert.match(reader, /grid-template-rows:auto auto/);
+  assert.match(reader, /overflow-wrap:anywhere/);
+  assert.match(reader, /width:min\(100%,620px\)/);
+  assert.match(reader, /@media\(max-width:390px\)/);
   assert.match(reader, /mushaf-bismillah/);
   assert.doesNotMatch(reader, /\u06DD/);
   assert.match(reader, /\[18, 20, 22, 24, 26\]/);
