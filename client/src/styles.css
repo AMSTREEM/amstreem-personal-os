@@ -5872,3 +5872,13 @@ html, body, #root, .app-frame, .main-area, .page-container {
  .mushaf-page-desktop-arrows{display:none!important}
  .mushaf-floating-top,.mushaf-floating-bottom{display:none!important}
 }
+
+@media(max-width:767px){
+ .mushaf-desktop-header{justify-content:flex-start;overflow-x:auto;scrollbar-width:none}
+ .mushaf-desktop-header::-webkit-scrollbar{display:none}
+ .mushaf-desktop-surah-trigger{flex:0 0 104px}
+ .mushaf-desktop-header-center{flex:0 0 auto}
+ .mushaf-desktop-header-actions{flex:0 0 auto}
+ .mushaf-desktop-mode{display:flex;gap:0;padding:2px}
+ .mushaf-desktop-mode button{height:25px;padding:0 5px;font-size:8px}
+}
