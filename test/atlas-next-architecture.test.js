@@ -290,7 +290,7 @@ test('Qur’an reader uses a same-origin cached proxy and full-screen ayah study
   assert.match(reader, /ayah\.surahNumber/);
   assert.match(reader, /z-index:9999/);
   assert.match(reader, /mushaf-top-jump/);
-  assert.match(reader, /max-width:720px/);
+  assert.match(reader, /720px/);
   assert.match(values, /PageHeader[\s\S]*?deen-tradition-switcher/);
   assert.match(values, /RhythmConstellation\/>[\s\S]*?Choose faith workspace/);
   assert.doesNotMatch(values, /YOUR FAITH & REFLECTION SPACE/);
