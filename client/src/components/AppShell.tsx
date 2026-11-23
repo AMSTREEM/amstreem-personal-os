@@ -22,10 +22,9 @@ import { useSpotlightGrid } from './fx/useSpotlightGrid';
 const MotionNavLink = motion.create(NavLink);
 
 const rooms = [
-  { id: 'residence', label: 'Residence', to: '/residence', icon: House, paths: ['/residence'] },
-  { id: 'rhythm', label: 'Daily Rhythm', to: '/values', icon: MoonStar, paths: ['/values', '/habits'] },
-  { id: 'execution', label: 'Execution & Focus', to: '/execution', icon: Compass, paths: ['/execution', '/focus', '/calendar'] },
-  { id: 'growth', label: 'Growth & Direction', to: '/goals', icon: GraduationCap, paths: ['/goals', '/learning-library', '/reviews-insights'] }
+  { id: 'residence', label: 'Today', to: '/residence', icon: House, paths: ['/residence', '/today'] },
+  { id: 'execution', label: 'Focus', to: '/focus', icon: Timer, paths: ['/focus', '/execution'] },
+  { id: 'growth', label: 'Goals', to: '/goals', icon: Target, paths: ['/goals'] }
 ];
 
 const commandDestinations = [
@@ -174,13 +173,8 @@ export function AppShell() {
     return () => { document.title = 'Amstreem Atlas'; };
   }, [focusActive, focusTimer.kind, focusClock, focusContext, current?.label]);
   const faithTabLabel = quickReligion === 'islam' ? 'Deen & Reflection' : quickReligion === 'christianity' ? 'Faith & Devotion' : 'Clarity & Reflection';
-  const tabsByRoom = {
-    residence: [],
-    rhythm: [{ label: faithTabLabel, to: '/values' }, { label: 'Habits & Self-Control', to: '/habits' }],
-    execution: [{ label: 'Tasks', to: '/execution' }, { label: 'Focus Room', to: '/focus' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
-    growth: [{ label: 'Goals · Projects · Learning', to: '/goals' }, { label: 'Private Library', to: '/learning-library' }, { label: 'Reviews & Insights', to: '/reviews-insights' }]
-  };
-  const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => role === 'admin' || !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
+  const tabsByRoom = { residence: [], execution: [], growth: [] };
+  const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom] : [];
   return <div className={"app-frame" + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
     <CursorAura/><SparkBurst/><EnergyVortex/>
     <MobileInstallPrompt />
@@ -199,6 +193,7 @@ export function AppShell() {
         </div>
       </nav>
       <div className="sidebar-bottom">
+        <button type="button" className="nav-link nav-link--settings" onClick={() => setMobileOpen(true)}><SlidersHorizontal size={17} /><span>More</span></button>
         <NavLink to="/settings" className={({ isActive }) => 'nav-link nav-link--settings ' + (isActive ? 'nav-link--active' : '')} onClick={() => setMobileOpen(false)}><SlidersHorizontal size={17} /><span>Settings</span></NavLink>
         {role === 'admin' && <NavLink to="/admin" className={({ isActive }) => 'nav-link nav-link--settings ' + (isActive ? 'nav-link--active' : '')} onClick={() => setMobileOpen(false)}><Settings size={17} /><span>Administration</span></NavLink>}
         <div className="profile-menu">
@@ -212,7 +207,7 @@ export function AppShell() {
       <motion.div ref={bootContentRef} className="atlas-workspace-boot" initial={reduceMotion ? false : { scale: 1.045, opacity: 0, filter: "blur(6px)" }} animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }} transition={reduceMotion ? { duration: 0 } : { duration: 0.38, ease: [0.16, 1, 0.3, 1] }} onAnimationComplete={() => bootContentRef.current?.style.removeProperty("filter")}>
       <motion.header className="topbar" initial={reduceMotion ? false : { x: -12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.18, delay: 0.04, ease: [0.22, 1, 0.36, 1] }}>
         
-        <div className="topbar-context"><b>{current?.label || (location.pathname === '/habits' ? 'Habits & Self-Control' : location.pathname === '/learning-library' ? 'Learning & Library' : location.pathname === '/reviews-insights' ? 'Reviews & Insights' : location.pathname === '/admin' ? 'Administration' : 'Settings')}</b></div>
+        <div className="topbar-context"><b>{current?.label || (location.pathname === '/values' ? 'Deen & Qur’an' : location.pathname === '/habits' ? 'Habits & Self-Control' : location.pathname === '/calendar' ? 'Calendar' : location.pathname === '/learning-library' ? 'Learning & Library' : location.pathname === '/reviews-insights' ? 'Reviews & Insights' : location.pathname === '/admin' ? 'Administration' : 'Settings')}</b></div>
         <button className="mobile-more-trigger" type="button" aria-label="More and settings" aria-expanded={mobileOpen} onClick={() => setMobileOpen(v => !v)}><SlidersHorizontal size={17}/><span>More</span></button>
         <div className="topbar-right"><button className="global-capture-trigger" type="button" onClick={() => {setCommandOpen(true);setCommandQuery('');}}><Search size={14}/><span>Quick capture</span><kbd>⌘ K</kbd></button><button className="tour-launcher" type="button" onClick={() => setTourOpen(true)}><Compass size={14} /> Guided tour</button><span className="privacy-indicator"><span /> PRIVATE BY DESIGN</span><span className="topbar-date">{new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric'}).format(new Date())}</span></div>
       </motion.header>
@@ -253,7 +248,7 @@ export function AppShell() {
         </motion.div>
         <MagneticButton className="atlas-dock-action" aria-label="Open Daily Check-In" onClick={() => { navigate('/residence'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></MagneticButton>
       </motion.nav>
-      <nav className="atlas-mobile-dock" aria-label="Atlas rooms"><div className="atlas-mobile-dock__rooms">{rooms.slice(0,2).map(item => { const Icon=item.icon; const active=item.paths.includes(location.pathname); const label=item.id === 'execution' ? 'Focus' : item.id === 'rhythm' ? 'Rhythm' : item.id === 'growth' ? 'Growth' : 'Residence'; return <NavLink key={item.id} to={item.to} end className={'atlas-mobile-dock__room ' + (active ? 'is-active' : '')} aria-label={item.label}><Icon size={18} strokeWidth={1.9}/><span>{label}</span></NavLink>; })}</div><button className="atlas-mobile-dock__capture" type="button" aria-label="Quick capture" onClick={() => { setCommandOpen(true); setCommandQuery('add a task'); }}><Plus size={21}/></button><div className="atlas-mobile-dock__rooms">{rooms.slice(2,4).map(item => { const Icon=item.icon; const active=item.paths.includes(location.pathname); const label=item.id === 'execution' ? 'Focus' : item.id === 'rhythm' ? 'Rhythm' : item.id === 'growth' ? 'Growth' : 'Residence'; return <NavLink key={item.id} to={item.to} end className={'atlas-mobile-dock__room ' + (active ? 'is-active' : '')} aria-label={item.label}><Icon size={18} strokeWidth={1.9}/><span>{label}</span></NavLink>; })}</div></nav>
+      <nav className="atlas-mobile-dock" aria-label="Atlas navigation"><div className="atlas-mobile-dock__rooms">{rooms.map(item => { const Icon=item.icon; const active=item.paths.includes(location.pathname); return <NavLink key={item.id} to={item.to} end className={'atlas-mobile-dock__room ' + (active ? 'is-active' : '')} aria-label={item.label}><Icon size={18} strokeWidth={1.9}/><span>{item.label}</span></NavLink>; })}</div><button className="atlas-mobile-dock__capture" type="button" aria-label="More" onClick={() => setMobileOpen(true)}><SlidersHorizontal size={19}/><span>More</span></button></nav>
       <footer className="app-footer"><span>AMSTREEM ATLAS</span><span>Make room for what matters.</span></footer>
     </main>
   </div>;
