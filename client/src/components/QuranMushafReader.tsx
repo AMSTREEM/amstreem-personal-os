@@ -366,7 +366,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
           {pageData.qcfAvailable && qcfFontStatus === 'fallback' && <p className="mushaf-fs-font-note">Uthmani text fallback</p>}
         </div>}
         {!loading && pageData && readingMode === 'translation' && <div className="mushaf-fs-verse-list" dir="ltr" lang="en">
-          <div className="mushaf-fs-surah-intro"><span>THE HOLY QUR’AN</span><h1>{activeSurah?.transliteration || 'Surah'}</h1><p>{activeSurah?.english || ''} · {activeSurah?.ayahs || surahAyahs.length} Ayahs</p><small>Translation: {pageData.translationSource || 'Sahih International'}</small></div>
+          <div className="mushaf-fs-surah-intro"><span>THE HOLY QUR’AN</span><h1>{activeSurahNumber}. {activeSurah?.transliteration || 'Surah'}</h1><b className="mushaf-fs-surah-arabic-title" lang="ar" dir="rtl">{activeSurah?.arabic || ''}</b><p>{activeSurah?.english || ''} · {activeSurah?.ayahs || surahAyahs.length} Ayahs</p><small>Translation: {pageData.translationSource || 'Sahih International'}</small></div>
           {surahLoading && <p className="mushaf-loading" role="status">Loading {activeSurah?.transliteration || 'Surah'}…</p>}
           {!surahLoading && surahError && <div className="mushaf-error" role="alert"><p>{surahError}</p><button type="button" onClick={() => setReadingMode('reading')}>Return to page</button></div>}
           {!surahLoading && surahAyahs.map((ayah, index) => <article className="mushaf-fs-verse-row" key={ayah.surahNumber + ':' + ayah.numberInSurah}>
@@ -388,7 +388,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged }: Props) 
       {hudVisible && <div className="mushaf-floating-bottom" onClick={event => event.stopPropagation()}>
         <button type="button" className="mushaf-hud-pill mushaf-prev" disabled={page <= 1} onClick={() => changePage(page - 1)}>Prev</button>
         <input className="mushaf-page-scrubber" type="range" min="1" max="604" value={page} aria-label="Mushaf page" onChange={event => changePage(Number(event.target.value))}/>
-        <button type="button" className="mushaf-hud-pill mushaf-next" disabled={page >= 604} onClick={() => changePage(page + 1)}>Next</button>
+        <button type="button" className="mushaf-hud-pill mushaf-next" disabled={page >= 604} onClick={() => changePage(page + 1)}>Next</button><span className="mushaf-hud-autosaved">Auto-saved</span>
         <form className="mushaf-quick-jump" onSubmit={quickJump}><input type="number" min="1" max="604" value={pageInput} onChange={event => setPageInput(event.target.value)} aria-label="Jump to page"/><button type="submit">Go</button></form>
       </div>}
       {drawerOpen && <div className="mushaf-contents-overlay" onClick={() => setDrawerOpen(false)}>
