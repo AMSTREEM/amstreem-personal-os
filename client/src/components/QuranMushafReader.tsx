@@ -74,7 +74,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [surahSearch, setSurahSearch] = useState('');
   const [contentsTab, setContentsTab] = useState<'surah' | 'juz' | 'bookmarks'>('surah');
   const [sidebarTab, setSidebarTab] = useState<'surah' | 'juz' | 'page'>('surah');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.matchMedia('(min-width: 768px)').matches);
   const [hudVisible, setHudVisible] = useState(false);
   const [starredAyahs, setStarredAyahs] = useState<Array<{ surah: number; ayah: number }>>(() => { try { return JSON.parse(localStorage.getItem('atlas_mushaf_starred_ayahs_v1') || '[]'); } catch { return []; } });
   const [selected, setSelected] = useState<{ surah: number; ayah: number } | null>(null);
