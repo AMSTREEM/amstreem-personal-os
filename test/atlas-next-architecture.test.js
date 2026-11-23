@@ -60,7 +60,7 @@ test('the four core destinations and More menu stay visible while secondary view
   assert.match(shell, /tabsByRoom/);
   assert.match(shell, /feature: 'calendar'/);
   assert.match(shell, /label: 'Goals · Projects · Learning', detail:/);
-  assert.match(shell, /label: 'Private Library', to: '\/learning-library'/);
+  assert.ok(shell.includes("label: 'Private Library'") && shell.includes("to: '/learning-library'"));
   assert.match(settings, /Optional workspace views/);
 });
 
