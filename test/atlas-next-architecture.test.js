@@ -447,5 +447,5 @@ test('Mushaf mobile page turns use finger tracking, prefetch and a single center
   assert.ok(css.includes('max-width: 400px !important;'));
   assert.ok(css.includes('padding-left: 22px !important;'));
   assert.ok(css.includes('padding-right: 22px !important;'));
-  assert.doesNotMatch(css.slice(css.lastIndexOf('/* Mobile Mushaf polish:')), /transform\\s*:/);
+  assert.doesNotMatch(css.slice(css.lastIndexOf('/* Mobile Mushaf polish:')), /transform\s*:/);
 });
