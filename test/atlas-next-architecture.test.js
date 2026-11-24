@@ -334,10 +334,15 @@ test('AlQuranCloud fetches quran-tajweed and Sahih editions directly for page an
   assert.deepEqual(Object.keys(offline.pages).sort(), ['1','602','603','604']);
 });
 
-test('Tajweed rendering uses direct tokens, normalized Madinah glyphs and v9 cache invalidation', () => {
+test('Tajweed rendering sanitizes provider HTML, preserves direct tokens and invalidates v1-v9 caches', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
-  for (const item of ['tajweedSegments','TAJWEED_CLASSES','tj-madd','tj-qalqalah','tj-ghunnah','tj-heavy','tajweedEnabled','parseBracketTajweed','normalizeMadinahArabic',"atlas_mushaf_page_v9_","atlas_mushaf_page_v[1-8]_"]) assert.ok(reader.includes(item), 'Missing Tajweed rendering feature: ' + item);
+  const server = read('server.js');
+  for (const item of ['tajweedSegments','TAJWEED_CLASSES','tj-madd','tj-qalqalah','tj-ghunnah','tj-heavy','tajweedEnabled','parseBracketTajweed','normalizeMadinahArabic',"atlas_mushaf_page_v10_","atlas_mushaf_page_v[1-9]_","stripRawQuranMarkup"]) assert.ok(reader.includes(item), 'Missing Tajweed rendering feature: ' + item);
+  for (const item of ['sanitizeQuranPayload','sanitizeQuranAyah','stripQuranMarkup','<[^>]+>']) assert.ok(server.includes(item), 'Missing server Quran HTML sanitizer: ' + item);
+  assert.ok(css.includes('font-size: clamp(18px, 4.9vw, 22px) !important;'));
+  assert.ok(css.includes('line-height: 1.92;'));
+  assert.ok(css.includes('transition: opacity 200ms ease, visibility 200ms ease;'));
   for (const rule of ["h:'tj-silent'","s:'tj-silent'","l:'tj-silent'","u:'tj-silent'","n:'tj-madd-wajib'","p:'tj-madd-wajib'","m:'tj-madd'","o:'tj-madd'","q:'tj-qalqalah'","g:'tj-ghunnah'","i:'tj-ghunnah'","c:'tj-ghunnah'","a:'tj-ghunnah'","w:'tj-ghunnah'","f:'tj-ghunnah'","r:'tj-heavy'"]) assert.ok(reader.includes(rule), 'Missing client rule: ' + rule);
   for (const color of ['#E040FB','#FF5252','#22C55E','#38BDF8','#60A5FA','#9CA3AF']) assert.ok(css.includes(color), 'Missing Quran.com Tajweed color: ' + color);
   assert.match(css, /\.mushaf-bismillah b\{/);
