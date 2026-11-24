@@ -8937,3 +8937,97 @@ html, body, #root, .app-frame, .main-area, .page-container {
     font-size: clamp(18px, 1.8vw, 23px) !important;
   }
 }
+
+/* Unified Page-by-Page Mushaf frame and Surah-run paragraph layout (all 604 pages). */
+.mushaf-app.is-page-reading .mushaf-page-view {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  min-height: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+.mushaf-app.is-page-reading .mushaf-page-column {
+  display: block !important;
+  width: 100% !important;
+  max-width: 520px !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 auto !important;
+  padding: 16px 20px 64px !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  direction: rtl;
+  text-align: justify;
+  text-align-last: center;
+  line-height: 2.25;
+  word-spacing: 3px;
+  font-weight: 400;
+}
+.mushaf-app.is-page-reading .mushaf-page-run-text {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 0 12px !important;
+  padding: 0 !important;
+  direction: rtl !important;
+  text-align: justify !important;
+  text-align-last: center !important;
+  line-height: 2.25 !important;
+  word-spacing: 3px !important;
+  font-weight: 400 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+}
+.mushaf-app.is-page-reading .mushaf-page-run-text .mushaf-page-ayah {
+  display: inline !important;
+  white-space: normal !important;
+  line-height: inherit !important;
+  cursor: pointer;
+}
+.mushaf-app.is-page-reading .mushaf-page-run-text .mushaf-page-medallion {
+  display: inline-flex !important;
+  vertical-align: middle !important;
+}
+@media (max-width: 767px) {
+  .mushaf-app.is-mobile-page-reading .mushaf-page-view {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-column {
+    display: block !important;
+    width: 100% !important;
+    max-width: 520px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 auto !important;
+    padding: 16px 20px 64px !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-run-text {
+    width: 100% !important;
+    margin-bottom: 12px !important;
+    font-size: inherit !important;
+    line-height: 2.25 !important;
+    word-spacing: 3px !important;
+    text-align: justify !important;
+    text-align-last: center !important;
+  }
+}
