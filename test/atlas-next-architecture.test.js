@@ -497,21 +497,24 @@ test('mobile web app capability metadata includes the standard non-Apple declara
 });
 
 
-test('Mushaf Surah button and reading-view toggle share the main topbar in every reading mode', () => {
+test('Mushaf keeps the Surah selector and view controls while Verse by Verse receives its editorial mobile header', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
-  const headerStart = reader.indexOf('<header className="mushaf-topbar');
+  const headerStart = reader.indexOf('<header className={\'mushaf-topbar mushaf-fs-header');
   const headerEnd = reader.indexOf('</header>', headerStart);
   const header = reader.slice(headerStart, headerEnd);
   assert.ok(header.includes('{currentPageSurahLabel}'));
   assert.ok(header.includes('className="mushaf-topbar-view-toggle"'));
-  assert.ok(header.includes('className="mushaf-settings-trigger"'));
+  assert.ok(header.includes('mushaf-settings-trigger'));
   assert.ok(header.includes('className="mushaf-exit"'));
   assert.ok(header.includes('Verse by Verse') && header.includes('Page by Page'));
+  assert.ok(reader.includes('mushaf-verse-subheader'));
+  assert.ok(reader.includes('mushaf-verse-aya-pill'));
+  assert.ok(reader.includes('mushaf-verse-tajweed-key'));
   assert.match(css, /\.mushaf-topbar-view-toggle[\s\S]*?border: none !important;/);
   assert.match(css, /\.mushaf-topbar\.mushaf-fs-header[\s\S]*?background: rgba\(128, 128, 128, 0\.08\)/);
-  assert.match(css, /\.mushaf-surah-trigger \{\s*position: static;/);
-  assert.match(css, /grid-template-columns: minmax\(0, 1fr\) auto auto minmax\(0, 1fr\)/);
+  assert.match(css, /\.mushaf-app\.is-mobile-verse-reading \.mushaf-surah-trigger[\s\S]*?font-size: 16px !important;/);
+  assert.match(css, /grid-template-rows: 48px 32px minmax\(0, 1fr\)/);
 });
 
 
