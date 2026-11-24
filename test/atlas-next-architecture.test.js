@@ -90,7 +90,7 @@ test('Express serves the built app while retaining legacy public assets', () => 
 test('Today supports fast task capture and deadline-aware priorities', () => {
   const today = read('client/src/pages/TodayPage.tsx');
   assert.ok(today.includes('readHifzPage'));
-  assert.ok(today.includes('Continue Qur’an · Hifz P.{hifzPage}'));
+  assert.ok(today.includes('Open Qur’an · Hifz P.{hifzPage}'));
   assert.ok(today.includes('to="/values?openMushaf=1"'));
   assert.match(today, /today-quick-capture/);
   assert.match(today, /api<Task>\('\/tasks'/);
@@ -295,7 +295,7 @@ test('Mushaf reading settings persist font, five font sizes, three layouts and T
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const html = read('client/index.html');
   const css = read('client/src/styles.css');
-  for (const item of ['atlas_mushaf_font_family_v1','atlas_mushaf_font_size_v1','atlas_mushaf_layout_v1','atlas_mushaf_tajweed_v1','Madinah Uthmani','Naskh Clean','Scheherazade Classic','Verse by Verse','Page by Page','Arabic Only','Tajweed colors','mushaf-settings-popover','fontSize: arabicFontSize']) assert.ok(reader.includes(item), 'Missing Mushaf setting: ' + item);
+  for (const item of ['atlas_mushaf_font_family_v1','atlas_mushaf_font_size_v1','atlas_mushaf_layout_v1','atlas_mushaf_tajweed_v1','Madinah Uthmani','Modern Naskh Clarity','Traditional Calligraphic','Verse by Verse','Page by Page','Arabic Only','Tajweed colors','mushaf-settings-popover','fontSize: arabicFontSize']) assert.ok(reader.includes(item), 'Missing Mushaf setting: ' + item);
   for (const size of ['20,24,28,32,36']) assert.ok(reader.includes(size), 'Missing five-step Arabic font size scale');
   assert.ok(html.includes("Noto+Naskh+Arabic"));
   assert.match(css, /mushaf-settings-popover/);
@@ -351,7 +351,7 @@ test('Mushaf keeps bookmarks, automatic Hifz/Muraja’ah logging and direct Resi
   assert.ok(reader.includes('Continue Hifz'));
   assert.ok(reader.includes('Continue Muraja’ah'));
   assert.ok(values.includes('<QuranMushafReader'));
-  assert.ok(today.includes('Continue Qur’an · Hifz P.{hifzPage}'));
+  assert.ok(today.includes('Open Qur’an · Hifz P.{hifzPage}'));
   assert.ok(shell.includes('nav-link--quran'));
   assert.ok(shell.includes('atlas-mobile-dock__quran'));
   assert.ok(reader.includes('createPortal(') && reader.includes('document.body'));
