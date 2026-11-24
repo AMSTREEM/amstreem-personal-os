@@ -3,9 +3,10 @@
 
 @font-face {
   font-family: 'UthmanicHafs';
-  src: url('/fonts/UthmanicHafs1Ver18.woff2') format('woff2'),
-       url('https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2') format('woff2');
-  font-display: swap;
+  src: url('/fonts/UthmanicHafs1Ver18.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
 }
 
 
@@ -8224,3 +8225,27 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .mushaf-fs-overlay .mushaf-page-text .idgham_mutaqaribayn { color:#A1A1A1!important; }
 .mushaf-fs-overlay .mushaf-verse-arabic .ghunnah,
 .mushaf-fs-overlay .mushaf-page-text .ghunnah { color:#FF7E1E!important; }
+
+
+/* Canonical King Fahd Complex Arabic: same-origin QPC Hafs font for every Mushaf view. */
+.mushaf-fs-overlay .mushaf-arabic,
+.mushaf-fs-overlay .mushaf-hero-arabic,
+.mushaf-fs-overlay .mushaf-bismillah b,
+.mushaf-fs-overlay .mushaf-sidebar-list>button strong,
+.mushaf-fs-overlay .mushaf-verse-arabic,
+.mushaf-fs-overlay .mushaf-page-text,
+.mushaf-fs-overlay .mushaf-page-surah-banner b,
+.mushaf-fs-overlay .mushaf-page-bismillah,
+.mushaf-fs-overlay .tj-hamza,
+.mushaf-fs-overlay .tj-silent,
+.mushaf-fs-overlay .tj-madd,
+.mushaf-fs-overlay .tj-qalqalah,
+.mushaf-fs-overlay .tj-ghunnah,
+.mushaf-fs-overlay .tj-ikhfa,
+.mushaf-fs-overlay .tj-idgham,
+.mushaf-fs-overlay .mushaf-surah-hero [lang="ar"] {
+  font-family: 'UthmanicHafs', serif !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1 !important;
+}
