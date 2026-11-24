@@ -10,7 +10,7 @@ type TajweedSegment = { text: string; className: string };
 type MushafAyah = { number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; tajweedText?: string; tajweedSegments?: TajweedSegment[]; translation: string; translations?: Array<{ id: number; name: string; text: string }>; };
 type MushafPage = { page: number; juz: number; tajweedComplete?: boolean; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void; autoOpen?: boolean };
-const CACHE_PREFIX = 'atlas_mushaf_page_v13_';
+const CACHE_PREFIX = 'atlas_mushaf_page_v8_';
 const pageMemoryCache = new Map<number, MushafPage>();
 const HIFZ_KEY = 'atlas_hifz_bookmark_v2';
 const MURAJAAH_KEY = 'atlas_murajaah_bookmark_v2';
@@ -24,6 +24,9 @@ const AYAH_ROSETTE_PATH = Array.from({ length: 120 }, (_, index) => {
   return (index === 0 ? 'M' : 'L') + x + ' ' + y;
 }).join(' ') + ' Z';
 const TAJWEED_CLASSES = new Set(['tj-hamza','tj-silent','tj-madd','tj-qalqalah','tj-ghunnah','tj-ikhfa','tj-idgham','tj-tafkhim','tj-heavy']);
+const normalizeMadinahArabic = (value: string) => value.replace(/[\u06CC\u06A9\u06C1]/g, character => ({
+  '\u06CC': '\u064A', '\u06A9': '\u0643', '\u06C1': '\u0647'
+})[character] || character);
 const TAJWEED_RULE_CLASSES: Record<string,string> = {
   h:'tj-silent',s:'tj-silent',l:'tj-silent',ham_wasl:'tj-silent',hamzat_wasl:'tj-silent',
   lam_shamsiyyah:'tj-silent',lam_shamsiyah:'tj-silent',laam_shamsiyyah:'tj-silent',laam_shamsiyah:'tj-silent',
@@ -40,7 +43,7 @@ function parseBracketTajweed(source: string): TajweedSegment[] {
     if (!text) return;
     const previous = result[result.length - 1];
     if (previous && previous.className === className) previous.text += text;
-    else result.push({ text, className });
+    else result.push({ text: normalizeMadinahArabic(text), className });
   };
   let index = 0;
   while (index < source.length) {
@@ -63,12 +66,12 @@ function parseBracketTajweed(source: string): TajweedSegment[] {
 }
 function renderTajweedMarkup(markup: string, segments?: TajweedSegment[], fallback = '', enabled = true): ReactNode {
   const source = String(markup || '');
-  if (!enabled) return stripAyahEndMarker(fallback || source);
+  if (!enabled) return normalizeMadinahArabic(stripAyahEndMarker(fallback || source));
   const parsed = segments?.length ? segments : parseBracketTajweed(source);
   if (!parsed.length || (parsed.length === 1 && !parsed[0].className && !source.includes('['))) return stripAyahEndMarker(fallback || source);
   return <>{parsed.map((segment, index) => {
     const className = TAJWEED_CLASSES.has(segment.className) ? segment.className : '';
-    const text = String(segment.text || '').replace(/\u06DD/g, '');
+    const text = normalizeMadinahArabic(String(segment.text || '')).replace(/\u06DD/g, '');
     return className ? <span key={index} className={className}>{text}</span> : <Fragment key={index}>{text}</Fragment>;
   })}</>;
 }
@@ -138,7 +141,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       const staleKeys: string[] = [];
       for (let index = 0; index < localStorage.length; index += 1) {
         const key = localStorage.key(index);
-        if (key && (/^atlas_mushaf_page_v\d+_/.test(key) || /^atlas_mushaf_cache_/.test(key) || /^atlas_quran_page_cache_/.test(key))) staleKeys.push(key);
+        if (key && (/^atlas_mushaf_page_v[1-7]_/.test(key) || /^atlas_mushaf_cache_/.test(key) || /^atlas_quran_page_cache_/.test(key))) staleKeys.push(key);
       }
       staleKeys.forEach(key => localStorage.removeItem(key));
     } catch { /* local storage is optional */ }
