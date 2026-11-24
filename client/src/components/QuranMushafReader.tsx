@@ -162,11 +162,11 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [arabicFontFamily, setArabicFontFamily] = useState(() => { try { const saved = localStorage.getItem('atlas_mushaf_font_family_v1'); return MUSHAF_FONTS.some(font => font.name === saved) ? saved as typeof MUSHAF_FONTS[number]['name'] : 'Amiri Quran'; } catch { return 'Amiri Quran'; } });
   const [arabicFontSize, setArabicFontSize] = useState(() => { try { const saved = Number(localStorage.getItem('atlas_mushaf_font_size_v1')); return [20, 24, 28, 32, 36].includes(saved) ? saved : 24; } catch { return 24; } });
   const [pageInput, setPageInput] = useState(String(page));
-  const [qcfFontReady, setQcfFontReady] = useState(false);
   const readerRef = useRef<HTMLDivElement | null>(null);
   const activeSurahItemRef = useRef<HTMLButtonElement | null>(null);
   const verseRowRefs = useRef(new Map<string, HTMLElement>());
   const restoreTargetRef = useRef<string | null>(null);
+  const userScrolledRef = useRef(false);
   const [pageDirection, setPageDirection] = useState<'next' | 'previous'>('next');
   const prefersReducedMotion = useReducedMotion();
   const autoLoggedPagesRef = useRef(new Set<string>());
@@ -188,29 +188,18 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   }, [page, fullScreen]);
 
   useEffect(() => {
-    if (!fullScreen || !selected || !restoreTargetRef.current) return;
+    if (!fullScreen || readingMode === 'reading' || !selected || !restoreTargetRef.current || loading || surahLoading || !surahAyahs.length) return;
     const key = selected.surah + ':' + selected.ayah;
-    if (restoreTargetRef.current !== key || loading) return;
-    verseRowRefs.current.get(key)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, [fullScreen, selected, loading, surahAyahs, pageData, readingMode]);
+    if (restoreTargetRef.current !== key) return;
+    verseRowRefs.current.get(key)?.scrollIntoView({ behavior: 'auto', block: 'center' });
+  }, [fullScreen, selected, loading, surahLoading, surahAyahs, readingMode]);
 
   const selectedAyah = pageData?.ayahs.find(item => item.surahNumber === selected?.surah && item.numberInSurah === selected?.ayah) || null;
   const pageJuz = useMemo(() => pageData?.juz || getPageJuz(page) || 1, [pageData, page]);
   const pageHizb = pageData?.hizb || 1;
   const bookmark = mode === 'hifz' ? hifzMark : murajaahMark;
   const bookmarkSurahName = QURAN_SURAHS[bookmark.surah - 1]?.transliteration || 'Al-Fatihah';
-  const pageLines = useMemo(() => {
-    const lines = new Map<number, Array<MushafWord & { surahNumber: number; ayahNumber: number; ayahGlobalNumber: number }>>();
-    for (const ayah of pageData?.ayahs || []) for (const word of ayah.words || []) {
-      const lineNumber = Number(word.lineNumber || 0);
-      if (!lineNumber) continue;
-      const line = lines.get(lineNumber) || [];
-      line.push({ ...word, surahNumber: ayah.surahNumber, ayahNumber: ayah.numberInSurah, ayahGlobalNumber: ayah.number });
-      lines.set(lineNumber, line);
-    }
-    return [...lines.entries()].sort((a, b) => a[0] - b[0]).map(([lineNumber, words]) => ({ lineNumber, words }));
-  }, [pageData]);
-  
+
 
   useEffect(() => {
     if (!fullScreen) return;
@@ -249,30 +238,35 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
 
   useEffect(() => {
     const mark = mode === 'hifz' ? hifzMark : murajaahMark;
+    userScrolledRef.current = false;
+    restoreTargetRef.current = mark.surah + ':' + mark.ayah;
     setPage(mark.page);
     setSelected(mark.surah && mark.ayah ? { surah: mark.surah, ayah: mark.ayah } : null);
   }, [mode]);
 
   useEffect(() => {
-    const mark = mode === 'hifz' ? hifzMark : murajaahMark;
-    const key = mode === 'hifz' ? HIFZ_KEY : MURAJAAH_KEY;
-    try { localStorage.setItem(key, JSON.stringify(mark)); } catch { /* storage is optional */ }
+    try {
+      localStorage.setItem(HIFZ_KEY, JSON.stringify(hifzMark));
+      localStorage.setItem(MURAJAAH_KEY, JSON.stringify(murajaahMark));
+    } catch { /* storage is optional */ }
     if (!settingsReady) return;
     let cancelled = false;
     let retryTimer: number | undefined;
     const sync = async (attempt = 0) => {
       try {
         await api('/settings', json('PATCH', {
-          [mode === 'hifz' ? 'hifz_page' : 'murajaah_page']: String(mark.page),
-          [mode === 'hifz' ? 'hifz_bookmark' : 'murajaah_bookmark']: JSON.stringify(mark)
+          hifz_page: String(hifzMark.page),
+          hifz_bookmark: JSON.stringify(hifzMark),
+          murajaah_page: String(murajaahMark.page),
+          murajaah_bookmark: JSON.stringify(murajaahMark)
         }));
       } catch {
         if (!cancelled && attempt < 5) retryTimer = window.setTimeout(() => { void sync(attempt + 1); }, Math.min(30_000, 1_000 * (2 ** attempt)));
       }
     };
-    const timer = window.setTimeout(() => { void sync(); }, 800);
+    const timer = window.setTimeout(() => { void sync(); }, 600);
     return () => { cancelled = true; window.clearTimeout(timer); if (retryTimer) window.clearTimeout(retryTimer); };
-  }, [mode, hifzMark, murajaahMark, settingsReady]);
+  }, [hifzMark, murajaahMark, settingsReady]);
 
   useEffect(() => {
     if (!fullScreen) return;
@@ -307,20 +301,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   }, [sidebarOpen, activeSurahNumber]);
 
   const activeSurah = QURAN_SURAHS[activeSurahNumber - 1];
-  useEffect(() => {
-    if (!fullScreen || readingMode !== 'reading' || !pageData?.qcfAvailable) { setQcfFontReady(false); return; }
-    let cancelled = false;
-    const family = 'mushaf-qcf-page-' + page;
-    if (document.fonts.check('18px "' + family + '"')) { setQcfFontReady(true); return; }
-    setQcfFontReady(false);
-    const face = new FontFace(family, 'url(https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p' + page + '.woff2)');
-    face.load().then(loaded => {
-      if (cancelled) return;
-      document.fonts.add(loaded);
-      setQcfFontReady(true);
-    }).catch(() => { if (!cancelled) setQcfFontReady(false); });
-    return () => { cancelled = true; };
-  }, [fullScreen, readingMode, page, pageData?.qcfAvailable]);
   useEffect(() => {
     if (!fullScreen || loading || !pageData?.ayahs?.length) return;
     const date = lagosDate();
@@ -387,6 +367,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     if (!targets.length) return;
     const visible = new Map<HTMLElement, IntersectionObserverEntry>();
     const observer = new IntersectionObserver(entries => {
+      if (!userScrolledRef.current) return;
       entries.forEach(entry => {
         const node = entry.target as HTMLElement;
         if (entry.isIntersecting) visible.set(node, entry);
@@ -414,6 +395,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     return () => { observer.disconnect(); visible.clear(); };
   }, [fullScreen, readingMode, surahAyahs, pageData, page, updateBookmark]);
   const changePage = (next: number, location?: { surahNumber: number; numberInSurah: number }) => {
+    userScrolledRef.current = false;
     const value = clampPage(next);
     if (value !== page) { setPageDirection(value > page ? 'next' : 'previous'); setLoading(true); setPageData(null); setPageError(''); }
     restoreTargetRef.current = location ? location.surahNumber + ':' + location.numberInSurah : null;
@@ -422,12 +404,14 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   };
   const changeMode = (next: 'hifz' | 'murajaah') => {
     if (next === mode) return;
+    userScrolledRef.current = false;
     const target = next === 'hifz' ? hifzMark : murajaahMark;
     restoreTargetRef.current = target.surah + ':' + target.ayah;
     if (target.page !== page) { setLoading(true); setPageData(null); setPageError(''); }
     setPage(target.page); setPageInput(String(target.page)); setSelected({ surah: target.surah, ayah: target.ayah }); setMode(next);
   };
   const openReader = (next: 'hifz' | 'murajaah') => {
+    userScrolledRef.current = false;
     const mark = next === 'hifz' ? hifzMark : murajaahMark;
     restoreTargetRef.current = mark.surah + ':' + mark.ayah;
     setMode(next);
@@ -548,7 +532,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         </div>
       </motion.aside>}</AnimatePresence>
       <main className="mushaf-main">
-        <div className="mushaf-canvas" ref={readerRef}>
+        <div className="mushaf-canvas" ref={readerRef} onWheel={() => { userScrolledRef.current = true; }} onTouchMove={() => { userScrolledRef.current = true; }} onKeyDown={() => { userScrolledRef.current = true; }}>
           {loading && <div className="mushaf-loading" role="status" aria-label={'Loading page ' + page}>Loading Qur’an page {page}…</div>}
           {!loading && pageError && <div className="mushaf-error" role="alert"><WifiOff size={22}/><p>{pageError}</p><button type="button" onClick={() => changePage(page)}>Retry</button></div>}
           <AnimatePresence mode="wait" initial={false}>{!loading && pageData && readingMode !== 'reading' && <motion.section key={'verse-' + activeSurahNumber} className="mushaf-verse-view" dir="ltr" lang="en" initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.18, ease: 'easeOut' }}>
@@ -573,14 +557,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
               {readingMode !== 'arabic' && <p className="mushaf-verse-translation">{ayah.translation || 'Translation unavailable.'}</p>}
             </motion.article>)}</motion.div>}
           </motion.section>}{!loading && pageData && readingMode === 'reading' && <motion.section key={'page-' + page} className="mushaf-page-view" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px', fontFamily: "'" + arabicFontFamily + "', serif" }} initial={prefersReducedMotion ? false : { opacity: 0, x: pageDirection === 'next' ? 18 : -18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: pageDirection === 'next' ? -8 : 8 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.22, ease: [0.16, 1, 0.3, 1] }}>
-            {pageData.qcfAvailable && pageLines.length > 0 ? <div className="mushaf-page-lines" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px' }}>
-              {pageLines.map(line => <div className="mushaf-page-line" data-line-number={line.lineNumber} key={line.lineNumber}>{line.words.map((word, index) => {
-                const key = word.surahNumber + ':' + word.ayahNumber;
-                const isEnd = word.charTypeName === 'end';
-                const useGlyph = qcfFontReady && Boolean(word.codeV2) && !isEnd;
-                return <span key={key + ':' + word.position + ':' + index} ref={Number(word.position) === 1 ? node => { if (node) verseRowRefs.current.set(key, node); else verseRowRefs.current.delete(key); } : undefined} className="mushaf-page-word" data-mushaf-verse="true" data-surah={word.surahNumber} data-ayah={word.ayahNumber} data-page={word.pageNumber || page} style={useGlyph ? { fontFamily: 'mushaf-qcf-page-' + page } : undefined}>{useGlyph ? word.codeV2 : word.text}</span>;
-              })}</div>)}
-            </div> : <div className="mushaf-page-text" style={{ fontSize: arabicFontSize + 'px', fontFamily: "'" + arabicFontFamily + "', serif", fontWeight: 400, letterSpacing: '0px', fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1' }}>{pageData.ayahs.map((ayah, index) => {
+            <div className="mushaf-page-text" style={{ fontSize: arabicFontSize + 'px', fontFamily: "'" + arabicFontFamily + "', serif", fontWeight: 400, letterSpacing: '0px', fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1' }}>{pageData.ayahs.map((ayah, index) => {
               const surah = QURAN_SURAHS[ayah.surahNumber - 1];
               const startsSurah = ayah.numberInSurah === 1;
               return <Fragment key={ayah.surahNumber + ':' + ayah.numberInSurah}>
@@ -589,7 +566,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
                 {index === 0 && !startsSurah && <div className="mushaf-page-context">{surah?.transliteration || ayah.surahName}</div>}
                 <span ref={node => { const key = ayah.surahNumber + ':' + ayah.numberInSurah; if (node) verseRowRefs.current.set(key, node); else verseRowRefs.current.delete(key); }} className="mushaf-page-ayah" data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={page}>{renderTajweedMarkup(ayah.tajweedText || '', ayah.tajweedSegments, ayah.text, tajweedEnabled)}<AyahMedallion className="mushaf-page-medallion" number={ayah.numberInSurah}/></span>{' '}
               </Fragment>;
-            })}</div>}<footer className="mushaf-page-footer" dir="ltr">— Page {page} · Juz {pageJuz} —</footer>
+            })}</div><footer className="mushaf-page-footer" dir="ltr">— Page {page} · Juz {pageJuz} —</footer>
           </motion.section>}</AnimatePresence>
         </div>
         {readingMode === 'reading' && <nav className="mushaf-page-arrows" aria-label="Page navigation">
