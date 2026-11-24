@@ -263,7 +263,16 @@ async function fetchAlQuranCloudPage(page) {
   let lastError = null;
   for (const base of providers) {
     try {
-      return await fetchQuranMirror(base + '/page/' + page + '/editions/quran-tajweed,en.sahih', body => normalizeAlQuranCloud(body, page), page);
+      const primary = await fetchQuranMirror(base + '/page/' + page + '/editions/quran-tajweed,en.sahih', body => normalizeAlQuranCloud(body, page), page);
+      if (primary.tajweedComplete) return primary;
+      try {
+        const query = '?mushaf=19&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number&page=' + page + '&per_page=50';
+        const fallback = await fetchQuranMirror('https://api.quran.com/api/v4/verses/by_page/' + page + query, body => normalizeQuranCom(body, page), page);
+        return mergeMissingTajweed(primary, fallback);
+      } catch (fallbackError) {
+        console.warn('Quran.com page Tajweed completion failed:', page, fallbackError.message);
+        return primary;
+      }
     } catch (error) {
       lastError = error;
       console.warn('AlQuranCloud Tajweed page provider failed:', base, error.message);
@@ -276,7 +285,16 @@ async function fetchAlQuranCloudSurah(surahNumber) {
   let lastError = null;
   for (const base of providers) {
     try {
-      return await fetchQuranMirror(base + '/surah/' + surahNumber + '/editions/quran-tajweed,en.sahih', body => normalizeAlQuranCloudSurah(body, surahNumber), surahNumber);
+      const primary = await fetchQuranMirror(base + '/surah/' + surahNumber + '/editions/quran-tajweed,en.sahih', body => normalizeAlQuranCloudSurah(body, surahNumber), surahNumber);
+      if (primary.tajweedComplete) return primary;
+      try {
+        const query = '?mushaf=19&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number&per_page=300';
+        const fallback = await fetchQuranMirror('https://api.quran.com/api/v4/verses/by_chapter/' + surahNumber + query, body => normalizeQuranCom(body, 1), 1);
+        return mergeMissingTajweed(primary, fallback);
+      } catch (fallbackError) {
+        console.warn('Quran.com Surah Tajweed completion failed:', surahNumber, fallbackError.message);
+        return primary;
+      }
     } catch (error) {
       lastError = error;
       console.warn('AlQuranCloud Tajweed Surah provider failed:', base, error.message);
@@ -334,6 +352,16 @@ function splitTajweedWords(markup) {
   }
   if (current) words.push(current);
   return words;
+}
+function mergeMissingTajweed(primary, fallback) {
+  const backupByAyah = new Map((fallback?.ayahs || []).map(ayah => [String(ayah.surahNumber) + ':' + String(ayah.numberInSurah), ayah]));
+  const ayahs = (primary?.ayahs || []).map(ayah => {
+    if ((ayah.tajweedSegments || []).some(segment => Boolean(segment.className))) return ayah;
+    const backup = backupByAyah.get(String(ayah.surahNumber) + ':' + String(ayah.numberInSurah));
+    if (!backup || !(backup.tajweedSegments || []).some(segment => Boolean(segment.className))) return ayah;
+    return { ...ayah, text: backup.text, tajweedText: backup.tajweedText, tajweedSegments: backup.tajweedSegments };
+  });
+  return { ...primary, ayahs, tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))) };
 }
 async function fetchOfficialTajweedPage(apiBase, headers, page) {
   if (!headers['x-auth-token'] || !headers['x-client-id']) throw new Error('Quran Foundation credentials are not configured for complete Tajweed text.');
