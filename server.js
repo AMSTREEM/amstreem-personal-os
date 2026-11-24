@@ -127,6 +127,11 @@ async function getQuranApiAuth() {
   return { headers: { 'x-auth-token': quranAccessTokenCache.accessToken, 'x-client-id': clientId }, apiBase };
 }
 
+function normalizeMadinahArabic(value) {
+  return String(value || '').replace(/[\u06CC\u06A9\u06C1]/g, character => ({
+    '\u06CC': '\u064A', '\u06A9': '\u0643', '\u06C1': '\u0647'
+  })[character] || character);
+}
 function tajweedClassForRule(rule) {
   const value = String(rule || '').toLowerCase().trim().replace(/[-\s]/g, '_');
   if (/^(h|s|l|ham_wasl|hamzat_wasl|hamzat_al_wasl|slnt|silent|laam_shamsiyah|laam_shamsiyyah|lam_shamsiyah|lam_shamsiyyah)$/.test(value)) return 'tj-silent';
@@ -139,110 +144,37 @@ function tajweedClassForRule(rule) {
 function parseAlQuranTajweed(markup) {
   const source = String(markup || '');
   const segments = [];
-  const append = (text, className) => {
+  const stack = [];
+  const append = (value, className) => {
+    const text = normalizeMadinahArabic(value);
     if (!text) return;
     const previous = segments[segments.length - 1];
-    if (previous && previous.className === (className || '')) previous.text += text;
-    else segments.push({ text, className: className || '' });
+    if (previous && previous.className === className) previous.text += text;
+    else segments.push({ text, className });
   };
-  if (/<(?:tajweed|rule)\b/i.test(source)) {
-    const stack = [];
-    const tokens = source.match(/<\/?(?:tajweed|rule)\b[^>]*>|[^<]+/gi) || [];
-    for (const token of tokens) {
-      const tag = token.match(/^<\s*(\/?)\s*(tajweed|rule)\b([^>]*)>/i);
-      if (tag) {
-        const closing = Boolean(tag[1]);
-        const tagName = tag[2].toLowerCase();
-        if (closing) {
-          for (let index = stack.length - 1; index >= 0; index--) {
-            if (stack[index].tag === tagName) { stack.splice(index); break; }
-          }
-        } else {
-          const classAttribute = tag[3].match(/\bclass\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
-          const rule = classAttribute ? (classAttribute[1] || classAttribute[2] || classAttribute[3] || '') : '';
-          stack.push({ tag: tagName, className: rule.split(/\s+/).map(tajweedClassForRule).find(Boolean) || '' });
-        }
-        continue;
-      }
-      const activeClass = [...stack].reverse().find(item => item.className)?.className || '';
-      append(token, activeClass);
-    }
-    return segments;
-  }
-  const stack = [];
+  // Parse quran-tajweed's own bracketed characters; never align indices to a
+  // separately encoded quran-uthmani string.
   let index = 0;
   while (index < source.length) {
-    const opening = source.slice(index).match(/^\[([a-zA-Z]+)(?::\d+)?\[/);
-    if (opening) {
-      stack.push(tajweedClassForRule(opening[1]));
-      index += opening[0].length;
-      continue;
-    }
-    // Tajweed markup uses one closing bracket per open rule; discard stray
-    // delimiters too so malformed provider markup never leaks into the Mushaf.
-    if (source[index] === ']') {
-      if (stack.length) stack.pop();
+    if (source[index] === '[') {
+      const opening = source.slice(index).match(/^\[([a-zA-Z][a-zA-Z0-9_-]*)(?::\d+)?\[/);
+      if (opening) {
+        stack.push(tajweedClassForRule(opening[1]));
+        index += opening[0].length;
+        continue;
+      }
       index += 1;
       continue;
     }
-    if (source[index] === '[') {
+    if (source[index] === ']') {
+      if (stack.length) stack.pop();
       index += 1;
       continue;
     }
     append(source[index], [...stack].reverse().find(Boolean) || '');
     index += 1;
   }
-  return segments.length ? segments : [{ text: source.replace(/[\[\]]/g, ''), className: '' }];
-}
-function alignTajweedToUthmani(uthmaniText, taggedSegments) {
-  if (!Array.isArray(taggedSegments) || !taggedSegments.some(segment => segment.className)) {
-    return [{ text: String(uthmaniText || ''), className: '' }];
-  }
-  const clusterize = segments => {
-    const words = [];
-    let current = [];
-    const pushWord = () => { if (current.length) words.push(current); current = []; };
-    for (const segment of segments) {
-      for (const character of Array.from(String(segment.text || ''))) {
-        if (/\s/u.test(character)) { pushWord(); continue; }
-        if (/\p{M}/u.test(character) && current.length) {
-          current[current.length - 1].text += character;
-          if (!current[current.length - 1].className && segment.className) current[current.length - 1].className = segment.className;
-        } else current.push({ text: character, className: segment.className || '' });
-      }
-    }
-    pushWord();
-    return words;
-  };
-  const heavyLetters = /[خ ص ض غ ط ق ظ]/u;
-  const normalize = value => String(value).normalize('NFD')
-    .replace(/\p{M}/gu, '')
-    .replace(/[\u06DD-\u06ED\u0640]/g, '');
-  const taggedWords = clusterize(taggedSegments);
-  const output = [];
-  let wordIndex = 0;
-  for (const part of String(uthmaniText || '').split(/(\s+)/).filter(Boolean)) {
-    if (/^\s+$/u.test(part)) { output.push({ text: part, className: '' }); continue; }
-    const targetClusters = clusterize([{ text: part, className: '' }])[0] || [];
-    const sourceClusters = taggedWords[wordIndex++] || [];
-    let cursor = 0;
-    for (let targetIndex = 0; targetIndex < targetClusters.length; targetIndex++) {
-      const cluster = targetClusters[targetIndex];
-      const key = normalize(cluster.text);
-      let matched = -1;
-      if (key) {
-        for (let candidate = cursor; candidate < sourceClusters.length; candidate++) {
-          if (normalize(sourceClusters[candidate].text) === key) { matched = candidate; break; }
-        }
-      }
-      if (matched >= 0) cursor = matched + 1;
-      const className = (matched >= 0 ? sourceClusters[matched].className : '') || (heavyLetters.test(cluster.text) ? 'tj-tafkhim' : '');
-      const previous = output[output.length - 1];
-      if (previous && previous.className === className) previous.text += cluster.text;
-      else output.push({ text: cluster.text, className });
-    }
-  }
-  return output;
+  return segments;
 }
 function normalizeAlQuranCloud(body, page) {
   const editions = Array.isArray(body?.data) ? body.data : [];
@@ -258,14 +190,14 @@ function normalizeAlQuranCloud(body, page) {
     ayahs: arabic.ayahs.map((ayah, index) => {
       const surahNumber = Number(ayah?.surah?.number);
       const label = quranSurahLabels[surahNumber] || {};
-      const taggedText = byNumber.get(Number(ayah.number)) || String(marked[index]?.text || '');
-      const taggedSegments = parseAlQuranTajweed(taggedText);
+      const taggedText = byNumber.get(Number(ayah.number)) || '';
       const uthmaniText = String(ayah.text || '');
+      const taggedSegments = taggedText.trim() ? parseAlQuranTajweed(taggedText) : [{ text: normalizeMadinahArabic(uthmaniText), className: '' }];
       return {
         number: Number(ayah.number), numberInSurah: Number(ayah.numberInSurah), surahNumber,
         surahName: ayah?.surah?.englishName || label.surahName || `Surah ${surahNumber}`,
         arabicName: ayah?.surah?.name || label.arabicName || '',
-        text: uthmaniText, tajweedText: taggedText, tajweedSegments: alignTajweedToUthmani(uthmaniText, taggedSegments),
+        text: uthmaniText, tajweedText: taggedText, tajweedSegments: taggedSegments,
         translation: String(english.ayahs[index]?.text || '').replace(/<[^>]*>/g, '').trim(),
         translations: [], words: []
       };
@@ -330,7 +262,7 @@ function normalizeQuranCom(body, page) {
       })) : [];
       const text = String(verse.text_uthmani || verse.text_qpc_hafs || words.map(word => word.text).join(' '));
       const tajweedText = String(verse.text_uthmani_tajweed || words.map(word => word.tajweed).filter(Boolean).join(' '));
-      const tajweedSegments = alignTajweedToUthmani(text, parseAlQuranTajweed(tajweedText));
+      const tajweedSegments = tajweedText.trim() ? parseAlQuranTajweed(tajweedText) : [{ text: normalizeMadinahArabic(text), className: '' }];
       return { number: Number(verse.id), numberInSurah: Number(verse.verse_number || ayahRaw), surahNumber,
         surahName: label.surahName || `Surah ${surahNumber}`, arabicName: label.arabicName || '',
         text, tajweedText, tajweedSegments,
@@ -338,71 +270,7 @@ function normalizeQuranCom(body, page) {
         translations, words };
     }) };
 }
-// Tajweed spans and matching Uthmani surah text: semarketir/quranjson (MIT).
-const quranJsonSurahCache = new Map();
-async function fetchQuranJsonSurah(surahNumber) {
-  const key = Number(surahNumber);
-  if (quranJsonSurahCache.has(key)) return quranJsonSurahCache.get(key);
-  const task = (async () => {
-    const base = 'https://raw.githubusercontent.com/semarketir/quranjson/master/source';
-    const [textResponse, tajweedResponse] = await Promise.all([
-      fetch(base + '/surah/surah_' + key + '.json', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(12000) }),
-      fetch(base + '/tajweed/surah_' + key + '.json', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(12000) })
-    ]);
-    if (!textResponse.ok || !tajweedResponse.ok) throw new Error('Quran Tajweed corpus returned HTTP ' + textResponse.status + '/' + tajweedResponse.status + ' for surah ' + key + '.');
-    const [textData, tajweedData] = await Promise.all([textResponse.json(), tajweedResponse.json()]);
-    const verses = new Map();
-    for (const [verseKey, sourceTextRaw] of Object.entries(textData?.verse || {})) {
-      const verseNumber = Number(String(verseKey).replace('verse_', ''));
-      const sourceText = String(sourceTextRaw || '').replace(/^\\uFEFF/, '');
-      const rules = Array.isArray(tajweedData?.verse?.[verseKey]) ? tajweedData.verse[verseKey] : [];
-      const segments = [];
-      let cursor = 0;
-      for (const rule of [...rules].sort((a, b) => Number(a.start) - Number(b.start) || Number(a.end) - Number(b.end))) {
-        // In this source, the first ayah's spans in surahs that open with a
-        // separate basmalah include the 39-character basmalah-and-space prefix.
-        const rawStart = Number(rule.start);
-        const rawEnd = Number(rule.end);
-        const basmalahOffset = verseKey === 'verse_1' && rawStart >= sourceText.length && rawEnd - 39 <= sourceText.length ? 39 : 0;
-        const start = Math.max(0, Math.min(sourceText.length, rawStart - basmalahOffset));
-        const end = Math.max(start, Math.min(sourceText.length, rawEnd - basmalahOffset));
-        const className = tajweedClassForRule(rule.rule);
-        if (!className || end <= start) continue;
-        if (start > cursor) segments.push({ text: sourceText.slice(cursor, start), className: '' });
-        if (start < cursor) continue;
-        segments.push({ text: sourceText.slice(start, end), className });
-        cursor = end;
-      }
-      if (cursor < sourceText.length) segments.push({ text: sourceText.slice(cursor), className: '' });
-      verses.set(verseNumber, { sourceText, segments });
-    }
-    if (!verses.size) throw new Error('Quran Tajweed corpus had no verses for surah ' + key + '.');
-    return verses;
-  })();
-  quranJsonSurahCache.set(key, task);
-  try { return await task; }
-  catch (error) { quranJsonSurahCache.delete(key); throw error; }
-}
-async function enrichPageWithQuranJsonTajweed(pagePayload) {
-  const surahNumbers = [...new Set((pagePayload.ayahs || []).map(ayah => Number(ayah.surahNumber)).filter(Boolean))];
-  const corpusBySurah = new Map();
-  await Promise.all(surahNumbers.map(async surahNumber => {
-    try { corpusBySurah.set(surahNumber, await fetchQuranJsonSurah(surahNumber)); }
-    catch (error) { console.warn('Quran Tajweed corpus unavailable for surah ' + surahNumber + ':', error.message); }
-  }));
-  const ayahs = pagePayload.ayahs.map(ayah => {
-    const source = corpusBySurah.get(Number(ayah.surahNumber))?.get(Number(ayah.numberInSurah));
-    if (!source) return ayah;
-    const tajweedSegments = alignTajweedToUthmani(String(ayah.text || ''), source.segments);
-    return { ...ayah, tajweedText: source.sourceText, tajweedSegments };
-  });
-  return {
-    ...pagePayload,
-    ayahs,
-    tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => corpusBySurah.get(Number(ayah.surahNumber))?.has(Number(ayah.numberInSurah)))
-  };
-}
-function splitTajweedWords(markup) {
+// Identity adapter retained for the page pipeline. Provider-tagged Tajweed is\n// tokenized directly and is never reconstructed from offsets in another edition.\nasync function enrichPageWithQuranJsonTajweed(pagePayload) { return pagePayload; }\nfunction splitTajweedWords(markup) {
   const tokens = String(markup || '').match(/<[^>]*>|[^<\s]+|\s+/g) || [];
   const words = [];
   let current = '';
