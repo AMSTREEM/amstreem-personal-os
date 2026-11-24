@@ -425,3 +425,21 @@ test('Mushaf page mode keeps all ayahs reachable and restores separate reading p
   assert.ok(css.includes("height: calc(100dvh - 48px) !important;"));
   assert.ok(css.includes("opacity: 1 !important;"));
 });
+
+
+test('Mushaf mobile page turns use horizontal swipe and Framer Motion-safe centered headers', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const css = read('client/src/styles.css');
+  assert.ok(reader.includes('onTouchStart={event =>'));
+  assert.ok(reader.includes('Math.abs(deltaX) <= 48'));
+  assert.ok(reader.includes('Math.abs(deltaX) <= Math.abs(deltaY) * 1.4'));
+  assert.ok(reader.includes('deltaX > 48 && page < 604) changePage(page + 1)'));
+  assert.ok(reader.includes('deltaX < -48 && page > 1) changePage(page - 1)'));
+  assert.ok(reader.includes('<AnimatePresence mode="wait" custom={pageDirection}'));
+  assert.ok(reader.includes('x: pageDirection * 36, scale: 0.985'));
+  assert.ok(reader.includes('x: pageDirection * -36, scale: 0.985'));
+  assert.ok(css.includes('margin-left: auto !important;'));
+  assert.ok(css.includes('width: calc(100vw - 24px) !important;'));
+  assert.ok(css.includes('width: calc(100vw - 28px) !important;'));
+  assert.doesNotMatch(css.slice(css.lastIndexOf('/* Mobile Mushaf: Framer Motion-safe')), /transform:\\s*translateX\\(-50%\\)/);
+});
