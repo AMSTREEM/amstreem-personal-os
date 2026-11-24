@@ -6306,3 +6306,46 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .residence-quran-resume{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:38px;margin:4px 0 13px;padding:0 14px;border:1px solid color-mix(in srgb,#22C55E 36%,var(--border-subtle,rgba(255,255,255,.12)));border-radius:999px;background:color-mix(in srgb,#22C55E 9%,var(--surface));color:var(--text-primary,var(--text));font-size:12px;font-weight:700;text-decoration:none;box-shadow:0 5px 18px rgba(22,146,0,.08);}
 .residence-quran-resume:hover{border-color:#22C55E;background:color-mix(in srgb,#22C55E 15%,var(--surface));}
 @media(max-width:767px){.mushaf-font-preview-card{padding:9px}.mushaf-font-preview-sample{font-size:20px!important;}}
+
+
+/* Final Qur'an.com Tajweed palette: preserve token classes and parser mappings. */
+.mushaf-app .mushaf-verse-arabic .tj-madd,
+.mushaf-app .mushaf-page-text .tj-madd { color:#D500B7!important; opacity:1!important; }
+.mushaf-app .mushaf-verse-arabic .tj-madd-wajib,
+.mushaf-app .mushaf-page-text .tj-madd-wajib { color:#FF5252!important; opacity:1!important; }
+.mushaf-app .mushaf-verse-arabic .tj-ghunnah,
+.mushaf-app .mushaf-verse-arabic .tj-ikhfa,
+.mushaf-app .mushaf-verse-arabic .tj-idgham,
+.mushaf-app .mushaf-page-text .tj-ghunnah,
+.mushaf-app .mushaf-page-text .tj-ikhfa,
+.mushaf-app .mushaf-page-text .tj-idgham { color:#169200!important; opacity:1!important; }
+.mushaf-app .mushaf-verse-arabic .tj-qalqalah,
+.mushaf-app .mushaf-page-text .tj-qalqalah { color:#0091EA!important; opacity:1!important; }
+.mushaf-app .mushaf-verse-arabic .tj-tafkhim,
+.mushaf-app .mushaf-verse-arabic .tj-heavy,
+.mushaf-app .mushaf-page-text .tj-tafkhim,
+.mushaf-app .mushaf-page-text .tj-heavy { color:#D97706!important; opacity:1!important; }
+.mushaf-app .mushaf-verse-arabic .tj-silent,
+.mushaf-app .mushaf-verse-arabic .tj-hamza,
+.mushaf-app .mushaf-page-text .tj-silent,
+.mushaf-app .mushaf-page-text .tj-hamza { color:#9CA3AF!important; opacity:.55!important; }
+.mushaf-settings-key .tj-madd,
+.mushaf-tajweed-key .tj-madd { background:linear-gradient(90deg,#D500B7,#E040FB)!important; }
+.mushaf-settings-key .tj-madd-wajib,
+.mushaf-tajweed-key .tj-madd-wajib { background:linear-gradient(90deg,#FF5252,#F43F5E)!important; }
+.mushaf-settings-key .tj-ghunnah,
+.mushaf-settings-key .tj-ikhfa,
+.mushaf-settings-key .tj-idgham,
+.mushaf-tajweed-key .tj-ghunnah,
+.mushaf-tajweed-key .tj-ikhfa,
+.mushaf-tajweed-key .tj-idgham { background:linear-gradient(90deg,#169200,#22C55E)!important; }
+.mushaf-settings-key .tj-qalqalah,
+.mushaf-tajweed-key .tj-qalqalah { background:linear-gradient(90deg,#0091EA,#38BDF8)!important; }
+.mushaf-settings-key .tj-tafkhim,
+.mushaf-settings-key .tj-heavy,
+.mushaf-tajweed-key .tj-tafkhim,
+.mushaf-tajweed-key .tj-heavy { background:linear-gradient(90deg,#D97706,#F59E0B)!important; }
+.mushaf-settings-key .tj-silent,
+.mushaf-settings-key .tj-hamza,
+.mushaf-tajweed-key .tj-silent,
+.mushaf-tajweed-key .tj-hamza { background:#9CA3AF!important; opacity:.55!important; }
