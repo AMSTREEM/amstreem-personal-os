@@ -10,7 +10,7 @@ type TajweedSegment = { text: string; className: string };
 type MushafAyah = { number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; tajweedText?: string; tajweedSegments?: TajweedSegment[]; translation: string; translations?: Array<{ id: number; name: string; text: string }>; };
 type MushafPage = { page: number; juz: number; tajweedComplete?: boolean; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void; autoOpen?: boolean };
-const CACHE_PREFIX = 'atlas_mushaf_page_v12_';
+const CACHE_PREFIX = 'atlas_mushaf_page_v13_';
 const pageMemoryCache = new Map<number, MushafPage>();
 const HIFZ_KEY = 'atlas_hifz_bookmark_v2';
 const MURAJAAH_KEY = 'atlas_murajaah_bookmark_v2';
@@ -23,23 +23,48 @@ const AYAH_ROSETTE_PATH = Array.from({ length: 120 }, (_, index) => {
   const y = (18 + Math.sin(angle) * radius).toFixed(2);
   return (index === 0 ? 'M' : 'L') + x + ' ' + y;
 }).join(' ') + ' Z';
-const TAJWEED_CLASSES = new Set(['tj-hamza','tj-silent','tj-madd','tj-qalqalah','tj-ghunnah','tj-ikhfa','tj-idgham','tj-tafkhim']);
+const TAJWEED_CLASSES = new Set(['tj-hamza','tj-silent','tj-madd','tj-qalqalah','tj-ghunnah','tj-ikhfa','tj-idgham','tj-tafkhim','tj-heavy']);
+const TAJWEED_RULE_CLASSES: Record<string,string> = {
+  h:'tj-silent',s:'tj-silent',l:'tj-silent',ham_wasl:'tj-silent',hamzat_wasl:'tj-silent',
+  lam_shamsiyyah:'tj-silent',lam_shamsiyah:'tj-silent',laam_shamsiyyah:'tj-silent',laam_shamsiyah:'tj-silent',
+  n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',madd:'tj-madd',
+  q:'tj-qalqalah',qalqalah:'tj-qalqalah',qalaqah:'tj-qalqalah',
+  g:'tj-ghunnah',i:'tj-ghunnah',c:'tj-ghunnah',a:'tj-ghunnah',u:'tj-ghunnah',w:'tj-ghunnah',f:'tj-ghunnah',
+  d:'tj-ghunnah',b:'tj-ghunnah',idgham:'tj-ghunnah',idghaam:'tj-ghunnah',ghunnah:'tj-ghunnah',ikhfa:'tj-ghunnah',iqlab:'tj-ghunnah',
+  r:'tj-heavy',heavy:'tj-heavy',tafkhim:'tj-heavy'
+};
+function parseBracketTajweed(source: string): TajweedSegment[] {
+  const result: TajweedSegment[] = [];
+  const stack: string[] = [];
+  const append = (text: string, className: string) => {
+    if (!text) return;
+    const previous = result[result.length - 1];
+    if (previous && previous.className === className) previous.text += text;
+    else result.push({ text, className });
+  };
+  let index = 0;
+  while (index < source.length) {
+    const opening = source.slice(index).match(/^\\[([a-zA-Z]+)(?::\\d+)?\\[/);
+    if (opening) {
+      stack.push(TAJWEED_RULE_CLASSES[opening[1].toLowerCase()] || '');
+      index += opening[0].length;
+      continue;
+    }
+    if (source[index] === ']') {
+      if (stack.length) stack.pop();
+      index += 1;
+      continue;
+    }
+    if (source[index] === '[') { index += 1; continue; }
+    append(source[index], [...stack].reverse().find(Boolean) || '');
+    index += 1;
+  }
+  return result;
+}
 function renderTajweedMarkup(markup: string, segments?: TajweedSegment[], fallback = '', enabled = true): ReactNode {
   const source = String(markup || '');
   if (!enabled) return stripAyahEndMarker(fallback || source);
-  const parsed = segments?.length ? segments : (() => {
-    const classes: Record<string,string> = { h:'tj-silent',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-ikhfa',f:'tj-ikhfa',i:'tj-idgham',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham', madd:'tj-madd', qalqalah:'tj-qalqalah', ghunnah:'tj-ghunnah', ikhfa:'tj-ikhfa', idgham:'tj-idgham', silent:'tj-silent', tafkhim:'tj-tafkhim' };
-    const result: TajweedSegment[] = [];
-    const pattern = /\[([a-zA-Z]+)(?::\d+)?\[([^\]]+)\]\]?/g;
-    let cursor = 0, match;
-    while ((match = pattern.exec(source))) {
-      if (match.index > cursor) result.push({ text: source.slice(cursor, match.index), className: '' });
-      result.push({ text: match[2], className: classes[match[1].toLowerCase()] || '' });
-      cursor = pattern.lastIndex;
-    }
-    if (cursor < source.length) result.push({ text: source.slice(cursor), className: '' });
-    return result;
-  })();
+  const parsed = segments?.length ? segments : parseBracketTajweed(source);
   if (!parsed.length || (parsed.length === 1 && !parsed[0].className && !source.includes('['))) return stripAyahEndMarker(fallback || source);
   return <>{parsed.map((segment, index) => {
     const className = TAJWEED_CLASSES.has(segment.className) ? segment.className : '';
