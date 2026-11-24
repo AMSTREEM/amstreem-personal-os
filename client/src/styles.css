@@ -6557,6 +6557,9 @@ html, body, #root, .app-frame, .main-area, .page-container {
     box-sizing: border-box;
   }
   .mushaf-surah-trigger {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     flex: 0 1 125px !important;
     width: 125px;
     min-width: 0 !important;
@@ -6578,7 +6581,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
     align-items: center;
     justify-content: flex-end;
     gap: 5px !important;
-    overflow: hidden !important;
+    overflow: visible !important;
   }
   .mushaf-view-switch, .mushaf-mode-switch { flex: 0 1 auto; min-width: 0; gap: 2px !important; }
   .mushaf-view-switch button, .mushaf-mode-switch button {
