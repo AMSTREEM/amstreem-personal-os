@@ -6279,3 +6279,30 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .mushaf-settings-popover { position:fixed;top:56px;right:8px; }
   .mushaf-settings-trigger { width:27px;height:27px;min-width:27px; }
 }
+
+
+/* Curated Mushaf typography previews and authoritative Tajweed palette. */
+.mushaf-font-preview-list{display:grid;gap:7px;}
+.mushaf-font-preview-card{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-width:0;padding:10px 11px;border:1px solid var(--mushaf-hairline);border-radius:10px;background:var(--bg);color:var(--text);text-align:left;cursor:pointer;}
+.mushaf-font-preview-card:hover,.mushaf-font-preview-card.is-active{border-color:color-mix(in srgb,var(--accent) 65%,var(--mushaf-hairline));background:var(--accent-wash);}
+.mushaf-font-preview-copy{display:grid;gap:3px;min-width:0;}
+.mushaf-font-preview-copy b{font-size:10px;font-weight:700;color:var(--text);}
+.mushaf-font-preview-copy small{font-size:9px;font-weight:500;color:var(--muted);}
+.mushaf-font-preview-sample{flex:0 1 62%;min-width:0;white-space:nowrap;text-align:right;line-height:1.8;color:var(--text);}
+.mushaf-settings-key .tj-madd{background:linear-gradient(90deg,#D500B7,#E040FB)!important;}
+.mushaf-settings-key .tj-madd-wajib{background:linear-gradient(90deg,#FF5252,#F43F5E)!important;}
+.mushaf-settings-key .tj-ghunnah,.mushaf-settings-key .tj-ikhfa,.mushaf-settings-key .tj-idgham{background:linear-gradient(90deg,#169200,#22C55E)!important;}
+.mushaf-settings-key .tj-qalqalah{background:linear-gradient(90deg,#0091EA,#38BDF8)!important;}
+.mushaf-settings-key .tj-tafkhim,.mushaf-settings-key .tj-heavy{background:linear-gradient(90deg,#D97706,#F59E0B)!important;}
+.mushaf-settings-key .tj-silent,.mushaf-settings-key .tj-hamza{background:#9CA3AF!important;opacity:.55;}
+.mushaf-fs-overlay .mushaf-verse-arabic .tj-madd,.mushaf-fs-overlay .mushaf-page-text .tj-madd{color:#D500B7!important;background:transparent!important;opacity:1!important;}
+.mushaf-fs-overlay .mushaf-verse-arabic .tj-madd-wajib,.mushaf-fs-overlay .mushaf-page-text .tj-madd-wajib{color:#FF5252!important;background:transparent!important;opacity:1!important;}
+.mushaf-fs-overlay .mushaf-verse-arabic .tj-ghunnah,.mushaf-fs-overlay .mushaf-verse-arabic .tj-ikhfa,.mushaf-fs-overlay .mushaf-verse-arabic .tj-idgham,.mushaf-fs-overlay .mushaf-page-text .tj-ghunnah,.mushaf-fs-overlay .mushaf-page-text .tj-ikhfa,.mushaf-fs-overlay .mushaf-page-text .tj-idgham{color:#169200!important;background:transparent!important;opacity:1!important;}
+.mushaf-fs-overlay .mushaf-verse-arabic .tj-qalqalah,.mushaf-fs-overlay .mushaf-page-text .tj-qalqalah{color:#0091EA!important;background:transparent!important;opacity:1!important;}
+.mushaf-fs-overlay .mushaf-verse-arabic .tj-tafkhim,.mushaf-fs-overlay .mushaf-verse-arabic .tj-heavy,.mushaf-fs-overlay .mushaf-page-text .tj-tafkhim,.mushaf-fs-overlay .mushaf-page-text .tj-heavy{color:#D97706!important;background:transparent!important;opacity:1!important;}
+.mushaf-fs-overlay .mushaf-verse-arabic .tj-silent,.mushaf-fs-overlay .mushaf-verse-arabic .tj-hamza,.mushaf-fs-overlay .mushaf-page-text .tj-silent,.mushaf-fs-overlay .mushaf-page-text .tj-hamza{color:#9CA3AF!important;background:transparent!important;opacity:.55!important;}
+.mushaf-app .mushaf-verse-arabic,.mushaf-app .mushaf-page-text,.mushaf-app .mushaf-verse-arabic [class^="tj-"],.mushaf-app .mushaf-page-text [class^="tj-"]{font-family:var(--mushaf-arabic-font,'Amiri Quran',serif)!important;}
+.mushaf-app .mushaf-verse-arabic [class^="tj-"],.mushaf-app .mushaf-page-text [class^="tj-"]{font-family:inherit!important;}
+.residence-quran-resume{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:38px;margin:4px 0 13px;padding:0 14px;border:1px solid color-mix(in srgb,#22C55E 36%,var(--border-subtle,rgba(255,255,255,.12)));border-radius:999px;background:color-mix(in srgb,#22C55E 9%,var(--surface));color:var(--text-primary,var(--text));font-size:12px;font-weight:700;text-decoration:none;box-shadow:0 5px 18px rgba(22,146,0,.08);}
+.residence-quran-resume:hover{border-color:#22C55E;background:color-mix(in srgb,#22C55E 15%,var(--surface));}
+@media(max-width:767px){.mushaf-font-preview-card{padding:9px}.mushaf-font-preview-sample{font-size:20px!important;}}
