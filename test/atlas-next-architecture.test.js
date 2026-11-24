@@ -342,7 +342,7 @@ test('Tajweed rendering sanitizes provider HTML, preserves direct tokens and inv
   for (const item of ['sanitizeQuranPayload','sanitizeQuranAyah','stripQuranMarkup','<[^>]+>']) assert.ok(server.includes(item), 'Missing server Quran HTML sanitizer: ' + item);
   assert.ok(reader.includes('useLayoutEffect'));
   assert.ok(reader.includes('new ResizeObserver(schedule)'));
-  assert.ok(reader.includes('fontSize > 13.5'));
+  assert.ok(reader.includes('fontSize > 14'));
   assert.ok(reader.includes('lineHeight > 1.58'));
   assert.ok(css.includes('height: 100dvh; max-height: 100dvh;'));
   assert.ok(css.includes('grid-template-rows: 32px minmax(0, 1fr) 34px;'));
