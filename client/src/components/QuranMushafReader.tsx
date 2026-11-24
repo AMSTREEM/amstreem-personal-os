@@ -21,7 +21,7 @@ function renderTajweedMarkup(markup: string, segments?: TajweedSegment[], fallba
   const source = String(markup || '');
   if (!enabled) return stripAyahEndMarker(fallback || source);
   const parsed = segments?.length ? segments : (() => {
-    const classes: Record<string,string> = { h:'tj-hamza',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-idgham',f:'tj-ikhfa',i:'tj-ikhfa',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham',r:'tj-tafkhim',t:'tj-tafkhim' };
+    const classes: Record<string,string> = { h:'tj-silent',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-ikhfa',f:'tj-ikhfa',i:'tj-idgham',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham' };
     const result: TajweedSegment[] = [];
     const pattern = /\[([a-z])(?::\d+)?\[([\s\S]*?)\]\]?/g;
     let cursor = 0, match;
