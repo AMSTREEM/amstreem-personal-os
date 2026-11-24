@@ -7042,3 +7042,121 @@ html, body, #root, .app-frame, .main-area, .page-container {
     box-sizing: border-box !important;
   }
 }
+
+
+/* Final Mushaf typography and quiet editorial surfaces. */
+.mushaf-arabic,
+.mushaf-verse-arabic,
+.mushaf-page-text {
+  line-height: 2.25 !important;
+  word-spacing: 3px;
+}
+.mushaf-medallion,
+.mushaf-medallion--wide {
+  display: inline-flex !important;
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  margin: 0 5px !important;
+  padding: 0 !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  vertical-align: middle !important;
+  box-sizing: border-box !important;
+}
+.mushaf-medallion > span { width: 100%; height: 100%; }
+
+/* The outer mobile header is only a positioning shell; the inner pill owns the surface. */
+@media (max-width: 767px) {
+  .mushaf-app.is-mobile-page-reading .mushaf-mobile-header-shell,
+  .mushaf-app.is-mobile-page-reading .mushaf-fs-header {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .mushaf-app.is-mobile-page-reading > .mushaf-mobile-header-shell {
+    position: fixed !important;
+    top: calc(10px + env(safe-area-inset-top, 0px)) !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    z-index: 45 !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-mobile-topbar {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: calc(100vw - 32px) !important;
+    max-width: 400px !important;
+    min-height: 48px !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    padding: 8px 14px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    border: 0 !important;
+    border-radius: 14px !important;
+    background: rgba(128, 128, 128, 0.08) !important;
+    box-shadow: none !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    box-sizing: border-box !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-text {
+    line-height: 2.25 !important;
+    word-spacing: 3px !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-mobile-page-header {
+    width: calc(100vw - 28px) !important;
+    max-width: 440px !important;
+    margin: 0 auto !important;
+    padding-left: 22px !important;
+    padding-right: 22px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-surah-banner {
+    margin: 8px auto 12px !important;
+    padding: 14px 20px !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    background: rgba(128, 128, 128, 0.08) !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-tajweed-keybar {
+    margin: 8px 12px !important;
+    padding: 10px 14px !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    background: rgba(128, 128, 128, 0.08) !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-view-switch,
+  .mushaf-app.is-mobile-page-reading .mushaf-mode-switch {
+    padding: 3px !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: rgba(128, 128, 128, 0.08) !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-view-switch button,
+  .mushaf-app.is-mobile-page-reading .mushaf-mode-switch button {
+    border: 0 !important;
+    border-radius: 999px !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-verse-card,
+  .mushaf-app.is-mobile-page-reading .mushaf-verse-row {
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+}
