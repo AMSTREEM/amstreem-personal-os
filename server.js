@@ -82,6 +82,56 @@ function rateLimit({ max, windowMs = 60_000, prefix = 'ip' }) {
   };
 }
 app.get('/healthz', (req,res) => res.status(200).json({ ok: true }));
+const QURAN_FONT_FILENAME = 'UthmanicHafs1Ver18.woff2';
+const quranFontPath = path.join(__dirname, 'public', 'fonts', QURAN_FONT_FILENAME);
+let quranFontInflight = null;
+async function loadQuranFontBuffer() {
+  for (const candidate of [quranFontPath, path.join(__dirname, 'fonts', QURAN_FONT_FILENAME), path.join(__dirname, 'client', 'public', 'fonts', QURAN_FONT_FILENAME)]) {
+    try {
+      const local = await fs.promises.readFile(candidate);
+      if (local.length > 0 && local.subarray(0, 4).toString('ascii') === 'wOF2') return local;
+    } catch { /* try the next local font location */ }
+  }
+  if (quranFontInflight) return quranFontInflight;
+  quranFontInflight = (async () => {
+    const sources = [
+      'https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2',
+      'https://cdn.jsdelivr.net/gh/thetruetruth/quran-data-kfgqpc@main/hafs/font/hafs.18.woff2'
+    ];
+    let lastError;
+    for (const source of sources) {
+      try {
+        const response = await fetch(source, { headers: { Accept: 'font/woff2,application/octet-stream' }, signal: AbortSignal.timeout(15000) });
+        if (!response.ok) throw new Error('Font source returned HTTP ' + response.status + '.');
+        const buffer = Buffer.from(await response.arrayBuffer());
+        if (!buffer.length || buffer.length > 10 * 1024 * 1024 || buffer.subarray(0, 4).toString('ascii') !== 'wOF2') {
+          throw new Error('Font source did not return a valid WOFF2 binary.');
+        }
+        await fs.promises.mkdir(path.dirname(quranFontPath), { recursive: true });
+        await fs.promises.writeFile(quranFontPath, buffer);
+        return buffer;
+      } catch (error) {
+        lastError = error;
+        console.warn('Qur’an font source failed:', source, error.message);
+      }
+    }
+    throw lastError || new Error('No Qur’an font source is available.');
+  })();
+  try { return await quranFontInflight; }
+  finally { quranFontInflight = null; }
+}
+app.get('/fonts/' + QURAN_FONT_FILENAME, async (_req, res) => {
+  try {
+    const font = await loadQuranFontBuffer();
+    res.setHeader('Content-Type', 'font/woff2');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.setHeader('Content-Length', String(font.length));
+    return res.status(200).send(font);
+  } catch (error) {
+    console.error('Qur’an font delivery failed:', error.message);
+    return res.status(502).type('text/plain').send('The Qur’an font is temporarily unavailable.');
+  }
+});
 app.use('/api/admin', rateLimit({ max: 30, prefix: 'admin' }));
 app.use('/api', rateLimit({ max: 300 }));
 
@@ -237,60 +287,62 @@ function sanitizeQuranPayload(payload) {
 }
 function normalizeAlQuranCloud(body, page) {
   const editions = Array.isArray(body?.data) ? body.data : [];
-  const tajweed = editions.find(item => item?.edition?.identifier === 'quran-tajweed');
+  const uthmani = editions.find(item => item?.edition?.identifier === 'quran-uthmani');
   const english = editions.find(item => item?.edition?.identifier === 'en.sahih');
-  if (body?.code !== 200 || !Array.isArray(tajweed?.ayahs) || !tajweed.ayahs.length ||
-      !Array.isArray(english?.ayahs) || english.ayahs.length !== tajweed.ayahs.length) {
-    throw new Error('AlQuranCloud returned an incomplete Tajweed/English page.');
+  if (body?.code !== 200 || !Array.isArray(uthmani?.ayahs) || !uthmani.ayahs.length ||
+      !Array.isArray(english?.ayahs) || english.ayahs.length !== uthmani.ayahs.length) {
+    throw new Error('AlQuranCloud returned an incomplete quran-uthmani/English page.');
   }
-  const ayahs = tajweed.ayahs.map((ayah, index) => {
+  const ayahs = uthmani.ayahs.map((ayah, index) => {
     const surahNumber = Number(ayah?.surah?.number);
     const label = quranSurahLabels[surahNumber] || {};
-    const tajweedText = String(ayah.text || '');
-    const tajweedSegments = tajweedText.trim() ? parseAlQuranTajweed(tajweedText) : [{ text: '', className: '' }];
+    const canonicalText = String(ayah.text || '');
+    if (!canonicalText) throw new Error('quran-uthmani returned an empty ayah.');
     return {
       number: Number(ayah.number), numberInSurah: Number(ayah.numberInSurah), surahNumber,
       surahName: ayah?.surah?.englishName || label.surahName || 'Surah ' + surahNumber,
       arabicName: ayah?.surah?.name || label.arabicName || '',
-      text: tajweedSegments.map(segment => segment.text).join(''),
-      tajweedText, tajweedSegments,
+      text: canonicalText, tajweedText: canonicalText,
+      tajweedSegments: [{ text: canonicalText, className: '' }],
+      textSource: 'quran-uthmani',
       translation: String(english.ayahs[index]?.text || '').replace(/<[^>]*>/g, '').trim(),
       translations: [], words: []
     };
   });
   return {
-    page, juz: Number(tajweed.ayahs[0]?.juz) || 1, hizb: Math.ceil((Number(tajweed.ayahs[0]?.hizbQuarter || tajweed.ayahs[0]?.hizb_quarter) || 1) / 4), qcfAvailable: false,
-    tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => ayah.tajweedSegments.some(segment => Boolean(segment.className))),
+    page, juz: Number(uthmani.ayahs[0]?.juz) || 1,
+    hizb: Math.ceil((Number(uthmani.ayahs[0]?.hizbQuarter || uthmani.ayahs[0]?.hizb_quarter) || 1) / 4),
+    qcfAvailable: false, textSource: 'quran-uthmani', tajweedComplete: false,
     translationSource: 'Sahih International', ayahs
   };
 }
 function normalizeAlQuranCloudSurah(body, surahNumber) {
   const editions = Array.isArray(body?.data) ? body.data : [];
-  const tajweed = editions.find(item => item?.edition?.identifier === 'quran-tajweed');
+  const uthmani = editions.find(item => item?.edition?.identifier === 'quran-uthmani');
   const english = editions.find(item => item?.edition?.identifier === 'en.sahih');
-  if (body?.code !== 200 || !Array.isArray(tajweed?.ayahs) || !tajweed.ayahs.length ||
-      !Array.isArray(english?.ayahs) || english.ayahs.length !== tajweed.ayahs.length) {
-    throw new Error('AlQuranCloud returned an incomplete Tajweed/English Surah.');
+  if (body?.code !== 200 || !Array.isArray(uthmani?.ayahs) || !uthmani.ayahs.length ||
+      !Array.isArray(english?.ayahs) || english.ayahs.length !== uthmani.ayahs.length) {
+    throw new Error('AlQuranCloud returned an incomplete quran-uthmani/English Surah.');
   }
   const label = quranSurahLabels[surahNumber] || {};
-  const ayahs = tajweed.ayahs.map((ayah, index) => {
-    const tajweedText = String(ayah.text || '');
-    const tajweedSegments = tajweedText.trim() ? parseAlQuranTajweed(tajweedText) : [{ text: '', className: '' }];
+  const ayahs = uthmani.ayahs.map((ayah, index) => {
+    const canonicalText = String(ayah.text || '');
+    if (!canonicalText) throw new Error('quran-uthmani returned an empty ayah.');
     return {
       number: Number(ayah.number), numberInSurah: Number(ayah.numberInSurah), surahNumber,
       surahName: ayah?.surah?.englishName || label.surahName || 'Surah ' + surahNumber,
       arabicName: ayah?.surah?.name || label.arabicName || '',
-      text: tajweedSegments.map(segment => segment.text).join(''),
-      tajweedText, tajweedSegments,
+      text: canonicalText, tajweedText: canonicalText,
+      tajweedSegments: [{ text: canonicalText, className: '' }],
+      textSource: 'quran-uthmani',
       translation: String(english.ayahs[index]?.text || '').replace(/<[^>]*>/g, '').trim(),
       translations: [], words: []
     };
   });
   return {
-    page: Number(tajweed.ayahs[0]?.page) || 1,
-    juz: Number(tajweed.ayahs[0]?.juz) || 1,
-    qcfAvailable: false,
-    tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => ayah.tajweedSegments.some(segment => Boolean(segment.className))),
+    page: Number(uthmani.ayahs[0]?.page) || 1,
+    juz: Number(uthmani.ayahs[0]?.juz) || 1,
+    qcfAvailable: false, textSource: 'quran-uthmani', tajweedComplete: false,
     translationSource: 'Sahih International', ayahs
   };
 }
@@ -305,51 +357,37 @@ async function fetchAlQuranCloudPage(page) {
   let lastError = null;
   for (const base of providers) {
     try {
-      // AlQuranCloud supports multi-edition /editions/ on Surah routes, but
-      // Page routes accept one edition per request. Fetch both directly.
-      const [tajweed, english] = await Promise.all([
-        fetchQuranMirror(base + '/page/' + page + '/quran-tajweed', normalizeEdition, page),
+      const [uthmani, english] = await Promise.all([
+        fetchQuranMirror(base + '/page/' + page + '/quran-uthmani', normalizeEdition, page),
         fetchQuranMirror(base + '/page/' + page + '/en.sahih', normalizeEdition, page)
       ]);
-      const primary = normalizeAlQuranCloud({ code: 200, data: [tajweed, english] }, page);
-      try {
-        const query = '?mushaf=1&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number,hizb_number&page=' + page + '&per_page=50';
-        const fallback = await fetchQuranMirror('https://api.quran.com/api/v4/verses/by_page/' + page + query, body => normalizeQuranCom(body, page), page);
-        if (fallback?.qcfAvailable) return mergeMissingTajweed(fallback, primary);
-        return primary.tajweedComplete ? primary : mergeMissingTajweed(primary, fallback);
-      } catch (fallbackError) {
-        console.warn('Quran.com page/QCF fallback failed:', page, fallbackError.message);
-        if (primary.tajweedComplete) return primary;
-        throw fallbackError;
-      }
+      return normalizeAlQuranCloud({ code: 200, data: [uthmani, english] }, page);
     } catch (error) {
       lastError = error;
-      console.warn('AlQuranCloud Tajweed page provider failed:', base, error.message);
+      console.warn('AlQuranCloud quran-uthmani page provider failed:', base, error.message);
     }
   }
-  throw lastError || new Error('No AlQuranCloud Tajweed page provider is available.');
+  throw lastError || new Error('No quran-uthmani page provider is available.');
 }
 async function fetchAlQuranCloudSurah(surahNumber) {
   const providers = ['https://api.alquran.cloud/v1', 'https://alquran.api.islamic.network/v1', 'https://alquran.api.alislam.ru/v1'];
   let lastError = null;
   for (const base of providers) {
     try {
-      const primary = await fetchQuranMirror(base + '/surah/' + surahNumber + '/editions/quran-tajweed,en.sahih', body => normalizeAlQuranCloudSurah(body, surahNumber), surahNumber);
-      if (primary.tajweedComplete) return primary;
-      try {
-        const query = '?mushaf=1&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number&per_page=300';
-        const fallback = await fetchQuranMirror('https://api.quran.com/api/v4/verses/by_chapter/' + surahNumber + query, body => normalizeQuranCom(body, 1), 1);
-        return mergeMissingTajweed(primary, fallback);
-      } catch (fallbackError) {
-        console.warn('Quran.com Surah Tajweed completion failed:', surahNumber, fallbackError.message);
-        return primary;
-      }
+      const editions = await fetchQuranMirror(
+        base + '/surah/' + surahNumber + '/editions/quran-uthmani,en.sahih',
+        body => {
+          if (body?.code !== 200 || !Array.isArray(body?.data) || body.data.length < 2) throw new Error('AlQuranCloud returned incomplete Surah editions.');
+          return body;
+        }, surahNumber
+      );
+      return normalizeAlQuranCloudSurah(editions, surahNumber);
     } catch (error) {
       lastError = error;
-      console.warn('AlQuranCloud Tajweed Surah provider failed:', base, error.message);
+      console.warn('AlQuranCloud quran-uthmani Surah provider failed:', base, error.message);
     }
   }
-  throw lastError || new Error('No AlQuranCloud Tajweed Surah provider is available.');
+  throw lastError || new Error('No quran-uthmani Surah provider is available.');
 }
 function normalizeQuranCom(body, page) {
   const verses = Array.isArray(body?.verses) ? body.verses : [];
@@ -409,7 +447,9 @@ function mergeMissingTajweed(primary, fallback) {
     if ((ayah.tajweedSegments || []).some(segment => Boolean(segment.className))) return ayah;
     const backup = backupByAyah.get(String(ayah.surahNumber) + ':' + String(ayah.numberInSurah));
     if (!backup || !(backup.tajweedSegments || []).some(segment => Boolean(segment.className))) return ayah;
-    return { ...ayah, text: backup.text, tajweedText: backup.tajweedText, tajweedSegments: backup.tajweedSegments };
+    return ayah.textSource === 'quran-uthmani'
+      ? { ...ayah, tajweedText: backup.tajweedText, tajweedSegments: backup.tajweedSegments }
+      : { ...ayah, text: backup.text, tajweedText: backup.tajweedText, tajweedSegments: backup.tajweedSegments };
   });
   return { ...primary, ayahs, tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))) };
 }
@@ -478,9 +518,11 @@ app.get('/api/quran/page/:page', async (req, res) => {
       }
     }
     const annotationCount = candidate => (candidate?.ayahs || []).filter(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).length;
-    const sourcePage = fallback?.qcfAvailable
-      ? mergeMissingTajweed(fallback, primary || fallback)
-      : (annotationCount(fallback) > annotationCount(primary) ? fallback : (primary?.ayahs?.length ? primary : fallback));
+    const sourcePage = primary?.textSource === 'quran-uthmani'
+      ? primary
+      : (fallback?.qcfAvailable
+        ? mergeMissingTajweed(fallback, primary || fallback)
+        : (annotationCount(fallback) > annotationCount(primary) ? fallback : (primary?.ayahs?.length ? primary : fallback)));
     if (!sourcePage?.ayahs?.length) {
       const offline = quranOfflinePages[String(page)];
       if (offline?.ayahs?.length) return { ...offline, page, offlineFallback: true, qcfAvailable: false };
