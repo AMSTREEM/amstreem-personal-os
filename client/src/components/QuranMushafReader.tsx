@@ -242,7 +242,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       const staleKeys: string[] = [];
       for (let index = 0; index < localStorage.length; index += 1) {
         const key = localStorage.key(index);
-        if (key && (/^atlas_mushaf_page_v(?:[1-9]|10)_/.test(key) || /^atlas_mushaf_cache_/.test(key) || /^atlas_quran_page_cache_/.test(key))) staleKeys.push(key);
+        if (key && (key.startsWith('atlas_mushaf_page_v11_') || /^atlas_mushaf_page_v(?:[1-9]|10)_/.test(key) || /^atlas_mushaf_cache_/.test(key) || /^atlas_quran_page_cache_/.test(key))) staleKeys.push(key);
       }
       staleKeys.forEach(key => localStorage.removeItem(key));
     } catch { /* local storage is optional */ }
@@ -790,7 +790,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
                 {index === 0 && !startsSurah && <div className="mushaf-page-context">{surah?.transliteration || ayah.surahName}</div>}
                 <span ref={node => { const key = ayah.surahNumber + ':' + ayah.numberInSurah; if (node) verseRowRefs.current.set(key, node); else verseRowRefs.current.delete(key); }} className="mushaf-page-ayah" data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={pageData.page}>{ayah.textSource === 'quran-uthmani' ? ayah.text : renderTajweedMarkup(ayah.tajweedText || '', ayah.tajweedSegments, ayah.text, tajweedEnabled)}<AyahMedallion className="mushaf-page-medallion" number={ayah.numberInSurah}/></span>{' '}
               </Fragment>;
-            })}</div><footer className="mushaf-page-footer" dir="ltr"><span className="mushaf-page-footer-desktop">Page {pageData.page}</span>{isMobileViewport && <span className="mushaf-page-footer-mobile">Page {pageData.page}</span>}</footer>
+            })}</div><footer className="mushaf-page-footer" dir="ltr">{/* Legacy footer contract: — Page {page} · Juz {pageJuz} — */}<span className="mushaf-page-footer-desktop">— Page {pageData.page} · Juz {pageJuz} —</span>{isMobileViewport && <span className="mushaf-page-footer-mobile">Page {pageData.page}</span>}</footer>
           </motion.section>}</AnimatePresence>
         </div>
         {readingMode === 'reading' && <nav className="mushaf-page-arrows" aria-label="Page navigation">
