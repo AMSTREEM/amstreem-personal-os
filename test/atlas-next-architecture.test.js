@@ -427,19 +427,25 @@ test('Mushaf page mode keeps all ayahs reachable and restores separate reading p
 });
 
 
-test('Mushaf mobile page turns use horizontal swipe and Framer Motion-safe centered headers', () => {
+test('Mushaf mobile page turns use finger tracking, prefetch and a single centered header pill', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
-  assert.ok(reader.includes('onTouchStart={event =>'));
-  assert.ok(reader.includes('Math.abs(deltaX) <= 48'));
-  assert.ok(reader.includes('Math.abs(deltaX) <= Math.abs(deltaY) * 1.4'));
-  assert.ok(reader.includes('deltaX > 48 && page < 604) changePage(page + 1)'));
-  assert.ok(reader.includes('deltaX < -48 && page > 1) changePage(page - 1)'));
-  assert.ok(reader.includes('<AnimatePresence mode="wait" custom={pageDirection}'));
-  assert.ok(reader.includes('x: pageDirection * 36, scale: 0.985'));
-  assert.ok(reader.includes('x: pageDirection * -36, scale: 0.985'));
-  assert.ok(css.includes('margin-left: auto !important;'));
-  assert.ok(css.includes('width: calc(100vw - 24px) !important;'));
-  assert.ok(css.includes('width: calc(100vw - 28px) !important;'));
-  assert.doesNotMatch(css.slice(css.lastIndexOf('/* Mobile Mushaf: Framer Motion-safe')), /transform\s*:/);
+  assert.ok(reader.includes("drag={isMobileViewport ? 'x' : false}"));
+  assert.ok(reader.includes('dragConstraints={{ left: 0, right: 0 }}'));
+  assert.ok(reader.includes('dragElastic={0.25} dragDirectionLock'));
+  assert.ok(reader.includes('Math.abs(offsetX) > 55 || Math.abs(velocityX) > 350'));
+  assert.ok(reader.includes('direction > 0 && page < 604) changePage(page + 1)'));
+  assert.ok(reader.includes('direction < 0 && page > 1) changePage(page - 1)'));
+  assert.ok(reader.includes('whileDrag={{ opacity: 0.985, scale: 0.985 }}'));
+  assert.ok(reader.includes('duration: 0.22, ease: [0.22, 1, 0.36, 1]'));
+  assert.ok(reader.includes('const prefetchPage = async'));
+  assert.ok(reader.includes('if (page > 1) void prefetchPage(page - 1)'));
+  assert.ok(reader.includes('if (page < 604) void prefetchPage(page + 1)'));
+  assert.ok(reader.includes('const cachedPage = readCachedMushafPage(value)'));
+  assert.ok(css.includes('background: transparent !important;'));
+  assert.ok(css.includes('width: calc(100vw - 32px) !important;'));
+  assert.ok(css.includes('max-width: 400px !important;'));
+  assert.ok(css.includes('padding-left: 22px !important;'));
+  assert.ok(css.includes('padding-right: 22px !important;'));
+  assert.doesNotMatch(css.slice(css.lastIndexOf('/* Mobile Mushaf polish:')), /transform\\s*:/);
 });
