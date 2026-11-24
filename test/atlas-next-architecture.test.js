@@ -636,32 +636,34 @@ test('Quran Mushaf uses QPC Hafs Unicode and responsive layouts in both reading 
 });
 
 
-test('Mushaf page rendering groups Unicode QPC Hafs words by page line metadata', () => {
+test('Page-by-Page renders every page through grouped Surah runs and a shared Arabic paragraph', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const server = read('server.js');
   const css = read('client/src/styles.css');
   assert.ok(server.includes('https://api.qurancdn.com/api/qdc/verses/by_page/'));
-  assert.ok(server.includes('word_fields=text_qpc_hafs,text_uthmani,line_number,page_number'));
-  assert.match(reader, /const pageLines = useMemo/);
-  assert.match(reader, /word\.lineNumber/);
-  assert.match(reader, /mushaf-page-text--lines/);
-  assert.match(reader, /ayah\.pageNumber \|\| ayah\.words/);
-  assert.match(css, /\.mushaf-qcf-line/);
-  assert.match(css, /\.mushaf-page-text--lines/);
+  assert.match(reader, /const pageSurahRuns = useMemo/);
+  assert.match(reader, /currentRun\.surahNumber === ayah\.surahNumber/);
+  assert.match(reader, /startsSurah: ayah\.numberInSurah === 1/);
+  assert.match(reader, /pageSurahRuns\.map\(run =>/);
+  assert.match(reader, /className="mushaf-page-run-text"/);
+  assert.match(reader, /<AyahMedallion className="mushaf-page-medallion" number=\{ayah\.numberInSurah\}\/>/);
+  assert.match(css, /\.mushaf-page-column/);
+  assert.match(css, /max-width: 520px !important/);
 });
 
 
-test('Mushaf uses public Quran CDN Unicode page data without QCF credentials or page fonts', () => {
+test('Mushaf page data retains Unicode Quran source fields while rendering uses one page layout', () => {
   const server = read('server.js');
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
   assert.ok(server.includes('https://api.qurancdn.com/api/qdc/verses/by_page/'));
   assert.ok(server.includes('https://api.qurancdn.com/api/qdc/verses/by_chapter/'));
   assert.ok(server.includes('word_fields=text_qpc_hafs,text_uthmani,line_number,page_number'));
-  assert.match(reader, /pageData\?\.ayahs\?\.some\(ayah => ayah\.words\?\.some\(word => word\.lineNumber && word\.text\)\)/);
   assert.ok(!reader.includes('QCFPage'));
-  assert.match(reader, /mushaf-page-text--lines/);
-  assert.match(css, /\.mushaf-page-text--lines/);
+  assert.match(reader, /const pageSurahRuns = useMemo/);
+  assert.doesNotMatch(reader, /const pageLines = useMemo/);
+  assert.match(css, /\.mushaf-page-column/);
+  assert.match(css, /\.mushaf-page-run-text/);
   assert.match(css, /font-display: swap/);
 });
 
@@ -678,11 +680,12 @@ test('Mushaf font selector controls actual Arabic glyphs in both reading modes',
 });
 
 
-test('Page-by-page QPC end markers use independent Quran-style ayah medallions', () => {
+test('Page-by-page ayah medallions render once per ayah in the unified Surah paragraph', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
-  assert.match(reader, /isEnd && ayah \? <AyahMedallion className="mushaf-page-medallion mushaf-page-qpc-medallion" number=\{ayah\.numberInSurah\}\/> : word\.text/);
   assert.match(reader, /function AyahMedallion\([\s\S]*?arabicNumber\(number\)/);
-  assert.ok(reader.includes('mushaf-qcf-word--end'));
+  assert.match(reader, /run\.ayahs\.map\(\(ayah, ayahIndex\) =>/);
+  assert.match(reader, /<AyahMedallion className="mushaf-page-medallion" number=\{ayah\.numberInSurah\}\/>/);
+  assert.doesNotMatch(reader, /mushaf-page-qpc-medallion/);
 });
 
 
@@ -698,32 +701,34 @@ test('Ayah medallions have one font-independent visual contract in Page by Page 
 });
 
 
-test('Page-by-page QPC end markers resolve their ayah even when end glyphs omit verseKey', () => {
+test('Page-by-page page runs keep ayah identity and medallions attached to the source ayah', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
-  assert.match(reader, /const matchedAyah = pageData\.ayahs\.find\(item => item\.surahNumber \+ ':' \+ item\.numberInSurah === word\.verseKey\)/);
-  assert.match(reader, /const positionMatchedAyah = isEnd[\s\S]*?item\.words\?\.some\(ayahWord => ayahWord\.position === word\.position && ayahWord\.charTypeName === 'end'\)/);
-  assert.match(reader, /const ayah = matchedAyah \|\| positionMatchedAyah \|\| \(isEnd \? activeAyah : undefined\)/);
-  assert.match(reader, /isEnd && ayah \? <AyahMedallion[\s\S]*?number=\{ayah\.numberInSurah\}/);
+  assert.match(reader, /const key = ayah\.surahNumber \+ ':' \+ ayah\.numberInSurah/);
+  assert.match(reader, /data-mushaf-verse="true" data-surah=\{ayah\.surahNumber\} data-ayah=\{ayah\.numberInSurah\}/);
+  assert.match(reader, /onClick=\{\(\) => selectAyah\(ayah\)\}/);
+  assert.match(reader, /<AyahMedallion className="mushaf-page-medallion" number=\{ayah\.numberInSurah\}\/>/);
+  assert.doesNotMatch(reader, /positionMatchedAyah/);
 });
 
 
-test('Page-by-page Mushaf pages share the same full-height vertical line rhythm', () => {
+test('Page-by-page pages use one centered 520px Mushaf column at every viewport', () => {
   const css = read('client/src/styles.css');
-  const pageRhythm = css.slice(css.lastIndexOf('/* Consistent Madani Mushaf page rhythm:'));
-  assert.match(pageRhythm, /min-height: 680px/);
-  assert.match(pageRhythm, /justify-content: space-between !important/);
-  assert.match(pageRhythm, /\.mushaf-app\.is-page-reading \.mushaf-qcf-line \{\s*flex: 0 0 auto/);
-  assert.match(pageRhythm, /@media \(max-width: 767px\)[\s\S]*?min-height: max\(0px, calc\(100dvh - 194px\)\)/);
+  const layout = css.slice(css.lastIndexOf('/* Unified Page-by-Page Mushaf frame'));
+  assert.match(layout, /\.mushaf-app\.is-page-reading \.mushaf-page-view[\s\S]*?width: 100% !important/);
+  assert.match(layout, /max-width: 520px !important/);
+  assert.match(layout, /padding: 16px 20px 64px !important/);
+  assert.match(layout, /\.mushaf-page-run-text[\s\S]*?text-align: justify !important/);
+  assert.match(layout, /line-height: 2\.25 !important/);
+  assert.match(layout, /word-spacing: 3px !important/);
+  assert.match(layout, /@media \(max-width: 767px\)[\s\S]*?max-width: 520px !important/);
 });
 
 
-test('All Page-by-page QPC lines form an equal-height, non-wrapping physical Mushaf grid', () => {
-  const css = read('client/src/styles.css');
-  const grid = css.slice(css.lastIndexOf('/* Final Page-by-Page line grid:'));
-  assert.match(grid, /justify-content: flex-start !important/);
-  assert.match(grid, /min-height: 680px !important/);
-  assert.match(grid, /\.mushaf-page-text--lines > \.mushaf-qcf-line[\s\S]*?flex: 1 1 0 !important/);
-  assert.match(grid, /flex-wrap: nowrap !important/);
-  assert.match(grid, /white-space: nowrap !important/);
-  assert.match(grid, /@media \(max-width: 767px\)[\s\S]*?height: 100% !important;\s*min-height: 0 !important/);
+test('Page-by-page cache versions are invalidated without touching saved reading preferences', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  assert.match(reader, /const CACHE_PREFIX = 'atlas_mushaf_page_v15_'/);
+  assert.match(reader, /\^atlas_mushaf_page_v\\\\d\+_/);
+  assert.match(reader, /stalePageCacheKeys\.forEach\(key => localStorage\.removeItem\(key\)\)/);
+  assert.match(reader, /atlas_mushaf_layout_v1/);
+  assert.match(reader, /atlas_mushaf_font_family_v1/);
 });
