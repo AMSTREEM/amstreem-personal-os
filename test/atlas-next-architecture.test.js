@@ -652,3 +652,18 @@ test('Quran Foundation Page Layout API drives QCF V2 page lines and page-aware v
   assert.match(reader, /ayah\.pageNumber \|\| ayah\.words/);
   assert.match(css, /\.mushaf-qcf-line/);
 });
+
+
+test('Mushaf uses public Quran CDN Unicode page data without QCF credentials or page fonts', () => {
+  const server = read('server.js');
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const css = read('client/src/styles.css');
+  assert.ok(server.includes('https://api.qurancdn.com/api/qdc/verses/by_page/'));
+  assert.ok(server.includes('https://api.qurancdn.com/api/qdc/verses/by_chapter/'));
+  assert.ok(server.includes('word_fields=text_qpc_hafs,text_uthmani,line_number,page_number'));
+  assert.match(reader, /pageData\?\.ayahs\?\.some\(ayah => ayah\.words\?\.some\(word => word\.lineNumber && word\.text\)\)/);
+  assert.ok(!reader.includes('QCFPage'));
+  assert.match(reader, /mushaf-page-text--lines/);
+  assert.match(css, /\.mushaf-page-text--lines/);
+  assert.match(css, /font-display: swap/);
+});
