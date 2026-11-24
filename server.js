@@ -128,7 +128,7 @@ async function getQuranApiAuth() {
 }
 
 function parseAlQuranTajweed(markup) {
-  const classByCode = { h:'tj-hamza',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-idgham',f:'tj-ikhfa',i:'tj-ikhfa',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham',r:'tj-tafkhim',t:'tj-tafkhim' };
+  const classByCode = { h:'tj-silent',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-ikhfa',f:'tj-ikhfa',i:'tj-idgham',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham' };
   const segments = [];
   const source = String(markup || '');
   const pattern = /\[([a-z])(?::\d+)?\[([\s\S]*?)\]\]?/g;
@@ -145,17 +145,32 @@ function alignTajweedToUthmani(uthmaniText, taggedSegments) {
   const classByWord = [];
   let wordIndex = 0;
   for (const segment of taggedSegments) {
-    const words = String(segment.text || '').match(/\\S+/g) || [];
+    const words = String(segment.text || '').match(/\S+/g) || [];
     for (const word of words) {
       if (segment.className && !classByWord[wordIndex]) classByWord[wordIndex] = segment.className;
       wordIndex += 1;
     }
   }
+  const heavyLetters = /[خ ص ض غ ط ق ظ]/u;
+  const styledWord = (word, ruleClass) => {
+    const clusters = [];
+    for (const character of Array.from(word)) {
+      if (/\p{M}/u.test(character) && clusters.length) clusters[clusters.length - 1] += character;
+      else clusters.push(character);
+    }
+    const output = [];
+    for (const cluster of clusters) {
+      const className = ruleClass || (heavyLetters.test(cluster) ? 'tj-tafkhim' : '');
+      const previous = output[output.length - 1];
+      if (previous && previous.className === className) previous.text += cluster;
+      else output.push({ text: cluster, className });
+    }
+    return output;
+  };
   let uthmaniWordIndex = 0;
-  return String(uthmaniText || '').split(/(\\s+)/).filter(Boolean).map(part => {
-    if (/^\\s+$/.test(part)) return { text: part, className: '' };
-    const className = classByWord[uthmaniWordIndex++] || '';
-    return { text: part, className };
+  return String(uthmaniText || '').split(/(\s+)/).filter(Boolean).flatMap(part => {
+    if (/^\s+$/.test(part)) return [{ text: part, className: '' }];
+    return styledWord(part, classByWord[uthmaniWordIndex++] || '');
   });
 }
 function normalizeAlQuranCloud(body, page) {
