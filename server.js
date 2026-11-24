@@ -131,7 +131,7 @@ function tajweedClassForRule(rule) {
   const value = String(rule || '').toLowerCase().replace(/[-\s]/g, '_');
   if (/^(h|s|l|ham_wasl|hamzat_wasl|hamzat_al_wasl|slnt|silent|laam_shamsiyah)$/.test(value)) return 'tj-silent';
   if (/^(n|p|m|o)$/.test(value) || /^madda?_/.test(value) || /^madd/.test(value)) return 'tj-madd';
-  if (/^(q|qlq|qalaqah|qalqalah)$/.test(value)) return 'tj-qalqalah';
+  if (/^(q|qlq|qalaqah|qalqalah|qalqala)$/.test(value)) return 'tj-qalqalah';
   if (/^(g|ghn)$/.test(value) || /ghunnah|idgh_ghn/.test(value)) return 'tj-ghunnah';
   if (/^(c|f|ikhf|ikhf_shfw)$/.test(value) || /ikhfa/.test(value)) return 'tj-ikhfa';
   if (/^(i|iqlb)$/.test(value) || /iqlab/.test(value)) return 'tj-ghunnah';
@@ -306,6 +306,64 @@ function normalizeQuranCom(body, page) {
         translations, words };
     }) };
 }
+const quranJsonSurahCache = new Map();
+async function fetchQuranJsonSurah(surahNumber) {
+  const key = Number(surahNumber);
+  if (quranJsonSurahCache.has(key)) return quranJsonSurahCache.get(key);
+  const task = (async () => {
+    const base = 'https://raw.githubusercontent.com/semarketir/quranjson/master/source';
+    const [textResponse, tajweedResponse] = await Promise.all([
+      fetch(base + '/surah/surah_' + key + '.json', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(12000) }),
+      fetch(base + '/tajweed/surah_' + key + '.json', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(12000) })
+    ]);
+    if (!textResponse.ok || !tajweedResponse.ok) throw new Error('Quran Tajweed corpus returned HTTP ' + textResponse.status + '/' + tajweedResponse.status + ' for surah ' + key + '.');
+    const [textData, tajweedData] = await Promise.all([textResponse.json(), tajweedResponse.json()]);
+    const verses = new Map();
+    for (const [verseKey, sourceTextRaw] of Object.entries(textData?.verse || {})) {
+      const verseNumber = Number(String(verseKey).replace('verse_', ''));
+      const sourceText = String(sourceTextRaw || '').replace(/^\\uFEFF/, '');
+      const rules = Array.isArray(tajweedData?.verse?.[verseKey]) ? tajweedData.verse[verseKey] : [];
+      const segments = [];
+      let cursor = 0;
+      for (const rule of [...rules].sort((a, b) => Number(a.start) - Number(b.start) || Number(a.end) - Number(b.end))) {
+        const start = Math.max(0, Math.min(sourceText.length, Number(rule.start)));
+        const end = Math.max(start, Math.min(sourceText.length, Number(rule.end)));
+        const className = tajweedClassForRule(rule.rule);
+        if (!className || end <= start) continue;
+        if (start > cursor) segments.push({ text: sourceText.slice(cursor, start), className: '' });
+        if (start < cursor) continue;
+        segments.push({ text: sourceText.slice(start, end), className });
+        cursor = end;
+      }
+      if (cursor < sourceText.length) segments.push({ text: sourceText.slice(cursor), className: '' });
+      verses.set(verseNumber, { sourceText, segments });
+    }
+    if (!verses.size) throw new Error('Quran Tajweed corpus had no verses for surah ' + key + '.');
+    return verses;
+  })();
+  quranJsonSurahCache.set(key, task);
+  try { return await task; }
+  catch (error) { quranJsonSurahCache.delete(key); throw error; }
+}
+async function enrichPageWithQuranJsonTajweed(pagePayload) {
+  const surahNumbers = [...new Set((pagePayload.ayahs || []).map(ayah => Number(ayah.surahNumber)).filter(Boolean))];
+  const corpusBySurah = new Map();
+  await Promise.all(surahNumbers.map(async surahNumber => {
+    try { corpusBySurah.set(surahNumber, await fetchQuranJsonSurah(surahNumber)); }
+    catch (error) { console.warn('Quran Tajweed corpus unavailable for surah ' + surahNumber + ':', error.message); }
+  }));
+  const ayahs = pagePayload.ayahs.map(ayah => {
+    const source = corpusBySurah.get(Number(ayah.surahNumber))?.get(Number(ayah.numberInSurah));
+    if (!source?.segments?.some(segment => segment.className)) return ayah;
+    const tajweedSegments = alignTajweedToUthmani(String(ayah.text || ''), source.segments);
+    return { ...ayah, tajweedText: source.sourceText, tajweedSegments };
+  });
+  return {
+    ...pagePayload,
+    ayahs,
+    tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className)))
+  };
+}
 function splitTajweedWords(markup) {
   const tokens = String(markup || '').match(/<[^>]*>|[^<\s]+|\s+/g) || [];
   const words = [];
@@ -359,7 +417,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
     try { return send(await quranPageInflight.get(page), 'COALESCED'); } catch { /* provider retry below */ }
   }
   const task = (async () => {
-    const editions = 'quran-uthmani,quran-tajweed,en.sahih';
+    const editions = 'quran-uthmani,en.sahih';
     const providers = ['https://api.alquran.cloud/v1','https://alquran.api.islamic.network/v1','https://alquran.api.alislam.ru/v1'];
     let primary = null;
     for (const base of providers) {
@@ -369,7 +427,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
       } catch (error) { console.warn('AlQuranCloud provider failed:', base, error.message); }
     }
     let fallback = null;
-    const query = '?mushaf=19&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number&page=1&per_page=50';
+    const query = '?mushaf=19&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number&page=${page}&per_page=50';
     if (!primary?.ayahs?.length || !primary.tajweedComplete) {
       for (const url of [`https://quran.com/api/proxy/content/api/qdc/verses/by_page/${page}${query}`,`https://api.quran.com/api/v4/verses/by_page/${page}${query}`]) {
         try {
@@ -387,12 +445,12 @@ app.get('/api/quran/page/:page', async (req, res) => {
     }
     return {
       ...sourcePage, page, juz: sourcePage.juz || getPageJuzFallback(page),
-      ayahs: sourcePage.ayahs.map(ayah => ({
+      ayahs: enrichedPage.ayahs.map(ayah => ({
         ...ayah, text: String(ayah.text || ''), tajweedText: String(ayah.tajweedText || ''),
         tajweedSegments: Array.isArray(ayah.tajweedSegments) ? ayah.tajweedSegments : parseAlQuranTajweed(ayah.tajweedText || ''),
         translation: String(ayah.translation || '')
       })),
-      tajweedComplete: sourcePage.ayahs.length > 0 && sourcePage.ayahs.every(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className)))
+      tajweedComplete: enrichedPage.tajweedComplete
     };
   })();
   quranPageInflight.set(page, task);
