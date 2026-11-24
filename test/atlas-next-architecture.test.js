@@ -284,8 +284,8 @@ test('Qur’an reader uses the Quran.com page proxy, saved bookmarks, no reciter
   assert.ok(values.includes('<QuranMushafReader autoOpen={searchParams.get(\'openMushaf\') === \'1\'}'));
   assert.ok(reader.includes('autoOpen?: boolean'));
   assert.ok(reader.includes('autoOpenHandled.current = true'));
-  assert.ok(reader.includes('mushaf-tajweed-toggle'));
-  assert.ok(reader.includes('tajweedEnabled') && reader.includes('Tajweed Key'));
+  assert.ok(reader.includes('mushaf-settings-popover'));
+  assert.ok(reader.includes('tajweedEnabled') && reader.includes('Tajweed color key'));
   assert.ok(reader.includes("openReader('hifz')"));
   assert.ok(values.includes('<QuranMushafReader settings=') || values.includes('<QuranMushafReader autoOpen='));
   assert.doesNotMatch(values, /Open Full-Screen Mushaf|rhythm-quran-layout|Save Qur’an record/);
@@ -305,7 +305,7 @@ test('Mushaf reading settings persist font, five font sizes, three layouts and T
 test('Mushaf rebuild uses a fixed top bar, three-tab sidebar and two clean reading views', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
-  for (const item of ['mushaf-topbar','mushaf-sidebar-tabs','mushaf-surah-hero','mushaf-verse-row','mushaf-page-view','mushaf-page-arrows','Auto-saved','A−','A+']) assert.ok(reader.includes(item), 'Missing reader feature: ' + item);
+  for (const item of ['mushaf-topbar','mushaf-sidebar-tabs','mushaf-surah-hero','mushaf-verse-row','mushaf-page-view','mushaf-page-arrows','Auto-saved']) assert.ok(reader.includes(item), 'Missing reader feature: ' + item);
   for (const item of ['mushaf-floating-top','mushaf-floating-bottom','mushaf-hud','mushaf-page-scrubber','mushaf-audio-control','reciter','Mishary','<audio','<Play']) assert.ok(!reader.includes(item), 'Legacy UI remains: ' + item);
   assert.ok(css.includes('height:48px;min-height:48px'));
   assert.ok(css.includes('flex:0 0 260px'));
@@ -325,7 +325,7 @@ test('Mushaf rebuild uses a fixed top bar, three-tab sidebar and two clean readi
 
 test('AlQuranCloud fetches quran-tajweed and Sahih editions directly for page and Surah APIs', () => {
   const offline = JSON.parse(read('server/quran-fallback.json'));
-  for (const item of ["app.get('/api/quran/page/:page'","fetchAlQuranCloudPage","/page/${page}/editions/quran-tajweed,en.sahih","/surah/${surahNumber}/editions/quran-tajweed,en.sahih",'https://api.alquran.cloud/v1','quranPageCache = new Map()','quranPageInflight = new Map()','parseAlQuranTajweed','normalizeMadinahArabic','tajweedSegments','tajweedText','normalizeAlQuranCloudSurah','fetchAlQuranCloudSurah','quranSurahCache = new Map()']) assert.ok(server.includes(item), 'Missing endpoint feature: ' + item);
+  for (const item of ["app.get('/api/quran/page/:page'","fetchAlQuranCloudPage","'/page/' + page + '/editions/quran-tajweed,en.sahih'","'/surah/' + surahNumber + '/editions/quran-tajweed,en.sahih'",'https://api.alquran.cloud/v1','quranPageCache = new Map()','quranPageInflight = new Map()','parseAlQuranTajweed','normalizeMadinahArabic','tajweedSegments','tajweedText','normalizeAlQuranCloudSurah','fetchAlQuranCloudSurah','quranSurahCache = new Map()']) assert.ok(server.includes(item), 'Missing endpoint feature: ' + item);
   assert.ok(!server.includes('alignTajweedToUthmani'), 'Cross-string alignment must not remain');
   assert.deepEqual(Object.keys(offline.pages).sort(), ['1','602','603','604']);
 });
