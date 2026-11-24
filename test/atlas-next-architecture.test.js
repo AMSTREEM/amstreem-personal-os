@@ -280,8 +280,8 @@ test('Qur’an reader uses the Quran.com page proxy, saved bookmarks, no reciter
   assert.ok(values.includes('<QuranMushafReader autoOpen={searchParams.get(\'openMushaf\') === \'1\'}'));
   assert.ok(reader.includes('autoOpen?: boolean'));
   assert.ok(reader.includes('autoOpenHandled.current = true'));
-  assert.ok(!reader.includes('mushaf-tajweed-toggle'));
-  assert.ok(!reader.includes('tajweedEnabled'));
+  assert.ok(reader.includes('mushaf-tajweed-toggle'));
+  assert.ok(reader.includes('tajweedEnabled') && reader.includes('Tajweed Key'));
   assert.ok(reader.includes("openReader('hifz')"));
   assert.ok(values.includes('<QuranMushafReader settings=') || values.includes('<QuranMushafReader autoOpen='));
   assert.doesNotMatch(values, /Open Full-Screen Mushaf|rhythm-quran-layout|Save Qur’an record/);
