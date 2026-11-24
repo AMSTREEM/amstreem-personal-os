@@ -332,10 +332,10 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   useEffect(() => {
     const mark = mode === 'hifz' ? hifzMark : murajaahMark;
     userScrolledRef.current = false;
-    restoreTargetRef.current = mark.surah + ':' + mark.ayah;
+    restoreTargetRef.current = readingMode === 'reading' ? null : mark.surah + ':' + mark.ayah;
     setPage(mark.page);
     setSelected(mark.surah && mark.ayah ? { surah: mark.surah, ayah: mark.ayah } : null);
-  }, [mode]);
+  }, [mode, readingMode]);
 
   useEffect(() => {
     try {
@@ -500,14 +500,14 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     if (next === mode) return;
     userScrolledRef.current = false;
     const target = next === 'hifz' ? hifzMark : murajaahMark;
-    restoreTargetRef.current = target.surah + ':' + target.ayah;
+    restoreTargetRef.current = readingMode === 'reading' ? null : target.surah + ':' + target.ayah;
     if (target.page !== page) { setLoading(true); setPageData(null); setPageError(''); }
     setPage(target.page); setPageInput(String(target.page)); setSelected({ surah: target.surah, ayah: target.ayah }); setMode(next);
   };
   const openReader = (next: 'hifz' | 'murajaah') => {
     userScrolledRef.current = false;
     const mark = next === 'hifz' ? hifzMark : murajaahMark;
-    restoreTargetRef.current = mark.surah + ':' + mark.ayah;
+    restoreTargetRef.current = readingMode === 'reading' ? null : mark.surah + ':' + mark.ayah;
     setMode(next);
     setPage(mark.page);
     setPageInput(String(mark.page));
