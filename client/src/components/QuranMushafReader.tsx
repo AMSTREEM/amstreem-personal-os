@@ -673,7 +673,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         <div className="mushaf-page-mobile-controls">
           <button type="button" className="mushaf-page-surah-trigger" onClick={() => setSidebarOpen(value => !value)} aria-expanded={sidebarOpen}><span>{activeSurahNumber}. {activeSurah?.transliteration || currentPageSurahLabel}</span><span aria-hidden="true">▾</span></button>
           <div className="mushaf-topbar-view-toggle" role="group" aria-label="Reading view">
-            <button type="button" aria-pressed={readingMode === 'translation'} onClick={() => changeReadingMode('translation')}>Verse by Verse</button>
+            <button type="button" aria-pressed={false} onClick={() => changeReadingMode('translation')}>Verse by Verse</button>
             <button type="button" className="is-active" aria-pressed={readingMode === 'reading'} onClick={() => changeReadingMode('reading')}>Page by Page</button>
           </div>
           <div className="mushaf-settings-anchor">
