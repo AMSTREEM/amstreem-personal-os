@@ -603,7 +603,15 @@ test('QPC Hafs font and Quran Foundation Tajweed markup are bundled, defaulted, 
   const css = read('client/src/styles.css');
   assert.ok(css.includes("font-family: 'UthmanicHafs';"));
   assert.ok(css.includes("url('/fonts/UthmanicHafs1Ver18.woff2') format('woff2')"));
-  assert.ok(css.includes('https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2'));
+  assert.ok(css.includes("src: url('/fonts/UthmanicHafs1Ver18.woff2') format('woff2')"));
+  assert.ok(!css.includes('https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2'));
+  assert.ok(server.includes("app.get('/fonts/' + QURAN_FONT_FILENAME"));
+  assert.ok(server.includes('font/woff2'));
+  assert.ok(server.includes('max-age=31536000, immutable'));
+  assert.ok(server.includes("'/page/' + page + '/quran-uthmani'"));
+  assert.ok(server.includes("/editions/quran-uthmani,en.sahih"));
+  assert.ok(server.includes("textSource: 'quran-uthmani'"));
+  assert.ok(reader.includes("ayah.textSource === 'quran-uthmani' ? ayah.text"));
   assert.ok(reader.includes("{ name: 'UthmanicHafs', label: 'Madinah Uthmani · King Fahd Complex' }"));
   for (const rule of ['ham_wasl','slnt','laam_shamsiyah','madda_normal','madda_permissible','madda_necessary','madda_obligatory','qalaqah','ikhafa','ikhafa_shafawi','iqlab','idgham_shafawi','idgham_ghunnah','idgham_wo_ghunnah','ghunnah']) {
     assert.ok(reader.includes(rule + ":'" + rule + "'"), 'missing official Tajweed mapping: ' + rule);
