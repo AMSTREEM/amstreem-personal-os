@@ -316,7 +316,7 @@ test('AlQuranCloud page proxy requests Tajweed, Uthmani and Sahih with bounded m
 
 test('Tajweed text is rendered as safe allowlisted semantic spans while Uthmani remains the fallback', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
-  for (const item of ['tajweedSegments','TAJWEED_CLASSES','tj-hamza','tj-madd','tj-qalqalah','tj-ghunnah',"renderTajweedMarkup(ayah.tajweedText || '', ayah.tajweedSegments, ayah.text)"]) assert.ok(reader.includes(item), 'Missing Tajweed rendering feature: ' + item);
+  for (const item of ['tajweedSegments','TAJWEED_CLASSES','tj-hamza','tj-madd','tj-qalqalah','tj-ghunnah','tj-tafkhim','tajweedEnabled','tajweedKeyOpen','Tajweed Key',"renderTajweedMarkup(ayah.tajweedText || '', ayah.tajweedSegments, ayah.text, tajweedEnabled)"]) assert.ok(reader.includes(item), 'Missing Tajweed rendering feature: ' + item);
   for (const item of ["identifier === 'quran-uthmani'","identifier === 'quran-tajweed'","identifier === 'en.sahih'","text: String(ayah.text || '')",'parseAlQuranTajweed']) assert.ok(server.includes(item), 'Missing source edition feature: ' + item);
   assert.ok(!reader.includes('new DOMParser('));
   assert.ok(!reader.includes('dangerouslySetInnerHTML'));
