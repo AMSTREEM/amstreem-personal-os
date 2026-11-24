@@ -473,8 +473,11 @@ test('Mushaf topbar derives every unique page Surah and falls back while page da
   assert.ok(reader.includes('for (const ayah of pageData?.ayahs || [])'));
   assert.ok(reader.includes('.join(\' – \')'));
   assert.ok(reader.includes('const fallbackSurah = getPageSurah(page)'));
-  assert.ok(reader.includes('const pageSurahLabel = currentPageSurahLabel'));
-  assert.ok(reader.includes('{pageSurahLabel}'));
+  assert.ok(reader.includes('{currentPageSurahLabel}'));
+  assert.ok(reader.includes('className="mushaf-surah-trigger"'));
+  assert.ok(reader.includes('className="mushaf-topbar-view-toggle"'));
+  assert.ok(reader.includes("onClick={() => changeReadingMode('translation')}"));
+  assert.ok(reader.includes("onClick={() => changeReadingMode('reading')}"));
   assert.ok(data.includes('export function getPageSurah(page:number)'));
 });
 
@@ -491,4 +494,20 @@ test('Mushaf Arabic typography and medallions use non-overlapping dimensions and
 test('mobile web app capability metadata includes the standard non-Apple declaration', () => {
   const html = read('client/index.html');
   assert.ok(html.includes('<meta name="mobile-web-app-capable" content="yes" />'));
+});
+
+
+test('Mushaf Surah button and reading-view toggle share the main topbar in every reading mode', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const css = read('client/src/styles.css');
+  const headerStart = reader.indexOf('<header className="mushaf-topbar');
+  const headerEnd = reader.indexOf('</header>', headerStart);
+  const header = reader.slice(headerStart, headerEnd);
+  assert.ok(header.includes('{currentPageSurahLabel}'));
+  assert.ok(header.includes('className="mushaf-topbar-view-toggle"'));
+  assert.ok(header.includes('className="mushaf-settings-trigger"'));
+  assert.ok(header.includes('className="mushaf-exit"'));
+  assert.ok(header.includes('Verse by Verse') && header.includes('Page by Page'));
+  assert.match(css, /\.mushaf-topbar-view-toggle[\s\S]*?border: none !important;/);
+  assert.match(css, /\.mushaf-topbar\.mushaf-fs-header[\s\S]*?background: rgba\(128, 128, 128, 0\.08\)/);
 });
