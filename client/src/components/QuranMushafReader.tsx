@@ -26,7 +26,7 @@ const AYAH_ROSETTE_PATH = Array.from({ length: 120 }, (_, index) => {
 }).join(' ') + ' Z';
 const TAJWEED_CLASSES = new Set(['tj-hamza','tj-silent','tj-madd','tj-madd-wajib','tj-qalqalah','tj-ghunnah','tj-ikhfa','tj-idgham','tj-tafkhim','tj-heavy','ham_wasl','slnt','laam_shamsiyah','madda_normal','madda_permissible','madda_necessary','madda_obligatory','madda_obligatory_mottasel','madda_obligatory_monfasel','qalaqah','ikhafa','ikhafa_shafawi','iqlab','idgham_shafawi','idgham_ghunnah','idgham_wo_ghunnah','idgham_mutajanisayn','idgham_mutaqaribayn','ghunnah']);
 const MUSHAF_FONTS = [
-  { name: 'UthmanicHafs', label: 'King Fahd Complex · Uthmani Hafs' },
+  { name: 'UthmanicHafs', label: 'Madinah Uthmani · King Fahd Complex' },
   { name: 'Scheherazade New', label: 'Traditional Calligraphic' },
   { name: 'Noto Naskh Arabic', label: 'Modern Naskh Clarity' },
   { name: 'Amiri', label: 'Classic Book Naskh' },
