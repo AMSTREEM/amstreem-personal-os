@@ -293,7 +293,8 @@ function normalizeQuranCom(body, page) {
 }
 // Identity adapter retained for the page pipeline. Provider-tagged Tajweed is
 // tokenized directly and is never reconstructed from offsets in another edition.
-async function enrichPageWithQuranJsonTajweed(pagePayload) { return pagePayload; }\nfunction splitTajweedWords(markup) {
+async function enrichPageWithQuranJsonTajweed(pagePayload) { return pagePayload; }
+function splitTajweedWords(markup) {
   const tokens = String(markup || '').match(/<[^>]*>|[^<\s]+|\s+/g) || [];
   const words = [];
   let current = '';
