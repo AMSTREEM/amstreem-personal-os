@@ -14,9 +14,9 @@ test('API has bounded request bodies and a separate backup-import allowance', ()
 });
 
 test('API and admin endpoints have per-IP and per-account request limits', () => {
-  assert.match(server, /app\.use\('\/api', rateLimit\(\{ max: 120 \}\)\)/);
+  assert.match(server, /app\.use\('\/api', rateLimit\(\{ max: 300 \}\)\)/);
   assert.match(server, /app\.use\('\/api\/admin', rateLimit\(\{ max: 30/);
-  assert.match(server, /consumeRateLimit\(\`account:\$\{user\.id\}\`, 90\)/);
+  assert.match(server, /consumeRateLimit\(\`account:\$\{user\.id\}\`, 240\)/);
   assert.match(server, /status\(429\)/);
 });
 
