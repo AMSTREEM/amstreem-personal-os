@@ -39,10 +39,11 @@ app.use((req,res,next)=>{
     "frame-ancestors 'none'",
     "form-action 'self'",
     "script-src 'self' https://cdn.jsdelivr.net",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com data:",
+    "style-src 'self' 'unsafe-inline' https://googleapis.com https://fonts.googleapis.com",
+    "font-src 'self' https://gstatic.com https://fonts.gstatic.com https://googleapis.com https://fonts.googleapis.com https://verses.quran.foundation https://quran.foundation data:",
     "img-src 'self' data: blob: https:",
-    `connect-src 'self' ${supabaseOrigin} wss://${supabaseHost}`,
+    `connect-src 'self' ${supabaseOrigin} wss://${supabaseHost} https://alquran.cloud https://api.alquran.cloud https://api.quran.com https://islamic.network https://everyayah.com`,
+    "media-src 'self' blob: https://alquran.cloud https://api.alquran.cloud https://islamic.network https://everyayah.com https://quran.foundation https://verses.quran.foundation",
     "upgrade-insecure-requests"
   ].join('; '));
   if (process.env.NODE_ENV === 'production' && req.secure) {
@@ -82,7 +83,469 @@ function rateLimit({ max, windowMs = 60_000, prefix = 'ip' }) {
 }
 app.get('/healthz', (req,res) => res.status(200).json({ ok: true }));
 app.use('/api/admin', rateLimit({ max: 30, prefix: 'admin' }));
-app.use('/api', rateLimit({ max: 120 }));
+app.use('/api', rateLimit({ max: 300 }));
+
+// Resilient, same-origin Mushaf proxy with bounded in-memory caching and
+// a committed offline seed for the opening page and final three Madani pages.
+const quranPageCache = new Map();
+const quranPageInflight = new Map();
+const quranSurahCache = new Map();
+const quranSurahInflight = new Map();
+const quranOfflinePages = require('./server/quran-fallback.json').pages;
+const quranSurahLabels = {"1":{"surahName":"Al-Faatiha","arabicName":"الفاتحة"},"2":{"surahName":"Al-Baqara","arabicName":"البقرة"},"3":{"surahName":"Aal-i-Imraan","arabicName":"آل عمران"},"4":{"surahName":"An-Nisaa","arabicName":"النساء"},"5":{"surahName":"Al-Maaida","arabicName":"المائدة"},"6":{"surahName":"Al-An'aam","arabicName":"الأنعام"},"7":{"surahName":"Al-A'raaf","arabicName":"الأعراف"},"8":{"surahName":"Al-Anfaal","arabicName":"الأنفال"},"9":{"surahName":"At-Tawba","arabicName":"التوبة"},"10":{"surahName":"Yunus","arabicName":"يونس"},"11":{"surahName":"Hud","arabicName":"هود"},"12":{"surahName":"Yusuf","arabicName":"يوسف"},"13":{"surahName":"Ar-Ra'd","arabicName":"الرعد"},"14":{"surahName":"Ibrahim","arabicName":"ابراهيم"},"15":{"surahName":"Al-Hijr","arabicName":"الحجر"},"16":{"surahName":"An-Nahl","arabicName":"النحل"},"17":{"surahName":"Al-Israa","arabicName":"الإسراء"},"18":{"surahName":"Al-Kahf","arabicName":"الكهف"},"19":{"surahName":"Maryam","arabicName":"مريم"},"20":{"surahName":"Taa-Haa","arabicName":"طه"},"21":{"surahName":"Al-Anbiyaa","arabicName":"الأنبياء"},"22":{"surahName":"Al-Hajj","arabicName":"الحج"},"23":{"surahName":"Al-Muminoon","arabicName":"المؤمنون"},"24":{"surahName":"An-Noor","arabicName":"النور"},"25":{"surahName":"Al-Furqaan","arabicName":"الفرقان"},"26":{"surahName":"Ash-Shu'araa","arabicName":"الشعراء"},"27":{"surahName":"An-Naml","arabicName":"النمل"},"28":{"surahName":"Al-Qasas","arabicName":"القصص"},"29":{"surahName":"Al-Ankaboot","arabicName":"العنكبوت"},"30":{"surahName":"Ar-Room","arabicName":"الروم"},"31":{"surahName":"Luqman","arabicName":"لقمان"},"32":{"surahName":"As-Sajda","arabicName":"السجدة"},"33":{"surahName":"Al-Ahzaab","arabicName":"الأحزاب"},"34":{"surahName":"Saba","arabicName":"سبإ"},"35":{"surahName":"Faatir","arabicName":"فاطر"},"36":{"surahName":"Yaseen","arabicName":"يس"},"37":{"surahName":"As-Saaffaat","arabicName":"الصافات"},"38":{"surahName":"Saad","arabicName":"ص"},"39":{"surahName":"Az-Zumar","arabicName":"الزمر"},"40":{"surahName":"Al-Ghaafir","arabicName":"غافر"},"41":{"surahName":"Fussilat","arabicName":"فصلت"},"42":{"surahName":"Ash-Shura","arabicName":"الشورى"},"43":{"surahName":"Az-Zukhruf","arabicName":"الزخرف"},"44":{"surahName":"Ad-Dukhaan","arabicName":"الدخان"},"45":{"surahName":"Al-Jaathiya","arabicName":"الجاثية"},"46":{"surahName":"Al-Ahqaf","arabicName":"الأحقاف"},"47":{"surahName":"Muhammad","arabicName":"محمد"},"48":{"surahName":"Al-Fath","arabicName":"الفتح"},"49":{"surahName":"Al-Hujuraat","arabicName":"الحجرات"},"50":{"surahName":"Qaaf","arabicName":"ق"},"51":{"surahName":"Adh-Dhaariyat","arabicName":"الذاريات"},"52":{"surahName":"At-Tur","arabicName":"الطور"},"53":{"surahName":"An-Najm","arabicName":"النجم"},"54":{"surahName":"Al-Qamar","arabicName":"القمر"},"55":{"surahName":"Ar-Rahmaan","arabicName":"الرحمن"},"56":{"surahName":"Al-Waaqia","arabicName":"الواقعة"},"57":{"surahName":"Al-Hadid","arabicName":"الحديد"},"58":{"surahName":"Al-Mujaadila","arabicName":"المجادلة"},"59":{"surahName":"Al-Hashr","arabicName":"الحشر"},"60":{"surahName":"Al-Mumtahana","arabicName":"الممتحنة"},"61":{"surahName":"As-Saff","arabicName":"الصف"},"62":{"surahName":"Al-Jumu'a","arabicName":"الجمعة"},"63":{"surahName":"Al-Munaafiqoon","arabicName":"المنافقون"},"64":{"surahName":"At-Taghaabun","arabicName":"التغابن"},"65":{"surahName":"At-Talaaq","arabicName":"الطلاق"},"66":{"surahName":"At-Tahrim","arabicName":"التحريم"},"67":{"surahName":"Al-Mulk","arabicName":"الملك"},"68":{"surahName":"Al-Qalam","arabicName":"القلم"},"69":{"surahName":"Al-Haaqqa","arabicName":"الحاقة"},"70":{"surahName":"Al-Ma'aarij","arabicName":"المعارج"},"71":{"surahName":"Nooh","arabicName":"نوح"},"72":{"surahName":"Al-Jinn","arabicName":"الجن"},"73":{"surahName":"Al-Muzzammil","arabicName":"المزمل"},"74":{"surahName":"Al-Muddaththir","arabicName":"المدثر"},"75":{"surahName":"Al-Qiyaama","arabicName":"القيامة"},"76":{"surahName":"Al-Insaan","arabicName":"الانسان"},"77":{"surahName":"Al-Mursalaat","arabicName":"المرسلات"},"78":{"surahName":"An-Naba","arabicName":"النبإ"},"79":{"surahName":"An-Naazi'aat","arabicName":"النازعات"},"80":{"surahName":"Abasa","arabicName":"عبس"},"81":{"surahName":"At-Takwir","arabicName":"التكوير"},"82":{"surahName":"Al-Infitaar","arabicName":"الإنفطار"},"83":{"surahName":"Al-Mutaffifin","arabicName":"المطففين"},"84":{"surahName":"Al-Inshiqaaq","arabicName":"الإنشقاق"},"85":{"surahName":"Al-Burooj","arabicName":"البروج"},"86":{"surahName":"At-Taariq","arabicName":"الطارق"},"87":{"surahName":"Al-A'laa","arabicName":"الأعلى"},"88":{"surahName":"Al-Ghaashiya","arabicName":"الغاشية"},"89":{"surahName":"Al-Fajr","arabicName":"الفجر"},"90":{"surahName":"Al-Balad","arabicName":"البلد"},"91":{"surahName":"Ash-Shams","arabicName":"الشمس"},"92":{"surahName":"Al-Lail","arabicName":"الليل"},"93":{"surahName":"Ad-Dhuhaa","arabicName":"الضحى"},"94":{"surahName":"Ash-Sharh","arabicName":"الشرح"},"95":{"surahName":"At-Tin","arabicName":"التين"},"96":{"surahName":"Al-Alaq","arabicName":"العلق"},"97":{"surahName":"Al-Qadr","arabicName":"القدر"},"98":{"surahName":"Al-Bayyina","arabicName":"البينة"},"99":{"surahName":"Az-Zalzala","arabicName":"الزلزلة"},"100":{"surahName":"Al-Aadiyaat","arabicName":"العاديات"},"101":{"surahName":"Al-Qaari'a","arabicName":"القارعة"},"102":{"surahName":"At-Takaathur","arabicName":"التكاثر"},"103":{"surahName":"Al-Asr","arabicName":"العصر"},"104":{"surahName":"Al-Humaza","arabicName":"الهمزة"},"105":{"surahName":"Al-Fil","arabicName":"الفيل"},"106":{"surahName":"Quraish","arabicName":"قريش"},"107":{"surahName":"Al-Maa'un","arabicName":"الماعون"},"108":{"surahName":"Al-Kawthar","arabicName":"الكوثر"},"109":{"surahName":"Al-Kaafiroon","arabicName":"الكافرون"},"110":{"surahName":"An-Nasr","arabicName":"النصر"},"111":{"surahName":"Al-Masad","arabicName":"المسد"},"112":{"surahName":"Al-Ikhlaas","arabicName":"الإخلاص"},"113":{"surahName":"Al-Falaq","arabicName":"الفلق"},"114":{"surahName":"An-Naas","arabicName":"الناس"}};
+const QURAN_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+let quranAccessTokenCache = { accessToken: '', expiresAt: 0 };
+async function getQuranApiAuth() {
+  const clientId = process.env.QURAN_CLIENT_ID || '';
+  const clientSecret = process.env.QURAN_CLIENT_SECRET || '';
+  const environment = process.env.QURAN_API_ENV === 'prelive' ? 'prelive' : 'production';
+  const apiBase = environment === 'prelive'
+    ? 'https://apis-prelive.quran.foundation/content/api/v4'
+    : 'https://apis.quran.foundation/content/api/v4';
+  if (!clientId) return { headers: {}, apiBase };
+  if (process.env.QURAN_API_TOKEN) return { headers: { 'x-auth-token': process.env.QURAN_API_TOKEN, 'x-client-id': clientId }, apiBase };
+  if (!clientSecret) return { headers: {}, apiBase };
+  if (!quranAccessTokenCache.accessToken || Date.now() >= quranAccessTokenCache.expiresAt - 60_000) {
+    const oauthBase = environment === 'prelive' ? 'https://prelive-oauth2.quran.foundation' : 'https://oauth2.quran.foundation';
+    const scope = process.env.QURAN_API_SCOPE || 'content.quran.read content.translations.read';
+    const tokenResponse = await fetch(oauthBase + '/oauth2/token', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Basic ' + Buffer.from(clientId + ':' + clientSecret).toString('base64'),
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Accept: 'application/json'
+      },
+      body: new URLSearchParams({ grant_type: 'client_credentials', scope }),
+      signal: AbortSignal.timeout(9000)
+    });
+    if (!tokenResponse.ok) throw new Error('Quran Foundation token request returned HTTP ' + tokenResponse.status + '.');
+    const tokenBody = await tokenResponse.json();
+    if (!tokenBody?.access_token) throw new Error('Quran Foundation did not return an access token.');
+    quranAccessTokenCache = {
+      accessToken: String(tokenBody.access_token),
+      expiresAt: Date.now() + Math.max(60, Number(tokenBody.expires_in) || 3600) * 1000
+    };
+  }
+  return { headers: { 'x-auth-token': quranAccessTokenCache.accessToken, 'x-client-id': clientId }, apiBase };
+}
+
+function normalizeMadinahArabic(value) {
+  return String(value || '').replace(/[\u06CC\u06A9\u06C1]/g, character => ({
+    '\u06CC': '\u064A', '\u06A9': '\u0643', '\u06C1': '\u0647'
+  })[character] || character);
+}
+function tajweedClassForRule(rule) {
+  const value = String(rule || '').toLowerCase().trim().replace(/[-\s]/g, '_');
+  if (/^(h|s|l|u|ham_wasl|hamzat_wasl|hamzat_al_wasl|slnt|silent|laam_shamsiyah|laam_shamsiyyah|lam_shamsiyah|lam_shamsiyyah)$/.test(value)) return 'tj-silent';
+  if (/^(m|o)$/.test(value) || /^madda?_/.test(value) || /^madd/.test(value)) return 'tj-madd';
+  if (/^(n|p)$/.test(value)) return 'tj-madd-wajib';
+  if (/^(q|qlq|qalaqah|qalqalah|qalqala)$/.test(value) || /qalqalah|qalqala/.test(value)) return 'tj-qalqalah';
+  if (/^(g|i|c|a|w|f|ghn|iqlb|idghm_shfw|idgh_w_ghn|d|b|idgh_mus)$/.test(value) || /ghunnah|idgham|idghaam|idghm|idgh_|ikhfa|iqlab/.test(value)) return 'tj-ghunnah';
+  if (/^(r|heavy|tafkhim)$/.test(value) || /tafkhim|heavy/.test(value)) return 'tj-heavy';
+  return '';
+}
+const stripQuranMarkup = value => String(value || '')
+  .replace(/<span\s+class=["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '')
+  .replace(/<[^>]+>/g, '')
+  .replace(/\[[a-zA-Z]+(?::\d+)?\[/g, '')
+  .replace(/\]/g, '');
+function parseAlQuranTajweed(markup) {
+  // End-marker spans are presentation metadata; the reader renders its own medallion.
+  const source = String(markup || '').replace(/<span\s+class=["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '');
+  const segments = [];
+  const stack = [];
+  const append = (value, className) => {
+    const text = normalizeMadinahArabic(stripQuranMarkup(value));
+    if (!text) return;
+    const previous = segments[segments.length - 1];
+    if (previous && previous.className === className) previous.text += text;
+    else segments.push({ text, className });
+  };
+  // Tokenize every HTML tag. Unknown tags are ignored, their text children survive.
+  if (/<[^>]+>/.test(source)) {
+    const xmlStack = [];
+    const tokens = source.match(/<[^>]+>|[^<]+/g) || [];
+    for (const token of tokens) {
+      const tag = token.match(/^<\s*(\/?)\s*([a-z][a-z0-9:-]*)\b([^>]*)>/i);
+      if (!tag) {
+        append(token, [...xmlStack].reverse().find(item => item.className)?.className || '');
+        continue;
+      }
+      const tagName = tag[2].toLowerCase();
+      if (tagName !== 'tajweed' && tagName !== 'rule') continue;
+      if (tag[1]) {
+        for (let position = xmlStack.length - 1; position >= 0; position -= 1) {
+          if (xmlStack[position].tag === tagName) { xmlStack.splice(position); break; }
+        }
+      } else {
+        const attribute = tag[3].match(/\bclass\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+        const rule = attribute ? (attribute[1] || attribute[2] || attribute[3] || '') : '';
+        xmlStack.push({ tag: tagName, className: rule.split(/\s+/).map(tajweedClassForRule).find(Boolean) || '' });
+      }
+    }
+    return segments.map(segment => ({ ...segment, text: stripQuranMarkup(segment.text) }));
+  }
+  // Parse quran-tajweed's bracket syntax while retaining semantic rule classes.
+  let index = 0;
+  while (index < source.length) {
+    if (source[index] === '[') {
+      const opening = source.slice(index).match(/^\[([a-zA-Z][a-zA-Z0-9_-]*)(?::\d+)?\[/);
+      if (opening) {
+        stack.push(tajweedClassForRule(opening[1]));
+        index += opening[0].length;
+        continue;
+      }
+      index += 1;
+      continue;
+    }
+    if (source[index] === ']') {
+      if (stack.length) stack.pop();
+      index += 1;
+      continue;
+    }
+    append(source[index], [...stack].reverse().find(Boolean) || '');
+    index += 1;
+  }
+  return segments.map(segment => ({ ...segment, text: stripQuranMarkup(segment.text) }));
+}
+function sanitizeQuranAyah(ayah) {
+  const plainSource = String(ayah?.text || '');
+  const tajweedSource = String(ayah?.tajweedText || '');
+  const hasMarkup = value => /<[^>]+>|\[[a-zA-Z]/i.test(String(value || ''));
+  const rawTajweed = hasMarkup(tajweedSource) ? tajweedSource : (hasMarkup(plainSource) ? plainSource : tajweedSource);
+  const parsed = hasMarkup(rawTajweed) ? parseAlQuranTajweed(rawTajweed) : [];
+  const sourceSegments = parsed.length ? parsed : (Array.isArray(ayah?.tajweedSegments) ? ayah.tajweedSegments : []);
+  const tajweedSegments = sourceSegments.map(segment => ({
+    text: stripQuranMarkup(segment?.text || ''),
+    className: /^tj-[a-z-]+$/.test(String(segment?.className || '')) ? String(segment.className) : ''
+  })).filter(segment => segment.text);
+  const cleanText = stripQuranMarkup(ayah?.text || '');
+  const cleanTajweedText = tajweedSegments.map(segment => segment.text).join('') || stripQuranMarkup(rawTajweed);
+  return {
+    ...ayah,
+    text: cleanText || cleanTajweedText,
+    tajweedText: cleanTajweedText,
+    tajweedSegments,
+    translation: stripQuranMarkup(ayah?.translation || ''),
+    translations: Array.isArray(ayah?.translations) ? ayah.translations.map(item => ({ ...item, text: stripQuranMarkup(item?.text || '') })) : [],
+    words: Array.isArray(ayah?.words) ? ayah.words.map(word => ({ ...word, text: stripQuranMarkup(word?.text || ''), tajweed: stripQuranMarkup(word?.tajweed || '') })) : []
+  };
+}
+function sanitizeQuranPayload(payload) {
+  if (!payload || !Array.isArray(payload.ayahs)) return payload;
+  return { ...payload, ayahs: payload.ayahs.map(sanitizeQuranAyah) };
+}
+function normalizeAlQuranCloud(body, page) {
+  const editions = Array.isArray(body?.data) ? body.data : [];
+  const tajweed = editions.find(item => item?.edition?.identifier === 'quran-tajweed');
+  const english = editions.find(item => item?.edition?.identifier === 'en.sahih');
+  if (body?.code !== 200 || !Array.isArray(tajweed?.ayahs) || !tajweed.ayahs.length ||
+      !Array.isArray(english?.ayahs) || english.ayahs.length !== tajweed.ayahs.length) {
+    throw new Error('AlQuranCloud returned an incomplete Tajweed/English page.');
+  }
+  const ayahs = tajweed.ayahs.map((ayah, index) => {
+    const surahNumber = Number(ayah?.surah?.number);
+    const label = quranSurahLabels[surahNumber] || {};
+    const tajweedText = String(ayah.text || '');
+    const tajweedSegments = tajweedText.trim() ? parseAlQuranTajweed(tajweedText) : [{ text: '', className: '' }];
+    return {
+      number: Number(ayah.number), numberInSurah: Number(ayah.numberInSurah), surahNumber,
+      surahName: ayah?.surah?.englishName || label.surahName || 'Surah ' + surahNumber,
+      arabicName: ayah?.surah?.name || label.arabicName || '',
+      text: tajweedSegments.map(segment => segment.text).join(''),
+      tajweedText, tajweedSegments,
+      translation: String(english.ayahs[index]?.text || '').replace(/<[^>]*>/g, '').trim(),
+      translations: [], words: []
+    };
+  });
+  return {
+    page, juz: Number(tajweed.ayahs[0]?.juz) || 1, hizb: Math.ceil((Number(tajweed.ayahs[0]?.hizbQuarter || tajweed.ayahs[0]?.hizb_quarter) || 1) / 4), qcfAvailable: false,
+    tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => ayah.tajweedSegments.some(segment => Boolean(segment.className))),
+    translationSource: 'Sahih International', ayahs
+  };
+}
+function normalizeAlQuranCloudSurah(body, surahNumber) {
+  const editions = Array.isArray(body?.data) ? body.data : [];
+  const tajweed = editions.find(item => item?.edition?.identifier === 'quran-tajweed');
+  const english = editions.find(item => item?.edition?.identifier === 'en.sahih');
+  if (body?.code !== 200 || !Array.isArray(tajweed?.ayahs) || !tajweed.ayahs.length ||
+      !Array.isArray(english?.ayahs) || english.ayahs.length !== tajweed.ayahs.length) {
+    throw new Error('AlQuranCloud returned an incomplete Tajweed/English Surah.');
+  }
+  const label = quranSurahLabels[surahNumber] || {};
+  const ayahs = tajweed.ayahs.map((ayah, index) => {
+    const tajweedText = String(ayah.text || '');
+    const tajweedSegments = tajweedText.trim() ? parseAlQuranTajweed(tajweedText) : [{ text: '', className: '' }];
+    return {
+      number: Number(ayah.number), numberInSurah: Number(ayah.numberInSurah), surahNumber,
+      surahName: ayah?.surah?.englishName || label.surahName || 'Surah ' + surahNumber,
+      arabicName: ayah?.surah?.name || label.arabicName || '',
+      text: tajweedSegments.map(segment => segment.text).join(''),
+      tajweedText, tajweedSegments,
+      translation: String(english.ayahs[index]?.text || '').replace(/<[^>]*>/g, '').trim(),
+      translations: [], words: []
+    };
+  });
+  return {
+    page: Number(tajweed.ayahs[0]?.page) || 1,
+    juz: Number(tajweed.ayahs[0]?.juz) || 1,
+    qcfAvailable: false,
+    tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => ayah.tajweedSegments.some(segment => Boolean(segment.className))),
+    translationSource: 'Sahih International', ayahs
+  };
+}
+async function fetchAlQuranCloudPage(page) {
+  const providers = ['https://api.alquran.cloud/v1', 'https://alquran.api.islamic.network/v1', 'https://alquran.api.alislam.ru/v1'];
+  const normalizeEdition = body => {
+    if (body?.code !== 200 || !Array.isArray(body?.data?.ayahs) || !body.data.ayahs.length) {
+      throw new Error('AlQuranCloud returned an incomplete page edition.');
+    }
+    return body.data;
+  };
+  let lastError = null;
+  for (const base of providers) {
+    try {
+      // AlQuranCloud supports multi-edition /editions/ on Surah routes, but
+      // Page routes accept one edition per request. Fetch both directly.
+      const [tajweed, english] = await Promise.all([
+        fetchQuranMirror(base + '/page/' + page + '/quran-tajweed', normalizeEdition, page),
+        fetchQuranMirror(base + '/page/' + page + '/en.sahih', normalizeEdition, page)
+      ]);
+      const primary = normalizeAlQuranCloud({ code: 200, data: [tajweed, english] }, page);
+      try {
+        const query = '?mushaf=1&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number,hizb_number&page=' + page + '&per_page=50';
+        const fallback = await fetchQuranMirror('https://api.quran.com/api/v4/verses/by_page/' + page + query, body => normalizeQuranCom(body, page), page);
+        if (fallback?.qcfAvailable) return mergeMissingTajweed(fallback, primary);
+        return primary.tajweedComplete ? primary : mergeMissingTajweed(primary, fallback);
+      } catch (fallbackError) {
+        console.warn('Quran.com page/QCF fallback failed:', page, fallbackError.message);
+        if (primary.tajweedComplete) return primary;
+        throw fallbackError;
+      }
+    } catch (error) {
+      lastError = error;
+      console.warn('AlQuranCloud Tajweed page provider failed:', base, error.message);
+    }
+  }
+  throw lastError || new Error('No AlQuranCloud Tajweed page provider is available.');
+}
+async function fetchAlQuranCloudSurah(surahNumber) {
+  const providers = ['https://api.alquran.cloud/v1', 'https://alquran.api.islamic.network/v1', 'https://alquran.api.alislam.ru/v1'];
+  let lastError = null;
+  for (const base of providers) {
+    try {
+      const primary = await fetchQuranMirror(base + '/surah/' + surahNumber + '/editions/quran-tajweed,en.sahih', body => normalizeAlQuranCloudSurah(body, surahNumber), surahNumber);
+      if (primary.tajweedComplete) return primary;
+      try {
+        const query = '?mushaf=1&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number&per_page=300';
+        const fallback = await fetchQuranMirror('https://api.quran.com/api/v4/verses/by_chapter/' + surahNumber + query, body => normalizeQuranCom(body, 1), 1);
+        return mergeMissingTajweed(primary, fallback);
+      } catch (fallbackError) {
+        console.warn('Quran.com Surah Tajweed completion failed:', surahNumber, fallbackError.message);
+        return primary;
+      }
+    } catch (error) {
+      lastError = error;
+      console.warn('AlQuranCloud Tajweed Surah provider failed:', base, error.message);
+    }
+  }
+  throw lastError || new Error('No AlQuranCloud Tajweed Surah provider is available.');
+}
+function normalizeQuranCom(body, page) {
+  const verses = Array.isArray(body?.verses) ? body.verses : [];
+  if (!verses.length) throw new Error('Quran.com mirror returned an incomplete page.');
+  const firstWords = verses.flatMap(verse => Array.isArray(verse.words) ? verse.words : []);
+  const qcfAvailable = firstWords.some(word => typeof word?.code_v2 === 'string' && word.code_v2.length > 0);
+  const firstTranslationIds = Array.isArray(verses[0]?.translations) ? verses[0].translations.map(item => Number(item.resource_id || item.id)) : [];
+  const translationSource = firstTranslationIds.includes(131) ? 'The Clear Quran · Dr. Mustafa Khattab' : 'Sahih International';
+  return { page, juz: Number(verses[0]?.juz_number) || 1, hizb: Number(verses[0]?.hizb_number) || 1, qcfAvailable,
+    ayahs: verses.map(verse => {
+      const [surahRaw, ayahRaw] = String(verse.verse_key || '').split(':');
+      const surahNumber = Number(verse.chapter_id || surahRaw);
+      const label = quranSurahLabels[surahNumber] || {};
+      const translations = Array.isArray(verse.translations) ? verse.translations.map(item => ({
+        id: Number(item.resource_id || item.id), name: String(item.name || item.resource_name || ''),
+        text: String(item.text || '').replace(/<[^>]*>/g, '').trim()
+      })) : [];
+      const clearQuran = translations.find(item => item.id === 131);
+      const sahih = translations.find(item => item.id === 20);
+      const words = Array.isArray(verse.words) ? verse.words.map(word => ({
+        text: String(word.text_uthmani || word.text_qpc_hafs || ''),
+        tajweed: String(word.text_uthmani_tajweed || ''),
+        codeV2: String(word.code_v2 || ''),
+        lineNumber: Number(word.line_v2 || word.line_number || 0),
+        pageNumber: Number(word.v2_page || word.page_number || page),
+        position: Number(word.position || word.location || 0),
+        verseKey: String(verse.verse_key || ''),
+        charTypeName: String(word.char_type_name || '')
+      })) : [];
+      const text = String(verse.text_uthmani || verse.text_qpc_hafs || words.map(word => word.text).join(' '));
+      const tajweedText = String(verse.text_uthmani_tajweed || words.map(word => word.tajweed).filter(Boolean).join(' '));
+      const tajweedSegments = tajweedText.trim() ? parseAlQuranTajweed(tajweedText) : [{ text: normalizeMadinahArabic(text), className: '' }];
+      return { number: Number(verse.id), numberInSurah: Number(verse.verse_number || ayahRaw), surahNumber,
+        surahName: label.surahName || `Surah ${surahNumber}`, arabicName: label.arabicName || '',
+        text, tajweedText, tajweedSegments,
+        translation: clearQuran?.text || sahih?.text || '',
+        translations, words };
+    }) };
+}
+// Identity adapter retained for the page pipeline. Provider-tagged Tajweed is
+// tokenized directly and is never reconstructed from offsets in another edition.
+async function enrichPageWithQuranJsonTajweed(pagePayload) { return pagePayload; }
+function splitTajweedWords(markup) {
+  const tokens = String(markup || '').match(/<[^>]*>|[^<\s]+|\s+/g) || [];
+  const words = [];
+  let current = '';
+  for (const token of tokens) {
+    if (/^\s+$/.test(token)) { if (current) words.push(current); current = ''; }
+    else current += token.replace(/[\u06DD\u06DE\u06E9\u06DF-\u06E8\u06EA-\u06ED]/g, '');
+  }
+  if (current) words.push(current);
+  return words;
+}
+function mergeMissingTajweed(primary, fallback) {
+  const backupByAyah = new Map((fallback?.ayahs || []).map(ayah => [String(ayah.surahNumber) + ':' + String(ayah.numberInSurah), ayah]));
+  const ayahs = (primary?.ayahs || []).map(ayah => {
+    if ((ayah.tajweedSegments || []).some(segment => Boolean(segment.className))) return ayah;
+    const backup = backupByAyah.get(String(ayah.surahNumber) + ':' + String(ayah.numberInSurah));
+    if (!backup || !(backup.tajweedSegments || []).some(segment => Boolean(segment.className))) return ayah;
+    return { ...ayah, text: backup.text, tajweedText: backup.tajweedText, tajweedSegments: backup.tajweedSegments };
+  });
+  return { ...primary, ayahs, tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))) };
+}
+async function fetchOfficialTajweedPage(apiBase, headers, page) {
+  if (!headers['x-auth-token'] || !headers['x-client-id']) throw new Error('Quran Foundation credentials are not configured for complete Tajweed text.');
+  const url = apiBase + '/quran/verses/uthmani_tajweed?page_number=' + page + '&per_page=50';
+  const response = await fetch(url, { headers: { Accept: 'application/json', ...headers }, signal: AbortSignal.timeout(9000) });
+  if (!response.ok) throw new Error('Quran Foundation Tajweed endpoint returned HTTP ' + response.status + '.');
+  const body = await response.json();
+  const verses = Array.isArray(body?.verses) ? body.verses : [];
+  if (!verses.length) throw new Error('Quran Foundation returned no Tajweed verses for page ' + page + '.');
+  return new Map(verses.map(verse => [String(verse.verse_key || ''), String(verse.text_uthmani_tajweed || '')]));
+}
+function applyTajweedToPage(pagePayload, tajweedByVerse) {
+  const ayahs = pagePayload.ayahs.map(ayah => {
+    const tajweedText = tajweedByVerse.get(ayah.surahNumber + ':' + ayah.numberInSurah) || '';
+    if (!tajweedText) return { ...ayah, tajweedText: '' };
+    const markedWords = splitTajweedWords(tajweedText);
+    const textWords = (ayah.words || []).filter(word => word.charTypeName !== 'end');
+    const words = ayah.words?.length && markedWords.length === textWords.length
+      ? (() => { let index = 0; return ayah.words.map(word => word.charTypeName === 'end' ? word : { ...word, tajweed: markedWords[index++] }); })()
+      : ayah.words;
+    return { ...ayah, tajweedText, words };
+  });
+  return { ...pagePayload, ayahs, tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => Boolean(ayah.tajweedText)) };
+}
+async function fetchQuranMirror(url, normalizer, page, extraHeaders = {}) {
+  let lastError;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const response = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'AmstreemAtlas/1.0', ...extraHeaders }, signal: AbortSignal.timeout(15000) });
+      if (!response.ok) throw new Error(`Mirror returned HTTP ${response.status}.`);
+      return normalizer(await response.json(), page);
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) console.warn('Qur’an provider request failed; retrying once:', error.message);
+    }
+  }
+  throw lastError || new Error('Qur’an provider request failed.');
+}
+app.get('/api/quran/page/:page', async (req, res) => {
+  const page = Number(req.params.page);
+  if (!Number.isInteger(page) || page < 1 || page > 604) return res.status(400).json({ error: 'Qur’an page must be between 1 and 604.' });
+  const send = (payload, source) => {
+    res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+    res.setHeader('X-Quran-Cache', source);
+    return res.json(sanitizeQuranPayload(payload));
+  };
+  const cached = quranPageCache.get(page);
+  if (cached && Date.now() - cached.cachedAt < QURAN_CACHE_TTL_MS) return send(cached.payload, 'HIT');
+  if (quranPageInflight.has(page)) {
+    try { return send(await quranPageInflight.get(page), 'COALESCED'); } catch { /* provider retry below */ }
+  }
+  const task = (async () => {
+    let primary = null;
+    try { primary = await fetchAlQuranCloudPage(page); }
+    catch (error) { console.warn('AlQuranCloud providers exhausted:', error.message); }
+    let fallback = null;
+    const query = `?mushaf=1&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number,hizb_number&page=${page}&per_page=50`;
+    if (!primary?.ayahs?.length || !primary?.qcfAvailable) {
+      for (const url of [`https://quran.com/api/proxy/content/api/qdc/verses/by_page/${page}${query}`,`https://api.quran.com/api/v4/verses/by_page/${page}${query}`]) {
+        try {
+          fallback = await fetchQuranMirror(url, normalizeQuranCom, page);
+          if (fallback?.ayahs?.length && fallback.tajweedComplete) break;
+        } catch (error) { console.warn('Quran.com fallback failed:', error.message); }
+      }
+    }
+    const annotationCount = candidate => (candidate?.ayahs || []).filter(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).length;
+    const sourcePage = fallback?.qcfAvailable
+      ? mergeMissingTajweed(fallback, primary || fallback)
+      : (annotationCount(fallback) > annotationCount(primary) ? fallback : (primary?.ayahs?.length ? primary : fallback));
+    if (!sourcePage?.ayahs?.length) {
+      const offline = quranOfflinePages[String(page)];
+      if (offline?.ayahs?.length) return { ...offline, page, offlineFallback: true, qcfAvailable: false };
+      throw new Error('All Qur’an page providers are temporarily unavailable.');
+    }
+    const enrichedPage = await enrichPageWithQuranJsonTajweed(sourcePage);
+    return {
+      ...enrichedPage, page, juz: enrichedPage.juz || getPageJuzFallback(page),
+      ayahs: enrichedPage.ayahs.map(ayah => ({
+        ...ayah, text: String(ayah.text || ''), tajweedText: String(ayah.tajweedText || ''),
+        tajweedSegments: Array.isArray(ayah.tajweedSegments) ? ayah.tajweedSegments : parseAlQuranTajweed(ayah.tajweedText || ''),
+        translation: String(ayah.translation || '')
+      })),
+      tajweedComplete: enrichedPage.tajweedComplete
+    };
+  })();
+  quranPageInflight.set(page, task);
+  try {
+    const payload = sanitizeQuranPayload(await task);
+    quranPageCache.set(page, { cachedAt: Date.now(), payload });
+    if (quranPageCache.size > 604) quranPageCache.delete(quranPageCache.keys().next().value);
+    return send(payload, payload.offlineFallback ? 'OFFLINE' : 'MISS');
+  } catch (error) {
+    console.error('Qur’an page providers exhausted:', error.message);
+    if (cached?.payload?.ayahs?.length) return send(cached.payload, 'STALE');
+    return res.status(502).json({ error: 'This page could not be fetched right now. Saved pages remain available; retry when the connection returns.' });
+  } finally { quranPageInflight.delete(page); }
+});
+app.get('/api/quran/surah/:surah', async (req, res) => {
+  const surahNumber = Number(req.params.surah);
+  if (!Number.isInteger(surahNumber) || surahNumber < 1 || surahNumber > 114) {
+    return res.status(400).json({ error: 'Qur’an Surah must be between 1 and 114.' });
+  }
+  const send = (payload, source) => {
+    res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+    res.setHeader('X-Quran-Cache', source);
+    return res.json(sanitizeQuranPayload(payload));
+  };
+  const cached = quranSurahCache.get(surahNumber);
+  if (cached && Date.now() - cached.cachedAt < QURAN_CACHE_TTL_MS) return send(cached.payload, 'HIT');
+  if (quranSurahInflight.has(surahNumber)) {
+    try { return send(await quranSurahInflight.get(surahNumber), 'COALESCED'); } catch { /* provider retry below */ }
+  }
+  const task = fetchAlQuranCloudSurah(surahNumber);
+  quranSurahInflight.set(surahNumber, task);
+  try {
+    const payload = sanitizeQuranPayload(await task);
+    quranSurahCache.set(surahNumber, { cachedAt: Date.now(), payload });
+    if (quranSurahCache.size > 114) quranSurahCache.delete(quranSurahCache.keys().next().value);
+    return send(payload, 'MISS');
+  } catch (error) {
+    console.error('Qur’an Surah provider failed:', surahNumber, error.message);
+    if (cached?.payload?.ayahs?.length) return send(cached.payload, 'STALE');
+    return res.status(502).json({ error: 'This Surah could not be fetched right now. Please retry when the connection returns.' });
+  } finally {
+    quranSurahInflight.delete(surahNumber);
+  }
+});
+function getPageJuzFallback(page) {
+  const starts = [1,22,42,62,82,102,121,142,162,182,201,222,242,262,282,302,322,342,362,382,402,422,442,462,482,502,522,542,562,582];
+  let juz = 1;
+  for (let index = 0; index < starts.length; index += 1) if (page >= starts[index]) juz = index + 1;
+  return juz;
+}
+
 const ownerUserId = process.env.ADMIN_USER_ID || (process.env.ATLAS_STAGING === 'true' ? null : supabaseConfig.ownerUserId);
 const tenantContext = new AsyncLocalStorage();
 const userLocks = new Map();
@@ -111,23 +574,45 @@ app.get('/supabase-config.js', (req, res) => {
 });
 const frontendDist = path.join(__dirname, 'dist');
 const frontendEntry = path.join(frontendDist, 'index.html');
+const buildRevision = String(process.env.RENDER_GIT_COMMIT || process.env.BUILD_ID || 'local').replace(/[^a-zA-Z0-9_-]/g, '');
 
-// Public assets remain available for shared brand files, but the legacy public
-// HTML shell must never become the application's root document.
+// HTML is always revalidated; only Vite's content-hashed /assets files are immutable.
+app.use((req, res, next) => {
+  if (req.path === '/' || req.path.toLowerCase().endsWith('.html')) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  } else if (req.path.startsWith('/assets/') && /-[A-Za-z0-9_-]{8,}\.(?:js|css|woff2?|svg|png|jpe?g|webp|ico)$/i.test(path.basename(req.path))) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  }
+  next();
+});
+
+// Versioned invalidation worker: every Render commit gets a distinct worker body.
+// It removes stale app caches and unregisters after forcing open tabs onto fresh HTML.
 app.get('/service-worker.js', (req, res) => {
-  res.setHeader('Cache-Control', 'no-store, max-age=0');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.type('application/javascript').send(`
+    const CACHE_VERSION = 'atlas-shell-${buildRevision}';
     self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));
     self.addEventListener('activate', event => event.waitUntil((async () => {
       const keys = await caches.keys();
-      await Promise.all(keys.map(key => caches.delete(key)));
+      await Promise.all(keys.filter(key => key !== CACHE_VERSION).map(key => caches.delete(key)));
+      await caches.open(CACHE_VERSION);
       await self.registration.unregister();
       const clients = await self.clients.matchAll({ type: 'window' });
       clients.forEach(client => client.navigate(client.url));
     })()));
   `);
 });
-app.use(express.static(frontendDist));
+app.use(express.static(frontendDist, {
+  setHeaders(res, filePath) {
+    const relativePath = path.relative(frontendDist, filePath).split(path.sep).join('/');
+    if (relativePath === 'index.html') {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    } else if (relativePath.startsWith('assets/') && /-[A-Za-z0-9_-]{8,}\.(?:js|css|woff2?|svg|png|jpe?g|webp|ico)$/i.test(path.basename(filePath))) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+  }
+}));
 app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
 // A short per-account queue prevents overlapping requests from overwriting
@@ -254,7 +739,7 @@ app.use('/api', async (req, res, next) => {
     const adminRoute = req.path.startsWith('/admin');
     if (adminRoute && user.id !== ownerUserId) return res.status(403).json({ error: 'Administrator access required.' });
     req.user = user;
-    const accountRetryAfter = consumeRateLimit(`account:${user.id}`, 90);
+    const accountRetryAfter = consumeRateLimit(`account:${user.id}`, 240);
     if (accountRetryAfter) {
       res.setHeader('Retry-After', String(accountRetryAfter));
       return res.status(429).json({ error: 'Too many requests for this account. Please wait and try again.' });
@@ -738,7 +1223,7 @@ app.post('/api/reviews',(q,s)=>{
 
 app.get('/api/settings',(q,s)=>{const values=Object.fromEntries(all('SELECT key,value FROM settings').map(x=>[x.key,x.value]));values.faith_tradition=values.faith_tradition||values.religion||'general';s.json(values);});
 app.patch('/api/settings',(q,s)=>{
- const allowed=['daily_target','display_name','username','north_star','religion','faith_tradition','leaderboard_name','leaderboard_public','theme','features','widgets','sidebar_collapsed'];
+ const allowed=['daily_target','display_name','username','north_star','religion','faith_tradition','leaderboard_name','leaderboard_public','theme','features','widgets','sidebar_collapsed','hifz_page','hifz_bookmark','murajaah_page','murajaah_bookmark'];
  const themes=['shadowed-alchemist','nocturnal-amethyst','abyssal-trench','whispering-woods','crimson-velvet','light-porcelain','light-sandstone','light-sage','light-lavender','light-sky'];
  const features=['calendar','deen','faith','selfcontrol','learning','tasks','focus','library','goals','rankings','rituals','values'];
  if(q.body.religion!==undefined&&!['islam','christianity','none','prefer_not_to_say'].includes(q.body.religion))return s.status(400).json({error:'Choose a valid religious experience.'});
@@ -780,10 +1265,20 @@ app.get('*',(req,res,next)=>{
   if (!fs.existsSync(frontendEntry)) {
     return res.status(503).type('text/plain').send('Atlas frontend build is missing. Please retry the deployment.');
   }
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.sendFile(frontendEntry, error => { if(error) next(error); });
 });
 
 if (!fs.existsSync(frontendEntry)) {
   throw new Error('Atlas frontend build is missing: expected dist/index.html. Refusing to serve the legacy public HTML shell.');
 }
-app.listen(PORT,()=>console.log(`Amstreem Atlas running at http://localhost:${PORT}`));
+Promise.all([fetchAlQuranCloudPage(1), fetchAlQuranCloudPage(2)])
+  .then(([page1, page2]) => {
+    const coloredAyahs = page => page.ayahs.filter(ayah => (ayah.tajweedSegments || []).some(segment => segment.className)).length;
+    const openingAyah = page2.ayahs.find(ayah => Number(ayah.surahNumber) === 2 && Number(ayah.numberInSurah) === 1);
+    const openingMarked = (openingAyah?.tajweedSegments || []).filter(segment => segment.className).reduce((count, segment) => count + segment.text.length, 0);
+    console.info('AlQuranCloud Uthmani/Sahih/Tajweed provider ready:', page1.ayahs.length, 'page 1 verses;', page2.ayahs.length, 'page 2 verses');
+    console.info('Direct Tajweed tokens:', coloredAyahs(page1), '/', page1.ayahs.length, 'page 1 ayahs;', coloredAyahs(page2), '/', page2.ayahs.length, 'page 2 ayahs; 2:1 marked characters:', openingMarked);
+  })
+  .catch(error => console.warn('Quran reading data startup check failed:', error.message));
+app.listen(PORT, '0.0.0.0',()=>console.log(`Amstreem Atlas running on 0.0.0.0:${PORT}`));

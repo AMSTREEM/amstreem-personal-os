@@ -9,11 +9,11 @@ import { Cascade } from '../components/Cascade';
 import { playAtlasFeedback } from '../lib/microFeedback';
 import { RhythmConstellation } from '../components/fx/RhythmConstellation';
 import { triggerSparkBurst } from '../components/fx/SparkBurst';
+import { QuranMushafReader } from '../components/QuranMushafReader';
 
 type Settings = Record<string, string>;
 type Prayer = { prayer: string; completed: number; on_time: number };
 type Deen = { date: string; prayers: Prayer[]; quran: { activity: string; pages: number; entries: number }[]; tahajjud: { woke_up: number; prayed: number } };
-type QuranLog = { id: number; log_date: string; activity: string; surah: string; ayah_start: number | null; ayah_end: number | null; pages: number; juz: number | null; reflection: string };
 type RhythmRecord = { id: number; record_date: string; tradition: string; record_type: string; title: string; detail: string; status: 'planned'|'completed'|'active'|'answered'; metadata: Record<string, unknown> };
 const prayerNames = ['Fajr','Dhuhr','Asr','Maghrib','Isha'];
 const prayerRhythm = ['Morning Quiet Time','Midday Pause','Evening Examen'];
@@ -23,16 +23,9 @@ function dateKey() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa
 export function ValuesPage() {
   const client = useQueryClient();
   const { role } = useAuth();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const date = dateKey();
-  const [activity, setActivity] = useState('memorisation');
   const [faithWorkspace, setFaithWorkspace] = useState<'primary'|'secondary'|'tertiary'|'all'>('primary');
-  const [surah, setSurah] = useState('');
-  const [ayahStart, setAyahStart] = useState('');
-  const [ayahEnd, setAyahEnd] = useState('');
-  const [pages, setPages] = useState('0');
-  const [juz, setJuz] = useState('');
-  const [quranReflection, setQuranReflection] = useState('');
   const [quickTitle, setQuickTitle] = useState('');
   const [quickDetail, setQuickDetail] = useState('');
   const [quickStatus, setQuickStatus] = useState<'planned'|'completed'>('planned');
@@ -49,12 +42,15 @@ export function ValuesPage() {
   const [intercession, setIntercession] = useState('');
   const [intercessionDetail, setIntercessionDetail] = useState('');
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Settings>('/settings') });
+  const traditionMutation = useMutation({
+    mutationFn: (value: 'islam'|'christianity'|'general') => api<Settings>('/settings', json('PATCH', { faith_tradition: value })),
+    onSuccess: () => { void client.invalidateQueries({ queryKey: ['settings'] }); void client.invalidateQueries({ queryKey: ['overview'] }); void client.invalidateQueries({ queryKey: ['deen'] }); void client.invalidateQueries({ queryKey: ['quran-logs'] }); void client.invalidateQueries({ queryKey: ['rhythm-records'] }); void client.invalidateQueries({ queryKey: ['rhythm-summary'] }); }
+  });
   const religion = settings.data?.faith_tradition || settings.data?.religion || 'none';
   const requestedTradition = searchParams.get('tradition');
   const adminPreview = role === 'admin' && ['islam','christianity','general'].includes(requestedTradition || '') ? requestedTradition : null;
   const tradition = adminPreview || (religion === 'islam' || religion === 'christianity' ? religion : 'general');
   const deen = useQuery({ queryKey: ['deen', date], queryFn: () => api<Deen>('/deen/summary?date=' + date), enabled: tradition === 'islam' });
-  const quranLogs = useQuery({ queryKey: ['quran-logs'], queryFn: () => api<QuranLog[]>('/deen/quran'), enabled: tradition === 'islam' });
   const records = useQuery({ queryKey: ['rhythm-records', date], queryFn: () => api<RhythmRecord[]>('/rhythm/records?date=' + date) });
   const createRecord = useMutation({
     mutationFn: (entry: { record_type: string; title: string; detail?: string; status?: RhythmRecord['status']; record_date?: string }) => api<RhythmRecord>('/rhythm/records', json('POST', { record_date: date, status: 'completed', ...entry, ...(adminPreview ? { admin_tradition: adminPreview } : {}) })),
@@ -69,25 +65,17 @@ export function ValuesPage() {
     mutationFn: (entry: { item: Prayer; status: 'pending'|'on_time'|'qada' }) => api('/deen/prayer', json('PATCH', { date, prayer: entry.item.prayer, completed: entry.status === 'pending' ? 0 : 1, on_time: entry.status === 'on_time' ? 1 : 0 })),
     onSuccess: () => { void client.invalidateQueries({ queryKey: ['deen', date] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
   });
-  const quran = useMutation({
-    mutationFn: () => api('/deen/quran', json('POST', { log_date: date, activity, surah, ayah_start: ayahStart || null, ayah_end: ayahEnd || null, pages: Number(pages), juz: juz || null, reflection: quranReflection })),
-    onSuccess: () => { setSurah(''); setAyahStart(''); setAyahEnd(''); setPages('0'); setJuz(''); setQuranReflection(''); void client.invalidateQueries({ queryKey: ['quran-logs'] }); void client.invalidateQueries({ queryKey: ['deen', date] }); void client.invalidateQueries({ queryKey: ['rhythm-summary'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
-  });
   const recordsFor = (type: string) => (records.data || []).filter(item => item.record_type === type);
   const add = (type: string, title: string, detail = '', status: RhythmRecord['status'] = 'completed') => createRecord.mutate({ record_type: type, title, detail, status });
   const setPrayerStatus = (item: Prayer, status: string) => prayer.mutate({ item, status: status as 'pending'|'on_time'|'qada' });
   const prayerCount = deen.data?.prayers.filter(item => !!item.completed).length ?? 0;
-  const quranToday = quranLogs.data?.filter(log => log.log_date === date) ?? [];
-  const memorisedPages = quranToday.filter(log => log.activity === 'memorisation').reduce((sum, log) => sum + log.pages, 0);
-  const revisedPages = quranToday.filter(log => log.activity === 'revision').reduce((sum, log) => sum + log.pages, 0);
   const recordList = (types: string[]) => (records.data || []).filter(item => types.includes(item.record_type));
   const recordRow = (item: RhythmRecord, answerable = false) => <div className="rhythm-record-row" key={item.id}><span className={'rhythm-record-status rhythm-record-status--' + item.status}>{item.status === 'completed' ? <Check size={13}/> : item.status === 'answered' ? <HeartHandshake size={13}/> : null}</span><div><b>{item.title}</b>{item.detail && <small>{item.detail}</small>}</div>{answerable && item.status === 'active' ? <button type="button" className="text-link" onClick={() => updateRecord.mutate({id:item.id,status:'answered'})}>Mark answered</button> : ['planned','completed'].includes(item.status) && ['sunnah','adhkar','jumuah','prayer_rhythm','daily_intention'].includes(item.record_type) ? <button type="button" className="text-link" onClick={() => updateRecord.mutate({id:item.id,status:item.status==='completed'?'planned':'completed'})}>{item.status==='completed'?'Return to plan':'Mark complete'}</button> : <span className="rhythm-record-label">{item.status}</span>}</div>;
 
   return <Cascade className="stack rhythm-page daily-rhythm-sanctuary">
-    <PageHeader eyebrow="ROOM 02 / DAILY RHYTHM" title={tradition === 'islam' ? 'Deen & Reflection' : tradition === 'christianity' ? 'Faith & Devotion' : 'Clarity & Reflection'} description="A private place to record the practices and reflections that give your day its rhythm."/>
+    <PageHeader eyebrow={tradition === 'islam' ? 'FAITH / DEEN & QUR’AN' : tradition === 'christianity' ? 'FAITH & REFLECTION' : 'PERSONAL REFLECTION'} title={tradition === 'islam' ? 'Deen & Qur’an' : tradition === 'christianity' ? 'Faith & Reflection' : 'Clarity & Reflection'} description="A calm space for daily practice, reading and reflection." action={<div className="atlas-segmented-switcher deen-tradition-switcher" role="group" aria-label="Choose your tradition">{(['islam','christianity','general'] as const).map(value => <button key={value} type="button" className={tradition===value?'is-active':''} aria-pressed={tradition===value} disabled={traditionMutation.isPending} onClick={() => { if(adminPreview) setSearchParams(value==='general'?{}:{tradition:value}); else traditionMutation.mutate(value); }}>{value==='islam'?'Islam':value==='christianity'?'Christianity':'General'}</button>)}</div>}/>
     <RhythmConstellation/>
     {tradition === 'islam' && <div className="rhythm-branch" data-faith-workspace={faithWorkspace}>
-      <section className="rhythm-intro surface-card"><div><span className="eyebrow">DEEN · DAILY PRACTICE</span><h2>Return to what matters.</h2><p>Record the five prayers, Qur’an work and optional acts of worship. A plan is not a completed act; keep the distinction honest.</p></div><div className="rhythm-intro-stat"><b>{prayerCount}/5</b><small>SALAH RECORDED</small></div></section>
       <nav className="growth-workspace-switcher atlas-segmented-switcher" aria-label="Choose faith workspace">{["Salah & Adhkar","Qur'an & Hifz","Jumu'ah & Muhasabah","Show All"].map((label,index)=><button key={label} type="button" className={faithWorkspace===(['primary','secondary','tertiary','all'][index])?'is-active':''} aria-pressed={faithWorkspace===(['primary','secondary','tertiary','all'][index])} onClick={()=>setFaithWorkspace(['primary','secondary','tertiary','all'][index] as 'primary'|'secondary'|'tertiary'|'all')}>{label}</button>)}</nav>
       <div className="rhythm-grid">
         <Card className="faith-section-primary"><div className="module-panel-head"><div><span className="module-kicker">THE FIVE DAILY PRAYERS</span><h2>Salah record</h2><p className="rhythm-prayer-count">{prayerCount}/5 prayers recorded</p></div><MoonStar size={18}/></div><p className="module-intro">Choose whether each prayer was completed on time, made up (qada), or is not yet recorded.</p>
@@ -100,17 +88,7 @@ export function ValuesPage() {
           <div className="rhythm-quick-actions"><button type="button" onClick={()=>add('adhkar','Morning adhkar','', 'completed')}>+ Morning adhkar</button><button type="button" onClick={()=>add('adhkar','Evening adhkar','', 'completed')}>+ Evening adhkar</button></div>
         </Card>
       </div>
-      <Card className="faith-section-secondary"><div className="module-panel-head"><div><span className="module-kicker">HIFZ / RECITATION / REVISION</span><h2>Qur’an reading & Hifz</h2></div><BookOpen size={18}/></div>
-        <div className="rhythm-stats"><div><b>{memorisedPages}</b><small>MEMORISED PAGES</small></div><div><b>{revisedPages}</b><small>REVISED PAGES</small></div><div><b>{quranToday.length}</b><small>SESSIONS TODAY</small></div></div>
-        <div className="rhythm-quran-layout"><details className="atlas-add-disclosure"><summary>+ Add record</summary><form className="form-stack" onSubmit={event=>{event.preventDefault();if(surah.trim())quran.mutate();}}>
-          <div className="field-row"><Field label="ACTIVITY"><select className="field-input" value={activity} onChange={event=>setActivity(event.target.value)}><option value="memorisation">Hifz · memorisation</option><option value="revision">Revision</option></select></Field><Field label="SURAH"><TextInput value={surah} onChange={event=>setSurah(event.target.value)} placeholder="Surah name" required maxLength={80}/></Field></div>
-          <div className="field-row"><Field label="STARTING AYAH"><TextInput type="number" min="1" max="286" value={ayahStart} onChange={event=>setAyahStart(event.target.value)}/></Field><Field label="ENDING AYAH"><TextInput type="number" min="1" max="286" value={ayahEnd} onChange={event=>setAyahEnd(event.target.value)}/></Field></div>
-          <div className="field-row"><Field label="PAGES"><TextInput type="number" min="0" max="100" value={pages} onChange={event=>setPages(event.target.value)}/></Field><Field label="JUZ"><TextInput type="number" min="1" max="30" value={juz} onChange={event=>setJuz(event.target.value)}/></Field></div>
-          <Field label="REFLECTION (OPTIONAL)"><TextArea value={quranReflection} onChange={event=>setQuranReflection(event.target.value)} placeholder="What did you memorise, revise or notice?"/></Field>
-          <div><Button type="submit" disabled={quran.isPending||!surah.trim()}>{quran.isPending?'Saving…':'Save Qur’an record'}</Button></div>
-        </form></details><div className="rhythm-record-list">{quranToday.slice(0,8).map(log=><div className="rhythm-record-row" key={log.id}><span className="rhythm-record-status rhythm-record-status--completed"><Check size={13}/></span><div><b>{log.surah} · {log.activity}</b><small>{log.ayah_start?'Ayah '+log.ayah_start+(log.ayah_end?'–'+log.ayah_end:'')+' · ':''}{log.pages+' pages'}{log.juz?' · Juz '+log.juz:''}</small></div></div>)}</div></div>
-        <div className="rhythm-focus-link"><span>Ready for a dedicated block?</span><Link className="button button--secondary" to="/focus?focus=Qur%27an%20Hifz%20and%20Revision"><Timer size={14}/> Start Qur’an Focus</Link></div>
-      </Card>
+      <QuranMushafReader autoOpen={searchParams.get('openMushaf') === '1'} settings={settings.data || {}} settingsReady={settings.isFetched} onLogged={() => { void client.invalidateQueries({ queryKey: ['deen', date] }); void client.invalidateQueries({ queryKey: ['rhythm-summary'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }} />
       <div className="rhythm-grid">
         <Card className="faith-section-tertiary"><div className="module-panel-head"><div><span className="module-kicker">FRIDAY PREPARATION</span><h2>Jumu’ah checklist</h2></div></div>
           {jumuahItems.map(title=>{const item=recordsFor('jumuah').find(row=>row.title===title);return <div className="rhythm-check-row" key={title}><span>{title}</span>{item ? <button type="button" className={item.status==='completed'?'is-complete':''} onClick={()=>updateRecord.mutate({id:item.id,status:item.status==='completed'?'planned':'completed'})}>{item.status==='completed'?'Completed':'Planned · Mark done'}</button> : <button type="button" onClick={()=>add('jumuah',title,'', 'planned')}>Add to plan</button>}</div>;})}
@@ -152,7 +130,19 @@ export function ValuesPage() {
       <Card className="faith-section-secondary"><div className="module-panel-head"><div><span className="module-kicker">EVENING REFLECTION</span><h2>Close the day with clarity.</h2></div><MoonStar size={18}/></div><details className="atlas-add-disclosure"><summary>+ Add record</summary><form className="form-stack" onSubmit={event=>{event.preventDefault();if(evening.trim())add('evening_reflection','Evening reflection',evening);setEvening('');}}><Field label="WHAT MOVED FORWARD, WHAT DID YOU LEARN, AND WHAT COMES NEXT?"><TextArea value={evening} onChange={event=>setEvening(event.target.value)} rows={4} placeholder="Notice the day without judgement. Name one meaningful next step."/></Field><Button type="submit" disabled={!evening.trim()||createRecord.isPending}>Save reflection</Button></form></details>{recordList(['evening_reflection']).map(item=>recordRow(item))}</Card>
     </div>}
     {createRecord.isError && <p className="inline-error">{createRecord.error.message}</p>}
-    {quran.isError && <p className="inline-error">{quran.error.message}</p>}
     {prayer.isError && <p className="inline-error">{prayer.error.message}</p>}
+    <style>{deenPageStyles}</style>
   </Cascade>;
 }
+
+const deenPageStyles = `
+.daily-rhythm-sanctuary{gap:24px!important}
+.daily-rhythm-sanctuary>.page-header{align-items:center;gap:20px;margin-bottom:0}
+.daily-rhythm-sanctuary .deen-tradition-switcher{flex-wrap:nowrap;white-space:nowrap}
+.daily-rhythm-sanctuary .rhythm-branch{display:flex;flex-direction:column;gap:24px}
+.daily-rhythm-sanctuary .rhythm-grid{gap:24px!important}
+.daily-rhythm-sanctuary .atlas-card,.daily-rhythm-sanctuary .rhythm-intro,.daily-rhythm-sanctuary>.surface-card{padding:18px 20px!important}
+.daily-rhythm-sanctuary .faith-section-secondary,.daily-rhythm-sanctuary .faith-section-primary,.daily-rhythm-sanctuary .faith-section-tertiary{margin:0!important}
+.daily-rhythm-sanctuary .rhythm-stats{margin-top:18px}
+@media(max-width:700px){.daily-rhythm-sanctuary>.page-header{align-items:stretch}.daily-rhythm-sanctuary .deen-tradition-switcher{width:100%;justify-content:space-between}.daily-rhythm-sanctuary .deen-tradition-switcher button{flex:1;padding:8px 9px}.daily-rhythm-sanctuary .atlas-card,.daily-rhythm-sanctuary .rhythm-intro{padding:18px 20px!important}}
+`;

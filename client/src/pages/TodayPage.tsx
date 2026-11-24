@@ -48,6 +48,13 @@ function readTimer(): StoredTimer {
   } catch { /* A malformed local timer should not break Residence. */ }
   return { remaining: 25 * 60, deadline: null };
 }
+function readHifzPage() {
+  try {
+    const bookmark = JSON.parse(localStorage.getItem('atlas_hifz_bookmark_v2') || '{}');
+    const page = Number(bookmark.page);
+    return Number.isInteger(page) && page >= 1 && page <= 604 ? page : 1;
+  } catch { return 1; }
+}
 function formatMinutes(minutes: number) {
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
@@ -62,6 +69,7 @@ export function TodayPage() {
   const [selectedPriorityId, setSelectedPriorityId] = useState<number | null>(null);
   const [ritualMode,setRitualMode]=useState<'morning'|'evening'|null>(null);
   const [artifactOpen,setArtifactOpen]=useState(false);
+  const [hifzPage] = useState(readHifzPage);
   const [wallClock, setWallClock] = useState(() => Date.now());
   const today = todayKey();
   const localHour = Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',hourCycle:'h23'}).format(new Date()));
@@ -248,6 +256,7 @@ export function TodayPage() {
   return <Cascade className="stack today-dashboard">
     <section className="residence-band residence-band--orientation" aria-label="Today's orientation">
       <PageHeader eyebrow={new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()).toUpperCase()} title={`Good ${rhythm === 'day' ? 'afternoon' : rhythm}, ${settings.data?.display_name?.trim() || user?.name || user?.username || 'there'}`} description="Your Residence: a clear view of today’s priorities, routines, focus and progress." action={showCalendar ? <Link className="button button--secondary" to="/calendar">View calendar <ArrowRight size={14} /></Link> : undefined} />
+      {religion === 'islam' && <Link className="residence-quran-resume" to="/values?openMushaf=1"><BookOpen size={15}/> Open Qur’an · Hifz P.{hifzPage} <ArrowRight size={13}/></Link>}
       <CelestialHorizon/>
       <div className="atlas-ritual-launchers"><button type="button" className="button button--secondary" onClick={()=>setRitualMode('morning')}>✧ Start Morning Kickoff</button><button type="button" className="button button--ghost" onClick={()=>setRitualMode('evening')}>☾ Evening Shutdown</button>{(prioritiesCompleted||completedFocusBlocks>0)&&<button type="button" className="button button--artifact" onClick={()=>setArtifactOpen(true)}>✦ Daily Artifact</button>}</div>
       <section className="residence-rhythm"><div><span className="eyebrow">{rhythmCopy.eyebrow}</span><span className="residence-rhythm-title-mask"><motion.h2 initial={reduceMotion ? false : { y: "105%", opacity: 0 }} animate={{ y: "0%", opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.28, delay: 0.07, ease: [0.16, 1, 0.3, 1] }}>{rhythmCopy.title}</motion.h2></span><p>{rhythmCopy.detail}</p></div><span className="residence-rhythm-time">{new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',minute:'2-digit'}).format(new Date())} WAT</span></section>

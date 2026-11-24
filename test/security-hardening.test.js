@@ -14,9 +14,9 @@ test('API has bounded request bodies and a separate backup-import allowance', ()
 });
 
 test('API and admin endpoints have per-IP and per-account request limits', () => {
-  assert.match(server, /app\.use\('\/api', rateLimit\(\{ max: 120 \}\)\)/);
+  assert.match(server, /app\.use\('\/api', rateLimit\(\{ max: 300 \}\)\)/);
   assert.match(server, /app\.use\('\/api\/admin', rateLimit\(\{ max: 30/);
-  assert.match(server, /consumeRateLimit\(\`account:\$\{user\.id\}\`, 90\)/);
+  assert.match(server, /consumeRateLimit\(\`account:\$\{user\.id\}\`, 240\)/);
   assert.match(server, /status\(429\)/);
 });
 
@@ -79,7 +79,7 @@ test('Daily Rhythm separates planned from completed records and updates Residenc
   assert.match(rhythm, /value:'qada'/);
   assert.match(rhythm, /Jumu’ah checklist/);
   assert.match(rhythm, /P-R-A-Y Reflection|P-R-A-Y REFLECTION/);
-  assert.match(rhythm, /Start Qur’an Focus/);
+  assert.match(rhythm, /<QuranMushafReader (?:autoOpen=\{[^}]+\} )?settings=/);
   assert.match(rhythm, /Start Devotional Focus/);
   assert.match(rhythm, /Clarity & Reflection/);
   assert.match(rhythm, /invalidateQueries\(\{ queryKey: \['rhythm-summary'\] \}\)/);
@@ -109,9 +109,9 @@ test('Self-Control consistency uses dated records and positive habit check-ins, 
   assert.match(server, /return \{\.\.\.habit,streak\}/);
   assert.match(selfControl, /verified clean check-ins/);
   assert.match(rituals, /invalidateQueries\(\{ queryKey: \['self-control'\] \}\)/);
-  assert.match(shell, /Deen & Reflection/);
-  assert.match(shell, /Faith & Devotion/);
-  assert.match(shell, /Clarity & Reflection/);
+  assert.match(shell, /Deen & Qur’an/);
+  assert.match(shell, /Faith & Reflection/);
+  assert.match(shell, /Daily Reflection/);
 });
 
 
@@ -268,8 +268,8 @@ test('Room 3 has a dedicated Focus Room with safe context handoffs and a persist
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
   assert.match(app, /path="\/execution" element={<FocusWorkspace \/>}/);
   assert.match(app, /path="\/focus" element={<FocusWorkspace \/>}/);
-  assert.match(shell, /paths: \['\/execution', '\/focus', '\/calendar'\]/);
-  assert.match(shell, /label: 'Focus Room', to: '\/focus'/);
+  assert.match(shell, /paths: \['\/focus', '\/execution'\]/);
+  assert.match(shell, /label: 'Focus', to: '\/focus'/);
   assert.match(shell, /navigate\('\/focus'\)/);
   assert.match(shell, /className="atlas-command-dock"/);
   assert.match(workspace, /!isFocusRoute && <section className="execution-projects-panel">/);
@@ -278,7 +278,7 @@ test('Room 3 has a dedicated Focus Room with safe context handoffs and a persist
   assert.match(workspace, /sessionKey&&timer\.remaining>0/);
   assert.match(workspace, /session_key:timer\.sessionKey/);
   assert.match(workspace, /savedKeys\.current\.has\(timer\.sessionKey\)/);
-  assert.match(values, /to="\/focus\?focus=Qur/);
+  assert.doesNotMatch(values, /to="\/focus\?focus=Qur/);
   assert.match(values, /to="\/focus\?focus=Devotional%20Focus"/);
   assert.match(learning, /to=\{'\/focus\?lesson=' \+ lesson\.id\}/);
   assert.match(residence, /to=\{'\/focus\?task=' \+ task\.id\}/);
