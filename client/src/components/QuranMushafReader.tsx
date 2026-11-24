@@ -1,4 +1,4 @@
-import { Fragment, type CSSProperties, type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, type CSSProperties, type FormEvent, type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Bookmark, Copy, Search, WifiOff, X } from 'lucide-react';
@@ -125,8 +125,11 @@ const stripAyahEndMarker = (value: string) => value.replace(/\u06DD/g, '').trim(
 const sanitizeMushafPage = (payload: MushafPage): MushafPage => ({
   ...payload,
   ayahs: (payload.ayahs || []).map(ayah => {
-    const rawTajweed = String(ayah.tajweedText || (/<[^>]+>|\[[a-zA-Z]/i.test(ayah.text || '') ? ayah.text : ''));
-    const hasRawMarkup = /<[^>]+>|\[[a-zA-Z]/i.test(rawTajweed);
+    const tajweedSource = String(ayah.tajweedText || '');
+    const plainSource = String(ayah.text || '');
+    const hasMarkup = (value: string) => /<[^>]+>|\[[a-zA-Z]/i.test(value);
+    const rawTajweed = hasMarkup(tajweedSource) ? tajweedSource : (hasMarkup(plainSource) ? plainSource : tajweedSource);
+    const hasRawMarkup = hasMarkup(rawTajweed);
     const parsed = hasRawMarkup ? parseBracketTajweed(rawTajweed) : [];
     const sourceSegments = parsed.length ? parsed : (ayah.tajweedSegments || []);
     const tajweedSegments = sourceSegments.map(segment => ({
@@ -175,6 +178,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [fullScreen, setFullScreen] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(() => window.matchMedia('(max-width: 767px)').matches);
   const [mobileControlsVisible, setMobileControlsVisible] = useState(false);
+  const [mobilePageFit, setMobilePageFit] = useState({ fontSize: 22, lineHeight: 1.9 });
   const [surahSearch, setSurahSearch] = useState('');
   const [sidebarTab, setSidebarTab] = useState<'surah' | 'verse' | 'juz' | 'page'>('surah');
   const [sidebarOpen, setSidebarOpen] = useState(() => window.matchMedia('(min-width: 768px)').matches);
@@ -187,6 +191,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [arabicFontSize, setArabicFontSize] = useState(() => { try { const saved = Number(localStorage.getItem('atlas_mushaf_font_size_v1')); return [20, 24, 28, 32, 36].includes(saved) ? saved : 24; } catch { return 24; } });
   const [pageInput, setPageInput] = useState(String(page));
   const readerRef = useRef<HTMLDivElement | null>(null);
+  const pageTextRef = useRef<HTMLDivElement | null>(null);
   const activeSurahItemRef = useRef<HTMLButtonElement | null>(null);
   const verseRowRefs = useRef(new Map<string, HTMLElement>());
   const restoreTargetRef = useRef<string | null>(null);
@@ -213,6 +218,58 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     media.addEventListener('change', updateViewport);
     return () => media.removeEventListener('change', updateViewport);
   }, []);
+  useLayoutEffect(() => {
+    const element = pageTextRef.current;
+    if (!element || !fullScreen || !isMobileViewport || readingMode !== 'reading' || loading || !pageData?.ayahs?.length) {
+      setMobilePageFit({ fontSize: 22, lineHeight: 1.9 });
+      return;
+    }
+    let frame = 0;
+    let cancelled = false;
+    const measure = () => {
+      if (cancelled || !pageTextRef.current) return;
+      const target = pageTextRef.current;
+      const previousTransition = target.style.getPropertyValue('transition');
+      const previousPriority = target.style.getPropertyPriority('transition');
+      const previousFont = target.style.getPropertyValue('--mushaf-fit-font-size');
+      const previousLineHeight = target.style.getPropertyValue('--mushaf-fit-line-height');
+      target.style.setProperty('transition', 'none', 'important');
+      let fontSize = 22;
+      let lineHeight = 1.9;
+      const fits = () => {
+        target.style.setProperty('--mushaf-fit-font-size', fontSize + 'px');
+        target.style.setProperty('--mushaf-fit-line-height', String(lineHeight));
+        void target.offsetHeight;
+        return target.scrollHeight <= target.clientHeight + 1;
+      };
+      while (fontSize > 13.5 && !fits()) fontSize = Math.max(13.5, Number((fontSize - 0.5).toFixed(1)));
+      while (!fits() && lineHeight > 1.58) lineHeight = Math.max(1.58, Number((lineHeight - 0.02).toFixed(2)));
+      fits();
+      if (previousFont) target.style.setProperty('--mushaf-fit-font-size', previousFont);
+      else target.style.removeProperty('--mushaf-fit-font-size');
+      if (previousLineHeight) target.style.setProperty('--mushaf-fit-line-height', previousLineHeight);
+      else target.style.removeProperty('--mushaf-fit-line-height');
+      if (previousTransition) target.style.setProperty('transition', previousTransition, previousPriority);
+      else target.style.removeProperty('transition');
+      setMobilePageFit(current => current.fontSize === fontSize && current.lineHeight === lineHeight ? current : { fontSize, lineHeight });
+    };
+    const schedule = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(measure);
+    };
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(schedule) : null;
+    if (element.parentElement) observer?.observe(element.parentElement);
+    observer?.observe(element);
+    window.addEventListener('resize', schedule, { passive: true });
+    schedule();
+    void document.fonts?.ready.then(schedule);
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(frame);
+      observer?.disconnect();
+      window.removeEventListener('resize', schedule);
+    };
+  }, [fullScreen, isMobileViewport, readingMode, loading, page, pageData, arabicFontFamily]);
 
   useEffect(() => {
     if (!isMobileViewport || !fullScreen || readingMode !== 'reading') setMobileControlsVisible(false);
@@ -534,7 +591,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         <button type="button" className="mushaf-exit" onClick={() => setFullScreen(false)} aria-label="Exit Qur’an reader"><X size={16}/></button>
       </div>
     </header>
-    {isMobileViewport && readingMode === 'reading' && <div className="mushaf-mobile-page-header" aria-hidden="true"><span>{activeSurah?.transliteration || 'Al-Fatihah'}</span><span>Juz {pageJuz}</span></div>}
     {tajweedEnabled && <div className="mushaf-tajweed-keybar" role="group" aria-label="Tajweed color key">
       <span><i className="tj-madd"/>Madd Lazim</span><span><i className="tj-madd-wajib"/>Madd Wajib</span><span><i className="tj-ghunnah"/>Ghunnah / Ikhfa / Idgham</span><span><i className="tj-qalqalah"/>Qalqalah</span><span><i className="tj-heavy"/>Tafkheem</span><span><i className="tj-silent"/>Silent</span>
     </div>}
@@ -594,7 +650,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
               {readingMode !== 'arabic' && <p className="mushaf-verse-translation">{ayah.translation || 'Translation unavailable.'}</p>}
             </motion.article>)}</motion.div>}
           </motion.section>}{!loading && pageData && readingMode === 'reading' && <motion.section key={'page-' + page} className="mushaf-page-view" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px', fontFamily: "'" + arabicFontFamily + "', serif" }} initial={prefersReducedMotion ? false : { opacity: 0, x: pageDirection === 'next' ? 18 : -18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: pageDirection === 'next' ? -8 : 8 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.22, ease: [0.16, 1, 0.3, 1] }}>
-            <div className="mushaf-page-text" style={{ fontSize: arabicFontSize + 'px', fontFamily: "'" + arabicFontFamily + "', serif", fontWeight: 400, letterSpacing: '0px', fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1' }}>{pageData.ayahs.map((ayah, index) => {
+            <div className="mushaf-mobile-page-header" aria-hidden="true"><span>{activeSurah?.transliteration || 'Al-Fatihah'}</span><span>Juz {pageJuz}</span></div>
+            <div className="mushaf-page-text" ref={pageTextRef} style={{ '--mushaf-fit-font-size': mobilePageFit.fontSize + 'px', '--mushaf-fit-line-height': String(mobilePageFit.lineHeight), fontSize: arabicFontSize + 'px', fontFamily: "'" + arabicFontFamily + "', serif", fontWeight: 400, letterSpacing: '0px', fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1' } as CSSProperties}{pageData.ayahs.map((ayah, index) => {
               const surah = QURAN_SURAHS[ayah.surahNumber - 1];
               const startsSurah = ayah.numberInSurah === 1;
               return <Fragment key={ayah.surahNumber + ':' + ayah.numberInSurah}>

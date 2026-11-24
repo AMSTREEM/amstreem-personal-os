@@ -340,8 +340,15 @@ test('Tajweed rendering sanitizes provider HTML, preserves direct tokens and inv
   const server = read('server.js');
   for (const item of ['tajweedSegments','TAJWEED_CLASSES','tj-madd','tj-qalqalah','tj-ghunnah','tj-heavy','tajweedEnabled','parseBracketTajweed','normalizeMadinahArabic',"atlas_mushaf_page_v10_","atlas_mushaf_page_v[1-9]_","stripRawQuranMarkup"]) assert.ok(reader.includes(item), 'Missing Tajweed rendering feature: ' + item);
   for (const item of ['sanitizeQuranPayload','sanitizeQuranAyah','stripQuranMarkup','<[^>]+>']) assert.ok(server.includes(item), 'Missing server Quran HTML sanitizer: ' + item);
-  assert.ok(css.includes('font-size: clamp(18px, 4.9vw, 22px) !important;'));
-  assert.ok(css.includes('line-height: 1.92;'));
+  assert.ok(reader.includes('useLayoutEffect'));
+  assert.ok(reader.includes('new ResizeObserver(schedule)'));
+  assert.ok(reader.includes('fontSize > 13.5'));
+  assert.ok(reader.includes('lineHeight > 1.58'));
+  assert.ok(css.includes('height: 100dvh; max-height: 100dvh;'));
+  assert.ok(css.includes('grid-template-rows: 32px minmax(0, 1fr) 34px;'));
+  assert.ok(css.includes('overflow: hidden;'));
+  assert.ok(css.includes('font-size: var(--mushaf-fit-font-size, 22px) !important;'));
+  assert.ok(css.includes('line-height: var(--mushaf-fit-line-height, 1.9) !important;'));
   assert.ok(css.includes('transition: opacity 200ms ease, visibility 200ms ease;'));
   for (const rule of ["h:'tj-silent'","s:'tj-silent'","l:'tj-silent'","u:'tj-silent'","n:'tj-madd-wajib'","p:'tj-madd-wajib'","m:'tj-madd'","o:'tj-madd'","q:'tj-qalqalah'","g:'tj-ghunnah'","i:'tj-ghunnah'","c:'tj-ghunnah'","a:'tj-ghunnah'","w:'tj-ghunnah'","f:'tj-ghunnah'","r:'tj-heavy'"]) assert.ok(reader.includes(rule), 'Missing client rule: ' + rule);
   for (const color of ['#E040FB','#FF5252','#22C55E','#38BDF8','#60A5FA','#9CA3AF']) assert.ok(css.includes(color), 'Missing Quran.com Tajweed color: ' + color);

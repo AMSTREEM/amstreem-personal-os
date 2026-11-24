@@ -6630,8 +6630,8 @@ html, body, #root, .app-frame, .main-area, .page-container {
     z-index: 80 !important;
   }
 
-  /* Page-by-page mobile Mushaf: quiet reading canvas with tap-revealed controls. */
-  .mushaf-app.is-mobile-page-reading { height: 100dvh; min-height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+  /* Page-by-page mobile Mushaf: one viewport, three fixed rows, no reader scrolling. */
+  .mushaf-app.is-mobile-page-reading { height: 100dvh; max-height: 100dvh; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
   .mushaf-app.is-mobile-page-reading > .mushaf-topbar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 40;
     flex: 0 0 48px; height: 48px !important; min-height: 48px !important;
@@ -6643,8 +6643,8 @@ html, body, #root, .app-frame, .main-area, .page-container {
     opacity: 1; visibility: visible; pointer-events: auto;
   }
   .mushaf-mobile-page-header {
-    display: flex; flex: 0 0 32px; align-items: center; justify-content: space-between;
-    height: 32px; min-height: 32px; padding: 6px 16px; box-sizing: border-box;
+    display: flex; min-width: 0; align-items: center; justify-content: space-between;
+    height: 32px; min-height: 32px; padding: 0; box-sizing: border-box;
     color: var(--text-muted,var(--muted)); font-size: 13px; line-height: 20px;
   }
   .mushaf-app.is-mobile-page-reading.mobile-controls-visible .mushaf-mobile-page-header { display: none !important; }
@@ -6652,21 +6652,23 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .mushaf-app.is-mobile-page-reading .mushaf-workspace { flex: 1 1 auto; min-height: 0; overflow: hidden; }
   .mushaf-app.is-mobile-page-reading .mushaf-main { flex: 1 1 auto; height: 100%; min-height: 0; overflow: hidden; }
   .mushaf-app.is-mobile-page-reading .mushaf-canvas {
-    height: 100%; min-height: 0; overflow-y: auto; overflow-x: hidden;
-    padding: 0 0 calc(48px + env(safe-area-inset-bottom)); box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
+    width: 100%; height: 100%; min-height: 0; overflow: hidden;
+    padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent;
   }
   .mushaf-app.is-mobile-page-reading .mushaf-page-view {
-    display: flex; flex-direction: column; justify-content: center;
-    width: 100% !important; max-width: none !important;
-    min-height: calc(100dvh - 80px); margin: 0 auto;
-    padding: 4px 0 56px !important; box-sizing: border-box;
+    display: grid !important; grid-template-rows: 32px minmax(0, 1fr) 34px;
+    width: 100% !important; height: 100%; max-height: 100%; min-height: 0;
+    max-width: none !important; margin: 0;
+    padding: 6px 14px calc(8px + env(safe-area-inset-bottom)) !important;
+    box-sizing: border-box; overflow: hidden;
   }
   .mushaf-app.is-mobile-page-reading .mushaf-page-text {
-    width: 100%; margin: auto 0; padding: 4px 14px;
+    width: 100%; height: 100%; min-height: 0; max-height: 100%; overflow: hidden;
+    margin: 0; padding: 4px 0; box-sizing: border-box;
     direction: rtl; text-align: justify; text-align-last: center;
-    font-size: clamp(18px, 4.9vw, 22px) !important;
-    line-height: 1.92; word-spacing: 1px;
+    font-size: var(--mushaf-fit-font-size, 22px) !important;
+    line-height: var(--mushaf-fit-line-height, 1.9) !important;
+    word-spacing: 1px; transition: font-size 180ms ease, line-height 180ms ease;
   }
   .mushaf-app.is-mobile-page-reading .mushaf-page-ayah { white-space: normal; }
   .mushaf-app.is-mobile-page-reading .mushaf-page-medallion {
@@ -6674,10 +6676,10 @@ html, body, #root, .app-frame, .main-area, .page-container {
     box-shadow: inset 0 0 0 2px #252a35, inset 0 0 0 3px #9a8b70;
   }
   .mushaf-app.is-mobile-page-reading .mushaf-page-footer {
-    position: fixed; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom));
+    position: static; align-self: center; justify-self: center;
     z-index: 32; width: auto; min-width: 0; margin: 0; padding: 0;
-    border: 0; transform: translateX(-50%); pointer-events: none;
-    opacity: 1; visibility: visible; transition: opacity 200ms ease, visibility 200ms ease;
+    border: 0; pointer-events: none; opacity: 1; visibility: visible;
+    transition: opacity 200ms ease, visibility 200ms ease;
   }
   .mushaf-app.is-mobile-page-reading.mobile-controls-visible .mushaf-page-footer {
     opacity: 0; visibility: hidden;
