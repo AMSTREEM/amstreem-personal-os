@@ -209,7 +209,8 @@ function parseAlQuranTajweed(markup) {
   return segments.map(segment => ({ ...segment, text: stripQuranMarkup(segment.text) }));
 }
 function sanitizeQuranAyah(ayah) {
-  const rawTajweed = String(ayah?.tajweedText || '');
+  const plainSource = String(ayah?.text || '');
+  const rawTajweed = String(ayah?.tajweedText || (/<[^>]+>|\\[[a-zA-Z]/i.test(plainSource) ? plainSource : ''));
   const hasMarkup = /<[^>]+>|\[[a-zA-Z]/i.test(rawTajweed);
   const parsed = hasMarkup ? parseAlQuranTajweed(rawTajweed) : [];
   const sourceSegments = parsed.length ? parsed : (Array.isArray(ayah?.tajweedSegments) ? ayah.tajweedSegments : []);
