@@ -634,3 +634,21 @@ test('Quran Mushaf uses QPC Hafs Unicode and responsive layouts in both reading 
   assert.match(css, /\.mushaf-app\.is-mobile-verse-reading \.mushaf-verse-arabic/);
   assert.match(css, /@media \(min-width: 768px\) and \(max-width: 1100px\)/);
 });
+
+
+test('Quran Foundation Page Layout API drives QCF V2 page lines and page-aware verse metadata', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const server = read('server.js');
+  const css = read('client/src/styles.css');
+  assert.ok(server.includes("'/verses/by_page/' + page + query"));
+  assert.ok(server.includes('mushaf=1&words=true'));
+  assert.ok(server.includes('pages/lookup?page_number='));
+  assert.ok(server.includes('word_fields=code_v2,text_qpc_hafs,line_number,page_number'));
+  assert.ok(server.includes('fonts/quran/hafs/v2/woff2/p'));
+  assert.match(reader, /const pageLines = useMemo/);
+  assert.match(reader, /word\.lineNumber/);
+  assert.match(reader, /QCFPage' \+ page/);
+  assert.match(reader, /mushaf-qcf-line/);
+  assert.match(reader, /ayah\.pageNumber \|\| ayah\.words/);
+  assert.match(css, /\.mushaf-qcf-line/);
+});
