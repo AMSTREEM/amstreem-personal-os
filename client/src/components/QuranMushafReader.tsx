@@ -425,13 +425,20 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   }, [sidebarOpen, activeSurahNumber]);
 
   const activeSurah = QURAN_SURAHS[activeSurahNumber - 1];
-  const pageFirstAyah = pageData?.ayahs?.[0];
-  const pageLastAyah = pageData?.ayahs?.[pageData.ayahs.length - 1];
-  const pageFirstSurah = pageFirstAyah ? QURAN_SURAHS[pageFirstAyah.surahNumber - 1] : getPageSurah(page);
-  const pageFirstName = pageFirstAyah?.surahName || pageFirstSurah?.transliteration || activeSurah?.transliteration || 'Al-Fatihah';
-  const pageSurahLabel = readingMode === 'reading' && pageFirstAyah
-    ? `${pageFirstAyah.surahNumber}. ${pageFirstName}${pageLastAyah && pageLastAyah.surahNumber !== pageFirstAyah.surahNumber ? ` – ${pageLastAyah.surahNumber}. ${pageLastAyah.surahName || QURAN_SURAHS[pageLastAyah.surahNumber - 1]?.transliteration || 'Surah'}` : ''}`
-    : `${activeSurahNumber}. ${activeSurah?.transliteration || 'Al-Fatihah'}`;
+  const currentPageSurahLabel = useMemo(() => {
+    if (readingMode !== 'reading') return `${activeSurahNumber}. ${activeSurah?.transliteration || 'Al-Fatihah'}`;
+    const pageSurahs = new Map<number, string>();
+    for (const ayah of pageData?.ayahs || []) {
+      if (!pageSurahs.has(ayah.surahNumber)) {
+        pageSurahs.set(ayah.surahNumber, ayah.surahName || QURAN_SURAHS[ayah.surahNumber - 1]?.transliteration || 'Surah');
+      }
+    }
+    if (pageSurahs.size) return [...pageSurahs.entries()].map(([number, name]) => `${number}. ${name}`).join(' – ');
+    const fallbackSurah = getPageSurah(page);
+    const fallbackNumber = fallbackSurah?.number || activeSurahNumber;
+    return `${fallbackNumber}. ${fallbackSurah?.transliteration || fallbackSurah?.name || activeSurah?.transliteration || 'Al-Fatihah'}`;
+  }, [readingMode, pageData, page, activeSurahNumber, activeSurah]);
+  const pageSurahLabel = currentPageSurahLabel;
   useEffect(() => {
     if (!fullScreen || loading || !pageData?.ayahs?.length) return;
     const date = lagosDate();
