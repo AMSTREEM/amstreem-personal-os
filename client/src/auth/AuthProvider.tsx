@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import { isInvalidRefreshTokenError, supabase } from '../lib/supabase';
 
 type UserProfile = { id: string; email: string; name: string; username: string };
 type AuthState = {
@@ -40,10 +40,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(async ({ data, error }) => {
-      if (error) console.error('Session restore:', error.message);
       if (!mounted) return;
+      if (error) {
+        console.error('Session restore:', error.message);
+        if (isInvalidRefreshTokenError(error)) {
+          // Clear only this browser's stale session; other devices remain signed in.
+          await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
+          if (!mounted) return;
+          setSession(null);
+          setUser(null);
+          setRole(null);
+          setLoading(false);
+          return;
+        }
+      }
       setSession(data.session);
       await hydrate(data.session);
+      if (mounted) setLoading(false);
+    }).catch(async (error: unknown) => {
+      if (!mounted) return;
+      if (isInvalidRefreshTokenError(error)) {
+        await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
+        if (!mounted) return;
+        setSession(null);
+        setUser(null);
+        setRole(null);
+      } else {
+        console.error('Session restore failed:', error);
+      }
       if (mounted) setLoading(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, next) => {
