@@ -8870,3 +8870,21 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .mushaf-app .mushaf-verse-arabic .mushaf-verse-medallion > span,
   .mushaf-app.is-mobile-page-reading .mushaf-page-medallion > span { font-size: 9px !important; }
 }
+
+
+/* Consistent Madani Mushaf page rhythm: every Page-by-Page page uses the same vertical frame. */
+.mushaf-app.is-page-reading .mushaf-page-text--lines {
+  min-height: 680px;
+  justify-content: space-between !important;
+  align-content: stretch;
+}
+.mushaf-app.is-page-reading .mushaf-qcf-line {
+  flex: 0 0 auto;
+}
+@media (max-width: 767px) {
+  .mushaf-app.is-mobile-page-reading .mushaf-page-text--lines {
+    min-height: max(0px, calc(100dvh - 194px));
+    justify-content: space-between !important;
+    flex: 1 0 auto;
+  }
+}
