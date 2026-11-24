@@ -395,7 +395,7 @@ test('Mushaf page view has chapter openings, centered verse medallions and a pag
 
 test('Mushaf scroll locking and local-first dual bookmark persistence are retained', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
-  for (const item of ["const previousRootOverflow = root.style.overflow","const previousBodyOverflow = document.body.style.overflow","root.style.overflow = 'hidden'","document.body.style.overflow = 'hidden'","localStorage.setItem(HIFZ_KEY, JSON.stringify(hifzMark))","localStorage.setItem(MURAJAAH_KEY, JSON.stringify(murajaahMark))",'window.setTimeout(() =>','}, 600);','window.clearTimeout(timer)','new IntersectionObserver','data-mushaf-verse="true"','restoreTargetRef','changePage(item.pageStart, { surahNumber: number, numberInSurah: 1 })','onTouchMove={() => { userScrolledRef.current = true; }}','onKeyDown={() => { userScrolledRef.current = true; }}']) assert.ok(reader.includes(item), 'Missing persistence behavior: ' + item);
+  for (const item of ["const previousRootOverflow = root.style.overflow","const previousBodyOverflow = document.body.style.overflow","root.style.overflow = 'hidden'","document.body.style.overflow = 'hidden'","localStorage.setItem(HIFZ_KEY, JSON.stringify(hifzMark))","localStorage.setItem(MURAJAAH_KEY, JSON.stringify(murajaahMark))",'window.setTimeout(() =>','}, 1500);','window.clearTimeout(timer)','new IntersectionObserver','data-mushaf-verse="true"','restoreTargetRef','changePage(item.pageStart, { surahNumber: number, numberInSurah: 1 })','onTouchMove={() => { userScrolledRef.current = true; }}','onKeyDown={() => { userScrolledRef.current = true; }}']) assert.ok(reader.includes(item), 'Missing persistence behavior: ' + item);
 });
 
 
