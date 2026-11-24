@@ -8794,3 +8794,79 @@ html, body, #root, .app-frame, .main-area, .page-container {
   line-height: 1 !important;
   font-variant-numeric: normal;
 }
+
+
+/* Universal ayah medallion contract: independent of text font and reader mode. */
+.mushaf-app .mushaf-medallion,
+.mushaf-app .mushaf-verse-arabic .mushaf-medallion,
+.mushaf-app .mushaf-page-text .mushaf-medallion,
+.mushaf-app .mushaf-qcf-word .mushaf-medallion {
+  position: relative !important;
+  display: inline-flex !important;
+  flex: 0 0 32px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  margin: 0 6px !important;
+  padding: 0 !important;
+  vertical-align: middle !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: var(--text-secondary, var(--muted)) !important;
+  font-family: "DM Sans", system-ui, sans-serif !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
+  isolation: isolate;
+  white-space: nowrap;
+}
+.mushaf-app .mushaf-medallion.mushaf-medallion--wide { flex-basis: 36px !important; width: 36px !important; min-width: 36px !important; }
+.mushaf-app .mushaf-medallion .mushaf-medallion-ornament {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: visible !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: .9 !important;
+  pointer-events: none;
+}
+.mushaf-app .mushaf-medallion .mushaf-medallion-ornament circle { stroke-width: .72 !important; }
+.mushaf-app .mushaf-medallion .mushaf-medallion-inner { opacity: .62 !important; stroke-width: .55 !important; }
+.mushaf-app .mushaf-medallion .mushaf-medallion-crown { stroke-width: .8 !important; }
+.mushaf-app .mushaf-medallion > span {
+  position: absolute !important;
+  inset: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 1px 0 0 !important;
+  margin: 0 !important;
+  color: currentColor !important;
+  font-family: "Noto Naskh Arabic", "DM Sans", sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  font-variant-numeric: normal !important;
+  font-feature-settings: normal !important;
+  letter-spacing: 0 !important;
+  direction: rtl;
+}
+.mushaf-app .mushaf-verse-arabic .mushaf-verse-medallion { margin-inline: 7px !important; }
+@media (max-width: 767px) {
+  .mushaf-app .mushaf-verse-arabic .mushaf-verse-medallion,
+  .mushaf-app.is-mobile-page-reading .mushaf-page-medallion {
+    flex-basis: 24px !important;
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    margin-inline: 3px !important;
+  }
+  .mushaf-app .mushaf-verse-arabic .mushaf-verse-medallion > span,
+  .mushaf-app.is-mobile-page-reading .mushaf-page-medallion > span { font-size: 9px !important; }
+}
