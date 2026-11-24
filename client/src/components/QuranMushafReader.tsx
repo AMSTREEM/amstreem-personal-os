@@ -43,7 +43,7 @@ function renderTajweedMarkup(markup: string, segments?: TajweedSegment[], fallba
   if (!parsed.length || (parsed.length === 1 && !parsed[0].className && !source.includes('['))) return stripAyahEndMarker(fallback || source);
   return <>{parsed.map((segment, index) => {
     const className = TAJWEED_CLASSES.has(segment.className) ? segment.className : '';
-    const text = stripAyahEndMarker(String(segment.text || ''));
+    const text = String(segment.text || '').replace(/\u06DD/g, '');
     return className ? <span key={index} className={className}>{text}</span> : <Fragment key={index}>{text}</Fragment>;
   })}</>;
 }
