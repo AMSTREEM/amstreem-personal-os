@@ -537,3 +537,20 @@ test('mobile Mushaf is distraction-free, single-screen, and tap-toggle HUD is sc
   assert.match(mobileRule, /mobile-controls-visible > \.mushaf-mobile-header-shell/);
   assert.doesNotMatch(mobileRule, /@media \(min-width: 768px\)/);
 });
+
+
+test('Page by Page mobile chrome and Surah composition are isolated from Verse by Verse and desktop', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const css = read('client/src/styles.css');
+  assert.ok(reader.includes('mushaf-page-mobile-chrome'));
+  assert.ok(reader.includes('mushaf-page-mobile-meta'));
+  assert.ok(reader.includes('mushaf-page-mobile-controls'));
+  assert.ok(reader.includes('mushaf-page-surah-hero-main'));
+  assert.ok(reader.includes('mushaf-page-hero-modes'));
+  assert.ok(reader.includes('In the Name of Allah—the Most Compassionate, Most Merciful'));
+  assert.match(css, /\.mushaf-app\.is-mobile-page-reading \.mushaf-page-mobile-meta[\s\S]*?height:32px/);
+  assert.match(css, /\.mushaf-app\.is-mobile-page-reading \.mushaf-page-mobile-controls[\s\S]*?height:44px/);
+  assert.match(css, /\.mushaf-app\.is-mobile-page-reading \.mushaf-page-surah-banner[\s\S]*?border-radius:14px/);
+  assert.match(css, /\.mushaf-app\.is-mobile-page-reading \.mushaf-page-text[\s\S]*?text-align:center/);
+  assert.match(css, /\.mushaf-app\.is-mobile-verse-reading/);
+});
