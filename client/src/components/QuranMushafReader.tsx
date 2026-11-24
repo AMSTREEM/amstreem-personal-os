@@ -10,7 +10,7 @@ type TajweedSegment = { text: string; className: string };
 type MushafAyah = { number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; tajweedText?: string; tajweedSegments?: TajweedSegment[]; translation: string; translations?: Array<{ id: number; name: string; text: string }>; };
 type MushafPage = { page: number; juz: number; tajweedComplete?: boolean; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void; autoOpen?: boolean };
-const CACHE_PREFIX = 'atlas_mushaf_page_v10_';
+const CACHE_PREFIX = 'atlas_mushaf_page_v11_';
 const pageMemoryCache = new Map<number, MushafPage>();
 const HIFZ_KEY = 'atlas_hifz_bookmark_v2';
 const MURAJAAH_KEY = 'atlas_murajaah_bookmark_v2';
@@ -54,9 +54,13 @@ const sanitizeMushafPage = (payload: MushafPage): MushafPage => ({
 });
 function AyahMedallion({ number, className }: { number: number; className: string }) {
   return <span className={'mushaf-medallion ' + (number >= 100 ? 'mushaf-medallion--wide ' : '') + className} aria-label={'Ayah ' + number}>
-    <svg className="mushaf-medallion-ornament" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-      <path d="M16 1.5 C18.1 1.5 19.1 4.2 21 5.2 C23.2 4.1 26 5.2 26.5 7.6 C28.9 8.1 30 10.9 28.8 13 C31.1 16 31.1 16 28.8 19 C30 21.1 28.9 23.9 26.5 24.4 C26 26.8 23.2 27.9 21 26.8 C19.1 27.8 18.1 30.5 16 30.5 C13.9 30.5 12.9 27.8 11 26.8 C8.8 27.9 6 26.8 5.5 24.4 C3.1 23.9 2 21.1 3.2 19 C0.9 16 0.9 16 3.2 13 C2 10.9 3.1 8.1 5.5 7.6 C6 5.2 8.8 4.1 11 5.2 C12.9 4.2 13.9 1.5 16 1.5 Z" />
-      <circle cx="16" cy="16" r="11.2" />
+    <svg className="mushaf-medallion-ornament" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
+      <path className="mushaf-medallion-scallop" d="M18 2.2 C19.3 2.2 19.8 4.1 21 4.4 C22.3 3.7 24 4.2 24.5 5.6 C26 5.4 27.3 6.7 27.1 8.2 C28.7 8.8 29.2 10.5 28.2 11.8 C29.2 13.1 29 14.9 27.5 15.7 C28.1 17.2 27.2 18.9 25.6 19.1 C25.6 20.8 24.2 22 22.6 21.6 C21.7 23.1 19.9 23.4 18.7 22.3 C17.3 23.4 15.5 23.1 14.6 21.6 C13 22 11.6 20.8 11.6 19.1 C10 18.9 9.1 17.2 9.7 15.7 C8.2 14.9 8 13.1 9 11.8 C8 10.5 8.5 8.8 10.1 8.2 C9.9 6.7 11.2 5.4 12.7 5.6 C13.2 4.2 14.9 3.7 16.2 4.4 C17.4 4.1 16.7 2.2 18 2.2 Z" />
+      <circle cx="18" cy="13.1" r="9.2" />
+      <path className="mushaf-medallion-crown" d="M13.2 4.8 C13.5 3.1 15.1 3 16.1 4.8 C17.1 3 18.9 3 19.9 4.8 C20.9 3 22.5 3.1 22.8 4.8" />
+      <circle cx="13.2" cy="4.6" r=".7" />
+      <circle cx="18" cy="3.8" r=".7" />
+      <circle cx="22.8" cy="4.6" r=".7" />
     </svg>
     <span>{arabicNumber(number)}</span>
   </span>;
