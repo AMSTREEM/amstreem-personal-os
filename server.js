@@ -390,7 +390,21 @@ function normalizeAlQuranCloudSurah(body, surahNumber) {
     translationSource: 'Sahih International', ayahs
   };
 }
+async function fetchQuranCdnPage(page) {
+  const query = '?mushaf=5&words=true&translations=131&per_page=50&word_fields=text_qpc_hafs,text_uthmani,line_number,page_number,position,char_type_name&fields=text_qpc_hafs,text_uthmani,verse_key,chapter_id,verse_number,juz_number,hizb_number,page_number';
+  const payload = await fetchQuranMirror('https://api.qurancdn.com/api/qdc/verses/by_page/' + page + query, normalizeQuranCom, page);
+  if (!payload.ayahs.length || payload.ayahs.some(ayah => !ayah.text || !ayah.translation)) throw new Error('Quran CDN page response is missing Arabic text or translation.');
+  return { ...payload, textSource: 'qpc-hafs', qcfAvailable: false, mushafId: 5 };
+}
+async function fetchQuranCdnSurah(surahNumber) {
+  const query = '?words=true&translations=131&per_page=300&word_fields=text_qpc_hafs,text_uthmani,line_number,page_number,position,char_type_name&fields=text_qpc_hafs,text_uthmani,verse_key,chapter_id,verse_number,juz_number,hizb_number,page_number';
+  const payload = await fetchQuranMirror('https://api.qurancdn.com/api/qdc/verses/by_chapter/' + surahNumber + query, normalizeQuranCom, surahNumber);
+  if (!payload.ayahs.length || payload.ayahs.some(ayah => !ayah.text)) throw new Error('Quran CDN Surah response is missing Arabic text.');
+  return { ...payload, textSource: 'qpc-hafs', qcfAvailable: false, mushafId: 5 };
+}
 async function fetchAlQuranCloudPage(page) {
+  try { return await fetchQuranCdnPage(page); }
+  catch (error) { console.warn('Public Quran CDN page provider unavailable; trying AlQuranCloud:', error.message); }
   const providers = ['https://api.alquran.cloud/v1', 'https://alquran.api.islamic.network/v1', 'https://alquran.api.alislam.ru/v1'];
   let lastError = null;
   for (const base of providers) {
@@ -433,6 +447,8 @@ async function fetchAlQuranCloudPage(page) {
 async function fetchAlQuranCloudSurah(surahNumber) {
   try { return await fetchQuranFoundationSurah(surahNumber); }
   catch (error) { console.warn('Quran Foundation Surah API unavailable; using compatible fallback:', error.message); }
+  try { return await fetchQuranCdnSurah(surahNumber); }
+  catch (error) { console.warn('Public Quran CDN Surah provider unavailable; trying authenticated/legacy providers:', error.message); }
   const qpcQuery = '?mushaf=1&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number,hizb_number&per_page=300';
   for (const url of [
     'https://quran.com/api/proxy/content/api/qdc/verses/by_chapter/' + surahNumber + qpcQuery,
