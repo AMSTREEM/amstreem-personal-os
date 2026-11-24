@@ -5718,9 +5718,9 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .mushaf-hero-modes{display:flex;flex-direction:column;gap:5px}
 .mushaf-hero-modes button{min-height:27px;padding:0 10px;border:1px solid var(--mushaf-hairline);border-radius:999px;background:var(--bg);color:var(--muted);font-size:9px;font-weight:650}
 .mushaf-hero-modes button.is-active{border-color:color-mix(in srgb,var(--accent) 45%,var(--mushaf-hairline));background:var(--accent-wash);color:var(--accent-strong)}
-.mushaf-bismillah{display:grid;justify-items:center;gap:3px;margin:20px auto 18px;text-align:center}
-.mushaf-bismillah b{color:var(--text);font:500 27px/1.8 "UthmanicHafs","Amiri Quran",serif}
-.mushaf-bismillah span{color:var(--muted);font:400 11px/1.5 "DM Sans",sans-serif}
+.mushaf-bismillah{display:grid;justify-items:center;gap:0;margin:20px auto 18px;padding:0;border:0;text-align:center}
+.mushaf-bismillah b{color:var(--text);font-family:"Amiri Quran",serif;font-size:clamp(28px,3.6vw,34px);font-weight:400;line-height:1.9;letter-spacing:0}
+.mushaf-bismillah span{margin-top:4px;color:var(--text-muted,var(--muted));font:400 14px/1.5 "DM Sans",sans-serif}
 .mushaf-verse-row{padding:24px 0;border-bottom:1px solid var(--mushaf-hairline)}
 .mushaf-verse-top{display:grid;grid-template-columns:124px minmax(0,1fr);align-items:start;gap:16px}
 .mushaf-verse-tools{display:flex;align-items:center;gap:7px;padding-top:8px;direction:ltr}
@@ -5750,7 +5750,8 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .tj-qalqalah{color:#70aee0}
 .tj-ghunnah,.tj-ikhfa{color:#55a98b}
 .tj-idgham{color:#78a89a}
-.mushaf-app--tajweed-off .tj-hamza,.mushaf-app--tajweed-off .tj-silent,.mushaf-app--tajweed-off .tj-madd,.mushaf-app--tajweed-off .tj-qalqalah,.mushaf-app--tajweed-off .tj-ghunnah,.mushaf-app--tajweed-off .tj-ikhfa,.mushaf-app--tajweed-off .tj-idgham{color:inherit!important;opacity:1}
+.tj-heavy,.tj-tafkhim{color:#c79a58}
+.mushaf-app--tajweed-off .tj-hamza,.mushaf-app--tajweed-off .tj-silent,.mushaf-app--tajweed-off .tj-madd,.mushaf-app--tajweed-off .tj-qalqalah,.mushaf-app--tajweed-off .tj-ghunnah,.mushaf-app--tajweed-off .tj-ikhfa,.mushaf-app--tajweed-off .tj-idgham,.mushaf-app--tajweed-off .tj-heavy,.mushaf-app--tajweed-off .tj-tafkhim{color:inherit!important;opacity:1}
 @media(max-width:1100px){
  .mushaf-topbar{grid-template-columns:minmax(120px,1fr) auto minmax(0,2fr);gap:7px;padding:0 9px}
  .mushaf-topbar-actions{gap:4px}
