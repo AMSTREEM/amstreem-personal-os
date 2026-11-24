@@ -16,7 +16,7 @@ const { parseAlQuranTajweed, normalizeMadinahArabic } = context.module.exports;
 
 test('Tajweed scanner preserves nested rule tags and normalizes IndoPak letter variants', () => {
   const tokens = parseAlQuranTajweed('[h:1[بِسْمِ]][n[ٱللّٰهُ]][q:3[ق]]');
-  assert.deepEqual(tokens.map(token => token.className), ['tj-silent', 'tj-madd', 'tj-qalqalah']);
+  assert.deepEqual(Array.from(tokens, token => token.className), ['tj-silent', 'tj-madd', 'tj-qalqalah']);
   assert.equal(tokens.map(token => token.text).join(''), 'بِسْمِٱللّٰهُق');
   assert.equal(normalizeMadinahArabic('\u06CC\u06A9\u06C1'), '\u064A\u0643\u0647');
   const nested = parseAlQuranTajweed('[g[م[n[د]]ّ]]');
@@ -53,7 +53,7 @@ test('Al-Fatihah, Al-Baqarah, Al-Kahf, Ya-Sin, Al-Mulk and Al-Ikhlas have colour
     assert.equal(ayahs.length, surah.ayahs, surah.name + ' ayah count');
     for (const ayah of ayahs) {
       const tokens = parseAlQuranTajweed(String(ayah.text || ''));
-      assert.ok(tokens.length > 0 && tokens.some(token => token.className), surah.name + ' ' + ayah.numberInSurah + ' has no coloured Tajweed token');
+      assert.ok(tokens.length > 0 && tokens.some(token => token.className), surah.name + ' ' + ayah.numberInSurah + ' has no coloured Tajweed token; source=' + JSON.stringify(ayah.text));
       assert.ok(tokens.every(token => !/[\[\]]/.test(token.text)), surah.name + ' ' + ayah.numberInSurah + ' leaked a bracket');
     }
     return { name: surah.name, ayahs: ayahs.length };
