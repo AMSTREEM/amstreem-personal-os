@@ -766,7 +766,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
                 </div>
               </div>
               <button type="button" className="mushaf-verse-arabic" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px', fontFamily: "'UthmanicHafs', serif", fontWeight: 400, letterSpacing: '0px', fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1' }} onClick={() => selectAyah(ayah)} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>
-                {ayah.textSource === 'quran-uthmani' ? ayah.text : renderTajweedMarkup(ayah.tajweedText || '', ayah.tajweedSegments, ayah.text, tajweedEnabled)}<AyahMedallion className="mushaf-verse-medallion" number={ayah.numberInSurah}/>
+                {(ayah.textSource === 'quran-uthmani' || ayah.textSource === 'qpc-hafs') ? ayah.text : renderTajweedMarkup(ayah.tajweedText || '', ayah.tajweedSegments, ayah.text, tajweedEnabled)}<AyahMedallion className="mushaf-verse-medallion" number={ayah.numberInSurah}/>
               </button>
               {transliterationEnabled && ayah.transliteration && <p className="mushaf-verse-transliteration">{ayah.transliteration}</p>}
               {readingMode !== 'arabic' && <p className="mushaf-verse-translation">{ayah.translation || 'Translation unavailable.'}</p>}
@@ -788,7 +788,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
                 </header>}
                 {startsSurah && ayah.surahNumber !== 9 && <div className="mushaf-page-bismillah"><b>بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</b><span>In the Name of Allah—the Most Compassionate, Most Merciful</span></div>}
                 {index === 0 && !startsSurah && <div className="mushaf-page-context">{surah?.transliteration || ayah.surahName}</div>}
-                <span ref={node => { const key = ayah.surahNumber + ':' + ayah.numberInSurah; if (node) verseRowRefs.current.set(key, node); else verseRowRefs.current.delete(key); }} className="mushaf-page-ayah" data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={pageData.page}>{ayah.textSource === 'quran-uthmani' ? ayah.text : renderTajweedMarkup(ayah.tajweedText || '', ayah.tajweedSegments, ayah.text, tajweedEnabled)}<AyahMedallion className="mushaf-page-medallion" number={ayah.numberInSurah}/></span>{' '}
+                <span ref={node => { const key = ayah.surahNumber + ':' + ayah.numberInSurah; if (node) verseRowRefs.current.set(key, node); else verseRowRefs.current.delete(key); }} className="mushaf-page-ayah" data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={pageData.page}>{(ayah.textSource === 'quran-uthmani' || ayah.textSource === 'qpc-hafs') ? ayah.text : renderTajweedMarkup(ayah.tajweedText || '', ayah.tajweedSegments, ayah.text, tajweedEnabled)}<AyahMedallion className="mushaf-page-medallion" number={ayah.numberInSurah}/></span>{' '}
               </Fragment>;
             })}</div><footer className="mushaf-page-footer" dir="ltr">{/* Legacy footer contract: — Page {page} · Juz {pageJuz} — */}<span className="mushaf-page-footer-desktop">— Page {pageData.page} · Juz {pageJuz} —</span>{isMobileViewport && <span className="mushaf-page-footer-mobile">Page {pageData.page}</span>}</footer>
           </motion.section>}</AnimatePresence>
