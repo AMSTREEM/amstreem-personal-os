@@ -128,14 +128,14 @@ async function getQuranApiAuth() {
 }
 
 function parseAlQuranTajweed(markup) {
-  const classByCode = { h:'tj-silent',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-ikhfa',f:'tj-ikhfa',i:'tj-idgham',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham' };
+  const classByCode = { h:'tj-silent',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-ikhfa',f:'tj-ikhfa',i:'tj-idgham',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham', madd:'tj-madd', qalqalah:'tj-qalqalah', ghunnah:'tj-ghunnah', ikhfa:'tj-ikhfa', idgham:'tj-idgham', silent:'tj-silent', tafkhim:'tj-tafkhim' };
   const segments = [];
   const source = String(markup || '');
-  const pattern = /\[([a-z])(?::\d+)?\[([\s\S]*?)\]\]?/g;
+  const pattern = /\[([a-zA-Z]+)(?::\d+)?\[([^\]]+)\]\]?/g;
   let cursor = 0, match;
   while ((match = pattern.exec(source))) {
     if (match.index > cursor) segments.push({ text: source.slice(cursor, match.index), className: '' });
-    segments.push({ text: match[2], className: classByCode[match[1]] || '' });
+    segments.push({ text: match[2], className: classByCode[match[1].toLowerCase()] || '' });
     cursor = pattern.lastIndex;
   }
   if (cursor < source.length) segments.push({ text: source.slice(cursor), className: '' });
