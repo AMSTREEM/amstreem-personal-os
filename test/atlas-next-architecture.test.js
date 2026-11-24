@@ -441,5 +441,5 @@ test('Mushaf mobile page turns use horizontal swipe and Framer Motion-safe cente
   assert.ok(css.includes('margin-left: auto !important;'));
   assert.ok(css.includes('width: calc(100vw - 24px) !important;'));
   assert.ok(css.includes('width: calc(100vw - 28px) !important;'));
-  assert.doesNotMatch(css.slice(css.lastIndexOf('/* Mobile Mushaf: Framer Motion-safe')), /transform:\\s*translateX\\(-50%\\)/);
+  assert.doesNotMatch(css.slice(css.lastIndexOf('/* Mobile Mushaf: Framer Motion-safe')), /transform\\s*:/);
 });
