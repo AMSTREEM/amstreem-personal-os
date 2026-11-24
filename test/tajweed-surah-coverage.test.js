@@ -65,7 +65,7 @@ test('Six selected Surahs tokenize every ayah and retain all provider colour tag
     for (const ayah of ayahs) {
       let tokens = parseAlQuranTajweed(String(ayah.text || ''));
       if (!tokens.some(token => token.className)) tokens = parseAlQuranTajweed(fallbackByAyah.get(Number(ayah.numberInSurah)) || '');
-      assert.ok(tokens.length > 0 && tokens.some(token => token.className), surah.name + ' ' + ayah.numberInSurah + ' has no coloured Tajweed tokens in either provider');
+      assert.ok(tokens.length > 0 && tokens.some(token => token.className), surah.name + ' ' + ayah.numberInSurah + ' has no coloured Tajweed tokens in either provider; primary=' + String(ayah.text || '') + '; fallback=' + String(fallbackByAyah.get(Number(ayah.numberInSurah)) || ''));
       colouredAyahs += 1;
       assert.ok(tokens.every(token => !/[\[\]]/.test(token.text)), surah.name + ' ' + ayah.numberInSurah + ' leaked a bracket');
     }
