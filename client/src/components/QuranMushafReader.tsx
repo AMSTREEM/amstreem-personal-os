@@ -11,7 +11,7 @@ type MushafWord = { text: string; tajweed?: string; codeV2?: string; lineNumber?
 type MushafAyah = { textSource?: string; number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; tajweedText?: string; tajweedSegments?: TajweedSegment[]; translation: string; transliteration?: string; translations?: Array<{ id: number; name: string; text: string }>; words?: MushafWord[] };
 type MushafPage = { textSource?: string; page: number; juz: number; hizb?: number; tajweedComplete?: boolean; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void; autoOpen?: boolean };
-const CACHE_PREFIX = 'atlas_mushaf_page_v10_';
+const CACHE_PREFIX = 'atlas_mushaf_page_v11_';
 const pageMemoryCache = new Map<number, MushafPage>();
 const HIFZ_KEY = 'atlas_hifz_bookmark_v2';
 const MURAJAAH_KEY = 'atlas_murajaah_bookmark_v2';
@@ -242,7 +242,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       const staleKeys: string[] = [];
       for (let index = 0; index < localStorage.length; index += 1) {
         const key = localStorage.key(index);
-        if (key && (/^atlas_mushaf_page_v[1-9]_/.test(key) || /^atlas_mushaf_cache_/.test(key) || /^atlas_quran_page_cache_/.test(key))) staleKeys.push(key);
+        if (key && (/^atlas_mushaf_page_v(?:[1-9]|10)_/.test(key) || /^atlas_mushaf_cache_/.test(key) || /^atlas_quran_page_cache_/.test(key))) staleKeys.push(key);
       }
       staleKeys.forEach(key => localStorage.removeItem(key));
     } catch { /* local storage is optional */ }
