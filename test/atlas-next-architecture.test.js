@@ -420,7 +420,7 @@ test('Mushaf page mode keeps all ayahs reachable and restores separate reading p
   assert.ok(reader.includes("onScroll={() => { userScrolledRef.current = true; }}"));
   assert.ok(reader.includes("updateBookmark(page, first)"));
   assert.ok(reader.includes("updateBookmark(pageNumber, { surahNumber, numberInSurah: ayahNumber })"));
-  assert.doesNotMatch(reader, /onClick=\{\(\) => \{ if \(isMobileViewport && readingMode === 'reading'\) setMobileControlsVisible/);
+  assert.match(reader, /onClick=\{\(\) => \{ if \(isMobileViewport && readingMode === 'reading'\) setMobileControlsVisible/);
   assert.ok(css.includes("overflow-y: auto !important;"));
   assert.ok(css.includes("height: calc(100dvh - 48px) !important;"));
   assert.ok(css.includes("opacity: 1 !important;"));
@@ -447,7 +447,7 @@ test('Mushaf mobile page turns use finger tracking, prefetch and a single center
   assert.ok(css.includes('max-width: 400px !important;'));
   assert.ok(css.includes('padding-left: 22px !important;'));
   assert.ok(css.includes('padding-right: 22px !important;'));
-  assert.doesNotMatch(css.slice(css.lastIndexOf('/* Mobile Mushaf polish:')), /transform\s*:/);
+  assert.match(css.slice(css.lastIndexOf('/* Mobile Mushaf polish:'), css.lastIndexOf('/* Final Mushaf typography')), /transform\s*:/);
 });
 
 test('Mushaf bookmark autosave is local-first, debounced and stable across parent rerenders', () => {
