@@ -6790,3 +6790,72 @@ html, body, #root, .app-frame, .main-area, .page-container {
     color: var(--muted);
   }
 }
+
+
+/* Mushaf mobile reading reliability: keep controls visible and never clip page ayahs. */
+@media (max-width: 767px) {
+  .mushaf-app.is-mobile-page-reading > .mushaf-topbar,
+  .mushaf-app.is-mobile-page-reading.mobile-controls-visible > .mushaf-topbar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 70 !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    background: var(--surface) !important;
+    border-bottom: 1px solid var(--mushaf-hairline);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-workspace,
+  .mushaf-app.is-mobile-page-reading .mushaf-main,
+  .mushaf-app.is-mobile-page-reading .mushaf-canvas {
+    min-height: 0 !important;
+    height: calc(100dvh - 48px) !important;
+    max-height: calc(100dvh - 48px) !important;
+    overflow: hidden !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-view {
+    display: grid !important;
+    grid-template-rows: 28px minmax(0, 1fr) 30px !important;
+    height: calc(100dvh - 48px) !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 48px) !important;
+    padding: 4px 12px calc(6px + env(safe-area-inset-bottom)) !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-text {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    margin: 0 !important;
+    padding: 6px 2px 16px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    touch-action: pan-y;
+    box-sizing: border-box !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-footer {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-arrows,
+  .mushaf-app.is-mobile-page-reading.mobile-controls-visible .mushaf-page-arrows {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-arrows button {
+    pointer-events: auto !important;
+  }
+}
