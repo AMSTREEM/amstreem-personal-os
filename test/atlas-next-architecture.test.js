@@ -310,7 +310,7 @@ test('Mushaf rebuild uses a fixed top bar, three-tab sidebar and two clean readi
 
 test('AlQuranCloud page proxy requests Tajweed, Uthmani and Sahih with bounded memory cache and fallbacks', () => {
   const offline = JSON.parse(read('server/quran-fallback.json'));
-  for (const item of ["app.get('/api/quran/page/:page'","quran-tajweed,quran-uthmani,en.sahih",'https://api.alquran.cloud/v1','https://alquran.api.islamic.network/v1','quranPageCache = new Map()','quranPageInflight = new Map()',"send(cached.payload, 'STALE')",'parseAlQuranTajweed','tj-hamza','tj-madd','tj-qalqalah','tj-ghunnah','normalizeQuranCom']) assert.ok(server.includes(item), 'Missing endpoint feature: ' + item);
+  for (const item of ["app.get('/api/quran/page/:page'","quran-uthmani,quran-tajweed,en.sahih",'https://api.alquran.cloud/v1','https://alquran.api.islamic.network/v1','quranPageCache = new Map()','quranPageInflight = new Map()',"send(cached.payload, 'STALE')",'parseAlQuranTajweed','alignTajweedToUthmani','text: uthmaniText, tajweedText: uthmaniText','tj-hamza','tj-madd','tj-qalqalah','tj-ghunnah','normalizeQuranCom']) assert.ok(server.includes(item), 'Missing endpoint feature: ' + item);
   assert.deepEqual(Object.keys(offline.pages).sort(), ['1','602','603','604']);
 });
 
