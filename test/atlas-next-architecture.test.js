@@ -715,3 +715,15 @@ test('Page-by-page Mushaf pages share the same full-height vertical line rhythm'
   assert.match(pageRhythm, /\.mushaf-app\.is-page-reading \.mushaf-qcf-line \{\s*flex: 0 0 auto/);
   assert.match(pageRhythm, /@media \(max-width: 767px\)[\s\S]*?min-height: max\(0px, calc\(100dvh - 194px\)\)/);
 });
+
+
+test('All Page-by-page QPC lines form an equal-height, non-wrapping physical Mushaf grid', () => {
+  const css = read('client/src/styles.css');
+  const grid = css.slice(css.lastIndexOf('/* Final Page-by-Page line grid:'));
+  assert.match(grid, /justify-content: flex-start !important/);
+  assert.match(grid, /min-height: 680px !important/);
+  assert.match(grid, /\.mushaf-page-text--lines > \.mushaf-qcf-line[\s\S]*?flex: 1 1 0 !important/);
+  assert.match(grid, /flex-wrap: nowrap !important/);
+  assert.match(grid, /white-space: nowrap !important/);
+  assert.match(grid, /@media \(max-width: 767px\)[\s\S]*?height: 100% !important;\s*min-height: 0 !important/);
+});
