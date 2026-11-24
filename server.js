@@ -132,7 +132,10 @@ function tajweedClassForRule(rule) {
   if (/^(h|s|l|ham_wasl|hamzat_wasl|hamzat_al_wasl|slnt|silent|laam_shamsiyah)$/.test(value)) return 'tj-silent';
   if (/^(n|p|m|o)$/.test(value) || /^madda?_/.test(value) || /^madd/.test(value)) return 'tj-madd';
   if (/^(q|qlq|qalaqah|qalqalah)$/.test(value)) return 'tj-qalqalah';
-  if (/^(g|c|f|i|w|a|u|d|b)$/.test(value) || /ghunnah|ikhfa|idgham|iqlab/.test(value)) return 'tj-ghunnah';
+  if (/^(g|ghn)$/.test(value) || /ghunnah|idgh_ghn/.test(value)) return 'tj-ghunnah';
+  if (/^(c|f|ikhf|ikhf_shfw)$/.test(value) || /ikhfa/.test(value)) return 'tj-ikhfa';
+  if (/^(i|iqlb)$/.test(value) || /iqlab/.test(value)) return 'tj-ghunnah';
+  if (/^(w|idghm_shfw|u|idgh_w_ghn|d|b|idgh_mus)$/.test(value) || /idgham|idghm|idgh_/.test(value)) return 'tj-ghunnah';
   if (/tafkhim|heavy/.test(value)) return 'tj-tafkhim';
   return '';
 }
@@ -248,7 +251,7 @@ function normalizeAlQuranCloud(body, page) {
   const byNumber = new Map(marked.map(ayah => [Number(ayah.number), String(ayah.text || '')]));
   return {
     page, juz: Number(arabic.ayahs[0]?.juz) || 1, qcfAvailable: false,
-    tajweedComplete: marked.length === arabic.ayahs.length, translationSource: 'Sahih International',
+    tajweedComplete: arabic.ayahs.length > 0 && arabic.ayahs.every(ayah => { const tagged = byNumber.get(Number(ayah.number)) || ''; return parseAlQuranTajweed(tagged).some(segment => Boolean(segment.className)); }), translationSource: 'Sahih International',
     ayahs: arabic.ayahs.map((ayah, index) => {
       const surahNumber = Number(ayah?.surah?.number);
       const label = quranSurahLabels[surahNumber] || {};
@@ -259,7 +262,7 @@ function normalizeAlQuranCloud(body, page) {
         number: Number(ayah.number), numberInSurah: Number(ayah.numberInSurah), surahNumber,
         surahName: ayah?.surah?.englishName || label.surahName || `Surah ${surahNumber}`,
         arabicName: ayah?.surah?.name || label.arabicName || '',
-        text: uthmaniText, tajweedText: uthmaniText, tajweedSegments: alignTajweedToUthmani(uthmaniText, taggedSegments),
+        text: uthmaniText, tajweedText: taggedText, tajweedSegments: alignTajweedToUthmani(uthmaniText, taggedSegments),
         translation: String(english.ayahs[index]?.text || '').replace(/<[^>]*>/g, '').trim(),
         translations: [], words: []
       };
@@ -368,12 +371,14 @@ app.get('/api/quran/page/:page', async (req, res) => {
     let fallback = null;
     if (!primary?.ayahs?.length) {
       const query = '?mushaf=19&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number&page=1&per_page=50';
+    if (!primary?.ayahs?.length || !primary.tajweedComplete) {
       for (const url of [`https://quran.com/api/proxy/content/api/qdc/verses/by_page/${page}${query}`,`https://api.quran.com/api/v4/verses/by_page/${page}${query}`]) {
-        try { fallback = await fetchQuranMirror(url, normalizeQuranCom, page); if (fallback?.ayahs?.length) break; }
+        try { fallback = await fetchQuranMirror(url, normalizeQuranCom, page); if (fallback?.ayahs?.length && fallback.tajweedComplete) break; }
         catch (error) { console.warn('Quran.com fallback failed:', error.message); }
       }
     }
-    const sourcePage = primary?.ayahs?.length ? primary : fallback;
+    const annotationCount = candidate => (candidate?.ayahs || []).filter(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).length;
+    const sourcePage = annotationCount(fallback) > annotationCount(primary) ? fallback : (primary?.ayahs?.length ? primary : fallback);
     if (!sourcePage?.ayahs?.length) {
       const offline = quranOfflinePages[String(page)];
       if (offline?.ayahs?.length) return { ...offline, page, offlineFallback: true, qcfAvailable: false };
@@ -386,7 +391,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
         tajweedSegments: Array.isArray(ayah.tajweedSegments) ? ayah.tajweedSegments : parseAlQuranTajweed(ayah.tajweedText || ''),
         translation: String(ayah.translation || '')
       })),
-      tajweedComplete: sourcePage.ayahs.length > 0 && sourcePage.ayahs.every(ayah => Boolean(ayah.tajweedText))
+      tajweedComplete: sourcePage.ayahs.length > 0 && sourcePage.ayahs.every(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className)))
     };
   })();
   quranPageInflight.set(page, task);
