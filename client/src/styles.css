@@ -6102,3 +6102,36 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .mushaf-verse-view{width:min(100%,720px);padding-right:18px;padding-left:18px}
   .mushaf-page-view{width:min(100%,500px);padding-right:12px;padding-left:12px}
 }
+
+
+/* Mushaf Arabic shaping, Tajweed palette and ayah rosette refinements. */
+.mushaf-verse-arabic,
+.mushaf-page-text,
+.mushaf-page-ayah,
+.mushaf-page-surah-banner b,
+.mushaf-page-bismillah,
+.mushaf-arabic,
+.mushaf-verse-arabic .tj-*,
+.mushaf-page-text .tj-* {
+  font-family: 'Amiri Quran', 'Scheherazade New', 'Traditional Arabic', serif !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  word-spacing: normal;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1;
+  text-rendering: optimizeLegibility;
+}
+.mushaf-verse-arabic { font: 400 30px/2.15 'Amiri Quran', 'Scheherazade New', 'Traditional Arabic', serif !important; }
+.mushaf-page-text { font-weight: 400 !important; word-spacing: normal !important; }
+.tj-madd { color: #fb7185 !important; }
+.tj-ghunnah, .tj-ikhfa, .tj-idgham { color: #34d399 !important; }
+.tj-qalqalah { color: #38bdf8 !important; }
+.tj-tafkhim, .tj-heavy { color: #fbbf24 !important; }
+.tj-silent, .tj-hamza { color: var(--muted) !important; opacity: .48 !important; }
+.mushaf-medallion { position: relative; width: 32px; height: 32px; min-width: 32px; margin: 0 7px; border: 0; border-radius: 0; box-shadow: none; color: var(--text-secondary,var(--muted)); }
+.mushaf-medallion--wide { width: 36px; min-width: 36px; padding: 0; }
+.mushaf-medallion-ornament { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; fill: none; stroke: currentColor; stroke-width: 1.05; }
+.mushaf-medallion-ornament circle { stroke-width: .65; opacity: .72; }
+.mushaf-medallion > span { position: absolute; inset: 0; display: grid; place-items: center; width: auto; height: auto; font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 11px; font-weight: 700; line-height: 1; color: currentColor; }
+.mushaf-page-medallion { width: 32px; height: 32px; min-width: 32px; }
+.mushaf-page-medallion.mushaf-medallion--wide { width: 36px; min-width: 36px; }
+.mushaf-tajweed-key-wrap[hidden] { display: none !important; }
