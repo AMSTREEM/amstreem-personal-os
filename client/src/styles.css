@@ -6553,13 +6553,13 @@ html, body, #root, .app-frame, .main-area, .page-container {
     box-sizing: border-box;
   }
   .mushaf-surah-trigger {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    flex: 0 1 125px !important;
-    width: 125px;
+    position: static;
+    left: auto;
+    transform: none;
+    flex: 1 1 0 !important;
+    width: auto;
     min-width: 0 !important;
-    max-width: 125px !important;
+    max-width: 112px !important;
     overflow: hidden;
     white-space: nowrap;
   }
@@ -7242,13 +7242,5 @@ html, body, #root, .app-frame, .main-area, .page-container {
 @media (min-width: 768px) {
   .mushaf-topbar.mushaf-fs-header {
     grid-template-columns: minmax(0, 1fr) auto auto minmax(0, 1fr) !important;
-  }
-}
-@media (max-width: 767px) {
-  .mushaf-mobile-header-shell .mushaf-surah-trigger {
-    position: static !important;
-    left: auto !important;
-    transform: none !important;
-    width: auto !important;
   }
 }
