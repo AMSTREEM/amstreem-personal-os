@@ -436,7 +436,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     if (pageSurahs.size) return [...pageSurahs.entries()].map(([number, name]) => `${number}. ${name}`).join(' – ');
     const fallbackSurah = getPageSurah(page);
     const fallbackNumber = fallbackSurah?.number || activeSurahNumber;
-    return `${fallbackNumber}. ${fallbackSurah?.transliteration || fallbackSurah?.name || activeSurah?.transliteration || 'Al-Fatihah'}`;
+    return `${fallbackNumber}. ${fallbackSurah?.transliteration || activeSurah?.transliteration || 'Al-Fatihah'}`;
   }, [readingMode, pageData, page, activeSurahNumber, activeSurah]);
   const pageSurahLabel = currentPageSurahLabel;
   useEffect(() => {
