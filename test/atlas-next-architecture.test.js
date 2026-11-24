@@ -269,6 +269,10 @@ test('Qur’an reader uses the Quran.com page proxy, saved bookmarks, no reciter
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const values = read('client/src/pages/ValuesPage.tsx');
   assert.ok(server.includes("app.get('/api/quran/page/:page'"));
+  assert.ok(server.includes("app.get('/api/quran/surah/:surah'"));
+  assert.ok(server.includes('quranSurahCache = new Map()'));
+  assert.ok(server.includes('AbortSignal.timeout(15000)'));
+  assert.ok(server.includes('attempt < 2'));
   assert.ok(server.includes('quranPageCache = new Map()'));
   assert.ok(server.includes('QURAN_API_TOKEN'));
   assert.ok(reader.includes("fetch('/api/quran/page/' + page)"));
@@ -285,6 +289,17 @@ test('Qur’an reader uses the Quran.com page proxy, saved bookmarks, no reciter
   assert.ok(reader.includes("openReader('hifz')"));
   assert.ok(values.includes('<QuranMushafReader settings=') || values.includes('<QuranMushafReader autoOpen='));
   assert.doesNotMatch(values, /Open Full-Screen Mushaf|rhythm-quran-layout|Save Qur’an record/);
+});
+
+test('Mushaf reading settings persist font, five font sizes, three layouts and Tajweed preference', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const html = read('client/index.html');
+  const css = read('client/src/styles.css');
+  for (const item of ['atlas_mushaf_font_family_v1','atlas_mushaf_font_size_v1','atlas_mushaf_layout_v1','atlas_mushaf_tajweed_v1','Madinah Uthmani','Naskh Clean','Scheherazade Classic','Verse by Verse','Page by Page','Arabic Only','Tajweed colors','mushaf-settings-popover','fontSize: arabicFontSize']) assert.ok(reader.includes(item), 'Missing Mushaf setting: ' + item);
+  for (const size of ['20,24,28,32,36']) assert.ok(reader.includes(size), 'Missing five-step Arabic font size scale');
+  assert.match(html, /Noto\\+Naskh\\+Arabic/);
+  assert.match(css, /mushaf-settings-popover/);
+  assert.match(css, /--mushaf-arabic-font/);
 });
 
 test('Mushaf rebuild uses a fixed top bar, three-tab sidebar and two clean reading views', () => {
@@ -308,9 +323,9 @@ test('Mushaf rebuild uses a fixed top bar, three-tab sidebar and two clean readi
   assert.ok(css.includes('.mushaf-page-footer'));
 });
 
-test('AlQuranCloud tokenizes its tagged Tajweed source directly and falls back only when the field is empty', () => {
+test('AlQuranCloud fetches quran-tajweed and Sahih editions directly for page and Surah APIs', () => {
   const offline = JSON.parse(read('server/quran-fallback.json'));
-  for (const item of ["app.get('/api/quran/page/:page'","fetchAlQuranCloudPage","/page/${page}/quran-uthmani","/page/${page}/en.sahih","/page/${page}/quran-tajweed",'https://api.alquran.cloud/v1','quranPageCache = new Map()','quranPageInflight = new Map()','parseAlQuranTajweed','normalizeMadinahArabic','tajweedSegments: taggedSegments','text: uthmaniText, tajweedText: taggedText']) assert.ok(server.includes(item), 'Missing endpoint feature: ' + item);
+  for (const item of ["app.get('/api/quran/page/:page'","fetchAlQuranCloudPage","/page/${page}/editions/quran-tajweed,en.sahih","/surah/${surahNumber}/editions/quran-tajweed,en.sahih",'https://api.alquran.cloud/v1','quranPageCache = new Map()','quranPageInflight = new Map()','parseAlQuranTajweed','normalizeMadinahArabic','tajweedSegments: taggedSegments','text: uthmaniText, tajweedText: taggedText']) assert.ok(server.includes(item), 'Missing endpoint feature: ' + item);
   assert.ok(!server.includes('alignTajweedToUthmani'), 'Cross-string alignment must not remain');
   assert.deepEqual(Object.keys(offline.pages).sort(), ['1','602','603','604']);
 });
@@ -318,7 +333,7 @@ test('AlQuranCloud tokenizes its tagged Tajweed source directly and falls back o
 test('Tajweed rendering uses direct tokens, normalized Madinah glyphs and v8 cache invalidation', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
-  for (const item of ['tajweedSegments','TAJWEED_CLASSES','tj-madd','tj-qalqalah','tj-ghunnah','tj-heavy','tajweedEnabled','parseBracketTajweed','normalizeMadinahArabic',"atlas_mushaf_page_v8_","atlas_mushaf_page_v[1-7]_"]) assert.ok(reader.includes(item), 'Missing Tajweed rendering feature: ' + item);
+  for (const item of ['tajweedSegments','TAJWEED_CLASSES','tj-madd','tj-qalqalah','tj-ghunnah','tj-heavy','tajweedEnabled','parseBracketTajweed','normalizeMadinahArabic',"atlas_mushaf_page_v9_","atlas_mushaf_page_v[1-8]_"]) assert.ok(reader.includes(item), 'Missing Tajweed rendering feature: ' + item);
   for (const rule of ["h:'tj-silent'","s:'tj-silent'","l:'tj-silent'","n:'tj-madd'","p:'tj-madd'","m:'tj-madd'","o:'tj-madd'","q:'tj-qalqalah'","g:'tj-ghunnah'","i:'tj-ghunnah'","c:'tj-ghunnah'","a:'tj-ghunnah'","u:'tj-ghunnah'","w:'tj-ghunnah'","f:'tj-ghunnah'","r:'tj-heavy'"]) assert.ok(reader.includes(rule), 'Missing client rule: ' + rule);
   assert.match(css, /\.mushaf-bismillah b\{/);
   assert.ok(!server.includes('alignTajweedToUthmani'));
