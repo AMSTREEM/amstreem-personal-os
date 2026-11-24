@@ -203,7 +203,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [fullScreen, setFullScreen] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(() => window.matchMedia('(max-width: 767px)').matches);
   const [mobileControlsVisible, setMobileControlsVisible] = useState(false);
-  const [mobilePageFit, setMobilePageFit] = useState({ fontSize: 22, lineHeight: 1.9 });
+  const [mobilePageFit, setMobilePageFit] = useState({ fontSize: 21, lineHeight: 2.05 });
   const [surahSearch, setSurahSearch] = useState('');
   const [sidebarTab, setSidebarTab] = useState<'surah' | 'verse' | 'juz' | 'page'>('surah');
   const [sidebarOpen, setSidebarOpen] = useState(() => window.matchMedia('(min-width: 768px)').matches);
@@ -249,7 +249,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   useLayoutEffect(() => {
     const element = pageTextRef.current;
     if (!element || !fullScreen || !isMobileViewport || readingMode !== 'reading' || loading || !pageData?.ayahs?.length) {
-      setMobilePageFit({ fontSize: 22, lineHeight: 1.9 });
+      setMobilePageFit({ fontSize: 21, lineHeight: 2.05 });
       return;
     }
     let frame = 0;
@@ -262,16 +262,15 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       const previousFont = target.style.getPropertyValue('--mushaf-fit-font-size');
       const previousLineHeight = target.style.getPropertyValue('--mushaf-fit-line-height');
       target.style.setProperty('transition', 'none', 'important');
-      let fontSize = 22;
-      let lineHeight = 1.9;
+      let fontSize = 21;
+      const lineHeight = 2.05;
       const fits = () => {
         target.style.setProperty('--mushaf-fit-font-size', fontSize + 'px');
         target.style.setProperty('--mushaf-fit-line-height', String(lineHeight));
         void target.offsetHeight;
         return target.scrollHeight <= target.clientHeight + 1;
       };
-      while (fontSize > 13.5 && !fits()) fontSize = Math.max(13.5, Number((fontSize - 0.5).toFixed(1)));
-      while (!fits() && lineHeight > 1.58) lineHeight = Math.max(1.58, Number((lineHeight - 0.02).toFixed(2)));
+      while (fontSize > 14 && !fits()) fontSize = Math.max(14, Number((fontSize - 0.5).toFixed(1)));
       fits();
       if (previousFont) target.style.setProperty('--mushaf-fit-font-size', previousFont);
       else target.style.removeProperty('--mushaf-fit-font-size');
@@ -425,6 +424,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   }, [sidebarOpen, activeSurahNumber]);
 
   const activeSurah = QURAN_SURAHS[activeSurahNumber - 1];
+  const mobileActiveSurahNumber = pageData?.ayahs?.[0]?.surahNumber || getPageSurah(page)?.number || activeSurahNumber;
+  const mobileActiveSurahName = QURAN_SURAHS[mobileActiveSurahNumber - 1]?.transliteration || activeSurah?.transliteration || 'Al-Fatihah';
   const currentPageSurahLabel = useMemo(() => {
     const pageSurahs = new Map<number, string>();
     for (const ayah of pageData?.ayahs || []) {
@@ -623,6 +624,10 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} aria-pressed={readingMode === 'translation'} onClick={() => changeReadingMode('translation')}>Verse by Verse</button>
         <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} aria-pressed={readingMode === 'reading'} onClick={() => changeReadingMode('reading')}>Page by Page</button>
       </div>
+      <div className="mushaf-mobile-study-toggle" role="group" aria-label="Memorisation mode">
+        <button type="button" className={mode === 'hifz' ? 'is-active' : ''} aria-pressed={mode === 'hifz'} onClick={() => changeMode('hifz')}>Hifz</button>
+        <button type="button" className={mode === 'murajaah' ? 'is-active' : ''} aria-pressed={mode === 'murajaah'} onClick={() => changeMode('murajaah')}>Muraja’ah</button>
+      </div>
       <div className="mushaf-topbar-center"><Bookmark size={14}/><span>Page {page} · Juz {pageJuz} / Hizb {pageHizb}</span><span className="mushaf-autosaved">Auto-saved · {bookmarkSurahName} {bookmark.surah}:{bookmark.ayah}</span></div>
       <div className="mushaf-topbar-actions">
         <div className="mushaf-settings-anchor">
@@ -684,7 +689,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         </div>
       </motion.aside>}</AnimatePresence>
       <main className="mushaf-main">
-        <div className="mushaf-canvas" ref={readerRef} onWheel={() => { userScrolledRef.current = true; }} onTouchMove={() => { userScrolledRef.current = true; }} onKeyDown={() => { userScrolledRef.current = true; }}>
+        <div className="mushaf-canvas" ref={readerRef} onClick={() => { if (isMobileViewport && readingMode === 'reading') setMobileControlsVisible(value => !value); }} onWheel={() => { userScrolledRef.current = true; }} onTouchMove={() => { userScrolledRef.current = true; }} onKeyDown={() => { userScrolledRef.current = true; }}>
           {loading && <div className="mushaf-loading" role="status" aria-label={'Loading page ' + page}>Loading Qur’an page {page}…</div>}
           {!loading && pageError && <div className="mushaf-error" role="alert"><WifiOff size={22}/><p>{pageError}</p><button type="button" onClick={() => changePage(page)}>Retry</button></div>}
           <AnimatePresence initial={false}>{!loading && pageData && readingMode !== 'reading' && <motion.section key={'verse-' + activeSurahNumber} className="mushaf-verse-view" dir="ltr" lang="en" initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.18, ease: 'easeOut' }}>
@@ -710,7 +715,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
             </motion.article>)}</motion.div>}
           </motion.section>}</AnimatePresence>
           <AnimatePresence mode="wait" custom={pageDirection} initial={false}>{!loading && pageData && readingMode === 'reading' && <motion.section key={'page-' + page} className="mushaf-page-view" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px', fontFamily: "'" + arabicFontFamily + "', serif" }} drag={isMobileViewport ? 'x' : false} dragConstraints={{ left: 0, right: 0 }} dragElastic={0.25} dragDirectionLock onDragEnd={(_, info) => { const offsetX = info.offset.x; const velocityX = info.velocity.x; if (Math.abs(offsetX) > 55 || Math.abs(velocityX) > 350) { const direction = Math.abs(offsetX) > 55 ? offsetX : velocityX; if (direction > 0 && page < 604) changePage(page + 1); else if (direction < 0 && page > 1) changePage(page - 1); }} } initial={prefersReducedMotion ? false : { opacity: 0, x: pageDirection * 36, scale: 0.985 }} animate={{ opacity: 1, x: 0, scale: 1 }} whileDrag={{ opacity: 0.985, scale: 0.985 }} exit={{ opacity: 0, x: pageDirection * -36, scale: 0.985 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.22, ease: [0.22, 1, 0.36, 1] }}>
-            {isMobileViewport && <div className="mushaf-mobile-page-header" aria-hidden="true"><span>{currentPageSurahLabel}</span><span>Juz {pageJuz}</span></div>}
+            {isMobileViewport && <div className="mushaf-mobile-page-header" aria-hidden="true"><span>{mobileActiveSurahName}</span><span>Juz {pageJuz}</span></div>}
             <div className="mushaf-page-text" ref={pageTextRef} onScroll={() => { userScrolledRef.current = true; }} style={{ '--mushaf-fit-font-size': mobilePageFit.fontSize + 'px', '--mushaf-fit-line-height': String(mobilePageFit.lineHeight), fontSize: arabicFontSize + 'px', fontFamily: "'" + arabicFontFamily + "', serif", fontWeight: 400, letterSpacing: '0px', fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1' } as CSSProperties}>{pageData.ayahs.map((ayah, index) => {
               const surah = QURAN_SURAHS[ayah.surahNumber - 1];
               const startsSurah = ayah.numberInSurah === 1;
