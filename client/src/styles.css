@@ -4942,6 +4942,21 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .module-subnav::-webkit-scrollbar { display: none; }
   .module-subnav__link { flex: 0 0 auto !important; white-space: nowrap; }
   .atlas-command-dock { display: none !important; }
+  .page-header { gap: 12px; }
+  .page-header h1 { font-size: clamp(27px, 7vw, 34px); line-height: 1.12; }
+  .page-header p { font-size: 12px; line-height: 1.6; }
+  .page-header__action { min-width: 0; }
+  .page-container button,
+  .page-container a { touch-action: manipulation; }
+  .page-container input,
+  .page-container select,
+  .page-container textarea { max-width: 100%; min-width: 0; }
+  .page-container .card-heading { align-items: flex-start; flex-wrap: wrap; gap: 9px; }
+  .page-container .card-heading > :last-child { min-width: 0; }
+  .page-container .list-row { min-width: 0; }
+  .page-container .list-row__meta { white-space: normal; text-align: right; }
+  .page-container .calendar-grid { grid-template-columns: repeat(7, minmax(0, 1fr)) !important; }
+  .page-container .calendar-cell { min-width: 0; }
   .atlas-mobile-dock {
     position: fixed;
     z-index: 85;
@@ -6476,10 +6491,8 @@ html, body, #root, .app-frame, .main-area, .page-container {
     width: 100%;
     min-width: 0;
   }
-  .page-container :where([class*="grid"],[class*="layout"],[class*="split"]):not(.calendar-grid):not(.calendar-weekdays):not(.calendar-dots):not([class*="atlas-"]) {
-    grid-template-columns: minmax(0, 1fr) !important;
-    min-width: 0;
-  }
+  /* Avoid blanket grid/layout selectors: nested controls and compact data groups
+     must keep their component-specific structure on small screens. */
   .atlas-mobile-dock {
     position: fixed;
     z-index: 85;
