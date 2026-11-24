@@ -620,3 +620,15 @@ test('QPC Hafs font and Quran Foundation Tajweed markup are bundled, defaulted, 
   assert.ok(reader.includes("className={className}"));
   assert.ok(reader.includes("replace(/<span\\s+class="));
 });
+
+
+test('Quran Mushaf uses QPC Hafs Unicode and responsive layouts in both reading modes', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const css = read('client/src/styles.css');
+  assert.match(server, /text_qpc_hafs \|\| verse\.text_uthmani/);
+  assert.match(server, /primary\?\.textSource !== 'qpc-hafs'/);
+  assert.match(reader, /ayah\.textSource === 'qpc-hafs'/);
+  assert.match(css, /\.mushaf-app\.is-mobile-page-reading \.mushaf-page-text[\s\S]*?overflow:visible !important/);
+  assert.match(css, /\.mushaf-app\.is-mobile-verse-reading \.mushaf-verse-arabic/);
+  assert.match(css, /@media \(min-width: 768px\) and \(max-width: 1100px\)/);
+});
