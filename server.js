@@ -132,6 +132,43 @@ app.get('/fonts/' + QURAN_FONT_FILENAME, async (_req, res) => {
     return res.status(502).type('text/plain').send('The Qur’an font is temporarily unavailable.');
   }
 });
+const qcfV2FontInflight = new Map();
+async function loadQcfV2FontBuffer(page) {
+  if (!Number.isInteger(page) || page < 1 || page > 604) throw new Error('Invalid QCF V2 page font.');
+  const fontPath = path.join(__dirname, 'public', 'fonts', 'qcf-v2', 'p' + page + '.woff2');
+  try {
+    const local = await fs.promises.readFile(fontPath);
+    if (local.length && local.subarray(0, 4).toString('ascii') === 'wOF2') return local;
+  } catch { /* fetch and persist the requested page font */ }
+  if (qcfV2FontInflight.has(page)) return qcfV2FontInflight.get(page);
+  const task = (async () => {
+    const response = await fetch('https://verses.quran.foundation/fonts/quran/hafs/v2/woff2/p' + page + '.woff2', {
+      headers: { Accept: 'font/woff2,application/octet-stream' }, signal: AbortSignal.timeout(15000)
+    });
+    if (!response.ok) throw new Error('QCF V2 font returned HTTP ' + response.status + '.');
+    const buffer = Buffer.from(await response.arrayBuffer());
+    if (!buffer.length || buffer.length > 5 * 1024 * 1024 || buffer.subarray(0, 4).toString('ascii') !== 'wOF2') throw new Error('QCF V2 page font is not a valid WOFF2 binary.');
+    await fs.promises.mkdir(path.dirname(fontPath), { recursive: true });
+    await fs.promises.writeFile(fontPath, buffer);
+    return buffer;
+  })();
+  qcfV2FontInflight.set(page, task);
+  try { return await task; } finally { qcfV2FontInflight.delete(page); }
+}
+app.get('/fonts/qcf-v2/p:page.woff2', async (req, res) => {
+  const page = Number(req.params.page);
+  if (!Number.isInteger(page) || page < 1 || page > 604) return res.status(400).type('text/plain').send('Invalid Mushaf page font.');
+  try {
+    const font = await loadQcfV2FontBuffer(page);
+    res.setHeader('Content-Type', 'font/woff2');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.setHeader('Content-Length', String(font.length));
+    return res.status(200).send(font);
+  } catch (error) {
+    console.error('QCF V2 page font delivery failed:', page, error.message);
+    return res.status(502).type('text/plain').send('The Mushaf page font is temporarily unavailable.');
+  }
+});
 app.use('/api/admin', rateLimit({ max: 30, prefix: 'admin' }));
 app.use('/api', rateLimit({ max: 300 }));
 
@@ -394,6 +431,8 @@ async function fetchAlQuranCloudPage(page) {
   throw lastError || new Error('No quran-uthmani/en.sahih page provider is available.');
 }
 async function fetchAlQuranCloudSurah(surahNumber) {
+  try { return await fetchQuranFoundationSurah(surahNumber); }
+  catch (error) { console.warn('Quran Foundation Surah API unavailable; using compatible fallback:', error.message); }
   const qpcQuery = '?mushaf=1&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number,hizb_number&per_page=300';
   for (const url of [
     'https://quran.com/api/proxy/content/api/qdc/verses/by_chapter/' + surahNumber + qpcQuery,
@@ -427,6 +466,34 @@ async function fetchAlQuranCloudSurah(surahNumber) {
   }
   throw lastError || new Error('No quran-uthmani Surah provider is available.');
 }
+async function fetchQuranFoundationPage(page) {
+  const { headers, apiBase } = await getQuranApiAuth();
+  if (!headers['x-auth-token'] || !headers['x-client-id']) throw new Error('Quran Foundation API credentials are not configured.');
+  const query = '?mushaf=1&words=true&translations=131&per_page=50&word_fields=code_v2,text_qpc_hafs,line_number,page_number,position,char_type_name&fields=verse_key,chapter_id,verse_number,juz_number,hizb_number,page_number';
+  const [verseResponse, lookupResponse] = await Promise.all([
+    fetch(apiBase + '/verses/by_page/' + page + query, { headers: { Accept: 'application/json', ...headers }, signal: AbortSignal.timeout(12000) }),
+    fetch(apiBase + '/pages/lookup?page_number=' + page + '&mushaf=1', { headers: { Accept: 'application/json', ...headers }, signal: AbortSignal.timeout(9000) }).catch(() => null)
+  ]);
+  if (!verseResponse.ok) throw new Error('Quran Foundation by_page returned HTTP ' + verseResponse.status + '.');
+  const normalized = normalizeQuranCom(await verseResponse.json(), page);
+  if (!normalized.ayahs.length || !normalized.qcfAvailable || normalized.ayahs.some(ayah => !ayah.words?.length || ayah.words.some(word => !word.lineNumber || (word.charTypeName !== 'end' && word.charTypeName !== 'pause' && !word.codeV2)))) throw new Error('Quran Foundation page response is missing QCF V2 word or line data.');
+  let pageRange = null;
+  if (lookupResponse?.ok) {
+    const lookup = await lookupResponse.json();
+    pageRange = lookup?.pages?.[String(page)] || null;
+  }
+  return { ...normalized, textSource: 'qcf-v2', qcfAvailable: true, mushafId: 1, pageRange };
+}
+async function fetchQuranFoundationSurah(surahNumber) {
+  const { headers, apiBase } = await getQuranApiAuth();
+  if (!headers['x-auth-token'] || !headers['x-client-id']) throw new Error('Quran Foundation API credentials are not configured.');
+  const query = '?words=true&translations=131&per_page=300&word_fields=code_v2,text_qpc_hafs,line_number,page_number,position,char_type_name&fields=verse_key,chapter_id,verse_number,juz_number,hizb_number,page_number';
+  const response = await fetch(apiBase + '/verses/by_chapter/' + surahNumber + query, { headers: { Accept: 'application/json', ...headers }, signal: AbortSignal.timeout(15000) });
+  if (!response.ok) throw new Error('Quran Foundation by_chapter returned HTTP ' + response.status + '.');
+  const normalized = normalizeQuranCom(await response.json(), 1);
+  if (!normalized.ayahs.length) throw new Error('Quran Foundation returned no Surah verses.');
+  return { ...normalized, textSource: 'qpc-hafs', qcfAvailable: normalized.ayahs.every(ayah => ayah.words?.length), mushafId: 1 };
+}
 function normalizeQuranCom(body, page) {
   const verses = Array.isArray(body?.verses) ? body.verses : [];
   if (!verses.length) throw new Error('Quran.com mirror returned an incomplete page.');
@@ -449,8 +516,8 @@ function normalizeQuranCom(body, page) {
         text: String(word.text_qpc_hafs || word.text_uthmani || ''),
         tajweed: String(word.text_uthmani_tajweed || ''),
         codeV2: String(word.code_v2 || ''),
-        lineNumber: Number(word.line_v2 || word.line_number || 0),
-        pageNumber: Number(word.v2_page || word.page_number || page),
+        lineNumber: Number(word.line_number || word.line_v2 || 0),
+        pageNumber: Number(word.page_number || word.v2_page || page),
         position: Number(word.position || word.location || 0),
         verseKey: String(verse.verse_key || ''),
         charTypeName: String(word.char_type_name || '')
@@ -463,6 +530,7 @@ function normalizeQuranCom(body, page) {
         surahName: label.surahName || `Surah ${surahNumber}`, arabicName: label.arabicName || '',
         text, textSource, tajweedText, tajweedSegments,
         translation: clearQuran?.text || sahih?.text || '',
+        pageNumber: Number(verse.page_number || words.find(word => word.pageNumber)?.pageNumber || page),
         translations, words };
     }) };
 }
@@ -543,6 +611,8 @@ app.get('/api/quran/page/:page', async (req, res) => {
     try { return send(await quranPageInflight.get(page), 'COALESCED'); } catch { /* provider retry below */ }
   }
   const task = (async () => {
+    try { return await fetchQuranFoundationPage(page); }
+    catch (error) { console.warn('Quran Foundation Mushaf page API unavailable; using fallback:', error.message); }
     let primary = null;
     try { primary = await fetchAlQuranCloudPage(page); }
     catch (error) { console.warn('AlQuranCloud providers exhausted:', error.message); }
