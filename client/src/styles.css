@@ -6111,8 +6111,8 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .mushaf-page-surah-banner b,
 .mushaf-page-bismillah,
 .mushaf-arabic,
-.mushaf-verse-arabic .tj-*,
-.mushaf-page-text .tj-* {
+.mushaf-verse-arabic [class^="tj-"],
+.mushaf-page-text [class^="tj-"] {
   font-family: 'Amiri Quran', 'Scheherazade New', 'Traditional Arabic', serif !important;
   font-weight: 400 !important;
   letter-spacing: 0 !important;
