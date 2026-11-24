@@ -628,7 +628,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         <button type="button" className="mushaf-verse-icon-button" onClick={() => setTajweedLegendVisible(value => !value)} aria-label="Toggle Tajweed color key" aria-expanded={tajweedLegendVisible}><Info size={17}/></button>
       </div>}
       <div className="mushaf-topbar-view-toggle" role="group" aria-label="Reading view">
-        <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} aria-pressed={false} onClick={() => changeReadingMode('translation')}>Verse by Verse</button>
+        <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} aria-pressed={readingMode === 'translation'} onClick={() => changeReadingMode('translation')}>Verse by Verse</button>
         <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} aria-pressed={readingMode === 'reading'} onClick={() => changeReadingMode('reading')}>Page by Page</button>
       </div>
       {isMobileViewport && <div className="mushaf-mobile-study-toggle" role="group" aria-label="Memorisation mode">
