@@ -684,3 +684,15 @@ test('Page-by-page QPC end markers use independent Quran-style ayah medallions',
   assert.match(reader, /function AyahMedallion\([\s\S]*?arabicNumber\(number\)/);
   assert.ok(reader.includes('mushaf-qcf-word--end'));
 });
+
+
+test('Ayah medallions have one font-independent visual contract in Page by Page and Verse by Verse', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const css = read('client/src/styles.css');
+  assert.match(reader, /<AyahMedallion className="mushaf-verse-medallion" number=\{ayah\.numberInSurah\}\/>/);
+  assert.match(reader, /<AyahMedallion className="mushaf-page-medallion mushaf-page-qpc-medallion" number=\{ayah\.numberInSurah\}\/>/);
+  assert.match(reader, /<AyahMedallion className="mushaf-page-medallion" number=\{ayah\.numberInSurah\}\/>/);
+  const contract = css.slice(css.lastIndexOf('/* Universal ayah medallion contract:'));
+  for (const selector of ['.mushaf-verse-arabic .mushaf-medallion','.mushaf-page-text .mushaf-medallion','.mushaf-medallion-ornament','.mushaf-medallion > span','font-family: "Noto Naskh Arabic"']) assert.ok(contract.includes(selector), 'Missing universal medallion rule: ' + selector);
+  assert.match(contract, /\.mushaf-verse-arabic \.mushaf-verse-medallion[\s\S]*?margin-inline: 7px/);
+});
