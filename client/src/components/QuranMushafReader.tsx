@@ -37,13 +37,19 @@ const MUSHAF_FONT_SAMPLE = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰن
 const normalizeMadinahArabic = (value: string) => value.replace(/[\u06CC\u06A9\u06C1]/g, character => ({
   '\u06CC': '\u064A', '\u06A9': '\u0643', '\u06C1': '\u0647'
 })[character] || character);
-const TAJWEED_RULE_CLASSES: Record<string,string> = { ham_wasl:'ham_wasl',slnt:'slnt',laam_shamsiyah:'laam_shamsiyah',madda_normal:'madda_normal',madda_permissible:'madda_permissible',madda_necessary:'madda_necessary',madda_obligatory:'madda_obligatory',madda_obligatory_mottasel:'madda_obligatory_mottasel',madda_obligatory_monfasel:'madda_obligatory_monfasel',qalaqah:'qalaqah',ikhafa:'ikhafa',ikhafa_shafawi:'ikhafa_shafawi',iqlab:'iqlab',idgham_shafawi:'idgham_shafawi',idgham_ghunnah:'idgham_ghunnah',idgham_wo_ghunnah:'idgham_wo_ghunnah',idgham_mutajanisayn:'idgham_mutajanisayn',idgham_mutaqaribayn:'idgham_mutaqaribayn',ghunnah:'ghunnah',
-  h:'tj-silent',s:'tj-silent',l:'tj-silent',u:'tj-silent',ham_wasl:'tj-silent',hamzat_wasl:'tj-silent',
-  lam_shamsiyyah:'tj-silent',lam_shamsiyah:'tj-silent',laam_shamsiyyah:'tj-silent',laam_shamsiyah:'tj-silent',
+const TAJWEED_RULE_CLASSES: Record<string,string> = {
+  ham_wasl:'ham_wasl',slnt:'slnt',laam_shamsiyah:'laam_shamsiyah',
+  madda_normal:'madda_normal',madda_permissible:'madda_permissible',madda_necessary:'madda_necessary',
+  madda_obligatory:'madda_obligatory',madda_obligatory_mottasel:'madda_obligatory_mottasel',madda_obligatory_monfasel:'madda_obligatory_monfasel',
+  qalaqah:'qalaqah',ikhafa:'ikhafa',ikhafa_shafawi:'ikhafa_shafawi',iqlab:'iqlab',
+  idgham_shafawi:'idgham_shafawi',idgham_ghunnah:'idgham_ghunnah',idgham_wo_ghunnah:'idgham_wo_ghunnah',
+  idgham_mutajanisayn:'idgham_mutajanisayn',idgham_mutaqaribayn:'idgham_mutaqaribayn',ghunnah:'ghunnah',
+  h:'tj-silent',s:'tj-silent',l:'tj-silent',u:'tj-silent',hamzat_wasl:'tj-silent',
+  lam_shamsiyyah:'tj-silent',lam_shamsiyah:'tj-silent',laam_shamsiyyah:'tj-silent',
   m:'tj-madd',o:'tj-madd',madd:'tj-madd',n:'tj-madd-wajib',p:'tj-madd-wajib',
-  q:'tj-qalqalah',qalqalah:'tj-qalqalah',qalaqah:'tj-qalqalah',
+  q:'tj-qalqalah',qalqalah:'tj-qalqalah',
   g:'tj-ghunnah',i:'tj-ghunnah',c:'tj-ghunnah',a:'tj-ghunnah',w:'tj-ghunnah',f:'tj-ghunnah',
-  d:'tj-ghunnah',b:'tj-ghunnah',idgham:'tj-ghunnah',idghaam:'tj-ghunnah',ghunnah:'tj-ghunnah',ikhfa:'tj-ghunnah',iqlab:'tj-ghunnah',
+  d:'tj-ghunnah',b:'tj-ghunnah',idgham:'tj-ghunnah',idghaam:'tj-ghunnah',ikhfa:'tj-ghunnah',
   r:'tj-heavy',heavy:'tj-heavy',tafkhim:'tj-heavy'
 };
 const stripRawQuranMarkup = (value: string) => value
@@ -214,7 +220,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tajweedLegendVisible, setTajweedLegendVisible] = useState(false);
   const [transliterationEnabled, setTransliterationEnabled] = useState(() => { try { return localStorage.getItem('atlas_mushaf_transliteration_v1') === 'on'; } catch { return false; } });
-  const [arabicFontFamily, setArabicFontFamily] = useState(() => { try { const saved = localStorage.getItem('atlas_mushaf_font_family_v1'); return MUSHAF_FONTS.some(font => font.name === saved) ? saved as typeof MUSHAF_FONTS[number]['name'] : 'UthmanicHafs'; } catch { return 'Amiri Quran'; } });
+  const [arabicFontFamily, setArabicFontFamily] = useState(() => { try { const saved = localStorage.getItem('atlas_mushaf_font_family_v1'); return MUSHAF_FONTS.some(font => font.name === saved) ? saved as typeof MUSHAF_FONTS[number]['name'] : 'UthmanicHafs'; } catch { return 'UthmanicHafs'; } });
   const [arabicFontSize, setArabicFontSize] = useState(() => { try { const saved = Number(localStorage.getItem('atlas_mushaf_font_size_v1')); return [20, 24, 28, 32, 36].includes(saved) ? saved : 24; } catch { return 24; } });
   const [pageInput, setPageInput] = useState(String(page));
   const readerRef = useRef<HTMLDivElement | null>(null);
@@ -652,7 +658,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
               <button type="button" className={mode === 'hifz' ? 'is-active' : ''} aria-pressed={mode === 'hifz'} onClick={() => changeMode('hifz')}>Hifz</button>
               <button type="button" className={mode === 'murajaah' ? 'is-active' : ''} aria-pressed={mode === 'murajaah'} onClick={() => changeMode('murajaah')}>Muraja’ah</button>
             </div></div>
-            <div className="mushaf-setting-field"><span>Qur’an calligraphy</span><div className="mushaf-font-preview-list">{MUSHAF_FONTS.map(font => <button type="button" key={font.name} className={'mushaf-font-preview-card' + (arabicFontFamily === font.name ? ' is-active' : '')} aria-pressed={arabicFontFamily === font.name} onClick={() => changeArabicFont(font.name)}><span className="mushaf-font-preview-copy"><b>{font.name}</b><small>{font.label}</small></span><span className="mushaf-font-preview-sample" lang="ar" dir="rtl" style={{ fontFamily: "'" + font.name + "', serif", fontSize: 22, letterSpacing: 0, fontWeight: 400 }}>{MUSHAF_FONT_SAMPLE}</span></button>)}</div></div>
+            <div className="mushaf-setting-field"><span>Qur’an calligraphy</span><div className="mushaf-font-preview-list">{MUSHAF_FONTS.map(font => <button type="button" key={font.name} className={'mushaf-font-preview-card' + (arabicFontFamily === font.name ? ' is-active' : '')} aria-pressed={arabicFontFamily === font.name} onClick={() => changeArabicFont(font.name)}><span className="mushaf-font-preview-copy"><b>{font.name}</b><small>{font.label}</small></span><span className="mushaf-font-preview-sample" lang="ar" dir="rtl" style={{ fontFamily: "'" + font.name + "', 'Amiri Quran', 'Traditional Arabic', serif", fontSize: 22, letterSpacing: 0, fontWeight: 400 }}>{MUSHAF_FONT_SAMPLE}</span></button>)}</div></div>
             <div className="mushaf-setting-field"><span>Font size</span><div className="mushaf-setting-options">{[20,24,28,32,36].map(size => <button type="button" key={size} className={arabicFontSize === size ? 'is-active' : ''} aria-pressed={arabicFontSize === size} onClick={() => changeArabicFontSize(size)}>{size}</button>)}</div></div>
             <div className="mushaf-setting-field"><span>Tajweed colors</span><button type="button" className={'mushaf-tajweed-toggle' + (tajweedEnabled ? ' is-active' : '')} onClick={toggleTajweed} aria-pressed={tajweedEnabled}>{tajweedEnabled ? 'On' : 'Off'}</button></div>
             <div className="mushaf-setting-field"><span>Transliteration</span><button type="button" className={'mushaf-tajweed-toggle' + (transliterationEnabled ? ' is-active' : '')} onClick={toggleTransliteration} aria-pressed={transliterationEnabled}>{transliterationEnabled ? 'On' : 'Off'}</button></div>
@@ -684,7 +690,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
                 <button type="button" className={mode === 'hifz' ? 'is-active' : ''} aria-pressed={mode === 'hifz'} onClick={() => changeMode('hifz')}>Hifz</button>
                 <button type="button" className={mode === 'murajaah' ? 'is-active' : ''} aria-pressed={mode === 'murajaah'} onClick={() => changeMode('murajaah')}>Muraja'ah</button>
               </div></div>
-              <div className="mushaf-setting-field"><span>Qur'an calligraphy</span><div className="mushaf-font-preview-list">{MUSHAF_FONTS.map(font => <button type="button" key={font.name} className={'mushaf-font-preview-card' + (arabicFontFamily === font.name ? ' is-active' : '')} aria-pressed={arabicFontFamily === font.name} onClick={() => changeArabicFont(font.name)}><span className="mushaf-font-preview-copy"><b>{font.name}</b><small>{font.label}</small></span><span className="mushaf-font-preview-sample" lang="ar" dir="rtl" style={{ fontFamily: "'" + font.name + "', serif", fontSize: 22, letterSpacing: 0, fontWeight: 400 }}>{MUSHAF_FONT_SAMPLE}</span></button>)}</div></div>
+              <div className="mushaf-setting-field"><span>Qur'an calligraphy</span><div className="mushaf-font-preview-list">{MUSHAF_FONTS.map(font => <button type="button" key={font.name} className={'mushaf-font-preview-card' + (arabicFontFamily === font.name ? ' is-active' : '')} aria-pressed={arabicFontFamily === font.name} onClick={() => changeArabicFont(font.name)}><span className="mushaf-font-preview-copy"><b>{font.name}</b><small>{font.label}</small></span><span className="mushaf-font-preview-sample" lang="ar" dir="rtl" style={{ fontFamily: "'" + font.name + "', 'Amiri Quran', 'Traditional Arabic', serif", fontSize: 22, letterSpacing: 0, fontWeight: 400 }}>{MUSHAF_FONT_SAMPLE}</span></button>)}</div></div>
               <div className="mushaf-setting-field"><span>Font size</span><div className="mushaf-setting-options">{[20,24,28,32,36].map(size => <button type="button" key={size} className={arabicFontSize === size ? 'is-active' : ''} aria-pressed={arabicFontSize === size} onClick={() => changeArabicFontSize(size)}>{size}</button>)}</div></div>
               <div className="mushaf-setting-field"><span>Tajweed colors</span><button type="button" className={'mushaf-tajweed-toggle' + (tajweedEnabled ? ' is-active' : '')} onClick={toggleTajweed} aria-pressed={tajweedEnabled}>{tajweedEnabled ? 'On' : 'Off'}</button></div>
               <div className="mushaf-settings-key" aria-label="Tajweed color key">
