@@ -38,7 +38,7 @@ function renderTajweedMarkup(markup: string, segments?: TajweedSegment[], fallba
     return className ? <span key={index} className={className}>{text}</span> : <Fragment key={index}>{text}</Fragment>;
   })}</>;
 }
-const stripAyahEndMarker = (value: string) => value.replace(/[\u06DD\u06DE\u06E9\u06DF-\u06E8\u06EA-\u06ED]/g, '').trim();
+const stripAyahEndMarker = (value: string) => value.replace(/\u06DD/g, '').trim();
 const sanitizeMushafPage = (payload: MushafPage): MushafPage => ({
   ...payload,
   ayahs: (payload.ayahs || []).map(ayah => ({
