@@ -327,10 +327,10 @@ async function fetchQuranJsonSurah(surahNumber) {
       let cursor = 0;
       for (const rule of [...rules].sort((a, b) => Number(a.start) - Number(b.start) || Number(a.end) - Number(b.end))) {
         // In this source, the first ayah's spans in surahs that open with a
-        // separate basmalah include the 38-character basmalah prefix.
+        // separate basmalah include the 39-character basmalah-and-space prefix.
         const rawStart = Number(rule.start);
         const rawEnd = Number(rule.end);
-        const basmalahOffset = verseKey === 'verse_1' && rawStart >= sourceText.length && rawEnd - 38 <= sourceText.length ? 38 : 0;
+        const basmalahOffset = verseKey === 'verse_1' && rawStart >= sourceText.length && rawEnd - 39 <= sourceText.length ? 39 : 0;
         const start = Math.max(0, Math.min(sourceText.length, rawStart - basmalahOffset));
         const end = Math.max(start, Math.min(sourceText.length, rawEnd - basmalahOffset));
         const className = tajweedClassForRule(rule.rule);
