@@ -38,7 +38,7 @@ app.use((req,res,next)=>{
     "object-src 'none'",
     "frame-ancestors 'none'",
     "form-action 'self'",
-    "script-src 'self' https://cdn.jsdelivr.net",
+    "script-src 'self'"
     "style-src 'self' 'unsafe-inline' https://googleapis.com https://fonts.googleapis.com",
     "font-src 'self' https://gstatic.com https://fonts.gstatic.com https://googleapis.com https://fonts.googleapis.com https://verses.quran.foundation https://quran.foundation data:",
     "img-src 'self' data: blob: https:",
