@@ -320,6 +320,7 @@ test('Tajweed text is rendered as safe allowlisted semantic spans while Uthmani 
   for (const item of ["identifier === 'quran-uthmani'","identifier === 'quran-tajweed'","identifier === 'en.sahih'","text: String(ayah.text || '')",'parseAlQuranTajweed']) assert.ok(server.includes(item), 'Missing source edition feature: ' + item);
   assert.ok(reader.includes("atlas_mushaf_page_v11_"));
   assert.ok(reader.includes("AYAH_ROSETTE_PATH"));
+  assert.ok(reader.includes("String(segment.text || '').replace(/\\u06DD/g, '')"));
   assert.ok(!reader.includes('new DOMParser('));
   assert.ok(!reader.includes('dangerouslySetInnerHTML'));
 });
