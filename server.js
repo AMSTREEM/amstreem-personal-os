@@ -260,10 +260,22 @@ function normalizeAlQuranCloudSurah(body, surahNumber) {
 }
 async function fetchAlQuranCloudPage(page) {
   const providers = ['https://api.alquran.cloud/v1', 'https://alquran.api.islamic.network/v1', 'https://alquran.api.alislam.ru/v1'];
+  const normalizeEdition = body => {
+    if (body?.code !== 200 || !Array.isArray(body?.data?.ayahs) || !body.data.ayahs.length) {
+      throw new Error('AlQuranCloud returned an incomplete page edition.');
+    }
+    return body.data;
+  };
   let lastError = null;
   for (const base of providers) {
     try {
-      const primary = await fetchQuranMirror(base + '/page/' + page + '/editions/quran-tajweed,en.sahih', body => normalizeAlQuranCloud(body, page), page);
+      // AlQuranCloud supports multi-edition /editions/ on Surah routes, but
+      // Page routes accept one edition per request. Fetch both directly.
+      const [tajweed, english] = await Promise.all([
+        fetchQuranMirror(base + '/page/' + page + '/quran-tajweed', normalizeEdition, page),
+        fetchQuranMirror(base + '/page/' + page + '/en.sahih', normalizeEdition, page)
+      ]);
+      const primary = normalizeAlQuranCloud({ code: 200, data: [tajweed, english] }, page);
       if (primary.tajweedComplete) return primary;
       try {
         const query = '?mushaf=19&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number&page=' + page + '&per_page=50';
