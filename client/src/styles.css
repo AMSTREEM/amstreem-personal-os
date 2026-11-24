@@ -8249,3 +8249,93 @@ html, body, #root, .app-frame, .main-area, .page-container {
   letter-spacing: 0 !important;
   font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1 !important;
 }
+
+
+/* Page by Page only: stable, centered Madinah Uthmani reading column. */
+.mushaf-app.is-page-reading .mushaf-page-view {
+  width: 100% !important;
+  margin: 0 auto !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+.mushaf-app.is-page-reading .mushaf-page-text {
+  width: 100% !important;
+  max-width: 520px !important;
+  margin: 0 auto !important;
+  padding: 16px 20px !important;
+  border: 0 !important;
+  background: transparent !important;
+  direction: rtl !important;
+  text-align: justify !important;
+  text-align-last: center !important;
+  line-height: 2.25 !important;
+  word-spacing: 3px !important;
+  font-family: 'UthmanicHafs', serif !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1 !important;
+  box-sizing: border-box !important;
+}
+.mushaf-app.is-page-reading .mushaf-page-surah-banner {
+  display: block !important;
+  width: 100% !important;
+  margin: 8px auto 14px !important;
+  padding: 14px 18px !important;
+  border: 1px solid var(--border-hairline, var(--line)) !important;
+  border-radius: 14px !important;
+  background: var(--bg-surface, var(--surface)) !important;
+  box-shadow: none !important;
+  box-sizing: border-box !important;
+}
+.mushaf-app.is-page-reading .mushaf-page-bismillah {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  margin: 10px auto 18px !important;
+  padding: 0 !important;
+  text-align: center !important;
+  font-family: 'UthmanicHafs', serif !important;
+}
+.mushaf-app.is-page-reading .mushaf-page-bismillah b {
+  font-family: 'UthmanicHafs', serif !important;
+  font-size: 1.12em !important;
+  font-weight: 400 !important;
+  line-height: 1.9 !important;
+}
+.mushaf-app.is-page-reading .mushaf-page-medallion {
+  vertical-align: middle !important;
+}
+.mushaf-app.is-page-reading .mushaf-page-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  padding: 10px 0 18px !important;
+  text-align: center !important;
+}
+.mushaf-app.is-page-reading .mushaf-page-footer-desktop,
+.mushaf-app.is-page-reading .mushaf-page-footer-mobile {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: var(--text-muted, var(--muted)) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+  font-variant-numeric: tabular-nums !important;
+}
+@media (max-width: 767px) {
+  .mushaf-app.is-page-reading .mushaf-page-text {
+    max-width: 520px !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    padding: 16px 20px !important;
+    text-align: justify !important;
+    text-align-last: center !important;
+    line-height: 2.25 !important;
+    word-spacing: 3px !important;
+  }
+  .mushaf-app.is-page-reading .mushaf-page-footer-desktop { display: none !important; }
+  .mushaf-app.is-page-reading .mushaf-page-footer-mobile { display: inline-flex !important; }
+}
