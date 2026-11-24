@@ -7015,7 +7015,6 @@ html, body, #root, .app-frame, .main-area, .page-container {
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
-    transform: none !important;
   }
   .mushaf-app.is-mobile-page-reading > .mushaf-mobile-header-shell .mushaf-mobile-topbar {
     pointer-events: auto !important;
