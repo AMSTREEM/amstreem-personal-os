@@ -1592,7 +1592,6 @@ body { letter-spacing: -.006em; }
 .execution-focus-card:hover,
 .execution-history-card:hover {
   border-color: color-mix(in srgb, var(--text) 18%, var(--border-hairline)) !important;
-  transform: none !important;
   box-shadow: none !important;
 }
 .atlas-spotlight::before,
@@ -5472,7 +5471,6 @@ html, body, #root, .app-frame, .main-area, .page-container {
     position: sticky;
     top: 0;
     z-index: 65;
-    transform: none !important;
     filter: none !important;
     -webkit-filter: none !important;
     contain: none !important;
@@ -5483,7 +5481,6 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .topbar-context,
   .topbar-context b,
   .mobile-more-trigger {
-    transform: none !important;
     filter: none !important;
     -webkit-filter: none !important;
     opacity: 1 !important;
@@ -6929,13 +6926,11 @@ html, body, #root, .app-frame, .main-area, .page-container {
     border-radius: 14px !important;
     box-sizing: border-box !important;
     z-index: 45 !important;
-    transform: none !important;
   }
   .mushaf-app.is-mobile-page-reading > .mushaf-topbar .mushaf-surah-trigger {
     position: static !important;
     left: auto !important;
     top: auto !important;
-    transform: none !important;
     flex: 1 1 auto !important;
     width: auto !important;
     max-width: none !important;
