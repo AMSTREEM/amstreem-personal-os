@@ -449,3 +449,33 @@ test('Mushaf mobile page turns use finger tracking, prefetch and a single center
   assert.ok(css.includes('padding-right: 22px !important;'));
   assert.doesNotMatch(css.slice(css.lastIndexOf('/* Mobile Mushaf polish:')), /transform\s*:/);
 });
+
+test('Mushaf bookmark autosave is local-first, debounced and stable across parent rerenders', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const server = read('server.js');
+  assert.ok(reader.includes("const lastSavedKeyRef = useRef('')"));
+  assert.ok(reader.includes("const saveKey = `${mode}:${mark.surah}:${mark.ayah}:${mark.page}`"));
+  assert.ok(reader.includes("}, 1500);"));
+  assert.ok(reader.includes("const onLoggedRef = useRef(onLogged)"));
+  assert.ok(reader.includes("onLoggedRef.current = onLogged"));
+  assert.ok(reader.includes("const loggedPagesTodayRef = useRef(new Set<string>())"));
+  assert.ok(reader.includes("loggedPagesTodayRef.current.add(dedupeKey)"));
+  assert.doesNotMatch(reader, /\[fullScreen, loading, pageData, page, mode, onLogged\]/);
+  assert.match(server, /app\.use\('\/api', rateLimit\(\{ max: 300 \}\)\)/);
+  assert.match(server, /'hifz_page','hifz_bookmark','murajaah_page','murajaah_bookmark'/);
+});
+
+test('Mushaf topbar names page Surahs and supports cross-Surah page ranges', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const data = read('client/src/data/quranSurahs.ts');
+  assert.ok(reader.includes("getPageSurah(page)"));
+  assert.ok(reader.includes("pageFirstAyah?.surahName"));
+  assert.ok(reader.includes("pageLastAyah.surahNumber !== pageFirstAyah.surahNumber"));
+  assert.ok(reader.includes("{pageSurahLabel}"));
+  assert.ok(data.includes("export function getPageSurah(page:number)"));
+});
+
+test('mobile web app capability metadata includes the standard non-Apple declaration', () => {
+  const html = read('client/index.html');
+  assert.ok(html.includes('<meta name="mobile-web-app-capable" content="yes" />'));
+});
