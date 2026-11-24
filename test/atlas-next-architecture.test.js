@@ -325,7 +325,7 @@ test('Mushaf rebuild uses a fixed top bar, three-tab sidebar and two clean readi
 
 test('AlQuranCloud fetches quran-tajweed and Sahih editions directly for page and Surah APIs', () => {
   const offline = JSON.parse(read('server/quran-fallback.json'));
-  for (const item of ["app.get('/api/quran/page/:page'","fetchAlQuranCloudPage","'/page/' + page + '/editions/quran-tajweed,en.sahih'","'/surah/' + surahNumber + '/editions/quran-tajweed,en.sahih'",'https://api.alquran.cloud/v1','quranPageCache = new Map()','quranPageInflight = new Map()','parseAlQuranTajweed','normalizeMadinahArabic','tajweedSegments','tajweedText','normalizeAlQuranCloudSurah','fetchAlQuranCloudSurah','quranSurahCache = new Map()']) assert.ok(server.includes(item), 'Missing endpoint feature: ' + item);
+  for (const item of ["app.get('/api/quran/page/:page'","fetchAlQuranCloudPage","'/page/' + page + '/quran-tajweed'","'/page/' + page + '/en.sahih'","'/surah/' + surahNumber + '/editions/quran-tajweed,en.sahih'",'https://api.alquran.cloud/v1','quranPageCache = new Map()','quranPageInflight = new Map()','parseAlQuranTajweed','normalizeMadinahArabic','tajweedSegments','tajweedText','normalizeAlQuranCloudSurah','fetchAlQuranCloudSurah','quranSurahCache = new Map()']) assert.ok(server.includes(item), 'Missing endpoint feature: ' + item);
   assert.ok(!server.includes('alignTajweedToUthmani'), 'Cross-string alignment must not remain');
   assert.deepEqual(Object.keys(offline.pages).sort(), ['1','602','603','604']);
 });
