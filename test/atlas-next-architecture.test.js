@@ -586,9 +586,11 @@ test('Mushaf surfaces and controls use active theme tokens in both reading modes
     assert.ok(themeBlock.includes(token), 'missing Mushaf theme token: ' + token);
   }
   for (const color of ['#D500B7','#E53935','#16A34A','#0288D1','#D97706']) assert.ok(themeBlock.includes(color));
-  assert.match(themeBlock, /\\.mushaf-sidebar[\\s\\S]*?background:var\\(--mushaf-surface\\)/);
-  assert.match(themeBlock, /\\.mushaf-settings-popover[\\s\\S]*?background:var\\(--mushaf-surface\\)/);
-  assert.match(themeBlock, /\\.mushaf-page-medallion[\\s\\S]*?border-color:var\\(--mushaf-border-strong\\)/);
+  assert.ok(themeBlock.includes('.mushaf-fs-overlay .mushaf-sidebar,'));
+  assert.ok(themeBlock.includes('.mushaf-fs-overlay .mushaf-settings-popover,'));
+  assert.ok(themeBlock.includes('.mushaf-fs-overlay .mushaf-page-medallion {'));
+  assert.ok(themeBlock.includes('background:var(--mushaf-surface)!important;'));
+  assert.ok(themeBlock.includes('border-color:var(--mushaf-border-strong)!important;'));
   assert.match(themeBlock, /\\.mushaf-app\\.is-mobile-verse-reading \\.mushaf-verse-arabic[\\s\\S]*?text-align:right/);
   assert.match(themeBlock, /\\.mushaf-app\\.is-mobile-verse-reading \\.mushaf-verse-translation[\\s\\S]*?text-align:left/);
   assert.ok(reader.includes("aria-pressed={readingMode === 'translation'}"));
