@@ -1,6 +1,6 @@
 import { Fragment, type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Bookmark, Copy, Search, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz } from '../data/quranSurahs';
@@ -88,6 +88,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const activeSurahItemRef = useRef<HTMLButtonElement | null>(null);
   const verseRowRefs = useRef(new Map<string, HTMLElement>());
   const [pageDirection, setPageDirection] = useState<'next' | 'previous'>('next');
+  const prefersReducedMotion = useReducedMotion();
   const autoLoggedPagesRef = useRef(new Set<string>());
 
   useEffect(() => {
@@ -340,12 +341,12 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       <div className="mushaf-topbar-center"><Bookmark size={14}/><span>Page {page} · Juz {pageJuz}</span><span className="mushaf-autosaved">Auto-saved</span></div>
       <div className="mushaf-topbar-actions">
         <div className="mushaf-view-switch" role="group" aria-label="Reading view">
-          <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} onClick={() => changeReadingMode('translation')}>{readingMode === 'translation' && <motion.span layoutId="mushaf-view-pill" className="mushaf-switch-highlight" transition={{ type: 'spring', stiffness: 520, damping: 38 }}/>}<span>Verse by Verse</span></button>
-          <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} onClick={() => changeReadingMode('reading')}>{readingMode === 'reading' && <motion.span layoutId="mushaf-view-pill" className="mushaf-switch-highlight" transition={{ type: 'spring', stiffness: 520, damping: 38 }}/>}<span>Page by Page</span></button>
+          <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} onClick={() => changeReadingMode('translation')}>{readingMode === 'translation' && <motion.span layoutId="mushaf-view-pill" className="mushaf-switch-highlight" transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 520, damping: 38 }}/>}<span>Verse by Verse</span></button>
+          <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} onClick={() => changeReadingMode('reading')}>{readingMode === 'reading' && <motion.span layoutId="mushaf-view-pill" className="mushaf-switch-highlight" transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 520, damping: 38 }}/>}<span>Page by Page</span></button>
         </div>
         <div className="mushaf-mode-switch" role="group" aria-label="Bookmark mode">
-          <button type="button" className={mode === 'hifz' ? 'is-active' : ''} onClick={() => changeMode('hifz')}>{mode === 'hifz' && <motion.span layoutId="mushaf-mode-pill" className="mushaf-switch-highlight" transition={{ type: 'spring', stiffness: 520, damping: 38 }}/>}<span>Hifz</span></button>
-          <button type="button" className={mode === 'murajaah' ? 'is-active' : ''} onClick={() => changeMode('murajaah')}>{mode === 'murajaah' && <motion.span layoutId="mushaf-mode-pill" className="mushaf-switch-highlight" transition={{ type: 'spring', stiffness: 520, damping: 38 }}/>}<span>Muraja'ah</span></button>
+          <button type="button" className={mode === 'hifz' ? 'is-active' : ''} onClick={() => changeMode('hifz')}>{mode === 'hifz' && <motion.span layoutId="mushaf-mode-pill" className="mushaf-switch-highlight" transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 520, damping: 38 }}/>}<span>Hifz</span></button>
+          <button type="button" className={mode === 'murajaah' ? 'is-active' : ''} onClick={() => changeMode('murajaah')}>{mode === 'murajaah' && <motion.span layoutId="mushaf-mode-pill" className="mushaf-switch-highlight" transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 520, damping: 38 }}/>}<span>Muraja'ah</span></button>
         </div>
         <button type="button" className="mushaf-font-button" onClick={() => changeFontSize(-1)} aria-label="Decrease Arabic font size">A−</button>
         <button type="button" className="mushaf-font-button" onClick={() => changeFontSize(1)} aria-label="Increase Arabic font size">A+</button>
@@ -353,7 +354,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       </div>
     </header>
     <div className="mushaf-workspace">
-      <AnimatePresence initial={false}><>{sidebarOpen && <motion.button type="button" className="mushaf-sidebar-scrim" aria-label="Close Surah navigation" onClick={() => setSidebarOpen(false)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2}} />}{sidebarOpen && <motion.aside className="mushaf-sidebar" aria-label="Qur’an navigation" initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}>
+      <AnimatePresence initial={false}><>{sidebarOpen && <motion.button type="button" className="mushaf-sidebar-scrim" aria-label="Close Surah navigation" onClick={() => setSidebarOpen(false)} initial={prefersReducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2}} />}{sidebarOpen && <motion.aside className="mushaf-sidebar" aria-label="Qur’an navigation" initial={prefersReducedMotion ? false : { x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.25, ease: [0.16, 1, 0.3, 1] }}>
         <div className="mushaf-sidebar-tabs" role="tablist" aria-label="Browse Qur’an">
           <button type="button" role="tab" aria-selected={sidebarTab === 'surah'} className={sidebarTab === 'surah' ? 'is-active' : ''} onClick={() => setSidebarTab('surah')}>Surah</button>
           <button type="button" role="tab" aria-selected={sidebarTab === 'juz'} className={sidebarTab === 'juz' ? 'is-active' : ''} onClick={() => setSidebarTab('juz')}>Juz</button>
@@ -372,7 +373,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         <div className="mushaf-canvas" ref={readerRef}>
           {loading && <div className="mushaf-loading" role="status" aria-label={'Loading page ' + page}>Loading Qur’an page {page}…</div>}
           {!loading && pageError && <div className="mushaf-error" role="alert"><WifiOff size={22}/><p>{pageError}</p><button type="button" onClick={() => changePage(page)}>Retry</button></div>}
-          <AnimatePresence mode="wait" initial={false}>{!loading && pageData && readingMode === 'translation' && <motion.section key={'verse-' + activeSurahNumber} className="mushaf-verse-view" dir="ltr" lang="en" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.18, ease: 'easeOut' }}>
+          <AnimatePresence mode="wait" initial={false}>{!loading && pageData && readingMode === 'translation' && <motion.section key={'verse-' + activeSurahNumber} className="mushaf-verse-view" dir="ltr" lang="en" initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.18, ease: 'easeOut' }}>
             <header className="mushaf-surah-hero">
               <b className="mushaf-hero-arabic" lang="ar" dir="rtl">{activeSurah?.arabic || ''}</b>
               <div className="mushaf-hero-copy"><h1>{activeSurahNumber}. Surah {activeSurah?.transliteration || 'Surah'}</h1><p>{activeSurah?.english || ''} · {activeSurah?.ayahs || surahAyahs.length} Ayahs</p></div>
@@ -381,7 +382,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
             {activeSurahNumber !== 9 && <BismillahOrnament/>}
             {surahLoading && <p className="mushaf-loading" role="status">Loading {activeSurah?.transliteration || 'Surah'}…</p>}
             {!surahLoading && surahError && <div className="mushaf-error" role="alert"><p>{surahError}</p><button type="button" onClick={() => setReadingMode('reading')}>Return to Page by Page</button></div>}
-            {!surahLoading && <motion.div className="mushaf-verse-list" initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.0012 } } }}>{surahAyahs.map(ayah => <motion.article ref={node => { const key = ayah.surahNumber + ':' + ayah.numberInSurah; if (node) verseRowRefs.current.set(key, node); else verseRowRefs.current.delete(key); }} variants={{ hidden: { opacity: 0, y: 5 }, visible: { opacity: 1, y: 0 } }} transition={{ duration: 0.2, ease: 'easeOut', delay: Math.min(ayah.numberInSurah * 0.012, 0.14) }} className="mushaf-verse-row" key={ayah.surahNumber + ':' + ayah.numberInSurah}>
+            {!surahLoading && <motion.div className="mushaf-verse-list" initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.0012 } } }}>{surahAyahs.map(ayah => <motion.article ref={node => { const key = ayah.surahNumber + ':' + ayah.numberInSurah; if (node) verseRowRefs.current.set(key, node); else verseRowRefs.current.delete(key); }} variants={{ hidden: { opacity: 0, y: 5 }, visible: { opacity: 1, y: 0 } }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: 'easeOut', delay: Math.min(ayah.numberInSurah * 0.012, 0.14) }} className="mushaf-verse-row" key={ayah.surahNumber + ':' + ayah.numberInSurah}>
               <div className="mushaf-verse-top">
                 <div className="mushaf-verse-tools"><small>{ayah.surahNumber}:{ayah.numberInSurah}</small>
                   <button type="button" aria-label="Bookmark verse" aria-pressed={starredAyahs.some(item => item.surah === ayah.surahNumber && item.ayah === ayah.numberInSurah)} onClick={() => toggleStarredAyah(ayah)}><Bookmark size={15}/></button>
@@ -393,7 +394,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
               </div>
               <p className="mushaf-verse-translation">{ayah.translation || 'Translation unavailable.'}</p>
             </motion.article>)}</motion.div>}
-          </motion.section>}{!loading && pageData && readingMode === 'reading' && <motion.section key={'page-' + page} className="mushaf-page-view" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px' }} initial={{ opacity: 0, x: pageDirection === 'next' ? 18 : -18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: pageDirection === 'next' ? -8 : 8 }} transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}>
+          </motion.section>}{!loading && pageData && readingMode === 'reading' && <motion.section key={'page-' + page} className="mushaf-page-view" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px' }} initial={prefersReducedMotion ? false : { opacity: 0, x: pageDirection === 'next' ? 18 : -18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: pageDirection === 'next' ? -8 : 8 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.22, ease: [0.16, 1, 0.3, 1] }}>
             <div className="mushaf-page-text">{pageData.ayahs.map((ayah, index) => {
               const surah = QURAN_SURAHS[ayah.surahNumber - 1];
               const startsSurah = ayah.numberInSurah === 1;
