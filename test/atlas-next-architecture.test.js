@@ -508,7 +508,9 @@ test('Mushaf keeps the Surah selector and view controls while Verse by Verse rec
   assert.ok(header.includes('mushaf-settings-trigger'));
   assert.ok(header.includes('className="mushaf-exit"'));
   assert.ok(header.includes('Verse by Verse') && header.includes('Page by Page'));
-  assert.ok(reader.includes('mushaf-verse-subheader'));
+  assert.ok(reader.includes('mushaf-page-mobile-chrome'));
+  assert.ok(reader.includes('mushaf-page-mobile-meta'));
+  assert.ok(reader.includes('mushaf-page-mobile-controls'));
   assert.ok(reader.includes('mushaf-verse-aya-pill'));
   assert.ok(reader.includes('mushaf-verse-tajweed-key'));
   assert.match(css, /\.mushaf-topbar-view-toggle[\s\S]*?border: none !important;/);
