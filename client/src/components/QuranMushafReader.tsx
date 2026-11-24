@@ -807,7 +807,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
                   const isEnd = word.charTypeName === 'end';
                   const key = word.verseKey || (ayah ? ayah.surahNumber + ':' + ayah.numberInSurah : 'line-' + line.lineNumber);
                   const firstOfAyah = wordIndex === 0 || line.words[wordIndex - 1]?.verseKey !== word.verseKey;
-                  return <span key={key + ':' + word.position + ':' + wordIndex} ref={node => { if (node && ayah && firstOfAyah) verseRowRefs.current.set(key, node); }} className={'mushaf-qcf-word' + (isEnd ? ' mushaf-qcf-word--end' : '')} data-mushaf-verse={firstOfAyah && ayah ? 'true' : undefined} data-surah={ayah?.surahNumber} data-ayah={ayah?.numberInSurah} data-page={word.pageNumber || page} onClick={() => ayah && selectAyah(ayah)} style={{ fontFamily: 'var(--mushaf-arabic-font)' }}>{word.text}</span>;
+                  return <span key={key + ':' + word.position + ':' + wordIndex} ref={node => { if (node && ayah && firstOfAyah) verseRowRefs.current.set(key, node); }} className={'mushaf-qcf-word' + (isEnd ? ' mushaf-qcf-word--end' : '')} data-mushaf-verse={firstOfAyah && ayah ? 'true' : undefined} data-surah={ayah?.surahNumber} data-ayah={ayah?.numberInSurah} data-page={word.pageNumber || page} onClick={() => ayah && selectAyah(ayah)} style={{ fontFamily: 'var(--mushaf-arabic-font)' }}>{isEnd && ayah ? <AyahMedallion className="mushaf-page-medallion mushaf-page-qpc-medallion" number={ayah.numberInSurah}/> : word.text}</span>;
                 })}</div>
               </Fragment>;
             }) : pageData.ayahs.map((ayah, index) => {
