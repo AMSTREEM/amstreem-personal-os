@@ -135,7 +135,7 @@ function tajweedClassForRule(rule) {
   if (/^(g|ghn)$/.test(value) || /ghunnah|idgh_ghn/.test(value)) return 'tj-ghunnah';
   if (/^(c|f|ikhf|ikhf_shfw)$/.test(value) || /ikhfa/.test(value)) return 'tj-ikhfa';
   if (/^(i|iqlb)$/.test(value) || /iqlab/.test(value)) return 'tj-ghunnah';
-  if (/^(w|idghm_shfw|u|idgh_w_ghn|d|b|idgh_mus)$/.test(value) || /idgham|idghm|idgh_/.test(value)) return 'tj-ghunnah';
+  if (/^(w|idghm_shfw|u|idgh_w_ghn|d|b|idgh_mus)$/.test(value) || /idgham|idghaam|idghm|idgh_/.test(value)) return 'tj-ghunnah';
   if (/tafkhim|heavy/.test(value)) return 'tj-tafkhim';
   return '';
 }
@@ -359,14 +359,14 @@ async function enrichPageWithQuranJsonTajweed(pagePayload) {
   }));
   const ayahs = pagePayload.ayahs.map(ayah => {
     const source = corpusBySurah.get(Number(ayah.surahNumber))?.get(Number(ayah.numberInSurah));
-    if (!source?.segments?.some(segment => segment.className)) return ayah;
+    if (!source) return ayah;
     const tajweedSegments = alignTajweedToUthmani(String(ayah.text || ''), source.segments);
     return { ...ayah, tajweedText: source.sourceText, tajweedSegments };
   });
   return {
     ...pagePayload,
     ayahs,
-    tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className)))
+    tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => corpusBySurah.get(Number(ayah.surahNumber))?.has(Number(ayah.numberInSurah)))
   };
 }
 function splitTajweedWords(markup) {
