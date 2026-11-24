@@ -1,0 +1,28 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const read = file => fs.readFileSync(path.join(process.cwd(), file), 'utf8');
+
+test('theme initialization is an external same-origin script under strict script-src self', () => {
+  const html = read('client/index.html');
+  const theme = read('client/public/theme-init.js');
+  assert.match(html, /<script src="\/theme-init\.js"><\/script>/);
+  assert.doesNotMatch(html, /<script>\s*\(function\s*\(\)/);
+  assert.match(theme, /localStorage\.getItem\('atlas_theme'\)/);
+  assert.match(theme, /document\.documentElement/);
+});
+
+test('invalid Supabase refresh tokens clear only the current browser session', () => {
+  const client = read('client/src/lib/supabase.ts');
+  const auth = read('client/src/auth/AuthProvider.tsx');
+  assert.match(client, /requestUrl\.pathname\.endsWith\('\/auth\/v1\/token'\)/);
+  assert.match(client, /searchParams\.get\('grant_type'\) !== 'refresh_token'/);
+  assert.match(client, /response\.status !== 400/);
+  assert.match(client, /isInvalidRefreshTokenMessage\(message\)/);
+  assert.match(client, /auth\.signOut\(\{ scope: 'local' \}\)/);
+  assert.match(auth, /isInvalidRefreshTokenError\(error\)/);
+  assert.match(auth, /getSession\(\)\.then/);
+  assert.match(auth, /Session restore failed/);
+});
