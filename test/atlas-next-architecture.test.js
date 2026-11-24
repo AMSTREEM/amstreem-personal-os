@@ -310,7 +310,7 @@ test('Mushaf rebuild uses a fixed top bar, three-tab sidebar and two clean readi
 
 test('AlQuranCloud page proxy requests Tajweed, Uthmani and Sahih with bounded memory cache and fallbacks', () => {
   const offline = JSON.parse(read('server/quran-fallback.json'));
-  for (const item of ["app.get('/api/quran/page/:page'","quran-uthmani,quran-tajweed,en.sahih",'https://api.alquran.cloud/v1','https://alquran.api.islamic.network/v1','quranPageCache = new Map()','quranPageInflight = new Map()',"send(cached.payload, 'STALE')",'parseAlQuranTajweed','alignTajweedToUthmani','let insideWord = false',"c:'tj-ikhfa'","i:'tj-idgham'",'[خ ص ض غ ط ق ظ]','text: uthmaniText, tajweedText: uthmaniText','tj-silent','tj-madd','tj-qalqalah','tj-ghunnah','normalizeQuranCom']) assert.ok(server.includes(item), 'Missing endpoint feature: ' + item);
+  for (const item of ["app.get('/api/quran/page/:page'","quran-uthmani,quran-tajweed,en.sahih",'https://api.alquran.cloud/v1','https://alquran.api.islamic.network/v1','quranPageCache = new Map()','quranPageInflight = new Map()',"send(cached.payload, 'STALE')",'parseAlQuranTajweed','alignTajweedToUthmani','function tajweedClassForRule','const clusterize = segments =>','ham_wasl','madda_','qalaqah','ghunnah','[خ ص ض غ ط ق ظ]','text: uthmaniText, tajweedText: uthmaniText','tj-silent','tj-madd','tj-qalqalah','tj-ghunnah','normalizeQuranCom']) assert.ok(server.includes(item), 'Missing endpoint feature: ' + item);
   assert.deepEqual(Object.keys(offline.pages).sort(), ['1','602','603','604']);
 });
 
@@ -318,6 +318,8 @@ test('Tajweed text is rendered as safe allowlisted semantic spans while Uthmani 
   const reader = read('client/src/components/QuranMushafReader.tsx');
   for (const item of ['tajweedSegments','TAJWEED_CLASSES','tj-hamza','tj-madd','tj-qalqalah','tj-ghunnah','tj-tafkhim','tajweedEnabled','tajweedKeyOpen','Tajweed Key',"renderTajweedMarkup(ayah.tajweedText || '', ayah.tajweedSegments, ayah.text, tajweedEnabled)"]) assert.ok(reader.includes(item), 'Missing Tajweed rendering feature: ' + item);
   for (const item of ["identifier === 'quran-uthmani'","identifier === 'quran-tajweed'","identifier === 'en.sahih'","text: String(ayah.text || '')",'parseAlQuranTajweed']) assert.ok(server.includes(item), 'Missing source edition feature: ' + item);
+  assert.ok(reader.includes("atlas_mushaf_page_v11_"));
+  assert.ok(reader.includes("AYAH_ROSETTE_PATH"));
   assert.ok(!reader.includes('new DOMParser('));
   assert.ok(!reader.includes('dangerouslySetInnerHTML'));
 });
