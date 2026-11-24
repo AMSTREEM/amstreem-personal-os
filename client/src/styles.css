@@ -1,6 +1,8 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@200..800&family=Noto+Naskh+Arabic:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
+@font-face{font-family:"UthmanicHafs";src:url("/fonts/UthmanicHafs.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
+
 :root {
   font-family: "DM Sans", sans-serif;
   color: #e8e8e2;
@@ -5652,7 +5654,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .atlas-mobile-dock__quran.is-active{color:var(--accent-strong)}
 .residence-quran-resume{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:34px;width:max-content;max-width:100%;margin-top:10px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--accent-wash);color:var(--accent-strong);font:600 11px/1.2 "DM Sans",sans-serif;text-decoration:none;white-space:nowrap;transition:background .18s,border-color .18s,transform .18s}
 .residence-quran-resume:hover{background:var(--surface-raised);border-color:var(--accent);transform:translateY(-1px)}
-@font-face{font-family:"UthmanicHafs";src:url("/fonts/UthmanicHafs.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
+
 
 /* Theme tokens are inherited live from :root[data-theme]. Never hard-code a palette here. */
 
