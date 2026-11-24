@@ -576,3 +576,21 @@ test('Verse by Verse shares the Quran.com mobile header and clean right-aligned 
   assert.ok(verseMobile.includes('text-align:left!important'));
   assert.ok(verseMobile.includes('border-bottom:1px solid var(--border-hairline)!important'));
 });
+
+
+test('Mushaf surfaces and controls use active theme tokens in both reading modes', () => {
+  const css = read('client/src/styles.css');
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const themeBlock = css.slice(css.lastIndexOf('/* Mushaf theme contract:'));
+  for (const token of ['--bg-canvas','--bg-surface','--text-primary','--text-secondary','--text-muted','--border-hairline','--border-strong','--accent-primary','--accent-soft']) {
+    assert.ok(themeBlock.includes(token), 'missing Mushaf theme token: ' + token);
+  }
+  for (const color of ['#D500B7','#E53935','#16A34A','#0288D1','#D97706']) assert.ok(themeBlock.includes(color));
+  assert.match(themeBlock, /\\.mushaf-sidebar[\\s\\S]*?background:var\\(--mushaf-surface\\)/);
+  assert.match(themeBlock, /\\.mushaf-settings-popover[\\s\\S]*?background:var\\(--mushaf-surface\\)/);
+  assert.match(themeBlock, /\\.mushaf-page-medallion[\\s\\S]*?border-color:var\\(--mushaf-border-strong\\)/);
+  assert.match(themeBlock, /\\.mushaf-app\\.is-mobile-verse-reading \\.mushaf-verse-arabic[\\s\\S]*?text-align:right/);
+  assert.match(themeBlock, /\\.mushaf-app\\.is-mobile-verse-reading \\.mushaf-verse-translation[\\s\\S]*?text-align:left/);
+  assert.ok(reader.includes("aria-pressed={readingMode === 'translation'}"));
+  assert.ok(reader.includes('className="mushaf-surah-hero"'));
+});
