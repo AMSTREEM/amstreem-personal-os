@@ -1204,4 +1204,7 @@ app.get('*',(req,res,next)=>{
 if (!fs.existsSync(frontendEntry)) {
   throw new Error('Atlas frontend build is missing: expected dist/index.html. Refusing to serve the legacy public HTML shell.');
 }
+fetchQuranJsonSurah(1)
+  .then(verses => console.info('Quran Tajweed corpus ready:', verses.size, 'Al-Fatihah verses'))
+  .catch(error => console.warn('Quran Tajweed corpus startup check failed:', error.message));
 app.listen(PORT, '0.0.0.0',()=>console.log(`Amstreem Atlas running on 0.0.0.0:${PORT}`));
