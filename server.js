@@ -144,11 +144,15 @@ function parseAlQuranTajweed(markup) {
 function alignTajweedToUthmani(uthmaniText, taggedSegments) {
   const classByWord = [];
   let wordIndex = 0;
+  let insideWord = false;
   for (const segment of taggedSegments) {
-    const words = String(segment.text || '').match(/\S+/g) || [];
-    for (const word of words) {
+    for (const character of String(segment.text || '')) {
+      if (/\s/u.test(character)) {
+        if (insideWord) { insideWord = false; wordIndex += 1; }
+        continue;
+      }
+      insideWord = true;
       if (segment.className && !classByWord[wordIndex]) classByWord[wordIndex] = segment.className;
-      wordIndex += 1;
     }
   }
   const heavyLetters = /[خ ص ض غ ط ق ظ]/u;
