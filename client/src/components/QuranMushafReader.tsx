@@ -665,7 +665,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         </div>
         <button type="button" className="mushaf-exit" onClick={() => setFullScreen(false)} aria-label="Exit Qur’an reader"><X size={16}/></button>
       </div>
-      {isMobileViewport && readingMode === 'reading' && <div className="mushaf-page-mobile-chrome">
+      {isMobileViewport && (readingMode === 'reading' || readingMode === 'translation') && <div className="mushaf-page-mobile-chrome">
         <div className="mushaf-page-mobile-meta">
           <span className="mushaf-page-mobile-bookmark"><Bookmark size={14}/><b>Page {page}</b><i aria-hidden="true"/><small>Auto-saved</small></span>
           <span>Juz {pageJuz}</span>
@@ -699,10 +699,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       </div>}
       </div>
     </header>
-    {readingMode === 'translation' && isMobileViewport && <div className="mushaf-verse-subheader">
-      <span>{activeSurahNumber}. {activeSurah?.english || ''}</span>
-      <button type="button" onClick={() => changeMode(mode === 'hifz' ? 'murajaah' : 'hifz')} aria-label="Toggle Hifz and Muraja’ah bookmark mode">{mode === 'hifz' ? 'Hifz' : 'Muraja’ah'} · Auto-saved ▾</button>
-    </div>}
+
     {tajweedEnabled && readingMode !== 'translation' && <div className="mushaf-tajweed-keybar" role="group" aria-label="Tajweed color key">
       <span><i className="tj-madd"/>Madd Lazim</span><span><i className="tj-madd-wajib"/>Madd Wajib</span><span><i className="tj-ghunnah"/>Ghunnah / Ikhfa / Idgham</span><span><i className="tj-qalqalah"/>Qalqalah</span><span><i className="tj-heavy"/>Tafkheem</span><span><i className="tj-silent"/>Silent</span>
     </div>}
@@ -744,7 +741,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
             {tajweedLegendVisible && readingMode === 'translation' && isMobileViewport && <div className="mushaf-verse-tajweed-key" role="group" aria-label="Tajweed color key">
               <span><i className="tj-madd"/>Madd Lazim</span><span><i className="tj-madd-wajib"/>Madd Wajib</span><span><i className="tj-ghunnah"/>Ghunnah / Ikhfa / Idgham</span><span><i className="tj-qalqalah"/>Qalqalah</span><span><i className="tj-heavy"/>Tafkheem</span><span><i className="tj-silent"/>Silent</span>
             </div>}
-            {!(readingMode === 'translation' && isMobileViewport) && <>
+            {true && <>
               <header className="mushaf-surah-hero">
                 <b className="mushaf-hero-arabic" lang="ar" dir="rtl">{activeSurah?.arabic || ''}</b>
                 <div className="mushaf-hero-copy"><h1>{activeSurahNumber}. Surah {activeSurah?.transliteration || 'Surah'}</h1><p>{activeSurah?.english || ''} · {activeSurah?.ayahs || surahAyahs.length} Ayahs</p></div>
