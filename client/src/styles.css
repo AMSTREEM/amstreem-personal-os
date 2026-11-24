@@ -9032,3 +9032,84 @@ html, body, #root, .app-frame, .main-area, .page-container {
     text-align-last: center !important;
   }
 }
+
+
+/* Desktop layout lock-in: all >=768px shell, workspace, and full-screen Mushaf geometry. */
+@media (min-width: 768px) {
+  .app-frame { min-height: 100vh !important; }
+  .sidebar {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 252px !important;
+    transform: none !important;
+  }
+  .main-area { min-height: 100vh !important; margin-left: 252px !important; }
+  .mobile-menu-button, .mobile-scrim { display: none !important; }
+  .topbar { display: flex !important; height: 72px !important; min-height: 72px !important; }
+  .topbar-context { display: flex !important; align-items: center !important; }
+  .topbar-context span, .privacy-indicator { display: initial; }
+  .topbar-right { display: flex !important; align-items: center !important; }
+  .page-container { width: min(100%, 1480px); margin-inline: auto; }
+  .content-grid { display: grid !important; grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr) !important; }
+  .goal-grid, .library-grid { display: grid !important; }
+  .mushaf-fs-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    display: grid !important;
+    grid-template-columns: 270px minmax(0, 1fr) !important;
+    grid-template-rows: 68px minmax(0, 1fr) !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-width: 100vw !important;
+    overflow: hidden !important;
+  }
+  .mushaf-fs-overlay:not(.is-sidebar-open) { grid-template-columns: minmax(0, 1fr) !important; }
+  .mushaf-fs-overlay > .mushaf-app, .mushaf-fs-overlay .mushaf-workspace { display: contents !important; }
+  .mushaf-fs-overlay .mushaf-topbar {
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    margin: 10px 16px 0 !important;
+    padding: 0 14px !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+  .mushaf-fs-overlay .mushaf-mobile-topbar { display: contents !important; }
+  .mushaf-fs-overlay .mushaf-surah-trigger { flex: 0 1 220px !important; max-width: 220px !important; min-width: 120px !important; }
+  .mushaf-fs-overlay .mushaf-topbar-center { display: flex !important; flex: 0 1 auto !important; align-items: center !important; justify-content: center !important; white-space: nowrap !important; }
+  .mushaf-fs-overlay .mushaf-topbar-actions { display: flex !important; flex: 0 1 auto !important; align-items: center !important; justify-content: flex-end !important; flex-wrap: nowrap !important; gap: 6px !important; min-width: 0 !important; }
+  .mushaf-fs-overlay .mushaf-sidebar {
+    display: flex !important;
+    flex: 0 0 270px !important;
+    width: 270px !important;
+    min-width: 270px !important;
+    max-width: 270px !important;
+    transform: none;
+  }
+  .mushaf-fs-overlay .mushaf-main { flex: 1 1 auto !important; min-width: 0 !important; min-height: 0 !important; }
+  .mushaf-fs-overlay .mushaf-canvas { width: 100% !important; height: 100% !important; overflow: auto !important; }
+  .mushaf-fs-overlay .mushaf-page-column { width: 100% !important; max-width: 520px !important; margin-inline: auto !important; }
+  .mushaf-fs-overlay .mushaf-verse-view { width: min(100%, 780px) !important; margin-inline: auto !important; }
+  .mushaf-fs-overlay .mushaf-page-arrows {
+    position: fixed !important;
+    right: 20px !important;
+    bottom: 20px !important;
+    z-index: 50 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 7px !important;
+  }
+}
+@media (min-width: 768px) and (max-width: 1050px) {
+  .sidebar { width: 220px !important; }
+  .main-area { margin-left: 220px !important; }
+  .stat-grid, .stat-grid--four { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
