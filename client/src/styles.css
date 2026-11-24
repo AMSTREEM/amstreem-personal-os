@@ -6920,3 +6920,61 @@ html, body, #root, .app-frame, .main-area, .page-container {
     max-height: calc(100dvh - 48px - env(safe-area-inset-top, 0px)) !important;
   }
 }
+
+
+/* Mobile Mushaf: Framer Motion-safe centered header and aligned minimal reading label. */
+@media (max-width: 767px) {
+  .mushaf-mobile-topbar,
+  .mushaf-fs-header,
+  .mushaf-app.is-mobile-page-reading > .mushaf-topbar {
+    position: fixed !important;
+    top: calc(10px + env(safe-area-inset-top, 0px)) !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    width: calc(100vw - 24px) !important;
+    max-width: 420px !important;
+    padding: 6px 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    border-radius: 14px !important;
+    box-sizing: border-box !important;
+    z-index: 45 !important;
+    transform: none !important;
+  }
+  .mushaf-app.is-mobile-page-reading > .mushaf-topbar .mushaf-surah-trigger {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    flex: 1 1 auto !important;
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+  }
+  .mushaf-app.is-mobile-page-reading > .mushaf-topbar .mushaf-topbar-center {
+    display: none !important;
+  }
+  .mushaf-app.is-mobile-page-reading > .mushaf-topbar .mushaf-topbar-actions {
+    width: auto !important;
+    flex: 0 0 auto !important;
+    margin-left: auto !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-mobile-page-header {
+    width: calc(100vw - 28px) !important;
+    max-width: 440px !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
+  }
+  .mushaf-app.is-mobile-page-reading.mobile-controls-visible .mushaf-mobile-page-header {
+    display: none !important;
+  }
+}
