@@ -513,3 +513,24 @@ test('Mushaf Surah button and reading-view toggle share the main topbar in every
   assert.match(css, /\.mushaf-surah-trigger \{\s*position: static;/);
   assert.match(css, /grid-template-columns: minmax\(0, 1fr\) auto auto minmax\(0, 1fr\)/);
 });
+
+
+test('mobile Mushaf is distraction-free, single-screen, and tap-toggle HUD is scoped to mobile page reading', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const css = read('client/src/styles.css');
+  assert.match(reader, /setMobileControlsVisible\(value => !value\)/);
+  assert.match(reader, /mobileActiveSurahName/);
+  assert.match(reader, /setMobilePageFit\(\{ fontSize: 21, lineHeight: 2\.05 \}\)/);
+  assert.match(reader, /while \(fontSize > 14 && !fits\(\)\)/);
+  assert.match(reader, /mushaf-mobile-study-toggle/);
+  assert.match(reader, /mushaf-page-footer-mobile/);
+  const mobileRule = css.slice(css.lastIndexOf('/* Distraction-free, single-screen mobile Mushaf.'));
+  assert.match(mobileRule, /@media \(max-width: 767px\)/);
+  assert.match(mobileRule, /height: 100dvh !important/);
+  assert.match(mobileRule, /padding: 8px 18px 4px !important/);
+  assert.match(mobileRule, /line-height: 2\.05 !important/);
+  assert.match(mobileRule, /width: 22px !important/);
+  assert.match(mobileRule, /background: rgba\(128, 128, 128, 0\.14\)/);
+  assert.match(mobileRule, /mobile-controls-visible > \.mushaf-mobile-header-shell/);
+  assert.doesNotMatch(mobileRule, /@media \(min-width: 768px\)/);
+});
