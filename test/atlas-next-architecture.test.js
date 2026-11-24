@@ -537,7 +537,8 @@ test('mobile Mushaf is distraction-free, single-screen, and tap-toggle HUD is sc
   assert.match(mobileRule, /width: 22px !important/);
   assert.match(mobileRule, /background: rgba\(128, 128, 128, 0\.14\)/);
   assert.match(mobileRule, /mobile-controls-visible > \.mushaf-mobile-header-shell/);
-  assert.doesNotMatch(mobileRule, /@media \(min-width: 768px\)/);
+  assert.match(mobileRule, /overflow:visible !important/);
+  assert.match(css, /@media \(min-width: 768px\) and \(max-width: 1100px\)/);
 });
 
 
@@ -611,7 +612,7 @@ test('QPC Hafs font and Quran Foundation Tajweed markup are bundled, defaulted, 
   assert.ok(server.includes("'/page/' + page + '/quran-uthmani'"));
   assert.ok(server.includes("/editions/quran-uthmani,en.sahih"));
   assert.ok(server.includes("textSource: 'quran-uthmani'"));
-  assert.ok(reader.includes("ayah.textSource === 'quran-uthmani' ? ayah.text"));
+  assert.match(reader, /ayah\.textSource === 'quran-uthmani'.*qpc-hafs/);
   assert.ok(reader.includes("{ name: 'UthmanicHafs', label: 'Madinah Uthmani · King Fahd Complex' }"));
   for (const rule of ['ham_wasl','slnt','laam_shamsiyah','madda_normal','madda_permissible','madda_necessary','madda_obligatory','qalaqah','ikhafa','ikhafa_shafawi','iqlab','idgham_shafawi','idgham_ghunnah','idgham_wo_ghunnah','ghunnah']) {
     assert.ok(reader.includes(rule + ":'" + rule + "'"), 'missing official Tajweed mapping: ' + rule);
@@ -626,6 +627,7 @@ test('Quran Mushaf uses QPC Hafs Unicode and responsive layouts in both reading 
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
   assert.match(server, /text_qpc_hafs \|\| verse\.text_uthmani/);
+  assert.match(server, /verses\/by_chapter\//);
   assert.match(server, /primary\?\.textSource !== 'qpc-hafs'/);
   assert.match(reader, /ayah\.textSource === 'qpc-hafs'/);
   assert.match(css, /\.mushaf-app\.is-mobile-page-reading \.mushaf-page-text[\s\S]*?overflow:visible !important/);
