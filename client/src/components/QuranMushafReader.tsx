@@ -618,7 +618,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     if (!savedAyah) setSelected({ surah: target.surahNumber, ayah: target.numberInSurah });
     updateBookmark(page, target);
   }, [pageData, loading, page, bookmark.surah, bookmark.ayah, bookmark.page, updateBookmark, readingMode]);
-  const readerContent = <div className={'mushaf-app' + (isMobileViewport && readingMode === 'reading' ? ' is-mobile-page-reading' : '') + (mobileControlsVisible ? ' mobile-controls-visible' : '')} style={{ '--mushaf-arabic-font': "'" + arabicFontFamily + "', serif" } as CSSProperties}>
+  const readerContent = <div className={'mushaf-app' + (isMobileViewport && readingMode === 'reading' ? ' is-mobile-page-reading' : '') + (isMobileViewport && readingMode === 'translation' ? ' is-mobile-verse-reading' : '') + (mobileControlsVisible ? ' mobile-controls-visible' : '')} style={{ '--mushaf-arabic-font': "'" + arabicFontFamily + "', serif" } as CSSProperties}>
     <header className={'mushaf-topbar mushaf-fs-header mushaf-mobile-header-shell' + (readingMode === 'translation' ? ' mushaf-verse-header' : '')}><div className="mushaf-mobile-topbar">
       {readingMode === 'translation' && isMobileViewport && <button type="button" className="mushaf-verse-back" onClick={() => setFullScreen(false)} aria-label="Back to Atlas"><X size={17}/></button>}
       <button type="button" className="mushaf-surah-trigger" onClick={() => setSidebarOpen(value => !value)} aria-expanded={sidebarOpen}>
