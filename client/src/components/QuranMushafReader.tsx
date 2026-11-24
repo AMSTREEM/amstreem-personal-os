@@ -10,17 +10,18 @@ type TajweedSegment = { text: string; className: string };
 type MushafAyah = { number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; tajweedText?: string; tajweedSegments?: TajweedSegment[]; translation: string; translations?: Array<{ id: number; name: string; text: string }>; };
 type MushafPage = { page: number; juz: number; tajweedComplete?: boolean; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void; autoOpen?: boolean };
-const CACHE_PREFIX = 'atlas_mushaf_page_v9_';
+const CACHE_PREFIX = 'atlas_mushaf_page_v10_';
 const pageMemoryCache = new Map<number, MushafPage>();
 const HIFZ_KEY = 'atlas_hifz_bookmark_v2';
 const MURAJAAH_KEY = 'atlas_murajaah_bookmark_v2';
 const clampPage = (value: number) => Math.max(1, Math.min(604, Number.isInteger(value) ? value : 1));
 const arabicNumber = (value: number) => String(value).replace(/\d/g, digit => '٠١٢٣٤٥٦٧٨٩'[Number(digit)]);
 const TAJWEED_CLASSES = new Set(['tj-hamza','tj-silent','tj-madd','tj-qalqalah','tj-ghunnah','tj-ikhfa','tj-idgham']);
-function renderTajweedMarkup(markup: string, segments?: TajweedSegment[], fallback = ''): ReactNode {
+function renderTajweedMarkup(markup: string, segments?: TajweedSegment[], fallback = '', enabled = true): ReactNode {
   const source = String(markup || '');
+  if (!enabled) return stripAyahEndMarker(fallback || source);
   const parsed = segments?.length ? segments : (() => {
-    const classes: Record<string,string> = { h:'tj-hamza',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-idgham',f:'tj-ikhfa',i:'tj-ikhfa',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham' };
+    const classes: Record<string,string> = { h:'tj-hamza',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-idgham',f:'tj-ikhfa',i:'tj-ikhfa',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham',r:'tj-tafkhim',t:'tj-tafkhim' };
     const result: TajweedSegment[] = [];
     const pattern = /\[([a-z])(?::\d+)?\[([\s\S]*?)\]\]?/g;
     let cursor = 0, match;
@@ -79,6 +80,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [starredAyahs, setStarredAyahs] = useState<Array<{ surah: number; ayah: number }>>(() => { try { return JSON.parse(localStorage.getItem('atlas_mushaf_starred_ayahs_v1') || '[]'); } catch { return []; } });
   const [selected, setSelected] = useState<{ surah: number; ayah: number } | null>(null);
   const [readingMode, setReadingMode] = useState<'translation' | 'reading'>('reading');
+  const [tajweedEnabled, setTajweedEnabled] = useState(true);
+  const [tajweedKeyOpen, setTajweedKeyOpen] = useState(false);
   const [arabicFontSize, setArabicFontSize] = useState(() => {
     try { const saved = Number(localStorage.getItem('atlas_mushaf_arabic_font_size_v2')); return [16, 18, 20, 23, 26, 30, 34].includes(saved) ? saved : 20; }
     catch { return 20; }
@@ -348,13 +351,24 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
           <button type="button" className={mode === 'hifz' ? 'is-active' : ''} onClick={() => changeMode('hifz')}>{mode === 'hifz' && <motion.span layoutId="mushaf-mode-pill" className="mushaf-switch-highlight" transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 520, damping: 38 }}/>}<span>Hifz</span></button>
           <button type="button" className={mode === 'murajaah' ? 'is-active' : ''} onClick={() => changeMode('murajaah')}>{mode === 'murajaah' && <motion.span layoutId="mushaf-mode-pill" className="mushaf-switch-highlight" transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 520, damping: 38 }}/>}<span>Muraja'ah</span></button>
         </div>
+        <button type="button" className={'mushaf-tajweed-toggle' + (tajweedEnabled ? ' is-active' : '')} onClick={() => setTajweedEnabled(value => !value)} aria-pressed={tajweedEnabled}>Tajweed</button>
         <button type="button" className="mushaf-font-button" onClick={() => changeFontSize(-1)} aria-label="Decrease Arabic font size">A−</button>
         <button type="button" className="mushaf-font-button" onClick={() => changeFontSize(1)} aria-label="Increase Arabic font size">A+</button>
         <button type="button" className="mushaf-exit" onClick={() => setFullScreen(false)} aria-label="Exit Qur’an reader"><X size={16}/></button>
       </div>
     </header>
+    <div className="mushaf-tajweed-key-wrap">
+      <button type="button" className="mushaf-tajweed-key-toggle" aria-expanded={tajweedKeyOpen} onClick={() => setTajweedKeyOpen(value => !value)}>Tajweed Key <span aria-hidden="true">{tajweedKeyOpen ? '−' : '+'}</span></button>
+      <AnimatePresence initial={false}>{tajweedKeyOpen && <motion.div className="mushaf-tajweed-key" initial={prefersReducedMotion ? false : { opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.16 }} aria-label="Tajweed colour legend">
+        <div><i className="tj-madd"/> <span><b>Crimson / Red</b> — Madd (prolongation · 2, 4 or 6 counts)</span></div>
+        <div><i className="tj-ghunnah"/> <span><b>Emerald / Green</b> — Ghunnah, Ikhfa &amp; Idgham (nasalization &amp; merging)</span></div>
+        <div><i className="tj-qalqalah"/> <span><b>Sky Blue</b> — Qalqalah (echoing bounce · ق ط ب ج د)</span></div>
+        <div><i className="tj-tafkhim"/> <span><b>Amber / Gold</b> — Tafkheem (heavy letters · خ ص ض غ ط ق ظ)</span></div>
+        <div><i className="tj-silent"/> <span><b>Muted Gray</b> — Silent letters &amp; Hamzat Wasl (ٱ)</span></div>
+      </motion.div>}</AnimatePresence>
+    </div>
     <div className="mushaf-workspace">
-      <AnimatePresence initial={false}>{sidebarOpen && <motion.button type="button" className="mushaf-sidebar-scrim" aria-label="Close Surah navigation" onClick={() => setSidebarOpen(false)} initial={prefersReducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2 }} />}{sidebarOpen && <motion.aside className="mushaf-sidebar" aria-label="Qur’an navigation" initial={prefersReducedMotion ? false : { x: '-100%', opacity: 0.6 }} animate={{ x: 0, opacity: 1 }} exit={{ x: '-100%', opacity: 0.6 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.26, ease: [0.16, 1, 0.3, 1] }}>
+      <AnimatePresence initial={false}>{sidebarOpen && <motion.button type="button" className="mushaf-sidebar-scrim" aria-label="Close Surah navigation" onClick={() => setSidebarOpen(false)} initial={prefersReducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2 }} />}{sidebarOpen && <motion.aside className="mushaf-sidebar" aria-label="Qur’an navigation" initial={prefersReducedMotion ? false : { x: '-100%', opacity: 0.6 }} animate={{ x: 0, opacity: 1 }} exit={{ x: '-100%', opacity: 0.6 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.24, ease: [0.16, 1, 0.3, 1] }}>
         <div className="mushaf-sidebar-tabs" role="tablist" aria-label="Browse Qur’an">
           <button type="button" role="tab" aria-selected={sidebarTab === 'surah'} className={sidebarTab === 'surah' ? 'is-active' : ''} onClick={() => setSidebarTab('surah')}>Surah</button>
           <button type="button" role="tab" aria-selected={sidebarTab === 'juz'} className={sidebarTab === 'juz' ? 'is-active' : ''} onClick={() => setSidebarTab('juz')}>Juz</button>
@@ -389,7 +403,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
                   <button type="button" aria-label="Copy verse" onClick={() => { void navigator.clipboard?.writeText(ayah.text + '\\n' + ayah.surahNumber + ':' + ayah.numberInSurah); }}><Copy size={14}/></button>
                 </div>
                 <button type="button" className="mushaf-verse-arabic" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px' }} onClick={() => selectAyah(ayah)} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>
-                  {renderTajweedMarkup(ayah.tajweedText || '', ayah.tajweedSegments, ayah.text)}<AyahMedallion className="mushaf-verse-medallion" number={ayah.numberInSurah}/>
+                  {renderTajweedMarkup(ayah.tajweedText || '', ayah.tajweedSegments, ayah.text, tajweedEnabled)}<AyahMedallion className="mushaf-verse-medallion" number={ayah.numberInSurah}/>
                 </button>
               </div>
               <p className="mushaf-verse-translation">{ayah.translation || 'Translation unavailable.'}</p>
