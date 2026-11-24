@@ -23,7 +23,16 @@ const AYAH_ROSETTE_PATH = Array.from({ length: 120 }, (_, index) => {
   const y = (18 + Math.sin(angle) * radius).toFixed(2);
   return (index === 0 ? 'M' : 'L') + x + ' ' + y;
 }).join(' ') + ' Z';
-const TAJWEED_CLASSES = new Set(['tj-hamza','tj-silent','tj-madd','tj-qalqalah','tj-ghunnah','tj-ikhfa','tj-idgham','tj-tafkhim','tj-heavy']);
+const TAJWEED_CLASSES = new Set(['tj-hamza','tj-silent','tj-madd','tj-madd-wajib','tj-qalqalah','tj-ghunnah','tj-ikhfa','tj-idgham','tj-tafkhim','tj-heavy']);
+const MUSHAF_FONTS = [
+  { name: 'Amiri Quran', label: 'Madinah Uthmani' },
+  { name: 'Scheherazade New', label: 'Traditional Calligraphic' },
+  { name: 'Noto Naskh Arabic', label: 'Modern Naskh Clarity' },
+  { name: 'Amiri', label: 'Classic Book Naskh' },
+  { name: 'Lateef', label: 'Refined Open Script' },
+  { name: 'Aref Ruqaa', label: "Calligraphic Ruq'ah" }
+] as const;
+const MUSHAF_FONT_SAMPLE = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
 const normalizeMadinahArabic = (value: string) => value.replace(/[\u06CC\u06A9\u06C1]/g, character => ({
   '\u06CC': '\u064A', '\u06A9': '\u0643', '\u06C1': '\u0647'
 })[character] || character);
@@ -149,7 +158,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [readingMode, setReadingMode] = useState<'translation' | 'reading' | 'arabic'>(() => { try { const saved = localStorage.getItem('atlas_mushaf_layout_v1'); return saved === 'translation' || saved === 'arabic' || saved === 'reading' ? saved : 'reading'; } catch { return 'reading'; } });
   const [tajweedEnabled, setTajweedEnabled] = useState(() => { try { return localStorage.getItem('atlas_mushaf_tajweed_v1') !== 'off'; } catch { return true; } });
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [arabicFontFamily, setArabicFontFamily] = useState(() => { try { const saved = localStorage.getItem('atlas_mushaf_font_family_v1'); return saved === 'Noto Naskh Arabic' || saved === 'Scheherazade New' ? saved : 'Amiri Quran'; } catch { return 'Amiri Quran'; } });
+  const [arabicFontFamily, setArabicFontFamily] = useState(() => { try { const saved = localStorage.getItem('atlas_mushaf_font_family_v1'); return MUSHAF_FONTS.some(font => font.name === saved) ? saved as typeof MUSHAF_FONTS[number]['name'] : 'Amiri Quran'; } catch { return 'Amiri Quran'; } });
   const [arabicFontSize, setArabicFontSize] = useState(() => { try { const saved = Number(localStorage.getItem('atlas_mushaf_font_size_v1')); return [20, 24, 28, 32, 36].includes(saved) ? saved : 24; } catch { return 24; } });
   const [pageInput, setPageInput] = useState(String(page));
   const readerRef = useRef<HTMLDivElement | null>(null);
@@ -399,7 +408,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
           <button type="button" className="mushaf-settings-trigger" onClick={() => setSettingsOpen(value => !value)} aria-label="Reading settings" aria-expanded={settingsOpen}>⚙️</button>
           {settingsOpen && <section className="mushaf-settings-popover" role="dialog" aria-label="Reading settings">
             <div className="mushaf-settings-heading"><b>Reading settings</b><button type="button" onClick={() => setSettingsOpen(false)} aria-label="Close reading settings">×</button></div>
-            <label className="mushaf-setting-field"><span>Qur’an font</span><select value={arabicFontFamily} onChange={event => changeArabicFont(event.target.value)}><option value="Amiri Quran">Madinah Uthmani</option><option value="Noto Naskh Arabic">Naskh Clean</option><option value="Scheherazade New">Scheherazade Classic</option></select></label>
+            <div className="mushaf-setting-field"><span>Qur’an calligraphy</span><div className="mushaf-font-preview-list">{MUSHAF_FONTS.map(font => <button type="button" key={font.name} className={'mushaf-font-preview-card' + (arabicFontFamily === font.name ? ' is-active' : '')} aria-pressed={arabicFontFamily === font.name} onClick={() => changeArabicFont(font.name)}><span className="mushaf-font-preview-copy"><b>{font.name}</b><small>{font.label}</small></span><span className="mushaf-font-preview-sample" lang="ar" dir="rtl" style={{ fontFamily: "'" + font.name + "', serif", fontSize: 22, letterSpacing: 0, fontWeight: 400 }}>{MUSHAF_FONT_SAMPLE}</span></button>)}</div></div>
             <div className="mushaf-setting-field"><span>Font size</span><div className="mushaf-setting-options">{[20,24,28,32,36].map(size => <button type="button" key={size} className={arabicFontSize === size ? 'is-active' : ''} aria-pressed={arabicFontSize === size} onClick={() => changeArabicFontSize(size)}>{size}</button>)}</div></div>
             <div className="mushaf-setting-field"><span>Page layout</span><div className="mushaf-layout-options">
               <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} aria-pressed={readingMode === 'translation'} onClick={() => changeReadingMode('translation')}>Verse by Verse</button>
@@ -408,7 +417,9 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
             </div></div>
             <div className="mushaf-setting-field"><span>Tajweed colors</span><button type="button" className={'mushaf-tajweed-toggle' + (tajweedEnabled ? ' is-active' : '')} onClick={toggleTajweed} aria-pressed={tajweedEnabled}>{tajweedEnabled ? 'On' : 'Off'}</button></div>
             <div className="mushaf-settings-key" aria-label="Tajweed color key">
-              <span><i className="tj-madd"/>Madd</span><span><i className="tj-ghunnah"/>Ghunnah / Ikhfa</span><span><i className="tj-qalqalah"/>Qalqalah</span><span><i className="tj-heavy"/>Heavy</span><span><i className="tj-silent"/>Silent</span>
+              <span><i className="tj-madd"/>Madd Lazim · 6 counts</span><span><i className="tj-madd-wajib"/>Madd Wajib · 2–5 counts</span>
+              <span><i className="tj-ghunnah"/>Ghunnah / Ikhfa / Idgham</span><span><i className="tj-qalqalah"/>Qalqalah</span>
+              <span><i className="tj-tafkhim"/>Tafkheem · Heavy letters</span><span><i className="tj-silent"/>Silent / Hamzat Wasl</span>
             </div>
           </section>}
         </div>
