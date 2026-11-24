@@ -591,8 +591,8 @@ test('Mushaf surfaces and controls use active theme tokens in both reading modes
   assert.ok(themeBlock.includes('.mushaf-fs-overlay .mushaf-page-medallion {'));
   assert.ok(themeBlock.includes('background:var(--mushaf-surface)!important;'));
   assert.ok(themeBlock.includes('border-color:var(--mushaf-border-strong)!important;'));
-  assert.match(themeBlock, /\\.mushaf-app\\.is-mobile-verse-reading \\.mushaf-verse-arabic[\\s\\S]*?text-align:right/);
-  assert.match(themeBlock, /\\.mushaf-app\\.is-mobile-verse-reading \\.mushaf-verse-translation[\\s\\S]*?text-align:left/);
+  assert.ok(themeBlock.includes('.mushaf-app.is-mobile-verse-reading .mushaf-verse-arabic { text-align:right'));
+  assert.ok(themeBlock.includes('.mushaf-app.is-mobile-verse-reading .mushaf-verse-translation { margin:12px 0 0!important;text-align:left'));
   assert.ok(reader.includes("aria-pressed={readingMode === 'translation'}"));
   assert.ok(reader.includes('className="mushaf-surah-hero"'));
 });
