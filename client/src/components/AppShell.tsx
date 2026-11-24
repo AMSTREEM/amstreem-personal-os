@@ -258,7 +258,7 @@ export function AppShell() {
       </motion.nav>
       <nav className="atlas-mobile-dock" aria-label="Primary navigation">
         <NavLink to="/residence" end className={({isActive}) => 'atlas-mobile-dock__item ' + (isActive ? 'is-active' : '')}><House size={18}/><span>Today</span></NavLink>
-        <NavLink to="/values?openMushaf=1" className={({isActive}) => 'atlas-mobile-dock__item ' + (isActive ? 'is-active' : '')} onClick={() => setMobileOpen(false)}><BookOpen size={18}/><span>Qur’an</span></NavLink>
+        <NavLink to="/values?openMushaf=1" className={({isActive}) => 'atlas-mobile-dock__item atlas-mobile-dock__quran ' + (isActive ? 'is-active' : '')} onClick={() => setMobileOpen(false)}><BookOpen size={18}/><span>Qur’an</span></NavLink>
         <NavLink to="/focus" className={({isActive}) => 'atlas-mobile-dock__item ' + (isActive || location.pathname === '/execution' ? 'is-active' : '')}><Compass size={18}/><span>Focus</span></NavLink>
         <NavLink to="/goals" className={({isActive}) => 'atlas-mobile-dock__item ' + (isActive ? 'is-active' : '')}><Target size={18}/><span>Goals</span></NavLink>
         <button type="button" className="atlas-mobile-dock__item" onClick={() => setMobileOpen(true)} aria-expanded={mobileOpen}><SlidersHorizontal size={18}/><span>More</span></button>
