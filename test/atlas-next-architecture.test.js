@@ -300,6 +300,10 @@ test('Mushaf reading settings persist font, five font sizes, three layouts and T
   assert.ok(html.includes("Noto+Naskh+Arabic"));
   assert.match(css, /mushaf-settings-popover/);
   assert.match(css, /--mushaf-arabic-font/);
+  for (const font of ['Amiri Quran','Scheherazade New','Noto Naskh Arabic','Amiri','Lateef','Aref Ruqaa','mushaf-font-preview-card','MUSHAF_FONT_SAMPLE']) assert.ok(reader.includes(font), 'Missing live font preview: ' + font);
+  for (const color of ['#D500B7','#E040FB','#FF5252','#F43F5E','#169200','#22C55E','#0091EA','#38BDF8','#D97706','#F59E0B','#9CA3AF']) assert.ok(css.includes(color), 'Missing Tajweed palette colour: ' + color);
+  assert.ok(reader.includes('Madd Lazim') && reader.includes('Madd Wajib'));
+  assert.match(css, /opacity:\\.55/);
 });
 
 test('Mushaf rebuild uses a fixed top bar, three-tab sidebar and two clean reading views', () => {
