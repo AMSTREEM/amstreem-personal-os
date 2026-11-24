@@ -6120,7 +6120,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
   font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1;
   text-rendering: optimizeLegibility;
 }
-.mushaf-verse-arabic { font: 400 30px/2.15 'Amiri Quran', 'Scheherazade New', 'Traditional Arabic', serif !important; }
+.mushaf-verse-arabic { font-family: 'Amiri Quran', 'Scheherazade New', 'Traditional Arabic', serif !important; font-weight: 400 !important; line-height: 2.15; }
 .mushaf-page-text { font-weight: 400 !important; word-spacing: normal !important; }
 .tj-madd { color: #fb7185 !important; }
 .tj-ghunnah, .tj-ikhfa, .tj-idgham { color: #34d399 !important; }
