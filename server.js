@@ -394,6 +394,20 @@ async function fetchAlQuranCloudPage(page) {
   throw lastError || new Error('No quran-uthmani/en.sahih page provider is available.');
 }
 async function fetchAlQuranCloudSurah(surahNumber) {
+  const qpcQuery = '?mushaf=1&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number,hizb_number&per_page=300';
+  for (const url of [
+    'https://quran.com/api/proxy/content/api/qdc/verses/by_chapter/' + surahNumber + qpcQuery,
+    'https://api.quran.com/api/v4/verses/by_chapter/' + surahNumber + qpcQuery
+  ]) {
+    try {
+      const qpcSurah = await fetchQuranMirror(url, normalizeQuranCom, 1);
+      if (qpcSurah?.ayahs?.length && qpcSurah.ayahs.every(ayah => ayah.textSource === 'qpc-hafs')) {
+        return { ...qpcSurah, page: qpcSurah.ayahs[0]?.pageNumber || 1, textSource: 'qpc-hafs' };
+      }
+    } catch (error) {
+      console.warn('Quran.com QPC Hafs Surah provider failed:', surahNumber, error.message);
+    }
+  }
   const providers = ['https://api.alquran.cloud/v1', 'https://alquran.api.islamic.network/v1', 'https://alquran.api.alislam.ru/v1'];
   let lastError = null;
   for (const base of providers) {
