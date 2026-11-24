@@ -1205,11 +1205,16 @@ app.get('*',(req,res,next)=>{
 if (!fs.existsSync(frontendEntry)) {
   throw new Error('Atlas frontend build is missing: expected dist/index.html. Refusing to serve the legacy public HTML shell.');
 }
-Promise.all([fetchQuranJsonSurah(1), fetchQuranJsonSurah(2)])
-  .then(([fatihah, baqarah]) => {
+Promise.all([
+  fetchQuranJsonSurah(1),
+  fetchQuranJsonSurah(2),
+  fetchQuranMirror('https://api.alquran.cloud/v1/page/1/editions/quran-uthmani,en.sahih', normalizeAlQuranCloud, 1)
+])
+  .then(([fatihah, baqarah, page]) => {
     const opening = baqarah.get(1);
     const markedCharacters = (opening?.segments || []).filter(segment => segment.className).reduce((count, segment) => count + segment.text.length, 0);
     console.info('Quran Tajweed corpus ready:', fatihah.size, 'Al-Fatihah verses;', baqarah.size, 'Al-Baqarah verses; 2:1 marked characters:', markedCharacters);
+    console.info('AlQuranCloud Uthmani/Sahih provider ready:', page.ayahs.length, 'page 1 verses');
   })
-  .catch(error => console.warn('Quran Tajweed corpus startup check failed:', error.message));
+  .catch(error => console.warn('Quran reading data startup check failed:', error.message));
 app.listen(PORT, '0.0.0.0',()=>console.log(`Amstreem Atlas running on 0.0.0.0:${PORT}`));
