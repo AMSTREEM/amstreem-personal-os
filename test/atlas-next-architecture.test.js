@@ -596,3 +596,19 @@ test('Mushaf surfaces and controls use active theme tokens in both reading modes
   assert.ok(reader.includes("aria-pressed={readingMode === 'translation'}"));
   assert.ok(reader.includes('className="mushaf-surah-hero"'));
 });
+
+
+test('QPC Hafs font and Quran Foundation Tajweed markup are bundled, defaulted, and styled without verse-end leakage', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const css = read('client/src/styles.css');
+  assert.ok(css.includes("font-family: 'UthmanicHafs';"));
+  assert.ok(css.includes("url('/fonts/UthmanicHafs1Ver18.woff2') format('woff2')"));
+  assert.ok(css.includes('https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2'));
+  assert.ok(reader.includes("{ name: 'UthmanicHafs', label: 'King Fahd Complex · Uthmani Hafs' }"));
+  for (const rule of ['ham_wasl','slnt','laam_shamsiyah','madda_normal','madda_permissible','madda_necessary','madda_obligatory','qalaqah','ikhafa','ikhafa_shafawi','iqlab','idgham_shafawi','idgham_ghunnah','idgham_wo_ghunnah','ghunnah']) {
+    assert.ok(reader.includes(rule + ":'" + rule + "'"), 'missing official Tajweed mapping: ' + rule);
+    assert.ok(css.includes('.' + rule), 'missing official Tajweed selector: ' + rule);
+  }
+  assert.ok(reader.includes("className={className}"));
+  assert.ok(reader.includes("replace(/<span\\s+class="));
+});

@@ -1,6 +1,13 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@200..800&family=Noto+Naskh+Arabic:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'UthmanicHafs';
+  src: url('/fonts/UthmanicHafs1Ver18.woff2') format('woff2'),
+       url('https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2') format('woff2');
+  font-display: swap;
+}
+
 
 :root {
   font-family: "DM Sans", sans-serif;
@@ -8168,3 +8175,52 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .mushaf-app.is-mobile-verse-reading .mushaf-page-surah-trigger,
   .mushaf-app.is-mobile-verse-reading .mushaf-page-mobile-bookmark { color:var(--mushaf-text)!important; }
 }
+
+
+/* Quran.com Unicode QPC Hafs typography and official text_uthmani_tajweed classes. */
+.mushaf-fs-overlay .mushaf-page-text,
+.mushaf-fs-overlay .mushaf-verse-arabic,
+.mushaf-fs-overlay .mushaf-hero-arabic,
+.mushaf-fs-overlay .mushaf-page-surah-hero-main>b,
+.mushaf-fs-overlay .mushaf-page-bismillah,
+.mushaf-fs-overlay .mushaf-bismillah b {
+  font-family:'UthmanicHafs','Amiri Quran','Traditional Arabic',serif;
+}
+.mushaf-fs-overlay .mushaf-verse-arabic .ham_wasl,
+.mushaf-fs-overlay .mushaf-page-text .ham_wasl,
+.mushaf-fs-overlay .mushaf-verse-arabic .slnt,
+.mushaf-fs-overlay .mushaf-page-text .slnt,
+.mushaf-fs-overlay .mushaf-verse-arabic .laam_shamsiyah,
+.mushaf-fs-overlay .mushaf-page-text .laam_shamsiyah { color:#AAAAAA!important; }
+.mushaf-fs-overlay .mushaf-verse-arabic .madda_normal,
+.mushaf-fs-overlay .mushaf-page-text .madda_normal { color:#537FFF!important; }
+.mushaf-fs-overlay .mushaf-verse-arabic .madda_permissible,
+.mushaf-fs-overlay .mushaf-page-text .madda_permissible { color:#4050FF!important; }
+.mushaf-fs-overlay .mushaf-verse-arabic .madda_necessary,
+.mushaf-fs-overlay .mushaf-page-text .madda_necessary { color:#000EBC!important; }
+.mushaf-fs-overlay .mushaf-verse-arabic .madda_obligatory,
+.mushaf-fs-overlay .mushaf-page-text .madda_obligatory,
+.mushaf-fs-overlay .mushaf-verse-arabic .madda_obligatory_mottasel,
+.mushaf-fs-overlay .mushaf-page-text .madda_obligatory_mottasel,
+.mushaf-fs-overlay .mushaf-verse-arabic .madda_obligatory_monfasel,
+.mushaf-fs-overlay .mushaf-page-text .madda_obligatory_monfasel { color:#2144C1!important; }
+.mushaf-fs-overlay .mushaf-verse-arabic .qalaqah,
+.mushaf-fs-overlay .mushaf-page-text .qalaqah { color:#DD0008!important; }
+.mushaf-fs-overlay .mushaf-verse-arabic .ikhafa_shafawi,
+.mushaf-fs-overlay .mushaf-page-text .ikhafa_shafawi { color:#D500B7!important; }
+.mushaf-fs-overlay .mushaf-verse-arabic .ikhafa,
+.mushaf-fs-overlay .mushaf-page-text .ikhafa { color:#9400A8!important; }
+.mushaf-fs-overlay .mushaf-verse-arabic .iqlab,
+.mushaf-fs-overlay .mushaf-page-text .iqlab { color:#26BFFD!important; }
+.mushaf-fs-overlay .mushaf-verse-arabic .idgham_shafawi,
+.mushaf-fs-overlay .mushaf-page-text .idgham_shafawi { color:#58B800!important; }
+.mushaf-fs-overlay .mushaf-verse-arabic .idgham_ghunnah,
+.mushaf-fs-overlay .mushaf-page-text .idgham_ghunnah,
+.mushaf-fs-overlay .mushaf-verse-arabic .idgham_wo_ghunnah,
+.mushaf-fs-overlay .mushaf-page-text .idgham_wo_ghunnah { color:#169200!important; }
+.mushaf-fs-overlay .mushaf-verse-arabic .idgham_mutajanisayn,
+.mushaf-fs-overlay .mushaf-page-text .idgham_mutajanisayn,
+.mushaf-fs-overlay .mushaf-verse-arabic .idgham_mutaqaribayn,
+.mushaf-fs-overlay .mushaf-page-text .idgham_mutaqaribayn { color:#A1A1A1!important; }
+.mushaf-fs-overlay .mushaf-verse-arabic .ghunnah,
+.mushaf-fs-overlay .mushaf-page-text .ghunnah { color:#FF7E1E!important; }
