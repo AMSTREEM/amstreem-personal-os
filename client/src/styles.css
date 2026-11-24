@@ -5789,7 +5789,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
  .mushaf-verse-tools{flex-wrap:wrap;gap:3px;padding-top:5px}
  .mushaf-verse-tools small{flex-basis:100%;font-size:9px}
  .mushaf-verse-tools button{width:25px;height:25px}
- .mushaf-verse-arabic{font-size:25px!important;line-height:2.25;font-family:"UthmanicHafs","Amiri Quran","Noto Naskh Arabic",serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+ .mushaf-verse-arabic{line-height:2.25;font-family:"UthmanicHafs","Amiri Quran","Noto Naskh Arabic",serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
  .mushaf-verse-translation{margin-top:9px;font-size:13px}
  .mushaf-page-view{width:100%;min-height:calc(100dvh - 48px);padding:16px 13px 64px}
  .mushaf-page-text{line-height:2.0;word-spacing:2px}
@@ -6214,3 +6214,68 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .mushaf-tajweed-key .tj-tafkhim { background: #fbbf24 !important; }
 .mushaf-tajweed-key .tj-silent,
 .mushaf-tajweed-key .tj-hamza { background: #9297a1 !important; }
+
+
+/* Mushaf reading preferences popover and user-selected Arabic typography. */
+.mushaf-app .mushaf-hero-arabic,
+.mushaf-app .mushaf-bismillah b,
+.mushaf-app .mushaf-verse-arabic,
+.mushaf-app .mushaf-page-text,
+.mushaf-app .mushaf-page-ayah,
+.mushaf-app .mushaf-page-surah-banner b,
+.mushaf-app .mushaf-page-bismillah {
+  font-family: var(--mushaf-arabic-font, 'Amiri Quran', serif) !important;
+}
+.mushaf-app .mushaf-verse-arabic { font-size: inherit; }
+.mushaf-settings-anchor { position:relative;display:flex;align-items:center; }
+.mushaf-settings-trigger {
+  display:grid;place-items:center;width:32px;height:32px;min-width:32px;padding:0;
+  border:1px solid var(--mushaf-hairline);border-radius:9px;background:var(--bg);
+  color:var(--text);font-size:16px;line-height:1;
+}
+.mushaf-settings-trigger:hover,.mushaf-settings-trigger[aria-expanded="true"] {
+  border-color:var(--accent);background:var(--accent-wash);
+}
+.mushaf-settings-popover {
+  position:absolute;top:calc(100% + 10px);right:0;z-index:20;
+  display:grid;gap:13px;width:min(340px,calc(100vw - 24px));max-height:min(78dvh,620px);
+  overflow:auto;padding:16px;border:1px solid var(--mushaf-hairline);border-radius:14px;
+  background:var(--surface);color:var(--text);
+  box-shadow:0 18px 55px color-mix(in srgb,var(--text) 22%,transparent);
+}
+.mushaf-settings-heading { display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px; }
+.mushaf-settings-heading button {
+  display:grid;place-items:center;width:25px;height:25px;padding:0;border:0;border-radius:7px;
+  background:var(--bg);color:var(--muted);font-size:18px;
+}
+.mushaf-setting-field { display:grid;gap:7px;min-width:0;color:var(--muted);font-size:10px;font-weight:650; }
+.mushaf-setting-field select {
+  width:100%;min-height:36px;padding:0 10px;border:1px solid var(--mushaf-hairline);
+  border-radius:8px;background:var(--bg);color:var(--text);font:500 11px "DM Sans",sans-serif;
+}
+.mushaf-setting-options,.mushaf-layout-options { display:flex;flex-wrap:wrap;gap:5px; }
+.mushaf-setting-options button,.mushaf-layout-options button {
+  min-height:31px;padding:0 9px;border:1px solid var(--mushaf-hairline);border-radius:8px;
+  background:var(--bg);color:var(--muted);font:600 10px "DM Sans",sans-serif;
+}
+.mushaf-layout-options button { flex:1 1 92px; }
+.mushaf-setting-options button.is-active,.mushaf-layout-options button.is-active {
+  border-color:color-mix(in srgb,var(--accent) 55%,var(--mushaf-hairline));
+  background:var(--accent-wash);color:var(--accent-strong);
+}
+.mushaf-settings-popover .mushaf-tajweed-toggle { justify-self:start;min-height:28px; }
+.mushaf-settings-key {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px;
+  padding-top:11px;border-top:1px solid var(--mushaf-hairline);
+}
+.mushaf-settings-key span { display:flex;align-items:center;gap:7px;min-width:0;color:var(--muted);font-size:9px; }
+.mushaf-settings-key i { display:block;flex:0 0 8px;width:8px;height:8px;border-radius:50%; }
+.mushaf-settings-key .tj-madd { background:#fb7185; }
+.mushaf-settings-key .tj-ghunnah { background:#34d399; }
+.mushaf-settings-key .tj-qalqalah { background:#38bdf8; }
+.mushaf-settings-key .tj-heavy { background:#fbbf24; }
+.mushaf-settings-key .tj-silent { background:#9297a1; }
+@media(max-width:767px) {
+  .mushaf-settings-popover { position:fixed;top:56px;right:8px; }
+  .mushaf-settings-trigger { width:27px;height:27px;min-width:27px; }
+}
