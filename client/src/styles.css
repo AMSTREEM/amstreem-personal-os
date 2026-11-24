@@ -8665,3 +8665,23 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .mushaf-app.is-mobile-verse-reading .mushaf-verse-arabic { font-size:clamp(25px,7vw,32px) !important; line-height:2.2 !important; text-align:right !important; overflow-wrap:anywhere; }
   .mushaf-app.is-mobile-verse-reading .mushaf-verse-translation { font-size:14px !important; line-height:1.7 !important; overflow-wrap:anywhere; }
 }
+
+
+/* Quran Foundation Page Layout API: physical Mushaf line construction. */
+.mushaf-page-text--qcf { display:flex; flex-direction:column; justify-content:center; gap:2px; width:100%; max-width:100%; margin:0 auto; }
+.mushaf-qcf-line { display:flex; align-items:baseline; justify-content:center; direction:rtl; flex-wrap:nowrap; width:100%; min-height:1.9em; line-height:2.35; text-align:center; white-space:nowrap; }
+.mushaf-qcf-word { display:inline-block; flex:0 0 auto; padding:0 1px; font-size:1em; font-weight:400; line-height:inherit; white-space:pre; }
+.mushaf-qcf-word--end { font-family:'UthmanicHafs',serif!important; font-size:.88em; padding-inline:3px; }
+.mushaf-page-surah-banner--qcf { flex:0 0 auto; margin:0 auto 2px; }
+.mushaf-page-bismillah--qcf { flex:0 0 auto; margin:0 auto 3px; font-size:.92em; }
+@media(max-width:767px) {
+  .mushaf-app.is-mobile-page-reading .mushaf-page-text--qcf { gap:0; padding:0!important; }
+  .mushaf-app.is-mobile-page-reading .mushaf-qcf-line { min-height:1.75em; line-height:2.05!important; font-size:clamp(18px,4.8vw,24px); }
+  .mushaf-app.is-mobile-page-reading .mushaf-qcf-word { padding-inline:0; }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-surah-banner--qcf { margin-bottom:4px; }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-bismillah--qcf { margin-bottom:4px; font-size:clamp(19px,5vw,25px); }
+}
+@media(min-width:768px) {
+  .mushaf-page-text--qcf { max-width:680px; padding:8px 12px; }
+  .mushaf-qcf-line { min-height:2.1em; line-height:2.4; }
+}
