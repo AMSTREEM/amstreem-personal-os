@@ -306,7 +306,7 @@ function normalizeQuranCom(body, page) {
         translations, words };
     }) };
 }
-const quranJsonSurahCache = new Map();
+// Tajweed spans and matching Uthmani surah text: semarketir/quranjson (MIT).\nconst quranJsonSurahCache = new Map();
 async function fetchQuranJsonSurah(surahNumber) {
   const key = Number(surahNumber);
   if (quranJsonSurahCache.has(key)) return quranJsonSurahCache.get(key);
