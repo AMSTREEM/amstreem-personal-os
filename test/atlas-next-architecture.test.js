@@ -363,15 +363,15 @@ test('Mushaf keeps bookmarks, automatic Hifz/Muraja’ah logging and direct Resi
   assert.ok(reader.includes('window.setTimeout'));
 });
 
-test('Mushaf restores exact bookmarks and renders QCF V2 lines for page reading', () => {
+test('Mushaf renders page ayahs directly and restores saved verse without bookmark race', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
-  const server = read('server.js');
-  assert.ok(reader.includes("scrollIntoView({ behavior: 'smooth', block: 'center' })"));
-  assert.ok(reader.includes('qcfAvailable && pageLines.length > 0'));
-  assert.ok(reader.includes('mushaf-qcf-page-'));
+  assert.ok(reader.includes("scrollIntoView({ behavior: 'auto', block: 'center' })"));
+  assert.ok(reader.includes('pageData.ayahs.map((ayah, index)'));
+  assert.ok(reader.includes('renderTajweedMarkup(ayah.tajweedText || \'\', ayah.tajweedSegments, ayah.text, tajweedEnabled)'));
+  assert.ok(reader.includes('userScrolledRef.current = false'));
+  assert.ok(reader.includes('if (!userScrolledRef.current) return;'));
+  assert.ok(reader.includes('onWheel={() => { userScrolledRef.current = true; }}'));
   assert.ok(reader.includes('Auto-saved · {bookmarkSurahName} {bookmark.surah}:{bookmark.ayah}'));
-  assert.ok(server.includes('mushaf=1&words=true'));
-  assert.ok(server.includes('lineNumber: Number(word.line_v2 || word.line_number || 0)'));
 });
 
 test('Mushaf page view has chapter openings, centered verse medallions and a page/Juz footer', () => {
@@ -381,9 +381,9 @@ test('Mushaf page view has chapter openings, centered verse medallions and a pag
   for (const item of ['.mushaf-page-view','.mushaf-page-text','.mushaf-page-surah-banner','.mushaf-page-footer','line-height:2.25']) assert.ok(css.includes(item), 'Missing page style: ' + item);
 });
 
-test('Mushaf scroll locking and local-first bookmark persistence are retained', () => {
+test('Mushaf scroll locking and local-first dual bookmark persistence are retained', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
-  for (const item of ["const previousRootOverflow = root.style.overflow","const previousBodyOverflow = document.body.style.overflow","root.style.overflow = 'hidden'","document.body.style.overflow = 'hidden'","localStorage.setItem(key, JSON.stringify(mark))",'window.setTimeout(() =>','}, 800);','window.clearTimeout(timer)','new IntersectionObserver','data-mushaf-verse="true"','restoreTargetRef','changePage(item.pageStart, { surahNumber: number, numberInSurah: 1 })']) assert.ok(reader.includes(item), 'Missing persistence behavior: ' + item);
+  for (const item of ["const previousRootOverflow = root.style.overflow","const previousBodyOverflow = document.body.style.overflow","root.style.overflow = 'hidden'","document.body.style.overflow = 'hidden'","localStorage.setItem(HIFZ_KEY, JSON.stringify(hifzMark))","localStorage.setItem(MURAJAAH_KEY, JSON.stringify(murajaahMark))",'window.setTimeout(() =>','}, 600);','window.clearTimeout(timer)','new IntersectionObserver','data-mushaf-verse="true"','restoreTargetRef','changePage(item.pageStart, { surahNumber: number, numberInSurah: 1 })','onTouchMove={() => { userScrolledRef.current = true; }}','onKeyDown={() => { userScrolledRef.current = true; }}']) assert.ok(reader.includes(item), 'Missing persistence behavior: ' + item);
 });
 
 
