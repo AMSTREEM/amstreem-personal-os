@@ -793,6 +793,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
             <div className={'mushaf-page-text' + (pageLines.length ? ' mushaf-page-text--lines' : '')} ref={pageTextRef} dir="rtl" onScroll={() => { userScrolledRef.current = true; }} style={{ '--mushaf-fit-font-size': mobilePageFit.fontSize + 'px', '--mushaf-fit-line-height': String(mobilePageFit.lineHeight), fontSize: arabicFontSize + 'px', fontFamily: 'var(--mushaf-arabic-font)', fontWeight: 400, letterSpacing: '0px', fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1' } as CSSProperties}>{pageLines.length ? pageLines.map((line, lineIndex) => {
               const firstWord = line.words[0];
               const firstAyah = pageData.ayahs.find(ayah => ayah.surahNumber + ':' + ayah.numberInSurah === firstWord?.verseKey);
+              let activeAyah: MushafAyah | undefined = firstAyah;
               const startsSurah = firstAyah?.numberInSurah === 1;
               const surah = firstAyah ? QURAN_SURAHS[firstAyah.surahNumber - 1] : null;
               return <Fragment key={'line-' + line.lineNumber}>
@@ -803,8 +804,13 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
                 </header>}
                 {startsSurah && firstAyah?.surahNumber !== 9 && <div className="mushaf-page-bismillah mushaf-page-bismillah--qcf" lang="ar" dir="rtl">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>}
                 <div className="mushaf-qcf-line" data-line-number={line.lineNumber}>{line.words.map((word, wordIndex) => {
-                  const ayah = pageData.ayahs.find(item => item.surahNumber + ':' + item.numberInSurah === word.verseKey);
                   const isEnd = word.charTypeName === 'end';
+                  const matchedAyah = pageData.ayahs.find(item => item.surahNumber + ':' + item.numberInSurah === word.verseKey);
+                  if (matchedAyah) activeAyah = matchedAyah;
+                  const positionMatchedAyah = isEnd && Number.isFinite(Number(word.position))
+                    ? pageData.ayahs.find(item => item.words?.some(ayahWord => ayahWord.position === word.position && ayahWord.charTypeName === 'end'))
+                    : undefined;
+                  const ayah = matchedAyah || positionMatchedAyah || (isEnd ? activeAyah : undefined);
                   const key = word.verseKey || (ayah ? ayah.surahNumber + ':' + ayah.numberInSurah : 'line-' + line.lineNumber);
                   const firstOfAyah = wordIndex === 0 || line.words[wordIndex - 1]?.verseKey !== word.verseKey;
                   return <span key={key + ':' + word.position + ':' + wordIndex} ref={node => { if (node && ayah && firstOfAyah) verseRowRefs.current.set(key, node); }} className={'mushaf-qcf-word' + (isEnd ? ' mushaf-qcf-word--end' : '')} data-mushaf-verse={firstOfAyah && ayah ? 'true' : undefined} data-surah={ayah?.surahNumber} data-ayah={ayah?.numberInSurah} data-page={word.pageNumber || page} onClick={() => ayah && selectAyah(ayah)} style={{ fontFamily: 'var(--mushaf-arabic-font)' }}>{isEnd && ayah ? <AyahMedallion className="mushaf-page-medallion mushaf-page-qpc-medallion" number={ayah.numberInSurah}/> : word.text}</span>;
