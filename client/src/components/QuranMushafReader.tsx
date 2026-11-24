@@ -78,8 +78,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [starredAyahs, setStarredAyahs] = useState<Array<{ surah: number; ayah: number }>>(() => { try { return JSON.parse(localStorage.getItem('atlas_mushaf_starred_ayahs_v1') || '[]'); } catch { return []; } });
   const [selected, setSelected] = useState<{ surah: number; ayah: number } | null>(null);
   const [readingMode, setReadingMode] = useState<'translation' | 'reading'>('reading');
-  const [tajweedEnabled, setTajweedEnabled] = useState(() => { try { return localStorage.getItem('atlas_mushaf_tajweed_v1') !== 'off'; } catch { return true; } });
-  const toggleTajweed = () => setTajweedEnabled(current => { const next = !current; try { localStorage.setItem('atlas_mushaf_tajweed_v1', next ? 'on' : 'off'); } catch { /* storage is optional */ } return next; });
   const [arabicFontSize, setArabicFontSize] = useState(() => {
     try { const saved = Number(localStorage.getItem('atlas_mushaf_arabic_font_size_v2')); return [16, 18, 20, 23, 26, 30, 34].includes(saved) ? saved : 20; }
     catch { return 20; }
@@ -314,7 +312,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     if (!savedAyah) setSelected({ surah: target.surahNumber, ayah: target.numberInSurah });
     updateBookmark(page, target);
   }, [pageData, loading, page, bookmark.surah, bookmark.ayah, bookmark.page, updateBookmark, readingMode]);
-  const readerContent = <div className={'mushaf-app' + (tajweedEnabled ? '' : ' mushaf-app--tajweed-off')}>
+  const readerContent = <div className="mushaf-app">
     <header className="mushaf-topbar">
       <button type="button" className="mushaf-surah-trigger" onClick={() => setSidebarOpen(value => !value)} aria-expanded={sidebarOpen}>
         <span>{activeSurahNumber}. {activeSurah?.transliteration || 'Al-Fatihah'}</span><span aria-hidden="true">▾</span>
@@ -325,7 +323,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
           <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} onClick={() => changeReadingMode('translation')}>Verse by Verse</button>
           <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} onClick={() => changeReadingMode('reading')}>Page by Page</button>
         </div>
-        <button type="button" className={'mushaf-tajweed-toggle' + (tajweedEnabled ? ' is-active' : '')} onClick={toggleTajweed} aria-pressed={tajweedEnabled} aria-label="Toggle Tajweed colour coding">Tajweed</button>
         <div className="mushaf-mode-switch" role="group" aria-label="Bookmark mode">
           <button type="button" className={mode === 'hifz' ? 'is-active' : ''} onClick={() => changeMode('hifz')}>Hifz</button>
           <button type="button" className={mode === 'murajaah' ? 'is-active' : ''} onClick={() => changeMode('murajaah')}>Muraja'ah</button>
