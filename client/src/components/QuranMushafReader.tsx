@@ -394,9 +394,12 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       });
       const restoreKey = restoreTargetRef.current;
       if (restoreKey) {
-        const restored = targets.find(node => node.dataset.surah + ':' + node.dataset.ayah === restoreKey && visible.has(node));
-        if (restored) restoreTargetRef.current = null;
-        return;
+        const restoreNode = targets.find(node => node.dataset.surah + ':' + node.dataset.ayah === restoreKey);
+        if (!restoreNode) restoreTargetRef.current = null;
+        else {
+          if (visible.has(restoreNode)) restoreTargetRef.current = null;
+          return;
+        }
       }
       const topmost = [...visible.keys()].sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)[0];
       if (!topmost) return;
