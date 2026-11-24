@@ -676,3 +676,11 @@ test('Mushaf font selector controls actual Arabic glyphs in both reading modes',
   assert.ok(css.includes('family=Amiri+Quran'));
   assert.ok(css.includes('family=Scheherazade+New'));
 });
+
+
+test('Page-by-page QPC end markers use independent Quran-style ayah medallions', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  assert.match(reader, /isEnd && ayah \? <AyahMedallion className="mushaf-page-medallion mushaf-page-qpc-medallion" number=\{ayah\.numberInSurah\}\/> : word\.text/);
+  assert.match(reader, /function AyahMedallion\([\s\S]*?arabicNumber\(number\)/);
+  assert.ok(reader.includes('mushaf-qcf-word--end'));
+});
