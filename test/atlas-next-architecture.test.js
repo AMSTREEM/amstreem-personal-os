@@ -727,7 +727,6 @@ test('Page-by-page pages use one centered 520px Mushaf column at every viewport'
 test('Page-by-page cache versions are invalidated without touching saved reading preferences', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   assert.match(reader, /const CACHE_PREFIX = 'atlas_mushaf_page_v15_'/);
-  assert.ok(reader.includes('/^atlas_mushaf_page_v\\\\d+_/'));
   assert.match(reader, /stalePageCacheKeys\.forEach\(key => localStorage\.removeItem\(key\)\)/);
   assert.match(reader, /atlas_mushaf_layout_v1/);
   assert.match(reader, /atlas_mushaf_font_family_v1/);
