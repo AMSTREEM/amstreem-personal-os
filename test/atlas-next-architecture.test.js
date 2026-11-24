@@ -378,7 +378,8 @@ test('Mushaf keeps bookmarks, automatic Hifz/Muraja’ah logging and direct Resi
 test('Mushaf renders page ayahs directly and restores saved verse without bookmark race', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   assert.ok(reader.includes("scrollIntoView({ behavior: 'auto', block: 'center' })"));
-  assert.ok(reader.includes('pageData.ayahs.map((ayah, index)'));
+  assert.ok(reader.includes('pageSurahRuns.map(run =>'));
+  assert.ok(reader.includes('run.ayahs.map((ayah, ayahIndex) =>'));
   assert.ok(reader.includes('renderTajweedMarkup(ayah.tajweedText || \'\', ayah.tajweedSegments, ayah.text, tajweedEnabled)'));
   assert.ok(reader.includes('userScrolledRef.current = false'));
   assert.ok(reader.includes('if (!userScrolledRef.current) return;'));
