@@ -1,4 +1,4 @@
-import { Fragment, type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, type CSSProperties, type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Bookmark, Copy, Search, WifiOff, X } from 'lucide-react';
@@ -380,7 +380,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     if (!savedAyah) setSelected({ surah: target.surahNumber, ayah: target.numberInSurah });
     updateBookmark(page, target);
   }, [pageData, loading, page, bookmark.surah, bookmark.ayah, bookmark.page, updateBookmark, readingMode]);
-  const readerContent = <div className="mushaf-app">
+  const readerContent = <div className="mushaf-app" style={{ '--mushaf-arabic-font': "'" + arabicFontFamily + "', serif" } as CSSProperties}>
     <header className="mushaf-topbar">
       <button type="button" className="mushaf-surah-trigger" onClick={() => setSidebarOpen(value => !value)} aria-expanded={sidebarOpen}>
         <span>{activeSurahNumber}. {activeSurah?.transliteration || 'Al-Fatihah'}</span><span aria-hidden="true">▾</span>
