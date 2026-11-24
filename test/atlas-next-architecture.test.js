@@ -297,7 +297,7 @@ test('Mushaf reading settings persist font, five font sizes, three layouts and T
   const css = read('client/src/styles.css');
   for (const item of ['atlas_mushaf_font_family_v1','atlas_mushaf_font_size_v1','atlas_mushaf_layout_v1','atlas_mushaf_tajweed_v1','Madinah Uthmani','Naskh Clean','Scheherazade Classic','Verse by Verse','Page by Page','Arabic Only','Tajweed colors','mushaf-settings-popover','fontSize: arabicFontSize']) assert.ok(reader.includes(item), 'Missing Mushaf setting: ' + item);
   for (const size of ['20,24,28,32,36']) assert.ok(reader.includes(size), 'Missing five-step Arabic font size scale');
-  assert.match(html, /Noto\\+Naskh\\+Arabic/);
+  assert.ok(html.includes("Noto+Naskh+Arabic"));
   assert.match(css, /mushaf-settings-popover/);
   assert.match(css, /--mushaf-arabic-font/);
 });
