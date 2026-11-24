@@ -44,7 +44,7 @@ function parseBracketTajweed(source: string): TajweedSegment[] {
   };
   let index = 0;
   while (index < source.length) {
-    const opening = source.slice(index).match(/^\\[([a-zA-Z]+)(?::\\d+)?\\[/);
+    const opening = source.slice(index).match(/^\[([a-zA-Z]+)(?::\d+)?\[/);
     if (opening) {
       stack.push(TAJWEED_RULE_CLASSES[opening[1].toLowerCase()] || '');
       index += opening[0].length;
