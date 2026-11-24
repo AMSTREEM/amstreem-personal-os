@@ -358,25 +358,40 @@ async function fetchAlQuranCloudPage(page) {
   let lastError = null;
   for (const base of providers) {
     try {
-      const editions = await fetchQuranMirror(
-        base + '/page/' + page + '/editions/quran-uthmani,en.sahih',
-        body => {
-          const list = Array.isArray(body?.data) ? body.data : [];
-          const hasUthmani = list.some(item => item?.edition?.identifier === 'quran-uthmani' && Array.isArray(item?.ayahs));
-          const hasEnglish = list.some(item => item?.edition?.identifier === 'en.sahih' && Array.isArray(item?.ayahs));
-          if (body?.code !== 200 || !hasUthmani || !hasEnglish) {
-            throw new Error('AlQuranCloud returned incomplete quran-uthmani/en.sahih page editions.');
+      try {
+        const editions = await fetchQuranMirror(
+          base + '/page/' + page + '/editions/quran-uthmani,en.sahih',
+          body => {
+            const list = Array.isArray(body?.data) ? body.data : [];
+            const hasUthmani = list.some(item => item?.edition?.identifier === 'quran-uthmani' && Array.isArray(item?.ayahs));
+            const hasEnglish = list.some(item => item?.edition?.identifier === 'en.sahih' && Array.isArray(item?.ayahs));
+            if (body?.code !== 200 || !hasUthmani || !hasEnglish) {
+              throw new Error('AlQuranCloud returned incomplete quran-uthmani/en.sahih page editions.');
+            }
+            return body;
+          }, page
+        );
+        return normalizeAlQuranCloud(editions, page);
+      } catch (combinedError) {
+        // Compatibility fallback for mirrors that expose the two editions separately.
+        const normalizeEdition = body => {
+          if (body?.code !== 200 || !Array.isArray(body?.data?.ayahs) || !body.data.ayahs.length) {
+            throw new Error('AlQuranCloud returned an incomplete page edition.');
           }
-          return body;
-        }, page
-      );
-      return normalizeAlQuranCloud(editions, page);
+          return body.data;
+        };
+        const [uthmani, english] = await Promise.all([
+          fetchQuranMirror(base + '/page/' + page + '/quran-uthmani', normalizeEdition, page),
+          fetchQuranMirror(base + '/page/' + page + '/en.sahih', normalizeEdition, page)
+        ]);
+        return normalizeAlQuranCloud({ code: 200, data: [uthmani, english] }, page);
+      }
     } catch (error) {
       lastError = error;
-      console.warn('AlQuranCloud combined Uthmani/Sahih page provider failed:', base, error.message);
+      console.warn('AlQuranCloud combined/split Uthmani/Sahih page provider failed:', base, error.message);
     }
   }
-  throw lastError || new Error('No combined quran-uthmani/en.sahih page provider is available.');
+  throw lastError || new Error('No quran-uthmani/en.sahih page provider is available.');
 }
 async function fetchAlQuranCloudSurah(surahNumber) {
   const providers = ['https://api.alquran.cloud/v1', 'https://alquran.api.islamic.network/v1', 'https://alquran.api.alislam.ru/v1'];
