@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@200..800&family=Noto+Naskh+Arabic:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=Amiri:wght@400;700&family=Amiri+Quran&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Lateef:wght@400;500;600;700&family=Manrope:wght@200..800&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Scheherazade+New:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 @font-face {
@@ -8755,4 +8755,20 @@ html, body, #root, .app-frame, .main-area, .page-container {
     font-size: clamp(19px, 5vw, 25px);
     word-spacing: 1px;
   }
+}
+
+
+/* Atlas Mushaf live typography binding: selected font applies to all Qur’anic glyphs in both reading modes. */
+.mushaf-app .mushaf-verse-arabic,
+.mushaf-app .mushaf-page-view,
+.mushaf-app .mushaf-page-text,
+.mushaf-app .mushaf-page-text *,
+.mushaf-app .mushaf-page-surah-banner b,
+.mushaf-app .mushaf-page-bismillah,
+.mushaf-app .mushaf-page-surah-hero-main > b,
+.mushaf-app .mushaf-surah-hero [lang="ar"],
+.mushaf-app .mushaf-bismillah b {
+  font-family: var(--mushaf-arabic-font, 'UthmanicHafs'), serif !important;
+  font-synthesis: none !important;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1 !important;
 }
