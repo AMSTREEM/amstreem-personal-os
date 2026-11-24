@@ -8,10 +8,11 @@ import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz, getPageSur
 type Settings = Record<string, string>;
 type TajweedSegment = { text: string; className: string };
 type MushafWord = { text: string; tajweed?: string; codeV2?: string; lineNumber?: number; pageNumber?: number; position?: number; verseKey?: string; charTypeName?: string };
-type MushafAyah = { textSource?: string; number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; tajweedText?: string; tajweedSegments?: TajweedSegment[]; translation: string; transliteration?: string; translations?: Array<{ id: number; name: string; text: string }>; words?: MushafWord[] };
+type MushafLine = { lineNumber: number; words: MushafWord[] };
+type MushafAyah = { textSource?: string; pageNumber?: number; number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; tajweedText?: string; tajweedSegments?: TajweedSegment[]; translation: string; transliteration?: string; translations?: Array<{ id: number; name: string; text: string }>; words?: MushafWord[] };
 type MushafPage = { textSource?: string; page: number; juz: number; hizb?: number; tajweedComplete?: boolean; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void; autoOpen?: boolean };
-const CACHE_PREFIX = 'atlas_mushaf_page_v13_';
+const CACHE_PREFIX = 'atlas_mushaf_page_v14_';
 const pageMemoryCache = new Map<number, MushafPage>();
 const HIFZ_KEY = 'atlas_hifz_bookmark_v2';
 const MURAJAAH_KEY = 'atlas_murajaah_bookmark_v2';
@@ -201,6 +202,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [murajaahMark, setMurajaahMark] = useState(() => readBookmark(MURAJAAH_KEY));
   const [page, setPage] = useState(() => readBookmark(HIFZ_KEY).page);
   const [pageData, setPageData] = useState<MushafPage | null>(null);
+  const [qcfFontReady, setQcfFontReady] = useState(false);
   const [surahAyahs, setSurahAyahs] = useState<MushafAyah[]>([]);
   const [surahLoading, setSurahLoading] = useState(false);
   const [surahError, setSurahError] = useState('');
@@ -242,11 +244,41 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       const staleKeys: string[] = [];
       for (let index = 0; index < localStorage.length; index += 1) {
         const key = localStorage.key(index);
-        if (key && (key.startsWith('atlas_mushaf_page_v11_') || /^atlas_mushaf_page_v(?:[1-9]|10)_/.test(key) || /^atlas_mushaf_cache_/.test(key) || /^atlas_quran_page_cache_/.test(key))) staleKeys.push(key);
+        if (key && ((/^atlas_mushaf_page_v(?:11|12|13)_/.test(key) || /^atlas_mushaf_page_v(?:[1-9]|10)_/.test(key)) || /^atlas_mushaf_cache_/.test(key) || /^atlas_quran_page_cache_/.test(key))) staleKeys.push(key);
       }
       staleKeys.forEach(key => localStorage.removeItem(key));
     } catch { /* local storage is optional */ }
   }, []);
+  useEffect(() => {
+    setQcfFontReady(false);
+    if (!fullScreen || readingMode !== 'reading' || !pageData?.qcfAvailable || !pageData.ayahs.some(ayah => ayah.words?.some(word => word.codeV2))) return;
+    let cancelled = false;
+    const family = 'QCFPage' + page;
+    if (document.fonts.check('16px "' + family + '"')) { setQcfFontReady(true); return; }
+    const face = new FontFace(family, 'url("/fonts/qcf-v2/p' + page + '.woff2")', { display: 'block' });
+    face.load().then(loaded => {
+      if (cancelled) return;
+      document.fonts.add(loaded);
+      setQcfFontReady(true);
+    }).catch(error => console.warn('QCF V2 page font failed to load; using Unicode fallback:', page, error));
+    return () => { cancelled = true; };
+  }, [fullScreen, readingMode, page, pageData]);
+
+  const pageLines = useMemo<MushafLine[]>(() => {
+    if (!pageData?.qcfAvailable) return [];
+    const byLine = new Map<number, MushafWord[]>();
+    for (const ayah of pageData.ayahs) {
+      for (const word of ayah.words || []) {
+        const lineNumber = Number(word.lineNumber || 0);
+        if (!lineNumber || (word.pageNumber && word.pageNumber !== page)) continue;
+        const line = byLine.get(lineNumber) || [];
+        line.push(word);
+        byLine.set(lineNumber, line);
+      }
+    }
+    return [...byLine.entries()].sort((a, b) => a[0] - b[0]).map(([lineNumber, words]) => ({ lineNumber, words }));
+  }, [pageData, page]);
+
   useEffect(() => {
     const media = window.matchMedia('(max-width: 767px)');
     const updateViewport = () => setIsMobileViewport(media.matches);
@@ -757,7 +789,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
             </>}
             {surahLoading && <p className="mushaf-loading" role="status">Loading {activeSurah?.transliteration || 'Surah'}…</p>}
             {!surahLoading && surahError && <div className="mushaf-error" role="alert"><p>{surahError}</p><button type="button" onClick={() => setReadingMode('reading')}>Return to Page by Page</button></div>}
-            {!surahLoading && <motion.div className="mushaf-verse-list" initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.0012 } } }}>{surahAyahs.map(ayah => <motion.article ref={node => { const key = ayah.surahNumber + ':' + ayah.numberInSurah; if (node) verseRowRefs.current.set(key, node); else verseRowRefs.current.delete(key); }} variants={{ hidden: { opacity: 0, y: 5 }, visible: { opacity: 1, y: 0 } }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: 'easeOut', delay: Math.min(ayah.numberInSurah * 0.012, 0.14) }} className="mushaf-verse-row" key={ayah.surahNumber + ':' + ayah.numberInSurah} data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={getAyahLocation(ayah.surahNumber, ayah.numberInSurah)?.page || page}>
+            {!surahLoading && <motion.div className="mushaf-verse-list" initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.0012 } } }}>{surahAyahs.map(ayah => <motion.article ref={node => { const key = ayah.surahNumber + ':' + ayah.numberInSurah; if (node) verseRowRefs.current.set(key, node); else verseRowRefs.current.delete(key); }} variants={{ hidden: { opacity: 0, y: 5 }, visible: { opacity: 1, y: 0 } }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2, ease: 'easeOut', delay: Math.min(ayah.numberInSurah * 0.012, 0.14) }} className="mushaf-verse-row" key={ayah.surahNumber + ':' + ayah.numberInSurah} data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={ayah.pageNumber || ayah.words?.find(word => word.pageNumber)?.pageNumber || getAyahLocation(ayah.surahNumber, ayah.numberInSurah)?.page || page}>
               <div className="mushaf-verse-top">
                 <span className="mushaf-verse-aya-pill">Aya {ayah.surahNumber}:{ayah.numberInSurah}</span>
                 <div className="mushaf-verse-tools">
@@ -774,7 +806,27 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
           </motion.section>}</AnimatePresence>
           <AnimatePresence mode="wait" custom={pageDirection} initial={false}>{pageData && pageData.ayahs.length > 0 && readingMode === 'reading' && <motion.section key={'page-' + pageData.page} className="mushaf-page-view" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px', fontFamily: "'UthmanicHafs', serif", fontWeight: 400, letterSpacing: '0px' }} drag={isMobileViewport ? 'x' : false} dragConstraints={{ left: 0, right: 0 }} dragElastic={0.25} dragDirectionLock onDragEnd={(_, info) => { const offsetX = info.offset.x; const velocityX = info.velocity.x; if (Math.abs(offsetX) > 55 || Math.abs(velocityX) > 350) { const direction = Math.abs(offsetX) > 55 ? offsetX : velocityX; if (direction > 0 && page < 604) changePage(page + 1); else if (direction < 0 && page > 1) changePage(page - 1); }} } initial={prefersReducedMotion ? false : { opacity: 0, x: pageDirection * 36, scale: 0.985 }} animate={{ opacity: 1, x: 0, scale: 1 }} whileDrag={{ opacity: 0.985, scale: 0.985 }} exit={{ opacity: 0, x: pageDirection * -36, scale: 0.985 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.22, ease: [0.22, 1, 0.36, 1] }}>
             {isMobileViewport && <div className="mushaf-mobile-page-header" aria-hidden="true"><span>{mobileActiveSurahName}</span><span>Juz {pageJuz}</span></div>}
-            <div className="mushaf-page-text" ref={pageTextRef} dir="rtl" onScroll={() => { userScrolledRef.current = true; }} style={{ '--mushaf-fit-font-size': mobilePageFit.fontSize + 'px', '--mushaf-fit-line-height': String(mobilePageFit.lineHeight), fontSize: arabicFontSize + 'px', fontFamily: "'" + arabicFontFamily + "', 'Amiri Quran', 'Traditional Arabic', serif", fontWeight: 400, letterSpacing: '0px', fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1' } as CSSProperties}>{pageData.ayahs.map((ayah, index) => {
+            <div className={'mushaf-page-text' + (pageLines.length ? ' mushaf-page-text--qcf' : '')} ref={pageTextRef} dir="rtl" onScroll={() => { userScrolledRef.current = true; }} style={{ '--mushaf-fit-font-size': mobilePageFit.fontSize + 'px', '--mushaf-fit-line-height': String(mobilePageFit.lineHeight), fontSize: arabicFontSize + 'px', fontFamily: "'" + arabicFontFamily + "', 'Amiri Quran', 'Traditional Arabic', serif", fontWeight: 400, letterSpacing: '0px', fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1' } as CSSProperties}>{pageLines.length ? pageLines.map((line, lineIndex) => {
+              const firstWord = line.words[0];
+              const firstAyah = pageData.ayahs.find(ayah => ayah.surahNumber + ':' + ayah.numberInSurah === firstWord?.verseKey);
+              const startsSurah = firstAyah?.numberInSurah === 1;
+              const surah = firstAyah ? QURAN_SURAHS[firstAyah.surahNumber - 1] : null;
+              return <Fragment key={'line-' + line.lineNumber}>
+                {startsSurah && firstAyah && <header className="mushaf-page-surah-banner mushaf-page-surah-banner--qcf">
+                  <div className="mushaf-page-surah-hero-main"><b lang="ar" dir="rtl">{surah?.arabic || firstAyah.arabicName}</b><div><strong>{firstAyah.surahNumber}. Surah {surah?.transliteration || firstAyah.surahName}</strong><span>{surah?.english || ''}</span></div></div>
+                  <p>{surah?.revelation || 'Qur’an'} · {surah?.ayahs || 0} verses</p>
+                  <div className="mushaf-page-hero-modes" role="group" aria-label="Bookmark mode"><button type="button" className={mode === 'hifz' ? 'is-active' : ''} aria-pressed={mode === 'hifz'} onClick={() => changeMode('hifz')}>Hifz</button><button type="button" className={mode === 'murajaah' ? 'is-active' : ''} aria-pressed={mode === 'murajaah'} onClick={() => changeMode('murajaah')}>Muraja'ah</button></div>
+                </header>}
+                {startsSurah && firstAyah?.surahNumber !== 9 && <div className="mushaf-page-bismillah mushaf-page-bismillah--qcf" lang="ar" dir="rtl">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>}
+                <div className="mushaf-qcf-line" data-line-number={line.lineNumber}>{line.words.map((word, wordIndex) => {
+                  const ayah = pageData.ayahs.find(item => item.surahNumber + ':' + item.numberInSurah === word.verseKey);
+                  const isEnd = word.charTypeName === 'end';
+                  const key = word.verseKey || (ayah ? ayah.surahNumber + ':' + ayah.numberInSurah : 'line-' + line.lineNumber);
+                  const firstOfAyah = wordIndex === 0 || line.words[wordIndex - 1]?.verseKey !== word.verseKey;
+                  return <span key={key + ':' + word.position + ':' + wordIndex} ref={node => { if (node && ayah && firstOfAyah) verseRowRefs.current.set(key, node); }} className={'mushaf-qcf-word' + (isEnd ? ' mushaf-qcf-word--end' : '')} data-mushaf-verse={firstOfAyah && ayah ? 'true' : undefined} data-surah={ayah?.surahNumber} data-ayah={ayah?.numberInSurah} data-page={word.pageNumber || page} onClick={() => ayah && selectAyah(ayah)} style={{ fontFamily: isEnd || !qcfFontReady ? "'UthmanicHafs', serif" : 'QCFPage' + page }}>{isEnd || !qcfFontReady || !word.codeV2 ? word.text : word.codeV2}</span>;
+                })}</div>
+              </Fragment>;
+            }) : pageData.ayahs.map((ayah, index) => {
               const surah = QURAN_SURAHS[ayah.surahNumber - 1];
               const startsSurah = ayah.numberInSurah === 1;
               return <Fragment key={ayah.surahNumber + ':' + ayah.numberInSurah}>
