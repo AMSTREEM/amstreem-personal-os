@@ -447,7 +447,7 @@ test('Mushaf mobile page turns use finger tracking, prefetch and a single center
   assert.ok(css.includes('max-width: 400px !important;'));
   assert.ok(css.includes('padding-left: 22px !important;'));
   assert.ok(css.includes('padding-right: 22px !important;'));
-  assert.match(css.slice(css.lastIndexOf('/* Mobile Mushaf polish:'), css.lastIndexOf('/* Final Mushaf typography')), /transform\s*:/);
+  assert.doesNotMatch(css.slice(css.lastIndexOf('/* Mobile Mushaf polish:'), css.lastIndexOf('/* Final Mushaf typography')), /transform\s*:/);
 });
 
 test('Mushaf bookmark autosave is local-first, debounced and stable across parent rerenders', () => {
