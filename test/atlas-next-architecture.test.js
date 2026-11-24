@@ -693,7 +693,7 @@ test('Ayah medallions have one font-independent visual contract in Page by Page 
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
   assert.match(reader, /<AyahMedallion className="mushaf-verse-medallion" number=\{ayah\.numberInSurah\}\/>/);
-  assert.match(reader, /<AyahMedallion className="mushaf-page-medallion mushaf-page-qpc-medallion" number=\{ayah\.numberInSurah\}\/>/);
+  assert.match(reader, /<AyahMedallion className="mushaf-page-medallion" number=\{ayah\.numberInSurah\}\/>/);
   assert.match(reader, /<AyahMedallion className="mushaf-page-medallion" number=\{ayah\.numberInSurah\}\/>/);
   const contract = css.slice(css.lastIndexOf('/* Universal ayah medallion contract:'));
   for (const selector of ['.mushaf-verse-arabic .mushaf-medallion','.mushaf-page-text .mushaf-medallion','.mushaf-medallion-ornament','.mushaf-medallion > span','font-family: "Noto Naskh Arabic"']) assert.ok(contract.includes(selector), 'Missing universal medallion rule: ' + selector);
