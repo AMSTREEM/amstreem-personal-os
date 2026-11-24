@@ -325,12 +325,12 @@ test('Mushaf rebuild uses a fixed top bar, three-tab sidebar and two clean readi
 
 test('AlQuranCloud fetches quran-tajweed and Sahih editions directly for page and Surah APIs', () => {
   const offline = JSON.parse(read('server/quran-fallback.json'));
-  for (const item of ["app.get('/api/quran/page/:page'","fetchAlQuranCloudPage","/page/${page}/editions/quran-tajweed,en.sahih","/surah/${surahNumber}/editions/quran-tajweed,en.sahih",'https://api.alquran.cloud/v1','quranPageCache = new Map()','quranPageInflight = new Map()','parseAlQuranTajweed','normalizeMadinahArabic','tajweedSegments: taggedSegments','text: uthmaniText, tajweedText: taggedText']) assert.ok(server.includes(item), 'Missing endpoint feature: ' + item);
+  for (const item of ["app.get('/api/quran/page/:page'","fetchAlQuranCloudPage","/page/${page}/editions/quran-tajweed,en.sahih","/surah/${surahNumber}/editions/quran-tajweed,en.sahih",'https://api.alquran.cloud/v1','quranPageCache = new Map()','quranPageInflight = new Map()','parseAlQuranTajweed','normalizeMadinahArabic','tajweedSegments','tajweedText','normalizeAlQuranCloudSurah','fetchAlQuranCloudSurah','quranSurahCache = new Map()']) assert.ok(server.includes(item), 'Missing endpoint feature: ' + item);
   assert.ok(!server.includes('alignTajweedToUthmani'), 'Cross-string alignment must not remain');
   assert.deepEqual(Object.keys(offline.pages).sort(), ['1','602','603','604']);
 });
 
-test('Tajweed rendering uses direct tokens, normalized Madinah glyphs and v8 cache invalidation', () => {
+test('Tajweed rendering uses direct tokens, normalized Madinah glyphs and v9 cache invalidation', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
   for (const item of ['tajweedSegments','TAJWEED_CLASSES','tj-madd','tj-qalqalah','tj-ghunnah','tj-heavy','tajweedEnabled','parseBracketTajweed','normalizeMadinahArabic',"atlas_mushaf_page_v9_","atlas_mushaf_page_v[1-8]_"]) assert.ok(reader.includes(item), 'Missing Tajweed rendering feature: ' + item);
