@@ -8574,3 +8574,94 @@ html, body, #root, .app-frame, .main-area, .page-container {
     bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
+
+
+/* Responsive Mushaf system: desktop/tablet/mobile, both reading modes. */
+.mushaf-fs-overlay { grid-template-rows: 64px minmax(0, 1fr) !important; min-width: 0; }
+.mushaf-topbar,.mushaf-topbar > *, .mushaf-topbar-actions > *, .mushaf-mobile-topbar > * { min-width: 0; }
+.mushaf-main,.mushaf-canvas,.mushaf-verse-view,.mushaf-page-view,.mushaf-verse-row,.mushaf-verse-top,.mushaf-verse-arabic { min-width: 0; }
+.mushaf-canvas { overflow-x: hidden; overflow-y: auto; overscroll-behavior-y: contain; }
+.mushaf-verse-view { width: min(100%, 1120px) !important; padding: clamp(20px, 2.6vw, 40px) clamp(18px, 3vw, 44px) 88px !important; box-sizing: border-box; }
+.mushaf-surah-hero { grid-template-columns: minmax(76px, 116px) minmax(0, 1fr) auto; min-width: 0; }
+.mushaf-verse-arabic { overflow-wrap: anywhere; font-family: 'UthmanicHafs', serif !important; font-weight: 400 !important; line-height: 2.15; }
+.mushaf-app.is-page-reading .mushaf-page-view { min-height: 100%; }
+.mushaf-app.is-page-reading .mushaf-page-text { max-width: min(100%, 1240px); overflow: visible; }
+.mushaf-app.is-page-reading .mushaf-page-surah-banner { grid-template-columns: minmax(0, 1fr) auto; }
+.mushaf-app.is-page-reading .mushaf-page-arrows { position: fixed; z-index: 24; pointer-events: auto; }
+@media (min-width: 768px) and (max-width: 1100px) {
+  .mushaf-fs-overlay { grid-template-columns: 230px minmax(0, 1fr) !important; }
+  .mushaf-fs-overlay:not(.is-sidebar-open) { grid-template-columns: minmax(0, 1fr) !important; }
+  .mushaf-sidebar { width: 230px; min-width: 230px; flex-basis: 230px; }
+  .mushaf-topbar { gap: 8px; margin-inline: 10px; padding-inline: 10px; }
+  .mushaf-topbar-view-toggle button { padding-inline: 9px; }
+  .mushaf-page-view { padding-inline: clamp(18px, 2vw, 28px) !important; }
+  .mushaf-app.is-page-reading .mushaf-page-text { max-width: 980px; font-size: clamp(24px, 2.5vw, 31px) !important; }
+  .mushaf-verse-view { padding-inline: 24px !important; }
+}
+@media (max-width: 767px) {
+  .mushaf-fs-overlay { display:flex !important; flex-direction:column; position:fixed; inset:0; width:100vw; height:100dvh; max-height:100dvh; overflow:hidden; }
+  .mushaf-fs-overlay > .mushaf-app { display:flex !important; flex:1 1 auto; flex-direction:column; width:100%; min-width:0; min-height:0; height:100%; overflow:hidden; }
+  .mushaf-app > .mushaf-topbar {
+    position:sticky !important; inset:auto !important; z-index:40 !important; display:flex !important; flex:0 0 auto !important;
+    width:100%; height:auto !important; min-height:52px !important; margin:0 !important; padding:7px 9px !important;
+    border:0 !important; border-bottom:1px solid var(--mushaf-hairline) !important; border-radius:0 !important;
+    opacity:1 !important; visibility:visible !important; pointer-events:auto !important; background:var(--surface) !important;
+    box-shadow:none !important; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  }
+  .mushaf-mobile-topbar { display:flex !important; align-items:center; justify-content:space-between; gap:6px; width:100%; min-width:0; }
+  .mushaf-surah-trigger { flex:1 1 0 !important; min-width:0 !important; max-width:32% !important; font-size:11px !important; }
+  .mushaf-topbar-view-toggle { display:flex !important; flex:0 0 auto; min-width:0; max-width:60%; gap:2px; padding:2px; border-radius:999px; background:var(--bg); }
+  .mushaf-topbar-view-toggle button { min-width:0; min-height:32px; padding:0 9px; border-radius:999px; font-size:clamp(9px,2.6vw,11px); white-space:nowrap; }
+  .mushaf-settings-anchor { flex:0 0 auto; }
+  .mushaf-settings-trigger,.mushaf-exit { width:34px; min-width:34px; height:34px; }
+  .mushaf-workspace { display:flex !important; position:relative; flex:1 1 auto !important; width:100%; min-width:0; min-height:0 !important; overflow:hidden !important; }
+  .mushaf-sidebar { position:fixed !important; top:52px !important; bottom:0 !important; left:0 !important; z-index:60 !important; width:min(86vw,330px) !important; min-width:0 !important; height:calc(100dvh - 52px) !important; max-height:calc(100dvh - 52px) !important; }
+  .mushaf-sidebar-scrim { position:fixed !important; inset:52px 0 0 !important; z-index:59 !important; width:100% !important; height:calc(100dvh - 52px) !important; }
+  .mushaf-main { display:flex !important; flex:1 1 auto !important; width:100%; height:auto !important; min-width:0; min-height:0 !important; overflow:hidden !important; }
+  .mushaf-canvas { flex:1 1 auto; width:100% !important; height:100% !important; min-width:0; min-height:0 !important; overflow-x:hidden !important; overflow-y:auto !important; padding:0 0 calc(76px + env(safe-area-inset-bottom,0px)) !important; -webkit-overflow-scrolling:touch; overscroll-behavior-y:contain; touch-action:pan-y; }
+  .mushaf-app.is-mobile-page-reading { height:100% !important; max-height:none !important; min-height:0 !important; overflow:hidden !important; }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-view {
+    display:flex !important; flex-direction:column !important; width:100% !important; height:auto !important; max-height:none !important;
+    min-height:100% !important; max-width:none !important; margin:0 !important; padding:12px 14px calc(88px + env(safe-area-inset-bottom,0px)) !important;
+    overflow:visible !important; box-sizing:border-box !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-mobile-page-header { display:flex !important; flex:0 0 auto; min-height:30px; margin-bottom:12px; }
+  .mushaf-app.is-mobile-page-reading.mobile-controls-visible .mushaf-mobile-page-header { display:flex !important; }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-text {
+    flex:0 0 auto; width:100% !important; height:auto !important; max-height:none !important; min-height:0 !important; margin:0 !important;
+    padding:0 2px !important; overflow:visible !important; font-size:clamp(23px,6vw,30px) !important; line-height:2.18 !important;
+    word-spacing:2px !important; text-align:justify !important; text-align-last:center !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-surah-banner {
+    grid-template-columns:minmax(0,1fr) !important; grid-template-rows:auto auto auto !important; gap:8px !important;
+    margin:0 0 18px !important; padding:14px !important; border-radius:14px !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-surah-hero-main { grid-column:1 !important; grid-row:1 !important; gap:10px !important; }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-surah-hero-main > b { flex:0 0 58px !important; width:58px !important; font-size:38px !important; }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-surah-hero-main strong { font-size:15px !important; }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-surah-hero-main span { font-size:11px !important; }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-surah-banner > p { grid-column:1 !important; grid-row:2 !important; margin:0 !important; font-size:10px !important; }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-hero-modes { grid-column:1 !important; grid-row:3 !important; justify-content:flex-start !important; }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-bismillah { margin:12px auto 20px !important; }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-bismillah b { font-size:clamp(23px,6vw,29px) !important; }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-arrows {
+    position:fixed !important; left:12px !important; right:12px !important; bottom:calc(10px + env(safe-area-inset-bottom,0px)) !important;
+    z-index:45 !important; display:flex !important; flex-direction:row !important; justify-content:space-between !important;
+    pointer-events:none; opacity:1 !important; visibility:visible !important;
+  }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-arrows button { width:auto !important; min-width:74px; height:38px; border-radius:999px; pointer-events:auto; font-size:11px; }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-arrows button:first-child::after { content:"Prev"; margin-left:6px; }
+  .mushaf-app.is-mobile-page-reading .mushaf-page-arrows button:last-child::after { content:"Next"; margin-left:6px; }
+  .mushaf-app.is-mobile-verse-reading .mushaf-verse-view { width:100% !important; max-width:none !important; margin:0 !important; padding:16px 14px calc(92px + env(safe-area-inset-bottom,0px)) !important; }
+  .mushaf-app.is-mobile-verse-reading .mushaf-surah-hero { grid-template-columns:64px minmax(0,1fr) !important; gap:10px !important; padding:14px !important; margin-bottom:14px !important; border-radius:14px !important; }
+  .mushaf-app.is-mobile-verse-reading .mushaf-hero-arabic { font-size:24px !important; }
+  .mushaf-app.is-mobile-verse-reading .mushaf-hero-copy { min-width:0; }
+  .mushaf-app.is-mobile-verse-reading .mushaf-hero-copy h1 { font-size:clamp(14px,4vw,17px) !important; overflow-wrap:anywhere; }
+  .mushaf-app.is-mobile-verse-reading .mushaf-hero-modes { grid-column:1 / -1 !important; flex-direction:row !important; justify-content:stretch !important; gap:8px !important; }
+  .mushaf-app.is-mobile-verse-reading .mushaf-hero-modes button { flex:1 1 0; min-height:34px; font-size:11px; }
+  .mushaf-app.is-mobile-verse-reading .mushaf-verse-row { padding:22px 0 !important; }
+  .mushaf-app.is-mobile-verse-reading .mushaf-verse-top { grid-template-columns:minmax(0,1fr) auto !important; gap:8px !important; }
+  .mushaf-app.is-mobile-verse-reading .mushaf-verse-tools { gap:5px !important; }
+  .mushaf-app.is-mobile-verse-reading .mushaf-verse-arabic { font-size:clamp(25px,7vw,32px) !important; line-height:2.2 !important; text-align:right !important; overflow-wrap:anywhere; }
+  .mushaf-app.is-mobile-verse-reading .mushaf-verse-translation { font-size:14px !important; line-height:1.7 !important; overflow-wrap:anywhere; }
+}
