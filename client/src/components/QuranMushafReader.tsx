@@ -243,8 +243,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     };
     const remoteHifz = remoteMark(settings.hifz_bookmark, Number(settings.hifz_page) || 1);
     const remoteMurajaah = remoteMark(settings.murajaah_bookmark, Number(settings.murajaah_page) || 1);
-    setHifzMark(current => remoteHifz.updatedAt && (!current.updatedAt || remoteHifz.updatedAt > current.updatedAt) ? remoteHifz : current);
-    setMurajaahMark(current => remoteMurajaah.updatedAt && (!current.updatedAt || remoteMurajaah.updatedAt > current.updatedAt) ? remoteMurajaah : current);
+    setHifzMark(current => (remoteHifz.updatedAt && (!current.updatedAt || remoteHifz.updatedAt > current.updatedAt)) || (!current.updatedAt && current.page === 1 && current.surah === 1 && current.ayah === 1 && (remoteHifz.page !== 1 || remoteHifz.surah !== 1 || remoteHifz.ayah !== 1)) ? remoteHifz : current);
+    setMurajaahMark(current => (remoteMurajaah.updatedAt && (!current.updatedAt || remoteMurajaah.updatedAt > current.updatedAt)) || (!current.updatedAt && current.page === 1 && current.surah === 1 && current.ayah === 1 && (remoteMurajaah.page !== 1 || remoteMurajaah.surah !== 1 || remoteMurajaah.ayah !== 1)) ? remoteMurajaah : current);
   }, [settingsReady, settings.hifz_page, settings.murajaah_page, settings.hifz_bookmark, settings.murajaah_bookmark]);
 
   useEffect(() => {
