@@ -747,6 +747,8 @@ test('Desktop layout lock explicitly isolates app shell, workspace grids, and Mu
   assert.match(lock, /\.mushaf-page-arrows[\s\S]*?position: fixed !important/);
   assert.match(lock, /@media \(min-width: 768px\) and \(max-width: 1050px\)/);
   assert.match(lock, /\.sidebar \{ width: 220px !important; \}/);
+  assert.match(css, /@media \(max-width: 767px\) \{\s*\.auth-screen/);
+  assert.match(lock, /\.page-container/);
 });
 
 test('CSP uses same-origin scripts only and index contains no inline script bodies', () => {
