@@ -152,6 +152,27 @@ function parseAlQuranTajweed(markup) {
     if (previous && previous.className === className) previous.text += text;
     else segments.push({ text, className });
   };
+  if (/<(?:tajweed|rule)\b/i.test(source)) {
+    const xmlStack = [];
+    const tokens = source.match(/<\/?(?:tajweed|rule)\b[^>]*>|[^<]+/gi) || [];
+    for (const token of tokens) {
+      const tag = token.match(/^<\s*(\/?)\s*(tajweed|rule)\b([^>]*)>/i);
+      if (tag) {
+        if (tag[1]) {
+          for (let position = xmlStack.length - 1; position >= 0; position--) {
+            if (xmlStack[position].tag === tag[2].toLowerCase()) { xmlStack.splice(position); break; }
+          }
+        } else {
+          const attribute = tag[3].match(/\bclass\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+          const rule = attribute ? (attribute[1] || attribute[2] || attribute[3] || '') : '';
+          xmlStack.push({ tag: tag[2].toLowerCase(), className: rule.split(/\s+/).map(tajweedClassForRule).find(Boolean) || '' });
+        }
+        continue;
+      }
+      append(token, [...xmlStack].reverse().find(item => item.className)?.className || '');
+    }
+    return segments;
+  }
   // Parse quran-tajweed's own bracketed characters; never align indices to a
   // separately encoded quran-uthmani string.
   let index = 0;
@@ -1099,25 +1120,13 @@ app.get('*',(req,res,next)=>{
 if (!fs.existsSync(frontendEntry)) {
   throw new Error('Atlas frontend build is missing: expected dist/index.html. Refusing to serve the legacy public HTML shell.');
 }
-Promise.all([
-  fetchQuranJsonSurah(1),
-  fetchQuranJsonSurah(2),
-  fetchAlQuranCloudPage(1),
-  fetchAlQuranCloudPage(2)
-])
-  .then(async ([fatihah, baqarah, page1, page2]) => {
-    const opening = baqarah.get(1);
-    const markedCharacters = (opening?.segments || []).filter(segment => segment.className).reduce((count, segment) => count + segment.text.length, 0);
-    const [enriched1, enriched2] = await Promise.all([
-      enrichPageWithQuranJsonTajweed(page1),
-      enrichPageWithQuranJsonTajweed(page2)
-    ]);
+Promise.all([fetchAlQuranCloudPage(1), fetchAlQuranCloudPage(2)])
+  .then(([page1, page2]) => {
     const coloredAyahs = page => page.ayahs.filter(ayah => (ayah.tajweedSegments || []).some(segment => segment.className)).length;
-    const openingAyah = enriched2.ayahs.find(ayah => Number(ayah.surahNumber) === 2 && Number(ayah.numberInSurah) === 1);
+    const openingAyah = page2.ayahs.find(ayah => Number(ayah.surahNumber) === 2 && Number(ayah.numberInSurah) === 1);
     const openingMarked = (openingAyah?.tajweedSegments || []).filter(segment => segment.className).reduce((count, segment) => count + segment.text.length, 0);
-    console.info('Quran Tajweed corpus ready:', fatihah.size, 'Al-Fatihah verses;', baqarah.size, 'Al-Baqarah verses; 2:1 source marked characters:', markedCharacters);
-    console.info('AlQuranCloud Uthmani/Sahih provider ready:', page1.ayahs.length, 'page 1 verses;', page2.ayahs.length, 'page 2 verses');
-    console.info('End-to-end Tajweed alignment:', coloredAyahs(enriched1), '/', enriched1.ayahs.length, 'page 1 ayahs;', coloredAyahs(enriched2), '/', enriched2.ayahs.length, 'page 2 ayahs; 2:1 rendered marked characters:', openingMarked);
+    console.info('AlQuranCloud Uthmani/Sahih/Tajweed provider ready:', page1.ayahs.length, 'page 1 verses;', page2.ayahs.length, 'page 2 verses');
+    console.info('Direct Tajweed tokens:', coloredAyahs(page1), '/', page1.ayahs.length, 'page 1 ayahs;', coloredAyahs(page2), '/', page2.ayahs.length, 'page 2 ayahs; 2:1 marked characters:', openingMarked);
   })
   .catch(error => console.warn('Quran reading data startup check failed:', error.message));
 app.listen(PORT, '0.0.0.0',()=>console.log(`Amstreem Atlas running on 0.0.0.0:${PORT}`));
