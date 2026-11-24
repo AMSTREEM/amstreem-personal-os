@@ -6168,7 +6168,8 @@ html, body, #root, .app-frame, .main-area, .page-container {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.mushaf-medallion-ornament circle { stroke-width: .75; }
+.mushaf-medallion-ornament circle { stroke-width: .72; }
+.mushaf-medallion-inner { opacity: .62; stroke-width: .55 !important; }
 .mushaf-medallion-crown { stroke-width: .8; }
 .mushaf-medallion > span {
   position: absolute;
