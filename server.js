@@ -128,15 +128,12 @@ async function getQuranApiAuth() {
 }
 
 function tajweedClassForRule(rule) {
-  const value = String(rule || '').toLowerCase().replace(/[-\s]/g, '_');
-  if (/^(h|s|l|ham_wasl|hamzat_wasl|hamzat_al_wasl|slnt|silent|laam_shamsiyah)$/.test(value)) return 'tj-silent';
+  const value = String(rule || '').toLowerCase().trim().replace(/[-\s]/g, '_');
+  if (/^(h|s|l|ham_wasl|hamzat_wasl|hamzat_al_wasl|slnt|silent|laam_shamsiyah|laam_shamsiyyah|lam_shamsiyah|lam_shamsiyyah)$/.test(value)) return 'tj-silent';
   if (/^(n|p|m|o)$/.test(value) || /^madda?_/.test(value) || /^madd/.test(value)) return 'tj-madd';
-  if (/^(q|qlq|qalaqah|qalqalah|qalqala)$/.test(value)) return 'tj-qalqalah';
-  if (/^(g|ghn)$/.test(value) || /ghunnah|idgh_ghn/.test(value)) return 'tj-ghunnah';
-  if (/^(c|f|ikhf|ikhf_shfw)$/.test(value) || /ikhfa/.test(value)) return 'tj-ikhfa';
-  if (/^(i|iqlb)$/.test(value) || /iqlab/.test(value)) return 'tj-ghunnah';
-  if (/^(w|idghm_shfw|u|idgh_w_ghn|d|b|idgh_mus)$/.test(value) || /idgham|idghaam|idghm|idgh_/.test(value)) return 'tj-ghunnah';
-  if (/tafkhim|heavy/.test(value)) return 'tj-tafkhim';
+  if (/^(q|qlq|qalaqah|qalqalah|qalqala)$/.test(value) || /qalqalah|qalqala/.test(value)) return 'tj-qalqalah';
+  if (/^(g|i|c|a|u|w|f|ghn|iqlb|idghm_shfw|idgh_w_ghn|d|b|idgh_mus)$/.test(value) || /ghunnah|idgham|idghaam|idghm|idgh_|ikhfa|iqlab/.test(value)) return 'tj-ghunnah';
+  if (/^(r|heavy|tafkhim)$/.test(value) || /tafkhim|heavy/.test(value)) return 'tj-heavy';
   return '';
 }
 function parseAlQuranTajweed(markup) {
@@ -181,15 +178,21 @@ function parseAlQuranTajweed(markup) {
       index += opening[0].length;
       continue;
     }
-    if (source[index] === ']' && stack.length) {
-      stack.pop();
+    // Tajweed markup uses one closing bracket per open rule; discard stray
+    // delimiters too so malformed provider markup never leaks into the Mushaf.
+    if (source[index] === ']') {
+      if (stack.length) stack.pop();
+      index += 1;
+      continue;
+    }
+    if (source[index] === '[') {
       index += 1;
       continue;
     }
     append(source[index], [...stack].reverse().find(Boolean) || '');
     index += 1;
   }
-  return segments.length ? segments : [{ text: source, className: '' }];
+  return segments.length ? segments : [{ text: source.replace(/[\[\]]/g, ''), className: '' }];
 }
 function alignTajweedToUthmani(uthmaniText, taggedSegments) {
   if (!Array.isArray(taggedSegments) || !taggedSegments.some(segment => segment.className)) {
@@ -284,7 +287,13 @@ async function fetchAlQuranCloudPage(page) {
         fetchQuranMirror(`${base}/page/${page}/quran-uthmani`, normalizeEdition, page),
         fetchQuranMirror(`${base}/page/${page}/en.sahih`, normalizeEdition, page)
       ]);
-      return normalizeAlQuranCloud({ code: 200, data: [arabic, english] }, page);
+      let tajweed = null;
+      try {
+        tajweed = await fetchQuranMirror(`${base}/page/${page}/quran-tajweed`, normalizeEdition, page);
+      } catch (error) {
+        console.warn('AlQuranCloud Tajweed edition unavailable for page ' + page + ':', error.message);
+      }
+      return normalizeAlQuranCloud({ code: 200, data: [arabic, ...(tajweed ? [tajweed] : []), english] }, page);
     } catch (error) {
       lastError = error;
       console.warn('AlQuranCloud provider failed:', base, error.message);
