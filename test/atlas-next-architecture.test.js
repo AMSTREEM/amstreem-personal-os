@@ -696,3 +696,12 @@ test('Ayah medallions have one font-independent visual contract in Page by Page 
   for (const selector of ['.mushaf-verse-arabic .mushaf-medallion','.mushaf-page-text .mushaf-medallion','.mushaf-medallion-ornament','.mushaf-medallion > span','font-family: "Noto Naskh Arabic"']) assert.ok(contract.includes(selector), 'Missing universal medallion rule: ' + selector);
   assert.match(contract, /\.mushaf-verse-arabic \.mushaf-verse-medallion[\s\S]*?margin-inline: 7px/);
 });
+
+
+test('Page-by-page QPC end markers resolve their ayah even when end glyphs omit verseKey', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  assert.match(reader, /const matchedAyah = pageData\.ayahs\.find\(item => item\.surahNumber \+ ':' \+ item\.numberInSurah === word\.verseKey\)/);
+  assert.match(reader, /const positionMatchedAyah = isEnd[\s\S]*?item\.words\?\.some\(ayahWord => ayahWord\.position === word\.position && ayahWord\.charTypeName === 'end'\)/);
+  assert.match(reader, /const ayah = matchedAyah \|\| positionMatchedAyah \|\| \(isEnd \? activeAyah : undefined\)/);
+  assert.match(reader, /isEnd && ayah \? <AyahMedallion[\s\S]*?number=\{ayah\.numberInSurah\}/);
+});
