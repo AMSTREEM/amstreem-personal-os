@@ -1225,13 +1225,22 @@ if (!fs.existsSync(frontendEntry)) {
 Promise.all([
   fetchQuranJsonSurah(1),
   fetchQuranJsonSurah(2),
-  fetchAlQuranCloudPage(1)
+  fetchAlQuranCloudPage(1),
+  fetchAlQuranCloudPage(2)
 ])
-  .then(([fatihah, baqarah, page]) => {
+  .then(async ([fatihah, baqarah, page1, page2]) => {
     const opening = baqarah.get(1);
     const markedCharacters = (opening?.segments || []).filter(segment => segment.className).reduce((count, segment) => count + segment.text.length, 0);
-    console.info('Quran Tajweed corpus ready:', fatihah.size, 'Al-Fatihah verses;', baqarah.size, 'Al-Baqarah verses; 2:1 marked characters:', markedCharacters);
-    console.info('AlQuranCloud Uthmani/Sahih provider ready:', page.ayahs.length, 'page 1 verses');
+    const [enriched1, enriched2] = await Promise.all([
+      enrichPageWithQuranJsonTajweed(page1),
+      enrichPageWithQuranJsonTajweed(page2)
+    ]);
+    const coloredAyahs = page => page.ayahs.filter(ayah => (ayah.tajweedSegments || []).some(segment => segment.className)).length;
+    const openingAyah = enriched2.ayahs.find(ayah => Number(ayah.surahNumber) === 2 && Number(ayah.numberInSurah) === 1);
+    const openingMarked = (openingAyah?.tajweedSegments || []).filter(segment => segment.className).reduce((count, segment) => count + segment.text.length, 0);
+    console.info('Quran Tajweed corpus ready:', fatihah.size, 'Al-Fatihah verses;', baqarah.size, 'Al-Baqarah verses; 2:1 source marked characters:', markedCharacters);
+    console.info('AlQuranCloud Uthmani/Sahih provider ready:', page1.ayahs.length, 'page 1 verses;', page2.ayahs.length, 'page 2 verses');
+    console.info('End-to-end Tajweed alignment:', coloredAyahs(enriched1), '/', enriched1.ayahs.length, 'page 1 ayahs;', coloredAyahs(enriched2), '/', enriched2.ayahs.length, 'page 2 ayahs; 2:1 rendered marked characters:', openingMarked);
   })
   .catch(error => console.warn('Quran reading data startup check failed:', error.message));
 app.listen(PORT, '0.0.0.0',()=>console.log(`Amstreem Atlas running on 0.0.0.0:${PORT}`));
