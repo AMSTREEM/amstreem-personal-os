@@ -8,7 +8,7 @@ const read = file => fs.readFileSync(path.join(process.cwd(), file), 'utf8');
 test('theme initialization is an external same-origin script under strict script-src self', () => {
   const html = read('client/index.html');
   const theme = read('client/public/theme-init.js');
-  assert.match(html, /<script src="\\/theme-init\\.js"[^>]*><\\/script>/);
+  assert.ok(html.includes('<script src="/theme-init.js" vite-ignore></script>'));
   assert.doesNotMatch(html, /<script>\s*\(function\s*\(\)/);
   assert.match(theme, /localStorage\.getItem\('atlas_theme'\)/);
   assert.match(theme, /document\.documentElement/);
