@@ -510,4 +510,6 @@ test('Mushaf Surah button and reading-view toggle share the main topbar in every
   assert.ok(header.includes('Verse by Verse') && header.includes('Page by Page'));
   assert.match(css, /\.mushaf-topbar-view-toggle[\s\S]*?border: none !important;/);
   assert.match(css, /\.mushaf-topbar\.mushaf-fs-header[\s\S]*?background: rgba\(128, 128, 128, 0\.08\)/);
+  assert.match(css, /\.mushaf-mobile-header-shell \.mushaf-surah-trigger[\s\S]*?position: static !important;/);
+  assert.match(css, /grid-template-columns: minmax\(0, 1fr\) auto auto minmax\(0, 1fr\)/);
 });
