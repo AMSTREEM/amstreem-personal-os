@@ -426,7 +426,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
 
   const activeSurah = QURAN_SURAHS[activeSurahNumber - 1];
   const currentPageSurahLabel = useMemo(() => {
-    if (readingMode !== 'reading') return `${activeSurahNumber}. ${activeSurah?.transliteration || 'Al-Fatihah'}`;
     const pageSurahs = new Map<number, string>();
     for (const ayah of pageData?.ayahs || []) {
       if (!pageSurahs.has(ayah.surahNumber)) {
@@ -437,8 +436,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     const fallbackSurah = getPageSurah(page);
     const fallbackNumber = fallbackSurah?.number || activeSurahNumber;
     return `${fallbackNumber}. ${fallbackSurah?.transliteration || activeSurah?.transliteration || 'Al-Fatihah'}`;
-  }, [readingMode, pageData, page, activeSurahNumber, activeSurah]);
-  const pageSurahLabel = currentPageSurahLabel;
+  }, [pageData, page, activeSurahNumber, activeSurah]);
   useEffect(() => {
     if (!fullScreen || loading || !pageData?.ayahs?.length) return;
     const date = lagosDate();
@@ -619,17 +617,19 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const readerContent = <div className={'mushaf-app' + (isMobileViewport && readingMode === 'reading' ? ' is-mobile-page-reading' : '') + (mobileControlsVisible ? ' mobile-controls-visible' : '')} style={{ '--mushaf-arabic-font': "'" + arabicFontFamily + "', serif" } as CSSProperties}>
     <header className="mushaf-topbar mushaf-fs-header mushaf-mobile-header-shell"><div className="mushaf-mobile-topbar">
       <button type="button" className="mushaf-surah-trigger" onClick={() => setSidebarOpen(value => !value)} aria-expanded={sidebarOpen}>
-        <span>{pageSurahLabel}</span><span aria-hidden="true">▾</span>
+        <span>{currentPageSurahLabel}</span><span aria-hidden="true">▾</span>
       </button>
+      <div className="mushaf-topbar-view-toggle" role="group" aria-label="Reading view">
+        <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} aria-pressed={readingMode === 'translation'} onClick={() => changeReadingMode('translation')}>Verse by Verse</button>
+        <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} aria-pressed={readingMode === 'reading'} onClick={() => changeReadingMode('reading')}>Page by Page</button>
+      </div>
       <div className="mushaf-topbar-center"><Bookmark size={14}/><span>Page {page} · Juz {pageJuz} / Hizb {pageHizb}</span><span className="mushaf-autosaved">Auto-saved · {bookmarkSurahName} {bookmark.surah}:{bookmark.ayah}</span></div>
       <div className="mushaf-topbar-actions">
         <div className="mushaf-settings-anchor">
           <button type="button" className="mushaf-settings-trigger" onClick={() => setSettingsOpen(value => !value)} aria-label="Reading settings" aria-expanded={settingsOpen}><Settings size={17} strokeWidth={1.8}/></button>
           {settingsOpen && <section className="mushaf-settings-popover" role="dialog" aria-label="Reading settings">
             <div className="mushaf-settings-heading"><b>Reading settings</b><button type="button" onClick={() => setSettingsOpen(false)} aria-label="Close reading settings">×</button></div>
-            <div className="mushaf-setting-field"><span>Reading view</span><div className="mushaf-layout-options" role="group" aria-label="Reading view">
-              <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} aria-pressed={readingMode === 'translation'} onClick={() => changeReadingMode('translation')}>Verse by Verse</button>
-              <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} aria-pressed={readingMode === 'reading'} onClick={() => changeReadingMode('reading')}>Page by Page</button>
+            <div className="mushaf-setting-field"><span>Arabic display</span><div className="mushaf-layout-options" role="group" aria-label="Arabic display">
               <button type="button" className={readingMode === 'arabic' ? 'is-active' : ''} aria-pressed={readingMode === 'arabic'} onClick={() => changeReadingMode('arabic')}>Arabic Only</button>
             </div></div>
             <div className="mushaf-setting-field"><span>Study mode</span><div className="mushaf-layout-options" role="group" aria-label="Study mode">
