@@ -128,7 +128,7 @@ async function getQuranApiAuth() {
 }
 
 function parseAlQuranTajweed(markup) {
-  const classByCode = { h:'tj-hamza',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-idgham',f:'tj-ikhfa',i:'tj-ikhfa',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham' };
+  const classByCode = { h:'tj-hamza',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-idgham',f:'tj-ikhfa',i:'tj-ikhfa',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham',r:'tj-tafkhim',t:'tj-tafkhim' };
   const segments = [];
   const source = String(markup || '');
   const pattern = /\[([a-z])(?::\d+)?\[([\s\S]*?)\]\]?/g;
@@ -140,6 +140,23 @@ function parseAlQuranTajweed(markup) {
   }
   if (cursor < source.length) segments.push({ text: source.slice(cursor), className: '' });
   return segments.filter(item => item.text);
+}
+function alignTajweedToUthmani(uthmaniText, taggedSegments) {
+  const classByWord = [];
+  let wordIndex = 0;
+  for (const segment of taggedSegments) {
+    const words = String(segment.text || '').match(/\\S+/g) || [];
+    for (const word of words) {
+      if (segment.className && !classByWord[wordIndex]) classByWord[wordIndex] = segment.className;
+      wordIndex += 1;
+    }
+  }
+  let uthmaniWordIndex = 0;
+  return String(uthmaniText || '').split(/(\\s+)/).filter(Boolean).map(part => {
+    if (/^\\s+$/.test(part)) return { text: part, className: '' };
+    const className = classByWord[uthmaniWordIndex++] || '';
+    return { text: part, className };
+  });
 }
 function normalizeAlQuranCloud(body, page) {
   const editions = Array.isArray(body?.data) ? body.data : [];
@@ -155,12 +172,14 @@ function normalizeAlQuranCloud(body, page) {
     ayahs: arabic.ayahs.map((ayah, index) => {
       const surahNumber = Number(ayah?.surah?.number);
       const label = quranSurahLabels[surahNumber] || {};
-      const tajweedText = byNumber.get(Number(ayah.number)) || String(marked[index]?.text || '');
+      const taggedText = byNumber.get(Number(ayah.number)) || String(marked[index]?.text || '');
+      const taggedSegments = parseAlQuranTajweed(taggedText);
+      const uthmaniText = String(ayah.text || '');
       return {
         number: Number(ayah.number), numberInSurah: Number(ayah.numberInSurah), surahNumber,
         surahName: ayah?.surah?.englishName || label.surahName || `Surah ${surahNumber}`,
         arabicName: ayah?.surah?.name || label.arabicName || '',
-        text: String(ayah.text || ''), tajweedText, tajweedSegments: parseAlQuranTajweed(tajweedText),
+        text: uthmaniText, tajweedText: uthmaniText, tajweedSegments: alignTajweedToUthmani(uthmaniText, taggedSegments),
         translation: String(english.ayahs[index]?.text || '').replace(/<[^>]*>/g, '').trim(),
         translations: [], words: []
       };
@@ -255,7 +274,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
     try { return send(await quranPageInflight.get(page), 'COALESCED'); } catch { /* provider retry below */ }
   }
   const task = (async () => {
-    const editions = 'quran-tajweed,quran-uthmani,en.sahih';
+    const editions = 'quran-uthmani,quran-tajweed,en.sahih';
     const providers = ['https://api.alquran.cloud/v1','https://alquran.api.islamic.network/v1','https://alquran.api.alislam.ru/v1'];
     let primary = null;
     for (const base of providers) {
