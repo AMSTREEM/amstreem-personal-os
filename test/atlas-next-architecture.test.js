@@ -338,7 +338,7 @@ test('Tajweed rendering sanitizes provider HTML, preserves direct tokens and inv
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
   const server = read('server.js');
-  for (const item of ['tajweedSegments','TAJWEED_CLASSES','tj-madd','tj-qalqalah','tj-ghunnah','tj-heavy','tajweedEnabled','parseBracketTajweed','normalizeMadinahArabic',"atlas_mushaf_page_v14_","atlas_mushaf_page_v(?:11|12|13)_","atlas_mushaf_page_v(?:[1-9]|10)_","stripRawQuranMarkup"]) assert.ok(reader.includes(item), 'Missing Tajweed rendering feature: ' + item);
+  for (const item of ['tajweedSegments','TAJWEED_CLASSES','tj-madd','tj-qalqalah','tj-ghunnah','tj-heavy','tajweedEnabled','parseBracketTajweed','normalizeMadinahArabic',"atlas_mushaf_page_v15_","stalePageCacheKeys","atlas_mushaf_cache_","atlas_quran_page_cache_","stripRawQuranMarkup"]) assert.ok(reader.includes(item), 'Missing Tajweed rendering feature: ' + item);
   for (const item of ['sanitizeQuranPayload','sanitizeQuranAyah','stripQuranMarkup','<[^>]+>']) assert.ok(server.includes(item), 'Missing server Quran HTML sanitizer: ' + item);
   assert.ok(reader.includes('useLayoutEffect'));
   assert.ok(reader.includes('new ResizeObserver(schedule)'));
@@ -727,7 +727,7 @@ test('Page-by-page pages use one centered 520px Mushaf column at every viewport'
 test('Page-by-page cache versions are invalidated without touching saved reading preferences', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   assert.match(reader, /const CACHE_PREFIX = 'atlas_mushaf_page_v15_'/);
-  assert.match(reader, /\^atlas_mushaf_page_v\\\\d\+_/);
+  assert.ok(reader.includes('/^atlas_mushaf_page_v\\\\d+_/'));
   assert.match(reader, /stalePageCacheKeys\.forEach\(key => localStorage\.removeItem\(key\)\)/);
   assert.match(reader, /atlas_mushaf_layout_v1/);
   assert.match(reader, /atlas_mushaf_font_family_v1/);
