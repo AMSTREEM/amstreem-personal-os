@@ -21,13 +21,13 @@ function renderTajweedMarkup(markup: string, segments?: TajweedSegment[], fallba
   const source = String(markup || '');
   if (!enabled) return stripAyahEndMarker(fallback || source);
   const parsed = segments?.length ? segments : (() => {
-    const classes: Record<string,string> = { h:'tj-silent',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-ikhfa',f:'tj-ikhfa',i:'tj-idgham',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham' };
+    const classes: Record<string,string> = { h:'tj-silent',s:'tj-silent',l:'tj-silent',n:'tj-madd',p:'tj-madd',m:'tj-madd',o:'tj-madd',q:'tj-qalqalah',g:'tj-ghunnah',c:'tj-ikhfa',f:'tj-ikhfa',i:'tj-idgham',w:'tj-ghunnah',a:'tj-ghunnah',u:'tj-idgham',d:'tj-idgham',b:'tj-idgham', madd:'tj-madd', qalqalah:'tj-qalqalah', ghunnah:'tj-ghunnah', ikhfa:'tj-ikhfa', idgham:'tj-idgham', silent:'tj-silent', tafkhim:'tj-tafkhim' };
     const result: TajweedSegment[] = [];
-    const pattern = /\[([a-z])(?::\d+)?\[([\s\S]*?)\]\]?/g;
+    const pattern = /\[([a-zA-Z]+)(?::\d+)?\[([^\]]+)\]\]?/g;
     let cursor = 0, match;
     while ((match = pattern.exec(source))) {
       if (match.index > cursor) result.push({ text: source.slice(cursor, match.index), className: '' });
-      result.push({ text: match[2], className: classes[match[1]] || '' });
+      result.push({ text: match[2], className: classes[match[1].toLowerCase()] || '' });
       cursor = pattern.lastIndex;
     }
     if (cursor < source.length) result.push({ text: source.slice(cursor), className: '' });
@@ -54,6 +54,10 @@ const sanitizeMushafPage = (payload: MushafPage): MushafPage => ({
 });
 function AyahMedallion({ number, className }: { number: number; className: string }) {
   return <span className={'mushaf-medallion ' + (number >= 100 ? 'mushaf-medallion--wide ' : '') + className} aria-label={'Ayah ' + number}>
+    <svg className="mushaf-medallion-ornament" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+      <path d="M16 1.5 C18.1 1.5 19.1 4.2 21 5.2 C23.2 4.1 26 5.2 26.5 7.6 C28.9 8.1 30 10.9 28.8 13 C31.1 16 31.1 16 28.8 19 C30 21.1 28.9 23.9 26.5 24.4 C26 26.8 23.2 27.9 21 26.8 C19.1 27.8 18.1 30.5 16 30.5 C13.9 30.5 12.9 27.8 11 26.8 C8.8 27.9 6 26.8 5.5 24.4 C3.1 23.9 2 21.1 3.2 19 C0.9 16 0.9 16 3.2 13 C2 10.9 3.1 8.1 5.5 7.6 C6 5.2 8.8 4.1 11 5.2 C12.9 4.2 13.9 1.5 16 1.5 Z" />
+      <circle cx="16" cy="16" r="11.2" />
+    </svg>
     <span>{arabicNumber(number)}</span>
   </span>;
 }
@@ -357,7 +361,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         <button type="button" className="mushaf-exit" onClick={() => setFullScreen(false)} aria-label="Exit Qur’an reader"><X size={16}/></button>
       </div>
     </header>
-    <div className="mushaf-tajweed-key-wrap">
+    <div className="mushaf-tajweed-key-wrap" hidden={!tajweedEnabled}>
       <button type="button" className="mushaf-tajweed-key-toggle" aria-expanded={tajweedKeyOpen} onClick={() => setTajweedKeyOpen(value => !value)}>Tajweed Key <span aria-hidden="true">{tajweedKeyOpen ? '−' : '+'}</span></button>
       <AnimatePresence initial={false}>{tajweedKeyOpen && <motion.div className="mushaf-tajweed-key" initial={prefersReducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.16 }} aria-label="Tajweed colour legend">
         <div><i className="tj-madd"/> <span><b>Crimson / Red</b> — Madd (prolongation · 2, 4 or 6 counts)</span></div>
@@ -402,21 +406,21 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
                   <button type="button" aria-label="Bookmark verse" aria-pressed={starredAyahs.some(item => item.surah === ayah.surahNumber && item.ayah === ayah.numberInSurah)} onClick={() => toggleStarredAyah(ayah)}><Bookmark size={15}/></button>
                   <button type="button" aria-label="Copy verse" onClick={() => { void navigator.clipboard?.writeText(ayah.text + '\\n' + ayah.surahNumber + ':' + ayah.numberInSurah); }}><Copy size={14}/></button>
                 </div>
-                <button type="button" className="mushaf-verse-arabic" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px' }} onClick={() => selectAyah(ayah)} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>
+                <button type="button" className="mushaf-verse-arabic" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px', fontFamily: "'Amiri Quran', 'Scheherazade New', serif", fontWeight: 400, letterSpacing: '0px', fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1' }} onClick={() => selectAyah(ayah)} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>
                   {renderTajweedMarkup(ayah.tajweedText || '', ayah.tajweedSegments, ayah.text, tajweedEnabled)}<AyahMedallion className="mushaf-verse-medallion" number={ayah.numberInSurah}/>
                 </button>
               </div>
               <p className="mushaf-verse-translation">{ayah.translation || 'Translation unavailable.'}</p>
             </motion.article>)}</motion.div>}
           </motion.section>}{!loading && pageData && readingMode === 'reading' && <motion.section key={'page-' + page} className="mushaf-page-view" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px' }} initial={prefersReducedMotion ? false : { opacity: 0, x: pageDirection === 'next' ? 18 : -18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: pageDirection === 'next' ? -8 : 8 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.22, ease: [0.16, 1, 0.3, 1] }}>
-            <div className="mushaf-page-text">{pageData.ayahs.map((ayah, index) => {
+            <div className="mushaf-page-text" style={{ fontFamily: "'Amiri Quran', 'Scheherazade New', serif", fontWeight: 400, letterSpacing: '0px', fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1' }}>{pageData.ayahs.map((ayah, index) => {
               const surah = QURAN_SURAHS[ayah.surahNumber - 1];
               const startsSurah = ayah.numberInSurah === 1;
               return <Fragment key={ayah.surahNumber + ':' + ayah.numberInSurah}>
                 {startsSurah && <header className="mushaf-page-surah-banner"><b>{surah?.arabic || ayah.arabicName}</b><span>{ayah.surahNumber}. {surah?.transliteration || ayah.surahName}</span></header>}
                 {startsSurah && ayah.surahNumber !== 9 && <div className="mushaf-page-bismillah">بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</div>}
                 {index === 0 && !startsSurah && <div className="mushaf-page-context">{surah?.transliteration || ayah.surahName}</div>}
-                <span className="mushaf-page-ayah">{renderTajweedMarkup(ayah.tajweedText || '', ayah.tajweedSegments, ayah.text)}<AyahMedallion className="mushaf-page-medallion" number={ayah.numberInSurah}/></span>{' '}
+                <span className="mushaf-page-ayah">{renderTajweedMarkup(ayah.tajweedText || '', ayah.tajweedSegments, ayah.text, tajweedEnabled)}<AyahMedallion className="mushaf-page-medallion" number={ayah.numberInSurah}/></span>{' '}
               </Fragment>;
             })}</div>
             <footer className="mushaf-page-footer" dir="ltr">— Page {page} · Juz {pageJuz} —</footer>
