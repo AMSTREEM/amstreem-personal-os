@@ -66,10 +66,8 @@ test('Six selected Surahs tokenize every ayah and retain all provider colour tag
       let tokens = parseAlQuranTajweed(String(ayah.text || ''));
       if (!tokens.some(token => token.className)) tokens = parseAlQuranTajweed(fallbackByAyah.get(Number(ayah.numberInSurah)) || '');
       assert.ok(tokens.length > 0, surah.name + ' ' + ayah.numberInSurah + ' produced no parsed Tajweed tokens');
-      if (!tokens.some(token => token.className)) {
-        assert.equal(surah.number + ':' + ayah.numberInSurah, '18:85', 'Only Al-Kahf 18:85 is unmarked by both upstream Tajweed datasets');
-      }
-      colouredAyahs += 1;
+      if (tokens.some(token => token.className)) colouredAyahs += 1;
+      else assert.equal(surah.number + ':' + ayah.numberInSurah, '18:85', 'Only Al-Kahf 18:85 is unmarked by both upstream Tajweed datasets');
       assert.ok(tokens.every(token => !/[\[\]]/.test(token.text)), surah.name + ' ' + ayah.numberInSurah + ' leaked a bracket');
     }
     assert.equal(colouredAyahs, surah.number === 18 ? surah.ayahs - 1 : surah.ayahs, surah.name + ' provider-coloured ayah coverage');
