@@ -8772,3 +8772,25 @@ html, body, #root, .app-frame, .main-area, .page-container {
   font-synthesis: none !important;
   font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1 !important;
 }
+
+
+/* Ayah number ornaments stay independent of the selected Qur'anic text font. */
+.mushaf-app .mushaf-medallion {
+  display: inline-flex !important;
+  flex: 0 0 32px;
+  vertical-align: middle;
+  isolation: isolate;
+}
+.mushaf-app .mushaf-page-qpc-medallion {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  margin-inline: 4px;
+}
+.mushaf-app .mushaf-medallion > span {
+  font-family: "Noto Naskh Arabic", "DM Sans", sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  font-variant-numeric: normal;
+}
