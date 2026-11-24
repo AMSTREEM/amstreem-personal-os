@@ -705,3 +705,13 @@ test('Page-by-page QPC end markers resolve their ayah even when end glyphs omit 
   assert.match(reader, /const ayah = matchedAyah \|\| positionMatchedAyah \|\| \(isEnd \? activeAyah : undefined\)/);
   assert.match(reader, /isEnd && ayah \? <AyahMedallion[\s\S]*?number=\{ayah\.numberInSurah\}/);
 });
+
+
+test('Page-by-page Mushaf pages share the same full-height vertical line rhythm', () => {
+  const css = read('client/src/styles.css');
+  const pageRhythm = css.slice(css.lastIndexOf('/* Consistent Madani Mushaf page rhythm:'));
+  assert.match(pageRhythm, /min-height: 680px/);
+  assert.match(pageRhythm, /justify-content: space-between !important/);
+  assert.match(pageRhythm, /\.mushaf-app\.is-page-reading \.mushaf-qcf-line \{\s*flex: 0 0 auto/);
+  assert.match(pageRhythm, /@media \(max-width: 767px\)[\s\S]*?min-height: max\(0px, calc\(100dvh - 194px\)\)/);
+});
