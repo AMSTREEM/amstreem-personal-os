@@ -282,7 +282,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const changePage = (next: number, location?: { surahNumber: number; numberInSurah: number }) => {
     const value = clampPage(next);
     if (value !== page) { setPageDirection(value > page ? 'next' : 'previous'); setLoading(true); setPageData(null); setPageError(''); }
-    setPage(value); setSelected(location ? { surah: location.surahNumber, ayah: location.numberInSurah } : null);
+    setPage(value); readerRef.current?.scrollTo({ top: 0, behavior: 'smooth' }); setSelected(location ? { surah: location.surahNumber, ayah: location.numberInSurah } : null);
     updateBookmark(value, location ? { surahNumber: location.surahNumber, numberInSurah: location.numberInSurah } : null);
   };
   const changeMode = (next: 'hifz' | 'murajaah') => { if (next !== mode) { const active = mode === 'hifz' ? hifzMark : murajaahMark; const target = next === 'hifz' ? hifzMark : murajaahMark; updateBookmark(active.page, { surahNumber: active.surah, numberInSurah: active.ayah }); if (target.page !== page) { setLoading(true); setPageData(null); setPageError(''); } setMode(next); } };
@@ -306,12 +306,12 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const jumpSurah = (number: number) => { const item = QURAN_SURAHS[number - 1]; if (item) { changePage(item.pageStart, { surahNumber: number, numberInSurah: 1 }); setSidebarOpen(false); setSurahSearch(''); } };
   const jumpJuz = (number: number) => { const start = QURAN_JUZ_STARTS[number - 1]; if (start) changePage(getAyahLocation(start[1], start[2])?.page || 1); };
   const selectAyah = (ayah: MushafAyah) => { const ayahPage = getAyahLocation(ayah.surahNumber, ayah.numberInSurah)?.page || page; setSelected({ surah: ayah.surahNumber, ayah: ayah.numberInSurah }); setPage(ayahPage); updateBookmark(ayahPage, ayah); };
-  const toggleStarredAyah = (ayah: MushafAyah) => setStarredAyahs(current => {
+  const toggleStarredAyah = (ayah: MushafAyah) => { setSelected({ surah: ayah.surahNumber, ayah: ayah.numberInSurah }); verseRowRefs.current.get(ayah.surahNumber + ':' + ayah.numberInSurah)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); setStarredAyahs(current => {
     const exists = current.some(item => item.surah === ayah.surahNumber && item.ayah === ayah.numberInSurah);
     const next = exists ? current.filter(item => !(item.surah === ayah.surahNumber && item.ayah === ayah.numberInSurah)) : [...current, { surah: ayah.surahNumber, ayah: ayah.numberInSurah }];
     try { localStorage.setItem('atlas_mushaf_starred_ayahs_v1', JSON.stringify(next)); } catch { /* storage is optional */ }
     return next;
-  });
+  }); };
   const quickJump = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); const target = clampPage(Number(pageInput)); changePage(target); setSidebarOpen(false); };
   const copyAyah = async () => {
     if (!selectedAyah) return;
@@ -381,7 +381,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
             {activeSurahNumber !== 9 && <BismillahOrnament/>}
             {surahLoading && <p className="mushaf-loading" role="status">Loading {activeSurah?.transliteration || 'Surah'}…</p>}
             {!surahLoading && surahError && <div className="mushaf-error" role="alert"><p>{surahError}</p><button type="button" onClick={() => setReadingMode('reading')}>Return to Page by Page</button></div>}
-            {!surahLoading && <motion.div className="mushaf-verse-list" initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.012 } } }}>{surahAyahs.map(ayah => <motion.article ref={node => { const key = ayah.surahNumber + ':' + ayah.numberInSurah; if (node) verseRowRefs.current.set(key, node); else verseRowRefs.current.delete(key); }} variants={{ hidden: { opacity: 0, y: 5 }, visible: { opacity: 1, y: 0 } }} transition={{ duration: 0.2, ease: 'easeOut' }} className="mushaf-verse-row" key={ayah.surahNumber + ':' + ayah.numberInSurah}>
+            {!surahLoading && <motion.div className="mushaf-verse-list" initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.0012 } } }}>{surahAyahs.map(ayah => <motion.article ref={node => { const key = ayah.surahNumber + ':' + ayah.numberInSurah; if (node) verseRowRefs.current.set(key, node); else verseRowRefs.current.delete(key); }} variants={{ hidden: { opacity: 0, y: 5 }, visible: { opacity: 1, y: 0 } }} transition={{ duration: 0.2, ease: 'easeOut', delay: Math.min(ayah.numberInSurah * 0.012, 0.14) }} className="mushaf-verse-row" key={ayah.surahNumber + ':' + ayah.numberInSurah}>
               <div className="mushaf-verse-top">
                 <div className="mushaf-verse-tools"><small>{ayah.surahNumber}:{ayah.numberInSurah}</small>
                   <button type="button" aria-label="Bookmark verse" aria-pressed={starredAyahs.some(item => item.surah === ayah.surahNumber && item.ayah === ayah.numberInSurah)} onClick={() => toggleStarredAyah(ayah)}><Bookmark size={15}/></button>
