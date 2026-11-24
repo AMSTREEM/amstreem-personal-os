@@ -739,7 +739,7 @@ app.use('/api', async (req, res, next) => {
     const adminRoute = req.path.startsWith('/admin');
     if (adminRoute && user.id !== ownerUserId) return res.status(403).json({ error: 'Administrator access required.' });
     req.user = user;
-    const accountRetryAfter = consumeRateLimit(`account:${user.id}`, 90);
+    const accountRetryAfter = consumeRateLimit(`account:${user.id}`, 240);
     if (accountRetryAfter) {
       res.setHeader('Retry-After', String(accountRetryAfter));
       return res.status(429).json({ error: 'Too many requests for this account. Please wait and try again.' });
