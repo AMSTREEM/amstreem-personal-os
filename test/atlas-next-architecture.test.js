@@ -338,7 +338,8 @@ test('Tajweed rendering uses direct tokens, normalized Madinah glyphs and v9 cac
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
   for (const item of ['tajweedSegments','TAJWEED_CLASSES','tj-madd','tj-qalqalah','tj-ghunnah','tj-heavy','tajweedEnabled','parseBracketTajweed','normalizeMadinahArabic',"atlas_mushaf_page_v9_","atlas_mushaf_page_v[1-8]_"]) assert.ok(reader.includes(item), 'Missing Tajweed rendering feature: ' + item);
-  for (const rule of ["h:'tj-silent'","s:'tj-silent'","l:'tj-silent'","n:'tj-madd'","p:'tj-madd'","m:'tj-madd'","o:'tj-madd'","q:'tj-qalqalah'","g:'tj-ghunnah'","i:'tj-ghunnah'","c:'tj-ghunnah'","a:'tj-ghunnah'","u:'tj-ghunnah'","w:'tj-ghunnah'","f:'tj-ghunnah'","r:'tj-heavy'"]) assert.ok(reader.includes(rule), 'Missing client rule: ' + rule);
+  for (const rule of ["h:'tj-silent'","s:'tj-silent'","l:'tj-silent'","u:'tj-silent'","n:'tj-madd-wajib'","p:'tj-madd-wajib'","m:'tj-madd'","o:'tj-madd'","q:'tj-qalqalah'","g:'tj-ghunnah'","i:'tj-ghunnah'","c:'tj-ghunnah'","a:'tj-ghunnah'","w:'tj-ghunnah'","f:'tj-ghunnah'","r:'tj-heavy'"]) assert.ok(reader.includes(rule), 'Missing client rule: ' + rule);
+  for (const color of ['#E040FB','#FF5252','#22C55E','#38BDF8','#60A5FA','#9CA3AF']) assert.ok(css.includes(color), 'Missing Quran.com Tajweed color: ' + color);
   assert.match(css, /\.mushaf-bismillah b\{/);
   assert.ok(!server.includes('alignTajweedToUthmani'));
   assert.ok(!reader.includes('new DOMParser('));
@@ -362,6 +363,17 @@ test('Mushaf keeps bookmarks, automatic Hifz/Muraja’ah logging and direct Resi
   assert.ok(reader.includes('window.setTimeout'));
 });
 
+test('Mushaf restores exact bookmarks and renders QCF V2 lines for page reading', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const server = read('server.js');
+  assert.ok(reader.includes("scrollIntoView({ behavior: 'smooth', block: 'center' })"));
+  assert.ok(reader.includes('qcfAvailable && pageLines.length > 0'));
+  assert.ok(reader.includes('mushaf-qcf-page-'));
+  assert.ok(reader.includes('Auto-saved · {bookmarkSurahName} {bookmark.surah}:{bookmark.ayah}'));
+  assert.ok(server.includes('mushaf=1&words=true'));
+  assert.ok(server.includes('lineNumber: Number(word.line_v2 || word.line_number || 0)'));
+});
+
 test('Mushaf page view has chapter openings, centered verse medallions and a page/Juz footer', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
@@ -371,7 +383,7 @@ test('Mushaf page view has chapter openings, centered verse medallions and a pag
 
 test('Mushaf scroll locking and local-first bookmark persistence are retained', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
-  for (const item of ["const previousRootOverflow = root.style.overflow","const previousBodyOverflow = document.body.style.overflow","root.style.overflow = 'hidden'","document.body.style.overflow = 'hidden'","localStorage.setItem(key, JSON.stringify(mark))",'window.setTimeout(() =>','}, 1200)','window.clearTimeout(timer)','changePage(item.pageStart, { surahNumber: number, numberInSurah: 1 })']) assert.ok(reader.includes(item), 'Missing persistence behavior: ' + item);
+  for (const item of ["const previousRootOverflow = root.style.overflow","const previousBodyOverflow = document.body.style.overflow","root.style.overflow = 'hidden'","document.body.style.overflow = 'hidden'","localStorage.setItem(key, JSON.stringify(mark))",'window.setTimeout(() =>','}, 800);','window.clearTimeout(timer)','new IntersectionObserver','data-mushaf-verse="true"','restoreTargetRef','changePage(item.pageStart, { surahNumber: number, numberInSurah: 1 })']) assert.ok(reader.includes(item), 'Missing persistence behavior: ' + item);
 });
 
 
