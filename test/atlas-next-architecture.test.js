@@ -636,21 +636,18 @@ test('Quran Mushaf uses QPC Hafs Unicode and responsive layouts in both reading 
 });
 
 
-test('Quran Foundation Page Layout API drives QCF V2 page lines and page-aware verse metadata', () => {
+test('Mushaf page rendering groups Unicode QPC Hafs words by page line metadata', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const server = read('server.js');
   const css = read('client/src/styles.css');
-  assert.ok(server.includes("'/verses/by_page/' + page + query"));
-  assert.ok(server.includes('mushaf=1&words=true'));
-  assert.ok(server.includes('pages/lookup?page_number='));
-  assert.ok(server.includes('word_fields=code_v2,text_qpc_hafs,line_number,page_number'));
-  assert.ok(server.includes('fonts/quran/hafs/v2/woff2/p'));
+  assert.ok(server.includes('https://api.qurancdn.com/api/qdc/verses/by_page/'));
+  assert.ok(server.includes('word_fields=text_qpc_hafs,text_uthmani,line_number,page_number'));
   assert.match(reader, /const pageLines = useMemo/);
   assert.match(reader, /word\.lineNumber/);
-  assert.match(reader, /QCFPage' \+ page/);
-  assert.match(reader, /mushaf-qcf-line/);
+  assert.match(reader, /mushaf-page-text--lines/);
   assert.match(reader, /ayah\.pageNumber \|\| ayah\.words/);
   assert.match(css, /\.mushaf-qcf-line/);
+  assert.match(css, /\.mushaf-page-text--lines/);
 });
 
 
