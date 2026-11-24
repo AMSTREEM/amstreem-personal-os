@@ -554,3 +554,23 @@ test('Page by Page mobile chrome and Surah composition are isolated from Verse b
   assert.match(css, /\.mushaf-app\.is-mobile-page-reading \.mushaf-page-text[\s\S]*?text-align:center/);
   assert.match(css, /\.mushaf-app\.is-mobile-verse-reading/);
 });
+
+
+test('Verse by Verse shares the Quran.com mobile header and clean right-aligned editorial ayah rows', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const css = read('client/src/styles.css');
+  assert.ok(reader.includes("readingMode === 'reading' || readingMode === 'translation'"));
+  assert.ok(reader.includes('mushaf-page-mobile-meta'));
+  assert.ok(reader.includes('mushaf-page-mobile-controls'));
+  assert.ok(!reader.includes('mushaf-verse-subheader'));
+  assert.ok(reader.includes('className="mushaf-surah-hero"'));
+  assert.ok(reader.includes('<BismillahOrnament/>'));
+  const verseMobile = css.slice(css.lastIndexOf('/* Unified Quran.com-style two-row mobile header'));
+  assert.ok(verseMobile.includes('grid-template-rows:76px minmax(0,1fr)'));
+  assert.ok(verseMobile.includes('height:32px!important'));
+  assert.ok(verseMobile.includes('height:44px!important'));
+  assert.ok(verseMobile.includes('padding:20px 18px!important'));
+  assert.ok(verseMobile.includes('text-align:right!important;line-height:2.25!important;word-spacing:3px'));
+  assert.ok(verseMobile.includes('text-align:left!important'));
+  assert.ok(verseMobile.includes('border-bottom:1px solid var(--border-hairline)!important'));
+});
