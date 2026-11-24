@@ -568,6 +568,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
             <div className="mushaf-setting-field"><span>Reading view</span><div className="mushaf-layout-options" role="group" aria-label="Reading view">
               <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} aria-pressed={readingMode === 'translation'} onClick={() => changeReadingMode('translation')}>Verse by Verse</button>
               <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} aria-pressed={readingMode === 'reading'} onClick={() => changeReadingMode('reading')}>Page by Page</button>
+              <button type="button" className={readingMode === 'arabic' ? 'is-active' : ''} aria-pressed={readingMode === 'arabic'} onClick={() => changeReadingMode('arabic')}>Arabic Only</button>
             </div></div>
             <div className="mushaf-setting-field"><span>Study mode</span><div className="mushaf-layout-options" role="group" aria-label="Study mode">
               <button type="button" className={mode === 'hifz' ? 'is-active' : ''} aria-pressed={mode === 'hifz'} onClick={() => changeMode('hifz')}>Hifz</button>
@@ -575,11 +576,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
             </div></div>
             <div className="mushaf-setting-field"><span>Qur’an calligraphy</span><div className="mushaf-font-preview-list">{MUSHAF_FONTS.map(font => <button type="button" key={font.name} className={'mushaf-font-preview-card' + (arabicFontFamily === font.name ? ' is-active' : '')} aria-pressed={arabicFontFamily === font.name} onClick={() => changeArabicFont(font.name)}><span className="mushaf-font-preview-copy"><b>{font.name}</b><small>{font.label}</small></span><span className="mushaf-font-preview-sample" lang="ar" dir="rtl" style={{ fontFamily: "'" + font.name + "', serif", fontSize: 22, letterSpacing: 0, fontWeight: 400 }}>{MUSHAF_FONT_SAMPLE}</span></button>)}</div></div>
             <div className="mushaf-setting-field"><span>Font size</span><div className="mushaf-setting-options">{[20,24,28,32,36].map(size => <button type="button" key={size} className={arabicFontSize === size ? 'is-active' : ''} aria-pressed={arabicFontSize === size} onClick={() => changeArabicFontSize(size)}>{size}</button>)}</div></div>
-            <div className="mushaf-setting-field"><span>Page layout</span><div className="mushaf-layout-options">
-              <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} aria-pressed={readingMode === 'translation'} onClick={() => changeReadingMode('translation')}>Verse by Verse</button>
-              <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} aria-pressed={readingMode === 'reading'} onClick={() => changeReadingMode('reading')}>Page by Page</button>
-              <button type="button" className={readingMode === 'arabic' ? 'is-active' : ''} aria-pressed={readingMode === 'arabic'} onClick={() => changeReadingMode('arabic')}>Arabic Only</button>
-            </div></div>
             <div className="mushaf-setting-field"><span>Tajweed colors</span><button type="button" className={'mushaf-tajweed-toggle' + (tajweedEnabled ? ' is-active' : '')} onClick={toggleTajweed} aria-pressed={tajweedEnabled}>{tajweedEnabled ? 'On' : 'Off'}</button></div>
             <div className="mushaf-settings-key" aria-label="Tajweed color key">
               <span><i className="tj-madd"/>Madd Lazim · 6 counts</span><span><i className="tj-madd-wajib"/>Madd Wajib · 2–5 counts</span>
