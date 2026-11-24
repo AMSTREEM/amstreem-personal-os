@@ -16,10 +16,10 @@ const { parseAlQuranTajweed, normalizeMadinahArabic } = context.module.exports;
 
 test('Tajweed scanner preserves nested rule tags and normalizes IndoPak letter variants', () => {
   const tokens = parseAlQuranTajweed('[h:1[بِسْمِ]][n[ٱللّٰهُ]][q:3[ق]]');
-  assert.deepEqual(Array.from(tokens, token => token.className), ['tj-silent', 'tj-madd', 'tj-qalqalah']);
+  assert.deepEqual(Array.from(tokens, token => token.className), ['tj-silent', 'tj-madd-wajib', 'tj-qalqalah']);
   assert.equal(tokens.map(token => token.text).join(''), 'بِسْمِٱللّٰهُق');
   assert.equal(normalizeMadinahArabic('\u06CC\u06A9\u06C1'), '\u064A\u0643\u0647');
-  const nested = parseAlQuranTajweed('[g[م[n[د]]ّ]]');
+  const nested = parseAlQuranTajweed('[g[م[m[د]]ّ]]');
   assert.ok(nested.some(token => token.className === 'tj-ghunnah'));
   assert.ok(nested.some(token => token.className === 'tj-madd'));
   assert.ok(nested.every(token => !/[\[\]]/.test(token.text)));
