@@ -224,7 +224,7 @@ function normalizeAlQuranCloud(body, page) {
     };
   });
   return {
-    page, juz: Number(tajweed.ayahs[0]?.juz) || 1, qcfAvailable: false,
+    page, juz: Number(tajweed.ayahs[0]?.juz) || 1, hizb: Math.ceil((Number(tajweed.ayahs[0]?.hizbQuarter || tajweed.ayahs[0]?.hizb_quarter) || 1) / 4), qcfAvailable: false,
     tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => ayah.tajweedSegments.some(segment => Boolean(segment.className))),
     translationSource: 'Sahih International', ayahs
   };
@@ -433,7 +433,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
     try { primary = await fetchAlQuranCloudPage(page); }
     catch (error) { console.warn('AlQuranCloud providers exhausted:', error.message); }
     let fallback = null;
-    const query = `?mushaf=1&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number&page=${page}&per_page=50`;
+    const query = `?mushaf=1&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number,hizb_number&page=${page}&per_page=50`;
     if (!primary?.ayahs?.length || !primary?.qcfAvailable) {
       for (const url of [`https://quran.com/api/proxy/content/api/qdc/verses/by_page/${page}${query}`,`https://api.quran.com/api/v4/verses/by_page/${page}${query}`]) {
         try {
