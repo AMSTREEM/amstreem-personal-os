@@ -41,16 +41,43 @@ function parseBracketTajweed(source: string): TajweedSegment[] {
   const stack: string[] = [];
   const append = (text: string, className: string) => {
     if (!text) return;
+    const normalized = normalizeMadinahArabic(text);
     const previous = result[result.length - 1];
-    if (previous && previous.className === className) previous.text += text;
-    else result.push({ text: normalizeMadinahArabic(text), className });
+    if (previous && previous.className === className) previous.text += normalized;
+    else result.push({ text: normalized, className });
   };
+  if (/<(?:tajweed|rule)\b/i.test(source)) {
+    const xmlStack: Array<{ tag: string; className: string }> = [];
+    const tokens = source.match(/<\/?(?:tajweed|rule)\b[^>]*>|[^<]+/gi) || [];
+    for (const token of tokens) {
+      const tag = token.match(/^<\s*(\/?)\s*(tajweed|rule)\b([^>]*)>/i);
+      if (tag) {
+        if (tag[1]) {
+          for (let position = xmlStack.length - 1; position >= 0; position -= 1) {
+            if (xmlStack[position].tag === tag[2].toLowerCase()) { xmlStack.splice(position); break; }
+          }
+        } else {
+          const attribute = tag[3].match(/\bclass\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+          const rule = attribute ? (attribute[1] || attribute[2] || attribute[3] || '') : '';
+          const className = rule.split(/\s+/).map(value => TAJWEED_RULE_CLASSES[value.toLowerCase()] || '').find(Boolean) || '';
+          xmlStack.push({ tag: tag[2].toLowerCase(), className });
+        }
+        continue;
+      }
+      append(token, [...xmlStack].reverse().find(item => item.className)?.className || '');
+    }
+    return result;
+  }
   let index = 0;
   while (index < source.length) {
-    const opening = source.slice(index).match(/^\[([a-zA-Z]+)(?::\d+)?\[/);
-    if (opening) {
-      stack.push(TAJWEED_RULE_CLASSES[opening[1].toLowerCase()] || '');
-      index += opening[0].length;
+    if (source[index] === '[') {
+      const opening = source.slice(index).match(/^\[([a-zA-Z][a-zA-Z0-9_-]*)(?::\d+)?\[/);
+      if (opening) {
+        stack.push(TAJWEED_RULE_CLASSES[opening[1].toLowerCase()] || '');
+        index += opening[0].length;
+        continue;
+      }
+      index += 1;
       continue;
     }
     if (source[index] === ']') {
@@ -58,7 +85,6 @@ function parseBracketTajweed(source: string): TajweedSegment[] {
       index += 1;
       continue;
     }
-    if (source[index] === '[') { index += 1; continue; }
     append(source[index], [...stack].reverse().find(Boolean) || '');
     index += 1;
   }
