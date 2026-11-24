@@ -8,29 +8,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Atlas" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <script>
-      (function () {
-        try {
-          var theme = localStorage.getItem('atlas_theme');
-          var dark = ['shadowed-alchemist','nocturnal-amethyst','abyssal-trench','whispering-woods','crimson-velvet'];
-          var backgrounds = {
-            'shadowed-alchemist': '#07080A', 'nocturnal-amethyst': '#050408',
-            'abyssal-trench': '#03060C', 'whispering-woods': '#030806',
-            'crimson-velvet': '#080304', 'light-porcelain': '#F5F6F3',
-            'light-sandstone': '#F6F0E7', 'light-sage': '#EFF4EF',
-            'light-lavender': '#F4F1F8', 'light-sky': '#EFF5F9'
-          };
-          if (theme && backgrounds[theme]) {
-            var root = document.documentElement;
-            root.setAttribute('data-theme', theme);
-            root.style.colorScheme = dark.indexOf(theme) >= 0 ? 'dark' : 'light';
-            var meta = document.querySelector('meta[name="theme-color"]');
-            if (meta) meta.setAttribute('content', backgrounds[theme]);
-            root.style.backgroundColor = backgrounds[theme];
-          }
-        } catch (_) {}
-      })();
-    </script>
+    <script src="/theme-init.js"></script>
     <meta name="description" content="Amstreem Atlas — your private operating system for what matters." />
     <link rel="icon" type="image/svg+xml" href="/assets/brand/amstreem-symbol.svg" />
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/brand/amstreem-apple-touch-icon.png" />
