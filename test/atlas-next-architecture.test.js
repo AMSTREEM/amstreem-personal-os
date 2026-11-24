@@ -772,7 +772,7 @@ test('Mushaf bookmark sync is deduplicated and scroll-derived progress is user-s
 
 test('Uthmanic Hafs font endpoint validates WOFF2 and sends same-origin immutable font headers', () => {
   const server = read('server.js');
-  assert.match(server, /buffer\.subarray\(0, 4\)\.toString\('ascii'\) === 'wOF2'/);
-  assert.match(server, /res\.setHeader\('Content-Type','font\/woff2'\)/);
-  assert.match(server, /res\.setHeader\('Cache-Control','public, max-age=31536000, immutable'\)/);
+  assert.match(server, /\.subarray\(0, 4\)\.toString\('ascii'\)\s*===\s*'wOF2'/);
+  assert.match(server, /res\.setHeader\('Content-Type',\s*'font\/woff2'\)/);
+  assert.match(server, /res\.setHeader\('Cache-Control',\s*'public, max-age=31536000, immutable'\)/);
 });
