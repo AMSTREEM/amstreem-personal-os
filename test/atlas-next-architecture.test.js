@@ -465,14 +465,27 @@ test('Mushaf bookmark autosave is local-first, debounced and stable across paren
   assert.match(server, /'hifz_page','hifz_bookmark','murajaah_page','murajaah_bookmark'/);
 });
 
-test('Mushaf topbar names page Surahs and supports cross-Surah page ranges', () => {
+test('Mushaf topbar derives every unique page Surah and falls back while page data loads', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const data = read('client/src/data/quranSurahs.ts');
-  assert.ok(reader.includes("getPageSurah(page)"));
-  assert.ok(reader.includes("pageFirstAyah?.surahName"));
-  assert.ok(reader.includes("pageLastAyah.surahNumber !== pageFirstAyah.surahNumber"));
-  assert.ok(reader.includes("{pageSurahLabel}"));
-  assert.ok(data.includes("export function getPageSurah(page:number)"));
+  assert.ok(reader.includes('const currentPageSurahLabel = useMemo(() =>'));
+  assert.ok(reader.includes('const pageSurahs = new Map<number, string>()'));
+  assert.ok(reader.includes('for (const ayah of pageData?.ayahs || [])'));
+  assert.ok(reader.includes('.join(\' – \')'));
+  assert.ok(reader.includes('const fallbackSurah = getPageSurah(page)'));
+  assert.ok(reader.includes('const pageSurahLabel = currentPageSurahLabel'));
+  assert.ok(reader.includes('{pageSurahLabel}'));
+  assert.ok(data.includes('export function getPageSurah(page:number)'));
+});
+
+test('Mushaf Arabic typography and medallions use non-overlapping dimensions and mobile surfaces stay calm', () => {
+  const css = read('client/src/styles.css');
+  assert.match(css, /\.mushaf-arabic,[\s\S]*?\.mushaf-verse-arabic,[\s\S]*?\.mushaf-page-text \{\s*line-height: 2\.25 !important;/);
+  assert.match(css, /width: 24px !important;[\s\S]*?height: 24px !important;[\s\S]*?font-size: 10px !important;/);
+  assert.ok(css.includes('background: rgba(128, 128, 128, 0.08) !important;'));
+  assert.ok(css.includes('border: none !important;'));
+  assert.ok(css.includes('max-width: 400px !important;'));
+  assert.ok(css.includes('padding: 14px 20px !important;'));
 });
 
 test('mobile web app capability metadata includes the standard non-Apple declaration', () => {
