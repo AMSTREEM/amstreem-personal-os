@@ -664,3 +664,15 @@ test('Mushaf uses public Quran CDN Unicode page data without QCF credentials or 
   assert.match(css, /\.mushaf-page-text--lines/);
   assert.match(css, /font-display: swap/);
 });
+
+ 
+test('Mushaf font selector controls actual Arabic glyphs in both reading modes', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const css = read('client/src/styles.css');
+  assert.ok(reader.includes("style={{ '--mushaf-arabic-font':"));
+  assert.ok(reader.includes("fontFamily: 'var(--mushaf-arabic-font)'"));
+  assert.ok(css.includes('Atlas Mushaf live typography binding'));
+  assert.match(css, /\.mushaf-app \.mushaf-page-text \*[\s\S]*?font-family: var\(--mushaf-arabic-font/);
+  assert.ok(css.includes('family=Amiri+Quran'));
+  assert.ok(css.includes('family=Scheherazade+New'));
+});
