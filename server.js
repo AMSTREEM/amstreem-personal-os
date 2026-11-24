@@ -269,6 +269,29 @@ function normalizeAlQuranCloud(body, page) {
     })
   };
 }
+async function fetchAlQuranCloudPage(page) {
+  const providers = ['https://api.alquran.cloud/v1','https://alquran.api.islamic.network/v1','https://alquran.api.alislam.ru/v1'];
+  const normalizeEdition = body => {
+    if (body?.code !== 200 || !Array.isArray(body?.data?.ayahs) || !body.data.ayahs.length) {
+      throw new Error('AlQuranCloud returned an incomplete page edition.');
+    }
+    return body.data;
+  };
+  let lastError = null;
+  for (const base of providers) {
+    try {
+      const [arabic, english] = await Promise.all([
+        fetchQuranMirror(`${base}/page/${page}/quran-uthmani`, normalizeEdition, page),
+        fetchQuranMirror(`${base}/page/${page}/en.sahih`, normalizeEdition, page)
+      ]);
+      return normalizeAlQuranCloud({ code: 200, data: [arabic, english] }, page);
+    } catch (error) {
+      lastError = error;
+      console.warn('AlQuranCloud provider failed:', base, error.message);
+    }
+  }
+  throw lastError || new Error('No AlQuranCloud page provider is available.');
+}
 function normalizeQuranCom(body, page) {
   const verses = Array.isArray(body?.verses) ? body.verses : [];
   if (!verses.length) throw new Error('Quran.com mirror returned an incomplete page.');
@@ -423,15 +446,9 @@ app.get('/api/quran/page/:page', async (req, res) => {
     try { return send(await quranPageInflight.get(page), 'COALESCED'); } catch { /* provider retry below */ }
   }
   const task = (async () => {
-    const editions = 'quran-uthmani,en.sahih';
-    const providers = ['https://api.alquran.cloud/v1','https://alquran.api.islamic.network/v1','https://alquran.api.alislam.ru/v1'];
     let primary = null;
-    for (const base of providers) {
-      try {
-        primary = await fetchQuranMirror(`${base}/page/${page}/editions/${editions}`, normalizeAlQuranCloud, page);
-        if (primary?.ayahs?.length) break;
-      } catch (error) { console.warn('AlQuranCloud provider failed:', base, error.message); }
-    }
+    try { primary = await fetchAlQuranCloudPage(page); }
+    catch (error) { console.warn('AlQuranCloud providers exhausted:', error.message); }
     let fallback = null;
     const query = `?mushaf=19&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number&page=${page}&per_page=50`;
     if (!primary?.ayahs?.length) {
@@ -1208,7 +1225,7 @@ if (!fs.existsSync(frontendEntry)) {
 Promise.all([
   fetchQuranJsonSurah(1),
   fetchQuranJsonSurah(2),
-  fetchQuranMirror('https://api.alquran.cloud/v1/page/1/editions/quran-uthmani,en.sahih', normalizeAlQuranCloud, 1)
+  fetchAlQuranCloudPage(1)
 ])
   .then(([fatihah, baqarah, page]) => {
     const opening = baqarah.get(1);
