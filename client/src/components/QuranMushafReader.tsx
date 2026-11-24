@@ -10,7 +10,7 @@ type TajweedSegment = { text: string; className: string };
 type MushafAyah = { number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; tajweedText?: string; tajweedSegments?: TajweedSegment[]; translation: string; translations?: Array<{ id: number; name: string; text: string }>; };
 type MushafPage = { page: number; juz: number; tajweedComplete?: boolean; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void; autoOpen?: boolean };
-const CACHE_PREFIX = 'atlas_mushaf_page_v8_';
+const CACHE_PREFIX = 'atlas_mushaf_page_v9_';
 const pageMemoryCache = new Map<number, MushafPage>();
 const HIFZ_KEY = 'atlas_hifz_bookmark_v2';
 const MURAJAAH_KEY = 'atlas_murajaah_bookmark_v2';
@@ -146,13 +146,11 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [sidebarOpen, setSidebarOpen] = useState(() => window.matchMedia('(min-width: 768px)').matches);
   const [starredAyahs, setStarredAyahs] = useState<Array<{ surah: number; ayah: number }>>(() => { try { return JSON.parse(localStorage.getItem('atlas_mushaf_starred_ayahs_v1') || '[]'); } catch { return []; } });
   const [selected, setSelected] = useState<{ surah: number; ayah: number } | null>(null);
-  const [readingMode, setReadingMode] = useState<'translation' | 'reading'>('reading');
-  const [tajweedEnabled, setTajweedEnabled] = useState(true);
-  const [tajweedKeyOpen, setTajweedKeyOpen] = useState(false);
-  const [arabicFontSize, setArabicFontSize] = useState(() => {
-    try { const saved = Number(localStorage.getItem('atlas_mushaf_arabic_font_size_v2')); return [16, 18, 20, 23, 26, 30, 34].includes(saved) ? saved : 20; }
-    catch { return 20; }
-  });
+  const [readingMode, setReadingMode] = useState<'translation' | 'reading' | 'arabic'>(() => { try { const saved = localStorage.getItem('atlas_mushaf_layout_v1'); return saved === 'translation' || saved === 'arabic' || saved === 'reading' ? saved : 'reading'; } catch { return 'reading'; } });
+  const [tajweedEnabled, setTajweedEnabled] = useState(() => { try { return localStorage.getItem('atlas_mushaf_tajweed_v1') !== 'off'; } catch { return true; } });
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [arabicFontFamily, setArabicFontFamily] = useState(() => { try { const saved = localStorage.getItem('atlas_mushaf_font_family_v1'); return saved === 'Noto Naskh Arabic' || saved === 'Scheherazade New' ? saved : 'Amiri Quran'; } catch { return 'Amiri Quran'; } });
+  const [arabicFontSize, setArabicFontSize] = useState(() => { try { const saved = Number(localStorage.getItem('atlas_mushaf_font_size_v1')); return [20, 24, 28, 32, 36].includes(saved) ? saved : 24; } catch { return 24; } });
   const [pageInput, setPageInput] = useState(String(page));
   const readerRef = useRef<HTMLDivElement | null>(null);
   const activeSurahItemRef = useRef<HTMLButtonElement | null>(null);
@@ -167,7 +165,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       const staleKeys: string[] = [];
       for (let index = 0; index < localStorage.length; index += 1) {
         const key = localStorage.key(index);
-        if (key && (/^atlas_mushaf_page_v[1-7]_/.test(key) || /^atlas_mushaf_cache_/.test(key) || /^atlas_quran_page_cache_/.test(key))) staleKeys.push(key);
+        if (key && (/^atlas_mushaf_page_v[1-8]_/.test(key) || /^atlas_mushaf_cache_/.test(key) || /^atlas_quran_page_cache_/.test(key))) staleKeys.push(key);
       }
       staleKeys.forEach(key => localStorage.removeItem(key));
     } catch { /* local storage is optional */ }
@@ -186,13 +184,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const selectedAyah = pageData?.ayahs.find(item => item.surahNumber === selected?.surah && item.numberInSurah === selected?.ayah) || null;
   const pageJuz = useMemo(() => pageData?.juz || getPageJuz(page) || 1, [pageData, page]);
   const bookmark = mode === 'hifz' ? hifzMark : murajaahMark;
-  const fontSteps = [16, 18, 20, 23, 26, 30, 34];
-  const changeFontSize = (direction: -1 | 1) => setArabicFontSize(current => {
-    const index = fontSteps.indexOf(current);
-    const next = fontSteps[Math.max(0, Math.min(fontSteps.length - 1, (index < 0 ? 2 : index) + direction))];
-    try { localStorage.setItem('atlas_mushaf_arabic_font_size_v2', String(next)); } catch { /* storage is optional */ }
-    return next;
-  });
+  
 
   useEffect(() => {
     if (!fullScreen) return;
@@ -309,40 +301,22 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     }).catch(() => { autoLoggedPagesRef.current.delete(dedupeKey); });
   }, [fullScreen, loading, pageData, page, mode, onLogged]);
   useEffect(() => {
-    if (readingMode !== 'translation' || !activeSurah) return;
+    if (readingMode === 'reading' || !activeSurah) return;
     let cancelled = false;
     setSurahLoading(true); setSurahError(''); setSurahAyahs([]);
-    const pageNumbers = Array.from({ length: activeSurah.pageEnd - activeSurah.pageStart + 1 }, (_, index) => activeSurah.pageStart + index);
-    const load = async (pageNumber: number): Promise<MushafPage> => {
-      const memory = pageMemoryCache.get(pageNumber);
-      if (memory?.ayahs?.length) return memory;
-      try {
-        const cached = localStorage.getItem(CACHE_PREFIX + pageNumber);
-        if (cached) { const parsed = sanitizeMushafPage(JSON.parse(cached) as MushafPage); if (parsed?.ayahs?.length) { pageMemoryCache.set(pageNumber, parsed); return parsed; } }
-      } catch { /* ignore malformed local cache */ }
-      const response = await fetch('/api/quran/page/' + pageNumber);
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload?.error || 'A Surah section could not be loaded.');
-      const result = sanitizeMushafPage(payload as MushafPage);
-      if (!result.ayahs?.length) throw new Error('No Qur’an text was returned for page ' + pageNumber + '.');
-      pageMemoryCache.set(pageNumber, result);
-      try { localStorage.setItem(CACHE_PREFIX + pageNumber, JSON.stringify(result)); } catch { /* memory cache remains available */ }
-      return result;
-    };
-    void (async () => {
-      try {
-        const pages: MushafPage[] = [];
-        for (let offset = 0; offset < pageNumbers.length; offset += 5) pages.push(...await Promise.all(pageNumbers.slice(offset, offset + 5).map(load)));
-        const unique = new Map<string, MushafAyah>();
-        for (const result of pages) for (const ayah of result.ayahs) if (ayah.surahNumber === activeSurahNumber) unique.set(activeSurahNumber + ':' + ayah.numberInSurah, ayah);
-        const ordered = [...unique.values()].sort((a, b) => a.numberInSurah - b.numberInSurah);
-        if (!ordered.length) throw new Error('No verses were returned for ' + activeSurah.transliteration + '.');
+    fetch('/api/quran/surah/' + activeSurahNumber)
+      .then(async response => { const payload = await response.json(); if (!response.ok) throw new Error(payload?.error || 'The Surah could not be loaded.'); return payload; })
+      .then(payload => {
+        const result = sanitizeMushafPage(payload as MushafPage);
+        if (!result.ayahs?.length) throw new Error('No verses were returned for ' + activeSurah.transliteration + '.');
+        const ordered = [...result.ayahs].sort((a, b) => a.numberInSurah - b.numberInSurah);
+        if (ordered.length !== activeSurah.ayahs) throw new Error('The Surah response is incomplete (' + ordered.length + '/' + activeSurah.ayahs + ' ayahs).');
         if (!cancelled) setSurahAyahs(ordered);
-      } catch (error) { if (!cancelled) setSurahError(error instanceof Error ? error.message : 'This Surah could not be loaded.'); }
-      finally { if (!cancelled) setSurahLoading(false); }
-    })();
+      })
+      .catch(error => { if (!cancelled) setSurahError(error instanceof Error ? error.message : 'This Surah could not be loaded.'); })
+      .finally(() => { if (!cancelled) setSurahLoading(false); });
     return () => { cancelled = true; };
-  }, [readingMode, activeSurahNumber, activeSurah?.pageStart, activeSurah?.pageEnd]);
+  }, [readingMode, activeSurahNumber, activeSurah?.ayahs, activeSurah?.transliteration]);
 
   const updateBookmark = useCallback((nextPage: number, ayah?: Pick<MushafAyah, 'surahNumber' | 'numberInSurah'> | null) => {
     const current = mode === 'hifz' ? hifzMark : murajaahMark;
@@ -373,7 +347,10 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     autoOpenHandled.current = true;
     openReader('hifz');
   }, [autoOpen, settingsReady]);
-  const changeReadingMode = (next: 'translation' | 'reading') => { if (next !== readingMode) { updateBookmark(page, selectedAyah); setReadingMode(next); } };
+  const changeReadingMode = (next: 'translation' | 'reading' | 'arabic') => { if (next !== readingMode) { updateBookmark(page, selectedAyah); setReadingMode(next); try { localStorage.setItem('atlas_mushaf_layout_v1', next); } catch { /* storage is optional */ } } };
+  const changeArabicFont = (next: string) => { setArabicFontFamily(next); try { localStorage.setItem('atlas_mushaf_font_family_v1', next); } catch { /* storage is optional */ } };
+  const changeArabicFontSize = (next: number) => { setArabicFontSize(next); try { localStorage.setItem('atlas_mushaf_font_size_v1', String(next)); } catch { /* storage is optional */ } };
+  const toggleTajweed = () => setTajweedEnabled(current => { const next = !current; try { localStorage.setItem('atlas_mushaf_tajweed_v1', next ? 'on' : 'off'); } catch { /* storage is optional */ } return next; });
   const jumpSurah = (number: number) => { const item = QURAN_SURAHS[number - 1]; if (item) { changePage(item.pageStart, { surahNumber: number, numberInSurah: 1 }); setSidebarOpen(false); setSurahSearch(''); } };
   const jumpJuz = (number: number) => { const start = QURAN_JUZ_STARTS[number - 1]; if (start) changePage(getAyahLocation(start[1], start[2])?.page || 1); };
   const selectAyah = (ayah: MushafAyah) => { const ayahPage = getAyahLocation(ayah.surahNumber, ayah.numberInSurah)?.page || page; setSelected({ surah: ayah.surahNumber, ayah: ayah.numberInSurah }); setPage(ayahPage); updateBookmark(ayahPage, ayah); };
@@ -397,7 +374,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     try { if (navigator.share) await navigator.share({ title: 'Qur’an · ' + surah.transliteration, text }); else await navigator.clipboard.writeText(text); } catch { /* share sheet dismissed */ }
   };
   useEffect(() => {
-    if (readingMode !== 'reading' || !pageData?.ayahs?.length || loading) return;
+    if (readingMode === 'reading' || !pageData?.ayahs?.length || loading) return;
     const savedAyah = pageData.ayahs.find(ayah => ayah.surahNumber === bookmark.surah && ayah.numberInSurah === bookmark.ayah);
     const target = savedAyah || pageData.ayahs[0];
     if (!savedAyah) setSelected({ surah: target.surahNumber, ayah: target.numberInSurah });
@@ -418,22 +395,26 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
           <button type="button" className={mode === 'hifz' ? 'is-active' : ''} onClick={() => changeMode('hifz')}>{mode === 'hifz' && <motion.span layoutId="mushaf-mode-pill" className="mushaf-switch-highlight" transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 520, damping: 38 }}/>}<span>Hifz</span></button>
           <button type="button" className={mode === 'murajaah' ? 'is-active' : ''} onClick={() => changeMode('murajaah')}>{mode === 'murajaah' && <motion.span layoutId="mushaf-mode-pill" className="mushaf-switch-highlight" transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 520, damping: 38 }}/>}<span>Muraja'ah</span></button>
         </div>
-        <button type="button" className={'mushaf-tajweed-toggle' + (tajweedEnabled ? ' is-active' : '')} onClick={() => setTajweedEnabled(value => !value)} aria-pressed={tajweedEnabled}>Tajweed</button>
-        <button type="button" className="mushaf-font-button" onClick={() => changeFontSize(-1)} aria-label="Decrease Arabic font size">A−</button>
-        <button type="button" className="mushaf-font-button" onClick={() => changeFontSize(1)} aria-label="Increase Arabic font size">A+</button>
+        <div className="mushaf-settings-anchor">
+          <button type="button" className="mushaf-settings-trigger" onClick={() => setSettingsOpen(value => !value)} aria-label="Reading settings" aria-expanded={settingsOpen}>⚙️</button>
+          {settingsOpen && <section className="mushaf-settings-popover" role="dialog" aria-label="Reading settings">
+            <div className="mushaf-settings-heading"><b>Reading settings</b><button type="button" onClick={() => setSettingsOpen(false)} aria-label="Close reading settings">×</button></div>
+            <label className="mushaf-setting-field"><span>Qur’an font</span><select value={arabicFontFamily} onChange={event => changeArabicFont(event.target.value)}><option value="Amiri Quran">Madinah Uthmani</option><option value="Noto Naskh Arabic">Naskh Clean</option><option value="Scheherazade New">Scheherazade Classic</option></select></label>
+            <div className="mushaf-setting-field"><span>Font size</span><div className="mushaf-setting-options">{[20,24,28,32,36].map(size => <button type="button" key={size} className={arabicFontSize === size ? 'is-active' : ''} aria-pressed={arabicFontSize === size} onClick={() => changeArabicFontSize(size)}>{size}</button>)}</div></div>
+            <div className="mushaf-setting-field"><span>Page layout</span><div className="mushaf-layout-options">
+              <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} aria-pressed={readingMode === 'translation'} onClick={() => changeReadingMode('translation')}>Verse by Verse</button>
+              <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} aria-pressed={readingMode === 'reading'} onClick={() => changeReadingMode('reading')}>Page by Page</button>
+              <button type="button" className={readingMode === 'arabic' ? 'is-active' : ''} aria-pressed={readingMode === 'arabic'} onClick={() => changeReadingMode('arabic')}>Arabic Only</button>
+            </div></div>
+            <div className="mushaf-setting-field"><span>Tajweed colors</span><button type="button" className={'mushaf-tajweed-toggle' + (tajweedEnabled ? ' is-active' : '')} onClick={toggleTajweed} aria-pressed={tajweedEnabled}>{tajweedEnabled ? 'On' : 'Off'}</button></div>
+            <div className="mushaf-settings-key" aria-label="Tajweed color key">
+              <span><i className="tj-madd"/>Madd</span><span><i className="tj-ghunnah"/>Ghunnah / Ikhfa</span><span><i className="tj-qalqalah"/>Qalqalah</span><span><i className="tj-heavy"/>Heavy</span><span><i className="tj-silent"/>Silent</span>
+            </div>
+          </section>}
+        </div>
         <button type="button" className="mushaf-exit" onClick={() => setFullScreen(false)} aria-label="Exit Qur’an reader"><X size={16}/></button>
       </div>
     </header>
-    <div className="mushaf-tajweed-key-wrap" hidden={!tajweedEnabled}>
-      <button type="button" className="mushaf-tajweed-key-toggle" aria-expanded={tajweedKeyOpen} onClick={() => setTajweedKeyOpen(value => !value)}>Tajweed Key <span aria-hidden="true">{tajweedKeyOpen ? '−' : '+'}</span></button>
-      <AnimatePresence initial={false}>{tajweedKeyOpen && <motion.div className="mushaf-tajweed-key" initial={prefersReducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.16 }} aria-label="Tajweed colour legend">
-        <div><i className="tj-madd"/> <span><b>Crimson / Red</b> — Madd (prolongation · 2, 4 or 6 counts)</span></div>
-        <div><i className="tj-ghunnah"/> <span><b>Emerald / Green</b> — Ghunnah, Ikhfa &amp; Idgham (nasalization &amp; merging)</span></div>
-        <div><i className="tj-qalqalah"/> <span><b>Sky Blue</b> — Qalqalah (echoing bounce · ق ط ب ج د)</span></div>
-        <div><i className="tj-tafkhim"/> <span><b>Amber / Gold</b> — Tafkheem (heavy letters · خ ص ض غ ط ق ظ)</span></div>
-        <div><i className="tj-silent"/> <span><b>Muted Gray</b> — Silent letters &amp; Hamzat Wasl (ٱ)</span></div>
-      </motion.div>}</AnimatePresence>
-    </div>
     <div className="mushaf-workspace">
       <AnimatePresence initial={false}>{sidebarOpen && <motion.button type="button" className="mushaf-sidebar-scrim" aria-label="Close Surah navigation" onClick={() => setSidebarOpen(false)} initial={prefersReducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.2 }} />}{sidebarOpen && <motion.aside className="mushaf-sidebar" aria-label="Qur’an navigation" initial={prefersReducedMotion ? false : { x: '-100%', opacity: 0.6 }} animate={{ x: 0, opacity: 1 }} exit={{ x: '-100%', opacity: 0.6 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.24, ease: [0.16, 1, 0.3, 1] }}>
         <div className="mushaf-sidebar-tabs" role="tablist" aria-label="Browse Qur’an">
@@ -454,7 +435,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         <div className="mushaf-canvas" ref={readerRef}>
           {loading && <div className="mushaf-loading" role="status" aria-label={'Loading page ' + page}>Loading Qur’an page {page}…</div>}
           {!loading && pageError && <div className="mushaf-error" role="alert"><WifiOff size={22}/><p>{pageError}</p><button type="button" onClick={() => changePage(page)}>Retry</button></div>}
-          <AnimatePresence mode="wait" initial={false}>{!loading && pageData && readingMode === 'translation' && <motion.section key={'verse-' + activeSurahNumber} className="mushaf-verse-view" dir="ltr" lang="en" initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.18, ease: 'easeOut' }}>
+          <AnimatePresence mode="wait" initial={false}>{!loading && pageData && readingMode !== 'reading' && <motion.section key={'verse-' + activeSurahNumber} className="mushaf-verse-view" dir="ltr" lang="en" initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.18, ease: 'easeOut' }}>
             <header className="mushaf-surah-hero">
               <b className="mushaf-hero-arabic" lang="ar" dir="rtl">{activeSurah?.arabic || ''}</b>
               <div className="mushaf-hero-copy"><h1>{activeSurahNumber}. Surah {activeSurah?.transliteration || 'Surah'}</h1><p>{activeSurah?.english || ''} · {activeSurah?.ayahs || surahAyahs.length} Ayahs</p></div>
@@ -469,14 +450,14 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
                   <button type="button" aria-label="Bookmark verse" aria-pressed={starredAyahs.some(item => item.surah === ayah.surahNumber && item.ayah === ayah.numberInSurah)} onClick={() => toggleStarredAyah(ayah)}><Bookmark size={15}/></button>
                   <button type="button" aria-label="Copy verse" onClick={() => { void navigator.clipboard?.writeText(ayah.text + '\\n' + ayah.surahNumber + ':' + ayah.numberInSurah); }}><Copy size={14}/></button>
                 </div>
-                <button type="button" className="mushaf-verse-arabic" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px', fontFamily: "'Amiri Quran', 'Scheherazade New', serif", fontWeight: 400, letterSpacing: '0px', fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1' }} onClick={() => selectAyah(ayah)} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>
+                <button type="button" className="mushaf-verse-arabic" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px', fontFamily: "'" + arabicFontFamily + "', serif", fontWeight: 400, letterSpacing: '0px', fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1' }} onClick={() => selectAyah(ayah)} aria-pressed={selected?.surah === ayah.surahNumber && selected?.ayah === ayah.numberInSurah}>
                   {renderTajweedMarkup(ayah.tajweedText || '', ayah.tajweedSegments, ayah.text, tajweedEnabled)}<AyahMedallion className="mushaf-verse-medallion" number={ayah.numberInSurah}/>
                 </button>
               </div>
-              <p className="mushaf-verse-translation">{ayah.translation || 'Translation unavailable.'}</p>
+              {readingMode !== 'arabic' && <p className="mushaf-verse-translation">{ayah.translation || 'Translation unavailable.'}</p>}
             </motion.article>)}</motion.div>}
-          </motion.section>}{!loading && pageData && readingMode === 'reading' && <motion.section key={'page-' + page} className="mushaf-page-view" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px' }} initial={prefersReducedMotion ? false : { opacity: 0, x: pageDirection === 'next' ? 18 : -18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: pageDirection === 'next' ? -8 : 8 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.22, ease: [0.16, 1, 0.3, 1] }}>
-            <div className="mushaf-page-text" style={{ fontFamily: "'Amiri Quran', 'Scheherazade New', serif", fontWeight: 400, letterSpacing: '0px', fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1' }}>{pageData.ayahs.map((ayah, index) => {
+          </motion.section>}{!loading && pageData && readingMode === 'reading' && <motion.section key={'page-' + page} className="mushaf-page-view" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px', fontFamily: "'" + arabicFontFamily + "', serif" }} initial={prefersReducedMotion ? false : { opacity: 0, x: pageDirection === 'next' ? 18 : -18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: pageDirection === 'next' ? -8 : 8 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.22, ease: [0.16, 1, 0.3, 1] }}>
+            <div className="mushaf-page-text" style={{ fontFamily: "'" + arabicFontFamily + "', serif", fontWeight: 400, letterSpacing: '0px', fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1' }}>{pageData.ayahs.map((ayah, index) => {
               const surah = QURAN_SURAHS[ayah.surahNumber - 1];
               const startsSurah = ayah.numberInSurah === 1;
               return <Fragment key={ayah.surahNumber + ':' + ayah.numberInSurah}>
