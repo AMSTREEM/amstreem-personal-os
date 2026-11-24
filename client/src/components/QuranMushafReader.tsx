@@ -359,7 +359,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     </header>
     <div className="mushaf-tajweed-key-wrap">
       <button type="button" className="mushaf-tajweed-key-toggle" aria-expanded={tajweedKeyOpen} onClick={() => setTajweedKeyOpen(value => !value)}>Tajweed Key <span aria-hidden="true">{tajweedKeyOpen ? '−' : '+'}</span></button>
-      <AnimatePresence initial={false}>{tajweedKeyOpen && <motion.div className="mushaf-tajweed-key" initial={prefersReducedMotion ? false : { opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.16 }} aria-label="Tajweed colour legend">
+      <AnimatePresence initial={false}>{tajweedKeyOpen && <motion.div className="mushaf-tajweed-key" initial={prefersReducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.16 }} aria-label="Tajweed colour legend">
         <div><i className="tj-madd"/> <span><b>Crimson / Red</b> — Madd (prolongation · 2, 4 or 6 counts)</span></div>
         <div><i className="tj-ghunnah"/> <span><b>Emerald / Green</b> — Ghunnah, Ikhfa &amp; Idgham (nasalization &amp; merging)</span></div>
         <div><i className="tj-qalqalah"/> <span><b>Sky Blue</b> — Qalqalah (echoing bounce · ق ط ب ج د)</span></div>
