@@ -5464,7 +5464,6 @@ html, body, #root, .app-frame, .main-area, .page-container {
    Use a true five-column grid so all four rooms and capture share equal slots. */
 @media (max-width: 767px) {
   .atlas-workspace-boot {
-    transform: none !important;
     filter: none !important;
     -webkit-filter: none !important;
     will-change: auto !important;
@@ -6884,20 +6883,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
     overflow: visible !important;
     z-index: 10001 !important;
   }
-  .mushaf-app.is-mobile-page-reading > .mushaf-topbar .mushaf-surah-trigger {
-    position: absolute !important;
-    left: 50% !important;
-    top: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    width: min(34vw, 150px) !important;
-    max-width: min(34vw, 150px) !important;
-    min-width: 0 !important;
-    flex: 0 1 auto !important;
-    justify-content: center !important;
-    padding: 6px 4px !important;
-    font-size: 11px !important;
-    text-align: center !important;
-  }
+
   .mushaf-app.is-mobile-page-reading > .mushaf-topbar .mushaf-topbar-actions {
     width: 100% !important;
     min-width: 0 !important;
