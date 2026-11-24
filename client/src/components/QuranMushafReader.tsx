@@ -224,7 +224,13 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
 
   useEffect(() => {
     if (!fullScreen) return;
-    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') { setSidebarOpen(false); setFullScreen(false); } };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault(); setSidebarOpen(true);
+        window.setTimeout(() => document.querySelector<HTMLInputElement>('.mushaf-sidebar-search input')?.focus(), 0);
+      }
+      if (event.key === 'Escape') { setSidebarOpen(false); setFullScreen(false); }
+    };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [fullScreen]);
@@ -252,13 +258,20 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     const key = mode === 'hifz' ? HIFZ_KEY : MURAJAAH_KEY;
     try { localStorage.setItem(key, JSON.stringify(mark)); } catch { /* storage is optional */ }
     if (!settingsReady) return;
-    const timer = window.setTimeout(() => {
-      void api('/settings', json('PATCH', {
-        [mode === 'hifz' ? 'hifz_page' : 'murajaah_page']: String(mark.page),
-        [mode === 'hifz' ? 'hifz_bookmark' : 'murajaah_bookmark']: JSON.stringify(mark)
-      })).catch(() => undefined);
-    }, 800);
-    return () => window.clearTimeout(timer);
+    let cancelled = false;
+    let retryTimer: number | undefined;
+    const sync = async (attempt = 0) => {
+      try {
+        await api('/settings', json('PATCH', {
+          [mode === 'hifz' ? 'hifz_page' : 'murajaah_page']: String(mark.page),
+          [mode === 'hifz' ? 'hifz_bookmark' : 'murajaah_bookmark']: JSON.stringify(mark)
+        }));
+      } catch {
+        if (!cancelled && attempt < 5) retryTimer = window.setTimeout(() => { void sync(attempt + 1); }, Math.min(30_000, 1_000 * (2 ** attempt)));
+      }
+    };
+    const timer = window.setTimeout(() => { void sync(); }, 800);
+    return () => { cancelled = true; window.clearTimeout(timer); if (retryTimer) window.clearTimeout(retryTimer); };
   }, [mode, hifzMark, murajaahMark, settingsReady]);
 
   useEffect(() => {
@@ -518,8 +531,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
           {sidebarTab === 'surah' && QURAN_SURAHS.filter(item => { const q=surahSearch.trim().toLowerCase(); return !q || String(item.number)===q || item.transliteration.toLowerCase().includes(q) || item.english.toLowerCase().includes(q); }).map(item => <button ref={item.number === activeSurahNumber ? activeSurahItemRef : undefined} type="button" key={item.number} className={item.number === activeSurahNumber ? 'is-active' : ''} onClick={() => { jumpSurah(item.number); setSurahSearch(''); }}>
             <span className="mushaf-sidebar-number">{item.number}</span><span className="mushaf-sidebar-name"><b>{item.transliteration}</b><small>{item.ayahs} ayahs · {item.revelation}</small></span><strong lang="ar" dir="rtl">{item.arabic}</strong>
           </button>)}
-          {sidebarTab === 'verse' && <form className="mushaf-page-jump" onSubmit={event => {
-            event.preventDefault();
+          {sidebarTab === 'verse' && <div className="mushaf-page-jump"><label>Enter Surah:Ayah above</label><button type="button" onClick={() => {
             const match = surahSearch.trim().match(/^(\d{1,3})\s*:\s*(\d{1,3})$/);
             if (!match) return;
             const surahNumber = Number(match[1]); const ayahNumber = Number(match[2]);
@@ -527,7 +539,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
             if (!surah || ayahNumber < 1 || ayahNumber > surah.ayahs) return;
             changePage(getAyahLocation(surahNumber, ayahNumber)?.page || surah.pageStart, { surahNumber, numberInSurah: ayahNumber });
             setSurahSearch(''); setSidebarOpen(false);
-          }}><label htmlFor="mushaf-verse-jump">Go to verse</label><div><input id="mushaf-verse-jump" value={surahSearch} onChange={event => setSurahSearch(event.target.value)} placeholder="2:27" autoComplete="off"/><button type="submit">Go</button></div></form>}
+          }}>Go to verse</button></div>}
           {sidebarTab === 'juz' && QURAN_JUZ_STARTS.filter(([juz]) => !surahSearch.trim() || String(juz).includes(surahSearch.trim())).map(([juz,surah,ayah]) => <button type="button" key={juz} onClick={() => { jumpJuz(juz); setSurahSearch(''); }}><span className="mushaf-sidebar-number">{juz}</span><span className="mushaf-sidebar-name"><b>Juz {juz}</b><small>{QURAN_SURAHS[surah-1]?.transliteration} · Ayah {ayah}</small></span></button>)}
           {sidebarTab === 'page' && <form className="mushaf-page-jump" onSubmit={quickJump}><label htmlFor="mushaf-page-number">Go to page (1–604)</label><div><input id="mushaf-page-number" type="number" min="1" max="604" value={pageInput} onChange={event => setPageInput(event.target.value)}/><button type="submit">Go</button></div><div className="mushaf-page-grid">{Array.from({length:604},(_,index)=>index+1).filter(value=>!surahSearch.trim()||String(value).includes(surahSearch.trim())).map(value=><button type="button" key={value} className={value===page?'is-active':''} onClick={()=>{changePage(value);setSurahSearch('');setSidebarOpen(false);}}>{value}</button>)}</div></form>}
         </div>
