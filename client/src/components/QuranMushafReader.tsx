@@ -1,5 +1,6 @@
 import { Fragment, type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { AnimatePresence, motion } from 'motion/react';
 import { Bookmark, Copy, Search, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz } from '../data/quranSurahs';
@@ -84,6 +85,9 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   });
   const [pageInput, setPageInput] = useState(String(page));
   const readerRef = useRef<HTMLDivElement | null>(null);
+  const activeSurahItemRef = useRef<HTMLButtonElement | null>(null);
+  const verseRowRefs = useRef(new Map<string, HTMLElement>());
+  const [pageDirection, setPageDirection] = useState<'next' | 'previous'>('next');
   const autoLoggedPagesRef = useRef(new Set<string>());
 
   useEffect(() => {
@@ -97,6 +101,22 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       staleKeys.forEach(key => localStorage.removeItem(key));
     } catch { /* local storage is optional */ }
   }, []);
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    activeSurahItemRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [sidebarOpen, activeSurahNumber]);
+
+  useEffect(() => {
+    if (!fullScreen) return;
+    readerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page, fullScreen]);
+
+  useEffect(() => {
+    if (!selected) return;
+    const key = selected.surah + ':' + selected.ayah;
+    verseRowRefs.current.get(key)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [selected]);
+
   const selectedAyah = pageData?.ayahs.find(item => item.surahNumber === selected?.surah && item.numberInSurah === selected?.ayah) || null;
   const pageJuz = useMemo(() => pageData?.juz || getPageJuz(page) || 1, [pageData, page]);
   const bookmark = mode === 'hifz' ? hifzMark : murajaahMark;
@@ -261,7 +281,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   }, [mode, hifzMark, murajaahMark]);
   const changePage = (next: number, location?: { surahNumber: number; numberInSurah: number }) => {
     const value = clampPage(next);
-    if (value !== page) { setLoading(true); setPageData(null); setPageError(''); }
+    if (value !== page) { setPageDirection(value > page ? 'next' : 'previous'); setLoading(true); setPageData(null); setPageError(''); }
     setPage(value); setSelected(location ? { surah: location.surahNumber, ayah: location.numberInSurah } : null);
     updateBookmark(value, location ? { surahNumber: location.surahNumber, numberInSurah: location.numberInSurah } : null);
   };
@@ -320,12 +340,12 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       <div className="mushaf-topbar-center"><Bookmark size={14}/><span>Page {page} · Juz {pageJuz}</span><span className="mushaf-autosaved">Auto-saved</span></div>
       <div className="mushaf-topbar-actions">
         <div className="mushaf-view-switch" role="group" aria-label="Reading view">
-          <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} onClick={() => changeReadingMode('translation')}>Verse by Verse</button>
-          <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} onClick={() => changeReadingMode('reading')}>Page by Page</button>
+          <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} onClick={() => changeReadingMode('translation')}>{readingMode === 'translation' && <motion.span layoutId="mushaf-view-pill" className="mushaf-switch-highlight" transition={{ type: 'spring', stiffness: 520, damping: 38 }}/>}<span>Verse by Verse</span></button>
+          <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} onClick={() => changeReadingMode('reading')}>{readingMode === 'reading' && <motion.span layoutId="mushaf-view-pill" className="mushaf-switch-highlight" transition={{ type: 'spring', stiffness: 520, damping: 38 }}/>}<span>Page by Page</span></button>
         </div>
         <div className="mushaf-mode-switch" role="group" aria-label="Bookmark mode">
-          <button type="button" className={mode === 'hifz' ? 'is-active' : ''} onClick={() => changeMode('hifz')}>Hifz</button>
-          <button type="button" className={mode === 'murajaah' ? 'is-active' : ''} onClick={() => changeMode('murajaah')}>Muraja'ah</button>
+          <button type="button" className={mode === 'hifz' ? 'is-active' : ''} onClick={() => changeMode('hifz')}>{mode === 'hifz' && <motion.span layoutId="mushaf-mode-pill" className="mushaf-switch-highlight" transition={{ type: 'spring', stiffness: 520, damping: 38 }}/>}<span>Hifz</span></button>
+          <button type="button" className={mode === 'murajaah' ? 'is-active' : ''} onClick={() => changeMode('murajaah')}>{mode === 'murajaah' && <motion.span layoutId="mushaf-mode-pill" className="mushaf-switch-highlight" transition={{ type: 'spring', stiffness: 520, damping: 38 }}/>}<span>Muraja'ah</span></button>
         </div>
         <button type="button" className="mushaf-font-button" onClick={() => changeFontSize(-1)} aria-label="Decrease Arabic font size">A−</button>
         <button type="button" className="mushaf-font-button" onClick={() => changeFontSize(1)} aria-label="Increase Arabic font size">A+</button>
@@ -333,8 +353,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       </div>
     </header>
     <div className="mushaf-workspace">
-      {sidebarOpen && <button type="button" className="mushaf-sidebar-scrim" aria-label="Close Surah navigation" onClick={() => setSidebarOpen(false)}/>}
-      {sidebarOpen && <aside className="mushaf-sidebar" aria-label="Qur’an navigation">
+      <AnimatePresence initial={false}><>{sidebarOpen && <motion.button type="button" className="mushaf-sidebar-scrim" aria-label="Close Surah navigation" onClick={() => setSidebarOpen(false)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}/ >}{sidebarOpen && <motion.aside className="mushaf-sidebar" aria-label="Qur’an navigation" initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}>
         <div className="mushaf-sidebar-tabs" role="tablist" aria-label="Browse Qur’an">
           <button type="button" role="tab" aria-selected={sidebarTab === 'surah'} className={sidebarTab === 'surah' ? 'is-active' : ''} onClick={() => setSidebarTab('surah')}>Surah</button>
           <button type="button" role="tab" aria-selected={sidebarTab === 'juz'} className={sidebarTab === 'juz' ? 'is-active' : ''} onClick={() => setSidebarTab('juz')}>Juz</button>
@@ -342,18 +361,18 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         </div>
         <label className="mushaf-sidebar-search"><Search size={15}/><input value={surahSearch} onChange={event => setSurahSearch(event.target.value)} placeholder={sidebarTab === 'surah' ? 'Search Surah' : sidebarTab === 'juz' ? 'Search Juz' : 'Search page'} aria-label="Search Qur’an navigation"/></label>
         <div className="mushaf-sidebar-list">
-          {sidebarTab === 'surah' && QURAN_SURAHS.filter(item => { const q=surahSearch.trim().toLowerCase(); return !q || String(item.number)===q || item.transliteration.toLowerCase().includes(q) || item.english.toLowerCase().includes(q); }).map(item => <button type="button" key={item.number} className={item.number === activeSurahNumber ? 'is-active' : ''} onClick={() => { jumpSurah(item.number); setSurahSearch(''); }}>
+          {sidebarTab === 'surah' && QURAN_SURAHS.filter(item => { const q=surahSearch.trim().toLowerCase(); return !q || String(item.number)===q || item.transliteration.toLowerCase().includes(q) || item.english.toLowerCase().includes(q); }).map(item => <button ref={item.number === activeSurahNumber ? activeSurahItemRef : undefined} type="button" key={item.number} className={item.number === activeSurahNumber ? 'is-active' : ''} onClick={() => { jumpSurah(item.number); setSurahSearch(''); }}>
             <span className="mushaf-sidebar-number">{item.number}</span><span className="mushaf-sidebar-name"><b>{item.transliteration}</b><small>{item.ayahs} ayahs · {item.revelation}</small></span><strong lang="ar" dir="rtl">{item.arabic}</strong>
           </button>)}
           {sidebarTab === 'juz' && QURAN_JUZ_STARTS.filter(([juz]) => !surahSearch.trim() || String(juz).includes(surahSearch.trim())).map(([juz,surah,ayah]) => <button type="button" key={juz} onClick={() => { jumpJuz(juz); setSurahSearch(''); }}><span className="mushaf-sidebar-number">{juz}</span><span className="mushaf-sidebar-name"><b>Juz {juz}</b><small>{QURAN_SURAHS[surah-1]?.transliteration} · Ayah {ayah}</small></span></button>)}
           {sidebarTab === 'page' && <form className="mushaf-page-jump" onSubmit={quickJump}><label htmlFor="mushaf-page-number">Go to page (1–604)</label><div><input id="mushaf-page-number" type="number" min="1" max="604" value={pageInput} onChange={event => setPageInput(event.target.value)}/><button type="submit">Go</button></div><div className="mushaf-page-grid">{Array.from({length:604},(_,index)=>index+1).filter(value=>!surahSearch.trim()||String(value).includes(surahSearch.trim())).map(value=><button type="button" key={value} className={value===page?'is-active':''} onClick={()=>{changePage(value);setSurahSearch('');setSidebarOpen(false);}}>{value}</button>)}</div></form>}
         </div>
-      </aside>}
+      </motion.aside>}</></AnimatePresence>
       <main className="mushaf-main">
         <div className="mushaf-canvas" ref={readerRef}>
           {loading && <div className="mushaf-loading" role="status" aria-label={'Loading page ' + page}>Loading Qur’an page {page}…</div>}
           {!loading && pageError && <div className="mushaf-error" role="alert"><WifiOff size={22}/><p>{pageError}</p><button type="button" onClick={() => changePage(page)}>Retry</button></div>}
-          {!loading && pageData && readingMode === 'translation' && <section className="mushaf-verse-view" dir="ltr" lang="en">
+          <AnimatePresence mode="wait" initial={false}>{!loading && pageData && readingMode === 'translation' && <motion.section key={'verse-' + activeSurahNumber} className="mushaf-verse-view" dir="ltr" lang="en" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.18, ease: 'easeOut' }}>
             <header className="mushaf-surah-hero">
               <b className="mushaf-hero-arabic" lang="ar" dir="rtl">{activeSurah?.arabic || ''}</b>
               <div className="mushaf-hero-copy"><h1>{activeSurahNumber}. Surah {activeSurah?.transliteration || 'Surah'}</h1><p>{activeSurah?.english || ''} · {activeSurah?.ayahs || surahAyahs.length} Ayahs</p></div>
@@ -362,7 +381,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
             {activeSurahNumber !== 9 && <BismillahOrnament/>}
             {surahLoading && <p className="mushaf-loading" role="status">Loading {activeSurah?.transliteration || 'Surah'}…</p>}
             {!surahLoading && surahError && <div className="mushaf-error" role="alert"><p>{surahError}</p><button type="button" onClick={() => setReadingMode('reading')}>Return to Page by Page</button></div>}
-            {!surahLoading && surahAyahs.map(ayah => <article className="mushaf-verse-row" key={ayah.surahNumber + ':' + ayah.numberInSurah}>
+            {!surahLoading && <motion.div className="mushaf-verse-list" initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.012 } } }}>{surahAyahs.map(ayah => <motion.article ref={node => { const key = ayah.surahNumber + ':' + ayah.numberInSurah; if (node) verseRowRefs.current.set(key, node); else verseRowRefs.current.delete(key); }} variants={{ hidden: { opacity: 0, y: 5 }, visible: { opacity: 1, y: 0 } }} transition={{ duration: 0.2, ease: 'easeOut' }} className="mushaf-verse-row" key={ayah.surahNumber + ':' + ayah.numberInSurah}>
               <div className="mushaf-verse-top">
                 <div className="mushaf-verse-tools"><small>{ayah.surahNumber}:{ayah.numberInSurah}</small>
                   <button type="button" aria-label="Bookmark verse" aria-pressed={starredAyahs.some(item => item.surah === ayah.surahNumber && item.ayah === ayah.numberInSurah)} onClick={() => toggleStarredAyah(ayah)}><Bookmark size={15}/></button>
@@ -373,9 +392,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
                 </button>
               </div>
               <p className="mushaf-verse-translation">{ayah.translation || 'Translation unavailable.'}</p>
-            </article>)}
-          </section>}
-          {!loading && pageData && readingMode === 'reading' && <section className="mushaf-page-view" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px' }}>
+            </motion.article>)}</motion.div>}
+          </motion.section>}{!loading && pageData && readingMode === 'reading' && <motion.section key={'page-' + page} className="mushaf-page-view" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px' }} initial={{ opacity: 0, x: pageDirection === 'next' ? 18 : -18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: pageDirection === 'next' ? -8 : 8 }} transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}>
             <div className="mushaf-page-text">{pageData.ayahs.map((ayah, index) => {
               const surah = QURAN_SURAHS[ayah.surahNumber - 1];
               const startsSurah = ayah.numberInSurah === 1;
@@ -387,7 +405,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
               </Fragment>;
             })}</div>
             <footer className="mushaf-page-footer" dir="ltr">— Page {page} · Juz {pageJuz} —</footer>
-          </section>}
+          </motion.section>}</AnimatePresence>
         </div>
         {readingMode === 'reading' && <nav className="mushaf-page-arrows" aria-label="Page navigation">
           <button type="button" aria-label="Previous page" disabled={page <= 1} onClick={() => changePage(page - 1)}>▲</button>
