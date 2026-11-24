@@ -5806,3 +5806,24 @@ html, body, #root, .app-frame, .main-area, .page-container {
 
 /* Keep the full Mushaf page's Arabic rhythm consistent on mobile as well. */
 .mushaf-page-text{line-height:2.25}
+
+
+/* Mushaf motion system — restrained, tactile, and reduced-motion aware. */
+.mushaf-sidebar{position:fixed;top:48px;bottom:0;left:0;z-index:3;width:min(260px,88vw);min-width:0;flex:0 0 260px;box-shadow:16px 0 40px color-mix(in srgb,var(--text) 16%,transparent);will-change:transform}
+.mushaf-sidebar-scrim{position:fixed;inset:48px 0 0;z-index:2;display:block;width:100%;height:calc(100dvh - 48px);border:0;background:rgba(8,10,9,.46);backdrop-filter:blur(9px) saturate(125%);-webkit-backdrop-filter:blur(9px) saturate(125%)}
+.mushaf-view-switch button,.mushaf-mode-switch button{position:relative;isolation:isolate}
+.mushaf-view-switch button>span:last-child,.mushaf-mode-switch button>span:last-child{position:relative;z-index:1}
+.mushaf-switch-highlight{position:absolute;inset:0;z-index:0;border-radius:999px;background:var(--accent-wash);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 22%,transparent)}
+.mushaf-view-switch button.is-active,.mushaf-mode-switch button.is-active{background:transparent}
+.mushaf-verse-list{display:block}
+.mushaf-verse-row{border-radius:12px;transition:background-color 180ms ease}
+.mushaf-verse-row:hover,.mushaf-verse-row:focus-within{background:color-mix(in srgb,var(--accent) 5%,transparent)}
+.mushaf-verse-arabic{transition:color 180ms ease,background-color 180ms ease}
+.mushaf-verse-arabic:active{background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.mushaf-canvas{scroll-behavior:smooth}
+.mushaf-sidebar-list{scroll-behavior:smooth}
+.mushaf-page-view,.mushaf-verse-view{will-change:transform,opacity;backface-visibility:hidden}
+@media(max-width:767px){.mushaf-sidebar{top:48px;left:0;bottom:0;width:min(260px,88vw)}}
+@media(prefers-reduced-motion:reduce){
+ .mushaf-sidebar,.mushaf-canvas,.mushaf-sidebar-list,.mushaf-verse-row,.mushaf-page-view,.mushaf-verse-view{scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}
