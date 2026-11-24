@@ -111,13 +111,13 @@ function parseBracketTajweed(markup: string): TajweedSegment[] {
 }
 function renderTajweedMarkup(markup: string, segments?: TajweedSegment[], fallback = '', enabled = true): ReactNode {
   const source = String(markup || '');
-  if (!enabled) return normalizeMadinahArabic(stripAyahEndMarker(stripRawTajweedTokens(fallback || source)));
+  if (!enabled) return normalizeMadinahArabic(stripAyahEndMarker(stripRawQuranMarkup(fallback || source)));
   const hasRawMarkup = /<[^>]+>|\[[a-zA-Z][a-zA-Z0-9_-]*(?::\d+)?\[/i.test(source);
   const parsed = hasRawMarkup ? parseBracketTajweed(source) : segments?.length ? segments : parseBracketTajweed(source);
-  if (!parsed.length || (parsed.length === 1 && !parsed[0].className && !source.includes('['))) return stripAyahEndMarker(stripRawTajweedTokens(fallback || source));
+  if (!parsed.length || (parsed.length === 1 && !parsed[0].className && !source.includes('['))) return stripAyahEndMarker(stripRawQuranMarkup(fallback || source));
   return <>{parsed.map((segment, index) => {
     const className = TAJWEED_CLASSES.has(segment.className) ? segment.className : '';
-    const text = normalizeMadinahArabic(stripRawTajweedTokens(String(segment.text || ''))).replace(/\u06DD/g, '');
+    const text = normalizeMadinahArabic(stripRawQuranMarkup(String(segment.text || ''))).replace(/\u06DD/g, '');
     return className ? <span key={index} className={className}>{text}</span> : <Fragment key={index}>{text}</Fragment>;
   })}</>;
 }
