@@ -6632,14 +6632,22 @@ html, body, #root, .app-frame, .main-area, .page-container {
 
   /* Page-by-page mobile Mushaf: quiet reading canvas with tap-revealed controls. */
   .mushaf-app.is-mobile-page-reading { height: 100dvh; min-height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
-  .mushaf-app.is-mobile-page-reading:not(.mobile-controls-visible) > .mushaf-topbar { display: none !important; }
+  .mushaf-app.is-mobile-page-reading > .mushaf-topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+    flex: 0 0 48px; height: 48px !important; min-height: 48px !important;
+    opacity: 0; visibility: hidden; pointer-events: none;
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    transition: opacity 200ms ease, visibility 200ms ease;
+  }
+  .mushaf-app.is-mobile-page-reading.mobile-controls-visible > .mushaf-topbar {
+    opacity: 1; visibility: visible; pointer-events: auto;
+  }
   .mushaf-mobile-page-header {
     display: flex; flex: 0 0 32px; align-items: center; justify-content: space-between;
     height: 32px; min-height: 32px; padding: 6px 16px; box-sizing: border-box;
     color: var(--text-muted,var(--muted)); font-size: 13px; line-height: 20px;
   }
   .mushaf-app.is-mobile-page-reading.mobile-controls-visible .mushaf-mobile-page-header { display: none !important; }
-  .mushaf-app.is-mobile-page-reading .mushaf-topbar { flex: 0 0 48px; height: 48px !important; min-height: 48px !important; }
   .mushaf-app.is-mobile-page-reading .mushaf-tajweed-keybar { display: none !important; }
   .mushaf-app.is-mobile-page-reading .mushaf-workspace { flex: 1 1 auto; min-height: 0; overflow: hidden; }
   .mushaf-app.is-mobile-page-reading .mushaf-main { flex: 1 1 auto; height: 100%; min-height: 0; overflow: hidden; }
@@ -6652,12 +6660,13 @@ html, body, #root, .app-frame, .main-area, .page-container {
     display: flex; flex-direction: column; justify-content: center;
     width: 100% !important; max-width: none !important;
     min-height: calc(100dvh - 80px); margin: 0 auto;
-    padding: 4px 14px 56px !important; box-sizing: border-box;
+    padding: 4px 0 56px !important; box-sizing: border-box;
   }
   .mushaf-app.is-mobile-page-reading .mushaf-page-text {
-    width: 100%; margin: auto 0; padding: 4px 0;
+    width: 100%; margin: auto 0; padding: 4px 14px;
     direction: rtl; text-align: justify; text-align-last: center;
-    line-height: 2.05; word-spacing: 1px;
+    font-size: clamp(18px, 4.9vw, 22px) !important;
+    line-height: 1.92; word-spacing: 1px;
   }
   .mushaf-app.is-mobile-page-reading .mushaf-page-ayah { white-space: normal; }
   .mushaf-app.is-mobile-page-reading .mushaf-page-medallion {
@@ -6668,6 +6677,10 @@ html, body, #root, .app-frame, .main-area, .page-container {
     position: fixed; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom));
     z-index: 32; width: auto; min-width: 0; margin: 0; padding: 0;
     border: 0; transform: translateX(-50%); pointer-events: none;
+    opacity: 1; visibility: visible; transition: opacity 200ms ease, visibility 200ms ease;
+  }
+  .mushaf-app.is-mobile-page-reading.mobile-controls-visible .mushaf-page-footer {
+    opacity: 0; visibility: hidden;
   }
   .mushaf-app.is-mobile-page-reading .mushaf-page-footer-desktop { display: none; }
   .mushaf-app.is-mobile-page-reading .mushaf-page-footer-mobile {
@@ -6678,12 +6691,15 @@ html, body, #root, .app-frame, .main-area, .page-container {
     font: 500 12px/1.4 "DM Sans",sans-serif; box-shadow: 0 4px 16px rgba(0,0,0,.08);
   }
   .mushaf-page-footer-mobile { display: none; }
-  .mushaf-app.is-mobile-page-reading:not(.mobile-controls-visible) .mushaf-page-arrows { display: none !important; }
-  .mushaf-app.is-mobile-page-reading.mobile-controls-visible .mushaf-page-arrows {
+  .mushaf-app.is-mobile-page-reading .mushaf-page-arrows {
     position: fixed !important; left: 14px !important; right: 14px !important;
     bottom: calc(10px + env(safe-area-inset-bottom)) !important;
     z-index: 34 !important; display: flex !important; flex-direction: row !important;
     justify-content: space-between; align-items: center; pointer-events: none;
+    opacity: 0; visibility: hidden; transition: opacity 200ms ease, visibility 200ms ease;
+  }
+  .mushaf-app.is-mobile-page-reading.mobile-controls-visible .mushaf-page-arrows {
+    opacity: 1; visibility: visible;
   }
   .mushaf-app.is-mobile-page-reading.mobile-controls-visible .mushaf-page-arrows button {
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;

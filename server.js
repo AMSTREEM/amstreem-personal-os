@@ -144,40 +144,48 @@ function tajweedClassForRule(rule) {
   if (/^(r|heavy|tafkhim)$/.test(value) || /tafkhim|heavy/.test(value)) return 'tj-heavy';
   return '';
 }
+const stripQuranMarkup = value => String(value || '')
+  .replace(/<span\s+class=["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '')
+  .replace(/<[^>]+>/g, '')
+  .replace(/\[[a-zA-Z]+(?::\d+)?\[/g, '')
+  .replace(/\]/g, '');
 function parseAlQuranTajweed(markup) {
-  const source = String(markup || '');
+  // End-marker spans are presentation metadata; the reader renders its own medallion.
+  const source = String(markup || '').replace(/<span\s+class=["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '');
   const segments = [];
   const stack = [];
   const append = (value, className) => {
-    const text = normalizeMadinahArabic(value);
+    const text = normalizeMadinahArabic(stripQuranMarkup(value));
     if (!text) return;
     const previous = segments[segments.length - 1];
     if (previous && previous.className === className) previous.text += text;
     else segments.push({ text, className });
   };
-  if (/<(?:tajweed|rule)\b/i.test(source)) {
+  // Tokenize every HTML tag. Unknown tags are ignored, their text children survive.
+  if (/<[^>]+>/.test(source)) {
     const xmlStack = [];
-    const tokens = source.match(/<\/?(?:tajweed|rule)\b[^>]*>|[^<]+/gi) || [];
+    const tokens = source.match(/<[^>]+>|[^<]+/g) || [];
     for (const token of tokens) {
-      const tag = token.match(/^<\s*(\/?)\s*(tajweed|rule)\b([^>]*)>/i);
-      if (tag) {
-        if (tag[1]) {
-          for (let position = xmlStack.length - 1; position >= 0; position--) {
-            if (xmlStack[position].tag === tag[2].toLowerCase()) { xmlStack.splice(position); break; }
-          }
-        } else {
-          const attribute = tag[3].match(/\bclass\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
-          const rule = attribute ? (attribute[1] || attribute[2] || attribute[3] || '') : '';
-          xmlStack.push({ tag: tag[2].toLowerCase(), className: rule.split(/\s+/).map(tajweedClassForRule).find(Boolean) || '' });
-        }
+      const tag = token.match(/^<\s*(\/?)\s*([a-z][a-z0-9:-]*)\b([^>]*)>/i);
+      if (!tag) {
+        append(token, [...xmlStack].reverse().find(item => item.className)?.className || '');
         continue;
       }
-      append(token, [...xmlStack].reverse().find(item => item.className)?.className || '');
+      const tagName = tag[2].toLowerCase();
+      if (tagName !== 'tajweed' && tagName !== 'rule') continue;
+      if (tag[1]) {
+        for (let position = xmlStack.length - 1; position >= 0; position -= 1) {
+          if (xmlStack[position].tag === tagName) { xmlStack.splice(position); break; }
+        }
+      } else {
+        const attribute = tag[3].match(/\bclass\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+        const rule = attribute ? (attribute[1] || attribute[2] || attribute[3] || '') : '';
+        xmlStack.push({ tag: tagName, className: rule.split(/\s+/).map(tajweedClassForRule).find(Boolean) || '' });
+      }
     }
-    return segments;
+    return segments.map(segment => ({ ...segment, text: stripQuranMarkup(segment.text) }));
   }
-  // Parse quran-tajweed's own bracketed characters; never align indices to a
-  // separately encoded quran-uthmani string.
+  // Parse quran-tajweed's bracket syntax while retaining semantic rule classes.
   let index = 0;
   while (index < source.length) {
     if (source[index] === '[') {
@@ -198,7 +206,32 @@ function parseAlQuranTajweed(markup) {
     append(source[index], [...stack].reverse().find(Boolean) || '');
     index += 1;
   }
-  return segments;
+  return segments.map(segment => ({ ...segment, text: stripQuranMarkup(segment.text) }));
+}
+function sanitizeQuranAyah(ayah) {
+  const rawTajweed = String(ayah?.tajweedText || '');
+  const hasMarkup = /<[^>]+>|\[[a-zA-Z]/i.test(rawTajweed);
+  const parsed = hasMarkup ? parseAlQuranTajweed(rawTajweed) : [];
+  const sourceSegments = parsed.length ? parsed : (Array.isArray(ayah?.tajweedSegments) ? ayah.tajweedSegments : []);
+  const tajweedSegments = sourceSegments.map(segment => ({
+    text: stripQuranMarkup(segment?.text || ''),
+    className: /^tj-[a-z-]+$/.test(String(segment?.className || '')) ? String(segment.className) : ''
+  })).filter(segment => segment.text);
+  const cleanText = stripQuranMarkup(ayah?.text || '');
+  const cleanTajweedText = tajweedSegments.map(segment => segment.text).join('') || stripQuranMarkup(rawTajweed);
+  return {
+    ...ayah,
+    text: cleanText || cleanTajweedText,
+    tajweedText: cleanTajweedText,
+    tajweedSegments,
+    translation: stripQuranMarkup(ayah?.translation || ''),
+    translations: Array.isArray(ayah?.translations) ? ayah.translations.map(item => ({ ...item, text: stripQuranMarkup(item?.text || '') })) : [],
+    words: Array.isArray(ayah?.words) ? ayah.words.map(word => ({ ...word, text: stripQuranMarkup(word?.text || ''), tajweed: stripQuranMarkup(word?.tajweed || '') })) : []
+  };
+}
+function sanitizeQuranPayload(payload) {
+  if (!payload || !Array.isArray(payload.ayahs)) return payload;
+  return { ...payload, ayahs: payload.ayahs.map(sanitizeQuranAyah) };
 }
 function normalizeAlQuranCloud(body, page) {
   const editions = Array.isArray(body?.data) ? body.data : [];
@@ -421,7 +454,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
   const send = (payload, source) => {
     res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
     res.setHeader('X-Quran-Cache', source);
-    return res.json(payload);
+    return res.json(sanitizeQuranPayload(payload));
   };
   const cached = quranPageCache.get(page);
   if (cached && Date.now() - cached.cachedAt < QURAN_CACHE_TTL_MS) return send(cached.payload, 'HIT');
@@ -464,7 +497,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
   })();
   quranPageInflight.set(page, task);
   try {
-    const payload = await task;
+    const payload = sanitizeQuranPayload(await task);
     quranPageCache.set(page, { cachedAt: Date.now(), payload });
     if (quranPageCache.size > 604) quranPageCache.delete(quranPageCache.keys().next().value);
     return send(payload, payload.offlineFallback ? 'OFFLINE' : 'MISS');
@@ -482,7 +515,7 @@ app.get('/api/quran/surah/:surah', async (req, res) => {
   const send = (payload, source) => {
     res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
     res.setHeader('X-Quran-Cache', source);
-    return res.json(payload);
+    return res.json(sanitizeQuranPayload(payload));
   };
   const cached = quranSurahCache.get(surahNumber);
   if (cached && Date.now() - cached.cachedAt < QURAN_CACHE_TTL_MS) return send(cached.payload, 'HIT');
@@ -492,7 +525,7 @@ app.get('/api/quran/surah/:surah', async (req, res) => {
   const task = fetchAlQuranCloudSurah(surahNumber);
   quranSurahInflight.set(surahNumber, task);
   try {
-    const payload = await task;
+    const payload = sanitizeQuranPayload(await task);
     quranSurahCache.set(surahNumber, { cachedAt: Date.now(), payload });
     if (quranSurahCache.size > 114) quranSurahCache.delete(quranSurahCache.keys().next().value);
     return send(payload, 'MISS');

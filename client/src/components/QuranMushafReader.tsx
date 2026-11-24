@@ -11,7 +11,7 @@ type MushafWord = { text: string; tajweed?: string; codeV2?: string; lineNumber?
 type MushafAyah = { number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; tajweedText?: string; tajweedSegments?: TajweedSegment[]; translation: string; translations?: Array<{ id: number; name: string; text: string }>; words?: MushafWord[] };
 type MushafPage = { page: number; juz: number; hizb?: number; tajweedComplete?: boolean; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void; autoOpen?: boolean };
-const CACHE_PREFIX = 'atlas_mushaf_page_v9_';
+const CACHE_PREFIX = 'atlas_mushaf_page_v10_';
 const pageMemoryCache = new Map<number, MushafPage>();
 const HIFZ_KEY = 'atlas_hifz_bookmark_v2';
 const MURAJAAH_KEY = 'atlas_murajaah_bookmark_v2';
@@ -46,38 +46,46 @@ const TAJWEED_RULE_CLASSES: Record<string,string> = {
   d:'tj-ghunnah',b:'tj-ghunnah',idgham:'tj-ghunnah',idghaam:'tj-ghunnah',ghunnah:'tj-ghunnah',ikhfa:'tj-ghunnah',iqlab:'tj-ghunnah',
   r:'tj-heavy',heavy:'tj-heavy',tafkhim:'tj-heavy'
 };
-const stripRawTajweedTokens = (value: string) => value.replace(/\[[a-zA-Z]+(?::\d+)?\[/g, '').replace(/\]/g, '');
-function parseBracketTajweed(source: string): TajweedSegment[] {
+const stripRawQuranMarkup = (value: string) => value
+  .replace(/<span\s+class=["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '')
+  .replace(/<[^>]+>/g, '')
+  .replace(/\[[a-zA-Z]+(?::\d+)?\[/g, '')
+  .replace(/\]/g, '');
+function parseBracketTajweed(markup: string): TajweedSegment[] {
+  const source = String(markup || '').replace(/<span\s+class=["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '');
   const result: TajweedSegment[] = [];
   const stack: string[] = [];
   const append = (text: string, className: string) => {
     if (!text) return;
-    const normalized = normalizeMadinahArabic(text);
+    const normalized = normalizeMadinahArabic(stripRawQuranMarkup(text));
     const previous = result[result.length - 1];
     if (previous && previous.className === className) previous.text += normalized;
-    else result.push({ text: normalized, className });
+    else if (normalized) result.push({ text: normalized, className });
   };
-  if (/<(?:tajweed|rule)\b/i.test(source)) {
+  // Accept every HTML tag as syntax so generic tag names and attributes never leak.
+  if (/<[^>]+>/.test(source)) {
     const xmlStack: Array<{ tag: string; className: string }> = [];
-    const tokens = source.match(/<\/?(?:tajweed|rule)\b[^>]*>|[^<]+/gi) || [];
+    const tokens = source.match(/<[^>]+>|[^<]+/g) || [];
     for (const token of tokens) {
-      const tag = token.match(/^<\s*(\/?)\s*(tajweed|rule)\b([^>]*)>/i);
-      if (tag) {
-        if (tag[1]) {
-          for (let position = xmlStack.length - 1; position >= 0; position -= 1) {
-            if (xmlStack[position].tag === tag[2].toLowerCase()) { xmlStack.splice(position); break; }
-          }
-        } else {
-          const attribute = tag[3].match(/\bclass\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
-          const rule = attribute ? (attribute[1] || attribute[2] || attribute[3] || '') : '';
-          const className = rule.split(/\s+/).map(value => TAJWEED_RULE_CLASSES[value.toLowerCase()] || '').find(Boolean) || '';
-          xmlStack.push({ tag: tag[2].toLowerCase(), className });
-        }
+      const tag = token.match(/^<\s*(\/?)\s*([a-z][a-z0-9:-]*)\b([^>]*)>/i);
+      if (!tag) {
+        append(token, [...xmlStack].reverse().find(item => item.className)?.className || '');
         continue;
       }
-      append(token, [...xmlStack].reverse().find(item => item.className)?.className || '');
+      const tagName = tag[2].toLowerCase();
+      if (tagName !== 'tajweed' && tagName !== 'rule') continue;
+      if (tag[1]) {
+        for (let position = xmlStack.length - 1; position >= 0; position -= 1) {
+          if (xmlStack[position].tag === tagName) { xmlStack.splice(position); break; }
+        }
+      } else {
+        const attribute = tag[3].match(/\bclass\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+        const rule = attribute ? (attribute[1] || attribute[2] || attribute[3] || '') : '';
+        const className = rule.split(/\s+/).map(value => TAJWEED_RULE_CLASSES[value.toLowerCase()] || '').find(Boolean) || '';
+        xmlStack.push({ tag: tagName, className });
+      }
     }
-    return result.map(segment => ({ ...segment, text: stripRawTajweedTokens(segment.text) }));
+    return result.map(segment => ({ ...segment, text: stripRawQuranMarkup(segment.text) }));
   }
   let index = 0;
   while (index < source.length) {
@@ -99,12 +107,13 @@ function parseBracketTajweed(source: string): TajweedSegment[] {
     append(source[index], [...stack].reverse().find(Boolean) || '');
     index += 1;
   }
-  return result.map(segment => ({ ...segment, text: stripRawTajweedTokens(segment.text) }));
+  return result.map(segment => ({ ...segment, text: stripRawQuranMarkup(segment.text) }));
 }
 function renderTajweedMarkup(markup: string, segments?: TajweedSegment[], fallback = '', enabled = true): ReactNode {
   const source = String(markup || '');
   if (!enabled) return normalizeMadinahArabic(stripAyahEndMarker(stripRawTajweedTokens(fallback || source)));
-  const parsed = segments?.length ? segments : parseBracketTajweed(source);
+  const hasRawMarkup = /<[^>]+>|\[[a-zA-Z][a-zA-Z0-9_-]*(?::\d+)?\[/i.test(source);
+  const parsed = hasRawMarkup ? parseBracketTajweed(source) : segments?.length ? segments : parseBracketTajweed(source);
   if (!parsed.length || (parsed.length === 1 && !parsed[0].className && !source.includes('['))) return stripAyahEndMarker(stripRawTajweedTokens(fallback || source));
   return <>{parsed.map((segment, index) => {
     const className = TAJWEED_CLASSES.has(segment.className) ? segment.className : '';
@@ -115,14 +124,26 @@ function renderTajweedMarkup(markup: string, segments?: TajweedSegment[], fallba
 const stripAyahEndMarker = (value: string) => value.replace(/\u06DD/g, '').trim();
 const sanitizeMushafPage = (payload: MushafPage): MushafPage => ({
   ...payload,
-  ayahs: (payload.ayahs || []).map(ayah => ({
-    ...ayah,
-    text: stripAyahEndMarker(stripRawTajweedTokens(ayah.text || '')),
-    tajweedText: ayah.tajweedText || '',
-    tajweedSegments: ayah.tajweedSegments?.map(segment => ({ text: String(segment.text || ''), className: TAJWEED_CLASSES.has(segment.className) ? segment.className : '' })),
-    translation: stripAyahEndMarker(ayah.translation || ''),
-    translations: ayah.translations?.map(translation => ({ ...translation, text: stripAyahEndMarker(translation.text || '') })),
-  }))
+  ayahs: (payload.ayahs || []).map(ayah => {
+    const rawTajweed = String(ayah.tajweedText || (/<[^>]+>|\[[a-zA-Z]/i.test(ayah.text || '') ? ayah.text : ''));
+    const hasRawMarkup = /<[^>]+>|\[[a-zA-Z]/i.test(rawTajweed);
+    const parsed = hasRawMarkup ? parseBracketTajweed(rawTajweed) : [];
+    const sourceSegments = parsed.length ? parsed : (ayah.tajweedSegments || []);
+    const tajweedSegments = sourceSegments.map(segment => ({
+      text: stripRawQuranMarkup(String(segment.text || '')),
+      className: TAJWEED_CLASSES.has(segment.className) ? segment.className : ''
+    })).filter(segment => segment.text);
+    const tajweedText = tajweedSegments.map(segment => segment.text).join('') || stripRawQuranMarkup(rawTajweed);
+    return {
+      ...ayah,
+      text: stripAyahEndMarker(stripRawQuranMarkup(ayah.text || '')) || tajweedText,
+      tajweedText,
+      tajweedSegments,
+      translation: stripAyahEndMarker(stripRawQuranMarkup(ayah.translation || '')),
+      translations: ayah.translations?.map(translation => ({ ...translation, text: stripAyahEndMarker(stripRawQuranMarkup(translation.text || '')) })),
+      words: ayah.words?.map(word => ({ ...word, text: stripRawQuranMarkup(word.text || ''), tajweed: stripRawQuranMarkup(word.tajweed || '') }))
+    };
+  })
 });
 function AyahMedallion({ number, className }: { number: number; className: string }) {
   return <span className={'mushaf-medallion ' + (number >= 100 ? 'mushaf-medallion--wide ' : '') + className} aria-label={'Ayah ' + number}>
@@ -180,7 +201,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       const staleKeys: string[] = [];
       for (let index = 0; index < localStorage.length; index += 1) {
         const key = localStorage.key(index);
-        if (key && (/^atlas_mushaf_page_v[1-8]_/.test(key) || /^atlas_mushaf_cache_/.test(key) || /^atlas_quran_page_cache_/.test(key))) staleKeys.push(key);
+        if (key && (/^atlas_mushaf_page_v[1-9]_/.test(key) || /^atlas_mushaf_cache_/.test(key) || /^atlas_quran_page_cache_/.test(key))) staleKeys.push(key);
       }
       staleKeys.forEach(key => localStorage.removeItem(key));
     } catch { /* local storage is optional */ }
