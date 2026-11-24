@@ -6135,3 +6135,12 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .mushaf-page-medallion { width: 32px; height: 32px; min-width: 32px; }
 .mushaf-page-medallion.mushaf-medallion--wide { width: 36px; min-width: 36px; }
 .mushaf-tajweed-key-wrap[hidden] { display: none !important; }
+
+.mushaf-tajweed-key .tj-madd { background: #fb7185 !important; }
+.mushaf-tajweed-key .tj-ghunnah,
+.mushaf-tajweed-key .tj-ikhfa,
+.mushaf-tajweed-key .tj-idgham { background: #34d399 !important; }
+.mushaf-tajweed-key .tj-qalqalah { background: #38bdf8 !important; }
+.mushaf-tajweed-key .tj-tafkhim { background: #fbbf24 !important; }
+.mushaf-tajweed-key .tj-silent,
+.mushaf-tajweed-key .tj-hamza { background: #9297a1 !important; }
