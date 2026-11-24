@@ -624,10 +624,10 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         <button type="button" className={readingMode === 'translation' ? 'is-active' : ''} aria-pressed={readingMode === 'translation'} onClick={() => changeReadingMode('translation')}>Verse by Verse</button>
         <button type="button" className={readingMode === 'reading' ? 'is-active' : ''} aria-pressed={readingMode === 'reading'} onClick={() => changeReadingMode('reading')}>Page by Page</button>
       </div>
-      <div className="mushaf-mobile-study-toggle" role="group" aria-label="Memorisation mode">
+      {isMobileViewport && <div className="mushaf-mobile-study-toggle" role="group" aria-label="Memorisation mode">
         <button type="button" className={mode === 'hifz' ? 'is-active' : ''} aria-pressed={mode === 'hifz'} onClick={() => changeMode('hifz')}>Hifz</button>
         <button type="button" className={mode === 'murajaah' ? 'is-active' : ''} aria-pressed={mode === 'murajaah'} onClick={() => changeMode('murajaah')}>Muraja’ah</button>
-      </div>
+      </div>}
       <div className="mushaf-topbar-center"><Bookmark size={14}/><span>Page {page} · Juz {pageJuz} / Hizb {pageHizb}</span><span className="mushaf-autosaved">Auto-saved · {bookmarkSurahName} {bookmark.surah}:{bookmark.ayah}</span></div>
       <div className="mushaf-topbar-actions">
         <div className="mushaf-settings-anchor">
