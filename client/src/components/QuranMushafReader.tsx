@@ -102,11 +102,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     } catch { /* local storage is optional */ }
   }, []);
   useEffect(() => {
-    if (!sidebarOpen) return;
-    activeSurahItemRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, [sidebarOpen, activeSurahNumber]);
-
-  useEffect(() => {
     if (!fullScreen) return;
     readerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [page, fullScreen]);
@@ -204,6 +199,11 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   }, [page, fullScreen]);
 
   const activeSurahNumber = selected?.surah || pageData?.ayahs?.[0]?.surahNumber || bookmark.surah || 1;
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    activeSurahItemRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [sidebarOpen, activeSurahNumber]);
+
   const activeSurah = QURAN_SURAHS[activeSurahNumber - 1];
   useEffect(() => {
     if (!fullScreen || loading || !pageData?.ayahs?.length) return;
@@ -353,7 +353,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       </div>
     </header>
     <div className="mushaf-workspace">
-      <AnimatePresence initial={false}><>{sidebarOpen && <motion.button type="button" className="mushaf-sidebar-scrim" aria-label="Close Surah navigation" onClick={() => setSidebarOpen(false)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}/ >}{sidebarOpen && <motion.aside className="mushaf-sidebar" aria-label="Qur’an navigation" initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}>
+      <AnimatePresence initial={false}><>{sidebarOpen && <motion.button type="button" className="mushaf-sidebar-scrim" aria-label="Close Surah navigation" onClick={() => setSidebarOpen(false)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2}} />}{sidebarOpen && <motion.aside className="mushaf-sidebar" aria-label="Qur’an navigation" initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}>
         <div className="mushaf-sidebar-tabs" role="tablist" aria-label="Browse Qur’an">
           <button type="button" role="tab" aria-selected={sidebarTab === 'surah'} className={sidebarTab === 'surah' ? 'is-active' : ''} onClick={() => setSidebarTab('surah')}>Surah</button>
           <button type="button" role="tab" aria-selected={sidebarTab === 'juz'} className={sidebarTab === 'juz' ? 'is-active' : ''} onClick={() => setSidebarTab('juz')}>Juz</button>
