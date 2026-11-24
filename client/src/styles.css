@@ -210,7 +210,7 @@ a { color: inherit; text-decoration: none; }
   .main-area { margin-left: 220px; }
   .stat-grid,.stat-grid--four { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
-@media (max-width: 760px) {
+@media (max-width: 767px) {
   .auth-screen { display: block; }
   .auth-visual { display: none; }
   .auth-panel { min-height: 100vh; padding: 30px 22px; }
@@ -9049,9 +9049,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .mobile-menu-button, .mobile-scrim { display: none !important; }
   .topbar { display: flex !important; height: 72px !important; min-height: 72px !important; }
   .topbar-context { display: flex !important; align-items: center !important; }
-  .topbar-context span, .privacy-indicator { display: initial; }
   .topbar-right { display: flex !important; align-items: center !important; }
-  .page-container { width: min(100%, 1480px); margin-inline: auto; }
   .content-grid { display: grid !important; grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr) !important; }
   .goal-grid, .library-grid { display: grid !important; }
   .mushaf-fs-overlay {
