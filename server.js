@@ -89,6 +89,8 @@ app.use('/api', rateLimit({ max: 120 }));
 // a committed offline seed for the opening page and final three Madani pages.
 const quranPageCache = new Map();
 const quranPageInflight = new Map();
+const quranSurahCache = new Map();
+const quranSurahInflight = new Map();
 const quranOfflinePages = require('./server/quran-fallback.json').pages;
 const quranSurahLabels = {"1":{"surahName":"Al-Faatiha","arabicName":"الفاتحة"},"2":{"surahName":"Al-Baqara","arabicName":"البقرة"},"3":{"surahName":"Aal-i-Imraan","arabicName":"آل عمران"},"4":{"surahName":"An-Nisaa","arabicName":"النساء"},"5":{"surahName":"Al-Maaida","arabicName":"المائدة"},"6":{"surahName":"Al-An'aam","arabicName":"الأنعام"},"7":{"surahName":"Al-A'raaf","arabicName":"الأعراف"},"8":{"surahName":"Al-Anfaal","arabicName":"الأنفال"},"9":{"surahName":"At-Tawba","arabicName":"التوبة"},"10":{"surahName":"Yunus","arabicName":"يونس"},"11":{"surahName":"Hud","arabicName":"هود"},"12":{"surahName":"Yusuf","arabicName":"يوسف"},"13":{"surahName":"Ar-Ra'd","arabicName":"الرعد"},"14":{"surahName":"Ibrahim","arabicName":"ابراهيم"},"15":{"surahName":"Al-Hijr","arabicName":"الحجر"},"16":{"surahName":"An-Nahl","arabicName":"النحل"},"17":{"surahName":"Al-Israa","arabicName":"الإسراء"},"18":{"surahName":"Al-Kahf","arabicName":"الكهف"},"19":{"surahName":"Maryam","arabicName":"مريم"},"20":{"surahName":"Taa-Haa","arabicName":"طه"},"21":{"surahName":"Al-Anbiyaa","arabicName":"الأنبياء"},"22":{"surahName":"Al-Hajj","arabicName":"الحج"},"23":{"surahName":"Al-Muminoon","arabicName":"المؤمنون"},"24":{"surahName":"An-Noor","arabicName":"النور"},"25":{"surahName":"Al-Furqaan","arabicName":"الفرقان"},"26":{"surahName":"Ash-Shu'araa","arabicName":"الشعراء"},"27":{"surahName":"An-Naml","arabicName":"النمل"},"28":{"surahName":"Al-Qasas","arabicName":"القصص"},"29":{"surahName":"Al-Ankaboot","arabicName":"العنكبوت"},"30":{"surahName":"Ar-Room","arabicName":"الروم"},"31":{"surahName":"Luqman","arabicName":"لقمان"},"32":{"surahName":"As-Sajda","arabicName":"السجدة"},"33":{"surahName":"Al-Ahzaab","arabicName":"الأحزاب"},"34":{"surahName":"Saba","arabicName":"سبإ"},"35":{"surahName":"Faatir","arabicName":"فاطر"},"36":{"surahName":"Yaseen","arabicName":"يس"},"37":{"surahName":"As-Saaffaat","arabicName":"الصافات"},"38":{"surahName":"Saad","arabicName":"ص"},"39":{"surahName":"Az-Zumar","arabicName":"الزمر"},"40":{"surahName":"Al-Ghaafir","arabicName":"غافر"},"41":{"surahName":"Fussilat","arabicName":"فصلت"},"42":{"surahName":"Ash-Shura","arabicName":"الشورى"},"43":{"surahName":"Az-Zukhruf","arabicName":"الزخرف"},"44":{"surahName":"Ad-Dukhaan","arabicName":"الدخان"},"45":{"surahName":"Al-Jaathiya","arabicName":"الجاثية"},"46":{"surahName":"Al-Ahqaf","arabicName":"الأحقاف"},"47":{"surahName":"Muhammad","arabicName":"محمد"},"48":{"surahName":"Al-Fath","arabicName":"الفتح"},"49":{"surahName":"Al-Hujuraat","arabicName":"الحجرات"},"50":{"surahName":"Qaaf","arabicName":"ق"},"51":{"surahName":"Adh-Dhaariyat","arabicName":"الذاريات"},"52":{"surahName":"At-Tur","arabicName":"الطور"},"53":{"surahName":"An-Najm","arabicName":"النجم"},"54":{"surahName":"Al-Qamar","arabicName":"القمر"},"55":{"surahName":"Ar-Rahmaan","arabicName":"الرحمن"},"56":{"surahName":"Al-Waaqia","arabicName":"الواقعة"},"57":{"surahName":"Al-Hadid","arabicName":"الحديد"},"58":{"surahName":"Al-Mujaadila","arabicName":"المجادلة"},"59":{"surahName":"Al-Hashr","arabicName":"الحشر"},"60":{"surahName":"Al-Mumtahana","arabicName":"الممتحنة"},"61":{"surahName":"As-Saff","arabicName":"الصف"},"62":{"surahName":"Al-Jumu'a","arabicName":"الجمعة"},"63":{"surahName":"Al-Munaafiqoon","arabicName":"المنافقون"},"64":{"surahName":"At-Taghaabun","arabicName":"التغابن"},"65":{"surahName":"At-Talaaq","arabicName":"الطلاق"},"66":{"surahName":"At-Tahrim","arabicName":"التحريم"},"67":{"surahName":"Al-Mulk","arabicName":"الملك"},"68":{"surahName":"Al-Qalam","arabicName":"القلم"},"69":{"surahName":"Al-Haaqqa","arabicName":"الحاقة"},"70":{"surahName":"Al-Ma'aarij","arabicName":"المعارج"},"71":{"surahName":"Nooh","arabicName":"نوح"},"72":{"surahName":"Al-Jinn","arabicName":"الجن"},"73":{"surahName":"Al-Muzzammil","arabicName":"المزمل"},"74":{"surahName":"Al-Muddaththir","arabicName":"المدثر"},"75":{"surahName":"Al-Qiyaama","arabicName":"القيامة"},"76":{"surahName":"Al-Insaan","arabicName":"الانسان"},"77":{"surahName":"Al-Mursalaat","arabicName":"المرسلات"},"78":{"surahName":"An-Naba","arabicName":"النبإ"},"79":{"surahName":"An-Naazi'aat","arabicName":"النازعات"},"80":{"surahName":"Abasa","arabicName":"عبس"},"81":{"surahName":"At-Takwir","arabicName":"التكوير"},"82":{"surahName":"Al-Infitaar","arabicName":"الإنفطار"},"83":{"surahName":"Al-Mutaffifin","arabicName":"المطففين"},"84":{"surahName":"Al-Inshiqaaq","arabicName":"الإنشقاق"},"85":{"surahName":"Al-Burooj","arabicName":"البروج"},"86":{"surahName":"At-Taariq","arabicName":"الطارق"},"87":{"surahName":"Al-A'laa","arabicName":"الأعلى"},"88":{"surahName":"Al-Ghaashiya","arabicName":"الغاشية"},"89":{"surahName":"Al-Fajr","arabicName":"الفجر"},"90":{"surahName":"Al-Balad","arabicName":"البلد"},"91":{"surahName":"Ash-Shams","arabicName":"الشمس"},"92":{"surahName":"Al-Lail","arabicName":"الليل"},"93":{"surahName":"Ad-Dhuhaa","arabicName":"الضحى"},"94":{"surahName":"Ash-Sharh","arabicName":"الشرح"},"95":{"surahName":"At-Tin","arabicName":"التين"},"96":{"surahName":"Al-Alaq","arabicName":"العلق"},"97":{"surahName":"Al-Qadr","arabicName":"القدر"},"98":{"surahName":"Al-Bayyina","arabicName":"البينة"},"99":{"surahName":"Az-Zalzala","arabicName":"الزلزلة"},"100":{"surahName":"Al-Aadiyaat","arabicName":"العاديات"},"101":{"surahName":"Al-Qaari'a","arabicName":"القارعة"},"102":{"surahName":"At-Takaathur","arabicName":"التكاثر"},"103":{"surahName":"Al-Asr","arabicName":"العصر"},"104":{"surahName":"Al-Humaza","arabicName":"الهمزة"},"105":{"surahName":"Al-Fil","arabicName":"الفيل"},"106":{"surahName":"Quraish","arabicName":"قريش"},"107":{"surahName":"Al-Maa'un","arabicName":"الماعون"},"108":{"surahName":"Al-Kawthar","arabicName":"الكوثر"},"109":{"surahName":"Al-Kaafiroon","arabicName":"الكافرون"},"110":{"surahName":"An-Nasr","arabicName":"النصر"},"111":{"surahName":"Al-Masad","arabicName":"المسد"},"112":{"surahName":"Al-Ikhlaas","arabicName":"الإخلاص"},"113":{"surahName":"Al-Falaq","arabicName":"الفلق"},"114":{"surahName":"An-Naas","arabicName":"الناس"}};
 const QURAN_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -426,6 +428,36 @@ app.get('/api/quran/page/:page', async (req, res) => {
     if (cached?.payload?.ayahs?.length) return send(cached.payload, 'STALE');
     return res.status(502).json({ error: 'This page could not be fetched right now. Saved pages remain available; retry when the connection returns.' });
   } finally { quranPageInflight.delete(page); }
+});
+app.get('/api/quran/surah/:surah', async (req, res) => {
+  const surahNumber = Number(req.params.surah);
+  if (!Number.isInteger(surahNumber) || surahNumber < 1 || surahNumber > 114) {
+    return res.status(400).json({ error: 'Qur’an Surah must be between 1 and 114.' });
+  }
+  const send = (payload, source) => {
+    res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+    res.setHeader('X-Quran-Cache', source);
+    return res.json(payload);
+  };
+  const cached = quranSurahCache.get(surahNumber);
+  if (cached && Date.now() - cached.cachedAt < QURAN_CACHE_TTL_MS) return send(cached.payload, 'HIT');
+  if (quranSurahInflight.has(surahNumber)) {
+    try { return send(await quranSurahInflight.get(surahNumber), 'COALESCED'); } catch { /* provider retry below */ }
+  }
+  const task = fetchAlQuranCloudSurah(surahNumber);
+  quranSurahInflight.set(surahNumber, task);
+  try {
+    const payload = await task;
+    quranSurahCache.set(surahNumber, { cachedAt: Date.now(), payload });
+    if (quranSurahCache.size > 114) quranSurahCache.delete(quranSurahCache.keys().next().value);
+    return send(payload, 'MISS');
+  } catch (error) {
+    console.error('Qur’an Surah provider failed:', surahNumber, error.message);
+    if (cached?.payload?.ayahs?.length) return send(cached.payload, 'STALE');
+    return res.status(502).json({ error: 'This Surah could not be fetched right now. Please retry when the connection returns.' });
+  } finally {
+    quranSurahInflight.delete(surahNumber);
+  }
 });
 function getPageJuzFallback(page) {
   const starts = [1,22,42,62,82,102,121,142,162,182,201,222,242,262,282,302,322,342,362,382,402,422,442,462,482,502,522,542,562,582];
