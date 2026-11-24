@@ -732,3 +732,45 @@ test('Page-by-page cache versions are invalidated without touching saved reading
   assert.match(reader, /atlas_mushaf_layout_v1/);
   assert.match(reader, /atlas_mushaf_font_family_v1/);
 });
+
+
+test('Desktop layout lock explicitly isolates app shell, workspace grids, and Mushaf geometry at 768px+', () => {
+  const css = read('client/src/styles.css');
+  const lock = css.slice(css.lastIndexOf('/* Desktop layout lock-in:'));
+  assert.match(lock, /@media \(min-width: 768px\)/);
+  assert.match(lock, /\.sidebar[\s\S]*?width: 252px !important/);
+  assert.match(lock, /\.main-area[\s\S]*?margin-left: 252px !important/);
+  assert.match(lock, /\.content-grid[\s\S]*?grid-template-columns: minmax\(0, 1\.5fr\) minmax\(260px, 1fr\) !important/);
+  assert.match(lock, /grid-template-columns: 270px minmax\(0, 1fr\) !important/);
+  assert.match(lock, /\.mushaf-sidebar[\s\S]*?width: 270px !important/);
+  assert.match(lock, /\.mushaf-topbar-center[\s\S]*?display: flex !important/);
+  assert.match(lock, /\.mushaf-page-arrows[\s\S]*?position: fixed !important/);
+  assert.match(lock, /@media \(min-width: 768px\) and \(max-width: 1050px\)/);
+  assert.match(lock, /\.sidebar \{ width: 220px !important; \}/);
+});
+
+test('CSP uses same-origin scripts only and index contains no inline script bodies', () => {
+  const html = read('client/index.html');
+  const server = read('server.js');
+  assert.match(server, /script-src 'self'/);
+  assert.doesNotMatch(server, /script-src[^\n]*https?:/);
+  const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
+  assert.ok(scripts.length >= 1);
+  assert.ok(scripts.every(match => /\bsrc\s*=/.test(match[1]) && !match[2].trim()));
+});
+
+test('Mushaf bookmark sync is deduplicated and scroll-derived progress is user-scroll gated', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  assert.match(reader, /const saveKey =/);
+  assert.match(reader, /if \(lastSavedKeyRef\.current === saveKey\) return/);
+  assert.match(reader, /lastSavedKeyRef\.current = saveKey/);
+  assert.match(reader, /if \(!userScrolledRef\.current\) return/);
+  assert.match(reader, /restoreTargetRef\.current = readingMode === 'reading' \? null : mark\.surah \+ ':' \+ mark\.ayah/);
+});
+
+test('Uthmanic Hafs font endpoint validates WOFF2 and sends same-origin immutable font headers', () => {
+  const server = read('server.js');
+  assert.match(server, /buffer\.subarray\(0, 4\)\.toString\('ascii'\) === 'wOF2'/);
+  assert.match(server, /res\.setHeader\('Content-Type','font\/woff2'\)/);
+  assert.match(server, /res\.setHeader\('Cache-Control','public, max-age=31536000, immutable'\)/);
+});
