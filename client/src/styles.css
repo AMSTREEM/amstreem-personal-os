@@ -7160,3 +7160,79 @@ html, body, #root, .app-frame, .main-area, .page-container {
     box-shadow: none !important;
   }
 }
+
+
+/* Shared Mushaf topbar controls: one quiet surface, with the view toggle beside Surah. */
+.mushaf-topbar.mushaf-fs-header {
+  background: rgba(128, 128, 128, 0.08) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+.mushaf-surah-trigger,
+.mushaf-page-surah-banner {
+  background: rgba(128, 128, 128, 0.08) !important;
+  border: none !important;
+  border-radius: 12px !important;
+}
+.mushaf-topbar-view-toggle {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+  flex: 0 0 auto !important;
+  padding: 3px !important;
+  border: none !important;
+  border-radius: 999px !important;
+  background: rgba(128, 128, 128, 0.08) !important;
+}
+.mushaf-topbar-view-toggle button {
+  min-height: 30px !important;
+  padding: 0 9px !important;
+  border: none !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: inherit !important;
+  font: inherit !important;
+  font-size: 11px !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+}
+.mushaf-topbar-view-toggle button.is-active {
+  background: rgba(128, 128, 128, 0.16) !important;
+}
+@media (max-width: 767px) {
+  .mushaf-topbar.mushaf-fs-header.mushaf-mobile-header-shell {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .mushaf-mobile-header-shell .mushaf-mobile-topbar {
+    background: rgba(128, 128, 128, 0.08) !important;
+    border: none !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+  }
+  .mushaf-mobile-header-shell .mushaf-topbar-view-toggle {
+    gap: 0 !important;
+    padding: 2px !important;
+  }
+  .mushaf-mobile-header-shell .mushaf-topbar-view-toggle button {
+    min-height: 28px !important;
+    padding: 0 6px !important;
+    font-size: 10px !important;
+  }
+  .mushaf-mobile-header-shell .mushaf-surah-trigger {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    max-width: 112px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    background: transparent !important;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+  }
+  .mushaf-mobile-header-shell .mushaf-topbar-actions {
+    flex: 0 0 auto !important;
+  }
+}
