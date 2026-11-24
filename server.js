@@ -139,7 +139,7 @@ function parseAlQuranTajweed(markup) {
     cursor = pattern.lastIndex;
   }
   if (cursor < source.length) segments.push({ text: source.slice(cursor), className: '' });
-  return segments.map(item => ({ ...item, text: item.text.replace(/[\u06DD\u06DE\u06E9\u06DF-\u06E8\u06EA-\u06ED]/g, '') })).filter(item => item.text);
+  return segments.filter(item => item.text);
 }
 function normalizeAlQuranCloud(body, page) {
   const editions = Array.isArray(body?.data) ? body.data : [];
