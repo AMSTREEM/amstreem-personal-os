@@ -200,59 +200,87 @@ function parseAlQuranTajweed(markup) {
 function normalizeAlQuranCloud(body, page) {
   const editions = Array.isArray(body?.data) ? body.data : [];
   const tajweed = editions.find(item => item?.edition?.identifier === 'quran-tajweed');
-  const arabic = editions.find(item => item?.edition?.identifier === 'quran-uthmani');
   const english = editions.find(item => item?.edition?.identifier === 'en.sahih');
-  if (body?.code !== 200 || !Array.isArray(arabic?.ayahs) || !arabic.ayahs.length || !Array.isArray(english?.ayahs) || english.ayahs.length !== arabic.ayahs.length) throw new Error('AlQuranCloud returned an incomplete Uthmani/English page.');
-  const marked = Array.isArray(tajweed?.ayahs) ? tajweed.ayahs : [];
-  const byNumber = new Map(marked.map(ayah => [Number(ayah.number), String(ayah.text || '')]));
+  if (body?.code !== 200 || !Array.isArray(tajweed?.ayahs) || !tajweed.ayahs.length ||
+      !Array.isArray(english?.ayahs) || english.ayahs.length !== tajweed.ayahs.length) {
+    throw new Error('AlQuranCloud returned an incomplete Tajweed/English page.');
+  }
+  const ayahs = tajweed.ayahs.map((ayah, index) => {
+    const surahNumber = Number(ayah?.surah?.number);
+    const label = quranSurahLabels[surahNumber] || {};
+    const tajweedText = String(ayah.text || '');
+    const tajweedSegments = tajweedText.trim() ? parseAlQuranTajweed(tajweedText) : [{ text: '', className: '' }];
+    return {
+      number: Number(ayah.number), numberInSurah: Number(ayah.numberInSurah), surahNumber,
+      surahName: ayah?.surah?.englishName || label.surahName || 'Surah ' + surahNumber,
+      arabicName: ayah?.surah?.name || label.arabicName || '',
+      text: tajweedSegments.map(segment => segment.text).join(''),
+      tajweedText, tajweedSegments,
+      translation: String(english.ayahs[index]?.text || '').replace(/<[^>]*>/g, '').trim(),
+      translations: [], words: []
+    };
+  });
   return {
-    page, juz: Number(arabic.ayahs[0]?.juz) || 1, qcfAvailable: false,
-    tajweedComplete: arabic.ayahs.length > 0 && arabic.ayahs.every(ayah => { const tagged = byNumber.get(Number(ayah.number)) || ''; return parseAlQuranTajweed(tagged).some(segment => Boolean(segment.className)); }), translationSource: 'Sahih International',
-    ayahs: arabic.ayahs.map((ayah, index) => {
-      const surahNumber = Number(ayah?.surah?.number);
-      const label = quranSurahLabels[surahNumber] || {};
-      const taggedText = byNumber.get(Number(ayah.number)) || '';
-      const uthmaniText = String(ayah.text || '');
-      const taggedSegments = taggedText.trim() ? parseAlQuranTajweed(taggedText) : [{ text: normalizeMadinahArabic(uthmaniText), className: '' }];
-      return {
-        number: Number(ayah.number), numberInSurah: Number(ayah.numberInSurah), surahNumber,
-        surahName: ayah?.surah?.englishName || label.surahName || `Surah ${surahNumber}`,
-        arabicName: ayah?.surah?.name || label.arabicName || '',
-        text: uthmaniText, tajweedText: taggedText, tajweedSegments: taggedSegments,
-        translation: String(english.ayahs[index]?.text || '').replace(/<[^>]*>/g, '').trim(),
-        translations: [], words: []
-      };
-    })
+    page, juz: Number(tajweed.ayahs[0]?.juz) || 1, qcfAvailable: false,
+    tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => ayah.tajweedSegments.some(segment => Boolean(segment.className))),
+    translationSource: 'Sahih International', ayahs
+  };
+}
+function normalizeAlQuranCloudSurah(body, surahNumber) {
+  const editions = Array.isArray(body?.data) ? body.data : [];
+  const tajweed = editions.find(item => item?.edition?.identifier === 'quran-tajweed');
+  const english = editions.find(item => item?.edition?.identifier === 'en.sahih');
+  if (body?.code !== 200 || !Array.isArray(tajweed?.ayahs) || !tajweed.ayahs.length ||
+      !Array.isArray(english?.ayahs) || english.ayahs.length !== tajweed.ayahs.length) {
+    throw new Error('AlQuranCloud returned an incomplete Tajweed/English Surah.');
+  }
+  const label = quranSurahLabels[surahNumber] || {};
+  const ayahs = tajweed.ayahs.map((ayah, index) => {
+    const tajweedText = String(ayah.text || '');
+    const tajweedSegments = tajweedText.trim() ? parseAlQuranTajweed(tajweedText) : [{ text: '', className: '' }];
+    return {
+      number: Number(ayah.number), numberInSurah: Number(ayah.numberInSurah), surahNumber,
+      surahName: ayah?.surah?.englishName || label.surahName || 'Surah ' + surahNumber,
+      arabicName: ayah?.surah?.name || label.arabicName || '',
+      text: tajweedSegments.map(segment => segment.text).join(''),
+      tajweedText, tajweedSegments,
+      translation: String(english.ayahs[index]?.text || '').replace(/<[^>]*>/g, '').trim(),
+      translations: [], words: []
+    };
+  });
+  return {
+    page: Number(tajweed.ayahs[0]?.page) || 1,
+    juz: Number(tajweed.ayahs[0]?.juz) || 1,
+    qcfAvailable: false,
+    tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => ayah.tajweedSegments.some(segment => Boolean(segment.className))),
+    translationSource: 'Sahih International', ayahs
   };
 }
 async function fetchAlQuranCloudPage(page) {
-  const providers = ['https://api.alquran.cloud/v1','https://alquran.api.islamic.network/v1','https://alquran.api.alislam.ru/v1'];
-  const normalizeEdition = body => {
-    if (body?.code !== 200 || !Array.isArray(body?.data?.ayahs) || !body.data.ayahs.length) {
-      throw new Error('AlQuranCloud returned an incomplete page edition.');
-    }
-    return body.data;
-  };
+  const providers = ['https://api.alquran.cloud/v1', 'https://alquran.api.islamic.network/v1', 'https://alquran.api.alislam.ru/v1'];
   let lastError = null;
   for (const base of providers) {
     try {
-      const [arabic, english] = await Promise.all([
-        fetchQuranMirror(`${base}/page/${page}/quran-uthmani`, normalizeEdition, page),
-        fetchQuranMirror(`${base}/page/${page}/en.sahih`, normalizeEdition, page)
-      ]);
-      let tajweed = null;
-      try {
-        tajweed = await fetchQuranMirror(`${base}/page/${page}/quran-tajweed`, normalizeEdition, page);
-      } catch (error) {
-        console.warn('AlQuranCloud Tajweed edition unavailable for page ' + page + ':', error.message);
-      }
-      return normalizeAlQuranCloud({ code: 200, data: [arabic, ...(tajweed ? [tajweed] : []), english] }, page);
+      return await fetchQuranMirror(base + '/page/' + page + '/editions/quran-tajweed,en.sahih', body => normalizeAlQuranCloud(body, page), page);
     } catch (error) {
       lastError = error;
-      console.warn('AlQuranCloud provider failed:', base, error.message);
+      console.warn('AlQuranCloud Tajweed page provider failed:', base, error.message);
     }
   }
-  throw lastError || new Error('No AlQuranCloud page provider is available.');
+  throw lastError || new Error('No AlQuranCloud Tajweed page provider is available.');
+}
+async function fetchAlQuranCloudSurah(surahNumber) {
+  const providers = ['https://api.alquran.cloud/v1', 'https://alquran.api.islamic.network/v1', 'https://alquran.api.alislam.ru/v1'];
+  let lastError = null;
+  for (const base of providers) {
+    try {
+      return await fetchQuranMirror(base + '/surah/' + surahNumber + '/editions/quran-tajweed,en.sahih', body => normalizeAlQuranCloudSurah(body, surahNumber), surahNumber);
+    } catch (error) {
+      lastError = error;
+      console.warn('AlQuranCloud Tajweed Surah provider failed:', base, error.message);
+    }
+  }
+  throw lastError || new Error('No AlQuranCloud Tajweed Surah provider is available.');
 }
 function normalizeQuranCom(body, page) {
   const verses = Array.isArray(body?.verses) ? body.verses : [];
@@ -329,9 +357,18 @@ function applyTajweedToPage(pagePayload, tajweedByVerse) {
   return { ...pagePayload, ayahs, tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => Boolean(ayah.tajweedText)) };
 }
 async function fetchQuranMirror(url, normalizer, page, extraHeaders = {}) {
-  const response = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'AmstreemAtlas/1.0', ...extraHeaders }, signal: AbortSignal.timeout(9000) });
-  if (!response.ok) throw new Error(`Mirror returned HTTP ${response.status}.`);
-  return normalizer(await response.json(), page);
+  let lastError;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const response = await fetch(url, { headers: { Accept: 'application/json', 'User-Agent': 'AmstreemAtlas/1.0', ...extraHeaders }, signal: AbortSignal.timeout(15000) });
+      if (!response.ok) throw new Error(`Mirror returned HTTP ${response.status}.`);
+      return normalizer(await response.json(), page);
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) console.warn('Qur’an provider request failed; retrying once:', error.message);
+    }
+  }
+  throw lastError || new Error('Qur’an provider request failed.');
 }
 app.get('/api/quran/page/:page', async (req, res) => {
   const page = Number(req.params.page);
