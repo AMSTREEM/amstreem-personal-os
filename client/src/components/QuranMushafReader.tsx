@@ -367,12 +367,12 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     if (!targets.length) return;
     const visible = new Map<HTMLElement, IntersectionObserverEntry>();
     const observer = new IntersectionObserver(entries => {
-      if (!userScrolledRef.current) return;
       entries.forEach(entry => {
         const node = entry.target as HTMLElement;
         if (entry.isIntersecting) visible.set(node, entry);
         else visible.delete(node);
       });
+      if (!userScrolledRef.current) return;
       const restoreKey = restoreTargetRef.current;
       if (restoreKey) {
         const restoreNode = targets.find(node => node.dataset.surah + ':' + node.dataset.ayah === restoreKey);
