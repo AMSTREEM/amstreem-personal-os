@@ -5677,7 +5677,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .mushaf-app{--mushaf-hairline:var(--border-hairline,var(--line));position:relative;display:flex;flex-direction:column;width:100%;height:100%;min-width:0;min-height:0;background:var(--bg);color:var(--text);font-family:"DM Sans",sans-serif}
 .mushaf-app button{font:inherit;cursor:pointer}
 .mushaf-app button:disabled{opacity:.38;cursor:not-allowed}
-.mushaf-topbar{position:relative;z-index:4;display:grid;grid-template-columns:minmax(150px,1fr) auto minmax(0,2fr);align-items:center;gap:12px;height:48px;min-height:48px;padding:0 14px;border-bottom:1px solid var(--mushaf-hairline);background:var(--surface);color:var(--text)}
+.mushaf-topbar{position:relative;z-index:4;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;height:48px;min-height:48px;padding:0 14px;border-bottom:1px solid var(--mushaf-hairline);background:var(--surface);color:var(--text)}
 .mushaf-surah-trigger{display:flex;align-items:center;gap:8px;min-width:0;width:max-content;max-width:100%;padding:6px 9px;border:0;border-radius:8px;background:transparent;color:var(--text);font-size:12px;font-weight:650;text-align:left}
 .mushaf-surah-trigger:hover{background:var(--accent-wash)}
 .mushaf-surah-trigger span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -6242,7 +6242,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
   font-family: var(--mushaf-arabic-font, 'Amiri Quran', serif) !important;
 }
 .mushaf-app .mushaf-verse-arabic { font-size: inherit; }
-.mushaf-settings-anchor { position:relative;display:flex;align-items:center; }
+.mushaf-settings-anchor { position:relative;z-index:25;display:flex;align-items:center; }
 .mushaf-settings-trigger {
   display:grid;place-items:center;width:32px;height:32px;min-width:32px;padding:0;
   border:1px solid var(--mushaf-hairline);border-radius:9px;background:var(--bg);
@@ -6553,7 +6553,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
     height: 48px !important;
     min-height: 48px !important;
     padding: 0 10px !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     box-sizing: border-box;
   }
   .mushaf-surah-trigger {
