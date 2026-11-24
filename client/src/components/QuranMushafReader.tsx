@@ -650,7 +650,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
               {readingMode !== 'arabic' && <p className="mushaf-verse-translation">{ayah.translation || 'Translation unavailable.'}</p>}
             </motion.article>)}</motion.div>}
           </motion.section>}{!loading && pageData && readingMode === 'reading' && <motion.section key={'page-' + page} className="mushaf-page-view" dir="rtl" lang="ar" style={{ fontSize: arabicFontSize + 'px', fontFamily: "'" + arabicFontFamily + "', serif" }} initial={prefersReducedMotion ? false : { opacity: 0, x: pageDirection === 'next' ? 18 : -18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: pageDirection === 'next' ? -8 : 8 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.22, ease: [0.16, 1, 0.3, 1] }}>
-            <div className="mushaf-mobile-page-header" aria-hidden="true"><span>{activeSurah?.transliteration || 'Al-Fatihah'}</span><span>Juz {pageJuz}</span></div>
+            {isMobileViewport && <div className="mushaf-mobile-page-header" aria-hidden="true"><span>{activeSurah?.transliteration || 'Al-Fatihah'}</span><span>Juz {pageJuz}</span></div>}
             <div className="mushaf-page-text" ref={pageTextRef} style={{ '--mushaf-fit-font-size': mobilePageFit.fontSize + 'px', '--mushaf-fit-line-height': String(mobilePageFit.lineHeight), fontSize: arabicFontSize + 'px', fontFamily: "'" + arabicFontFamily + "', serif", fontWeight: 400, letterSpacing: '0px', fontFeatureSettings: '"kern" 1, "liga" 1, "calt" 1, "mark" 1, "mkmk" 1' } as CSSProperties}>{pageData.ayahs.map((ayah, index) => {
               const surah = QURAN_SURAHS[ayah.surahNumber - 1];
               const startsSurah = ayah.numberInSurah === 1;
