@@ -222,7 +222,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const restoreTargetRef = useRef<string | null>(null);
   const userScrolledRef = useRef(false);
   const [pageDirection, setPageDirection] = useState<1 | -1>(1);
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const prefersReducedMotion = useReducedMotion();
   const autoLoggedPagesRef = useRef(new Set<string>());
 
