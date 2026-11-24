@@ -208,6 +208,7 @@ function alignTajweedToUthmani(uthmaniText, taggedSegments) {
     pushWord();
     return words;
   };
+  const heavyLetters = /[خ ص ض غ ط ق ظ]/u;
   const normalize = value => String(value).normalize('NFD')
     .replace(/\p{M}/gu, '')
     .replace(/[\u06DD-\u06ED\u0640]/g, '');
@@ -229,7 +230,7 @@ function alignTajweedToUthmani(uthmaniText, taggedSegments) {
         }
       }
       if (matched >= 0) cursor = matched + 1;
-      const className = matched >= 0 ? sourceClusters[matched].className : '';
+      const className = (matched >= 0 ? sourceClusters[matched].className : '') || (heavyLetters.test(cluster.text) ? 'tj-tafkhim' : '');
       const previous = output[output.length - 1];
       if (previous && previous.className === className) previous.text += cluster.text;
       else output.push({ text: cluster.text, className });
