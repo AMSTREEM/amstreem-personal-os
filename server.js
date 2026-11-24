@@ -433,7 +433,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
     }
     let fallback = null;
     const query = `?mushaf=19&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number&page=${page}&per_page=50`;
-    if (!primary?.ayahs?.length || !primary.tajweedComplete) {
+    if (!primary?.ayahs?.length) {
       for (const url of [`https://quran.com/api/proxy/content/api/qdc/verses/by_page/${page}${query}`,`https://api.quran.com/api/v4/verses/by_page/${page}${query}`]) {
         try {
           fallback = await fetchQuranMirror(url, normalizeQuranCom, page);
