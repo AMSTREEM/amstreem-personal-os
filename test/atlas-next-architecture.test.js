@@ -334,11 +334,11 @@ test('AlQuranCloud fetches canonical quran-uthmani and Sahih editions directly f
   assert.deepEqual(Object.keys(offline.pages).sort(), ['1','602','603','604']);
 });
 
-test('Tajweed rendering sanitizes provider HTML, preserves direct tokens and invalidates v1-v9 caches', () => {
+test('Tajweed rendering sanitizes provider HTML, preserves direct tokens and invalidates legacy page caches', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   const css = read('client/src/styles.css');
   const server = read('server.js');
-  for (const item of ['tajweedSegments','TAJWEED_CLASSES','tj-madd','tj-qalqalah','tj-ghunnah','tj-heavy','tajweedEnabled','parseBracketTajweed','normalizeMadinahArabic',"atlas_mushaf_page_v11_","atlas_mushaf_page_v(?:[1-9]|10)_","stripRawQuranMarkup"]) assert.ok(reader.includes(item), 'Missing Tajweed rendering feature: ' + item);
+  for (const item of ['tajweedSegments','TAJWEED_CLASSES','tj-madd','tj-qalqalah','tj-ghunnah','tj-heavy','tajweedEnabled','parseBracketTajweed','normalizeMadinahArabic',"atlas_mushaf_page_v14_","atlas_mushaf_page_v(?:11|12|13)_","atlas_mushaf_page_v(?:[1-9]|10)_","stripRawQuranMarkup"]) assert.ok(reader.includes(item), 'Missing Tajweed rendering feature: ' + item);
   for (const item of ['sanitizeQuranPayload','sanitizeQuranAyah','stripQuranMarkup','<[^>]+>']) assert.ok(server.includes(item), 'Missing server Quran HTML sanitizer: ' + item);
   assert.ok(reader.includes('useLayoutEffect'));
   assert.ok(reader.includes('new ResizeObserver(schedule)'));
