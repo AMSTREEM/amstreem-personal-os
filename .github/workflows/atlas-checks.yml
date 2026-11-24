@@ -23,7 +23,7 @@ jobs:
           node-version: 22
           cache: npm
       - name: Install dependencies
-        run: npm ci
+        run: npm install
       - name: TypeScript typecheck
         run: npm run typecheck
       - name: Production build
@@ -32,4 +32,3 @@ jobs:
         run: npm test
       - name: Dependency audit
         run: npm audit
-        continue-on-error: true
