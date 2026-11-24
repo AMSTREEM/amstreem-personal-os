@@ -412,4 +412,16 @@ test('global scrollbars use theme tokens consistently and the workspace has a si
   assert.ok(shell.includes('className="page-container"'));
 });
 
- 
+test('Mushaf page mode keeps all ayahs reachable and restores separate reading positions', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const css = read('client/src/styles.css');
+  assert.ok(reader.includes("readingMode === 'reading' ? pageTextRef.current : readerRef.current"));
+  assert.ok(reader.includes("readingMode !== 'reading' || !pageData?.ayahs?.length || loading"));
+  assert.ok(reader.includes("onScroll={() => { userScrolledRef.current = true; }}"));
+  assert.ok(reader.includes("updateBookmark(page, first)"));
+  assert.ok(reader.includes("updateBookmark(pageNumber, { surahNumber, numberInSurah: ayahNumber })"));
+  assert.doesNotMatch(reader, /onClick=\{\(\) => \{ if \(isMobileViewport && readingMode === 'reading'\) setMobileControlsVisible/);
+  assert.ok(css.includes("overflow-y: auto !important;"));
+  assert.ok(css.includes("height: calc(100dvh - 48px) !important;"));
+  assert.ok(css.includes("opacity: 1 !important;"));
+});
