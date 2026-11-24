@@ -39,11 +39,13 @@ test('Six selected Surahs tokenize every ayah and retain all provider colour tag
     let lastError;
     for (const host of hosts) {
       try {
-        const response = await fetch(host + '/surah/' + number + '/quran-tajweed', { signal: AbortSignal.timeout(12000) });
+        const response = await fetch(host + '/surah/' + number + '/editions/quran-tajweed,en.sahih', { signal: AbortSignal.timeout(15000) });
         if (!response.ok) throw new Error('HTTP ' + response.status);
         const body = await response.json();
-        if (body?.code !== 200 || !Array.isArray(body?.data?.ayahs)) throw new Error('Invalid quran-tajweed response');
-        return body.data.ayahs;
+        if (body?.code !== 200 || !Array.isArray(body?.data)) throw new Error('Invalid quran-tajweed editions response');
+        const tajweed = body.data.find(item => item.edition?.identifier === 'quran-tajweed');
+        if (!Array.isArray(tajweed?.ayahs)) throw new Error('Missing quran-tajweed edition');
+        return tajweed.ayahs;
       } catch (error) { lastError = error; }
     }
     throw new Error('Could not fetch quran-tajweed Surah ' + number + ': ' + (lastError?.message || 'unknown error'));
@@ -51,14 +53,23 @@ test('Six selected Surahs tokenize every ayah and retain all provider colour tag
   const results = await Promise.all(surahs.map(async surah => {
     const ayahs = await fetchSurah(surah.number);
     assert.equal(ayahs.length, surah.ayahs, surah.name + ' ayah count');
+    let fallbackByAyah = new Map();
+    if (ayahs.some(ayah => !parseAlQuranTajweed(String(ayah.text || '')).some(token => token.className))) {
+      const query = '?mushaf=19&words=true&translations=20&word_fields=text_uthmani_tajweed,verse_key,char_type_name&fields=text_uthmani_tajweed,verse_key,chapter_id,verse_number&per_page=300';
+      const fallbackResponse = await fetch('https://api.quran.com/api/v4/verses/by_chapter/' + surah.number + query, { signal: AbortSignal.timeout(15000) });
+      assert.ok(fallbackResponse.ok, surah.name + ' Quran.com Tajweed fallback request failed');
+      const fallbackBody = await fallbackResponse.json();
+      fallbackByAyah = new Map((fallbackBody.verses || []).map(verse => [Number(verse.verse_number), String(verse.text_uthmani_tajweed || (verse.words || []).map(word => word.text_uthmani_tajweed || '').join(' '))]));
+    }
     let colouredAyahs = 0;
     for (const ayah of ayahs) {
-      const tokens = parseAlQuranTajweed(String(ayah.text || ''));
-      assert.ok(tokens.length > 0, surah.name + ' ' + ayah.numberInSurah + ' produced no Tajweed tokens');
-      if (tokens.some(token => token.className)) colouredAyahs += 1;
+      let tokens = parseAlQuranTajweed(String(ayah.text || ''));
+      if (!tokens.some(token => token.className)) tokens = parseAlQuranTajweed(fallbackByAyah.get(Number(ayah.numberInSurah)) || '');
+      assert.ok(tokens.length > 0 && tokens.some(token => token.className), surah.name + ' ' + ayah.numberInSurah + ' has no coloured Tajweed tokens in either provider');
+      colouredAyahs += 1;
       assert.ok(tokens.every(token => !/[\[\]]/.test(token.text)), surah.name + ' ' + ayah.numberInSurah + ' leaked a bracket');
     }
-    assert.ok(colouredAyahs > 0, surah.name + ' returned no colour tags at all');
+    assert.equal(colouredAyahs, surah.ayahs, surah.name + ' all ayahs must have coloured tokens');
     return { name: surah.name, ayahs: ayahs.length, colouredAyahs };
   }));
   assert.equal(results.reduce((sum, item) => sum + item.ayahs, 0), 520);
