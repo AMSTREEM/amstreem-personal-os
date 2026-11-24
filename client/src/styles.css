@@ -7236,3 +7236,19 @@ html, body, #root, .app-frame, .main-area, .page-container {
     flex: 0 0 auto !important;
   }
 }
+
+
+/* Keep all four desktop header controls on one grid row; mobile uses the inner flex pill. */
+@media (min-width: 768px) {
+  .mushaf-topbar.mushaf-fs-header {
+    grid-template-columns: minmax(0, 1fr) auto auto minmax(0, 1fr) !important;
+  }
+}
+@media (max-width: 767px) {
+  .mushaf-mobile-header-shell .mushaf-surah-trigger {
+    position: static !important;
+    left: auto !important;
+    transform: none !important;
+    width: auto !important;
+  }
+}
