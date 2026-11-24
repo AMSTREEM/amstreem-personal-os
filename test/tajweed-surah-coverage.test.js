@@ -25,7 +25,7 @@ test('Tajweed scanner preserves nested rule tags and normalizes IndoPak letter v
   assert.ok(nested.every(token => !/[\[\]]/.test(token.text)));
 });
 
-test('Al-Fatihah, Al-Baqarah, Al-Kahf, Ya-Sin, Al-Mulk and Al-Ikhlas have coloured tokens in every ayah', { timeout: 90000 }, async () => {
+test('Al-Fatihah, Al-Baqarah, Al-Kahf, Ya-Sin, Al-Mulk and Al-Ikhlas tokenize every ayah and retain all provider colour tags', { timeout: 90000 }, async () => {
   const surahs = [
     { number: 1, name: 'Al-Fatihah', ayahs: 7 },
     { number: 2, name: 'Al-Baqarah', ayahs: 286 },
