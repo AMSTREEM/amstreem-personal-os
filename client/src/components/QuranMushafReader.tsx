@@ -597,85 +597,83 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     targets.forEach(target => observer.observe(target));
     return () => { observer.disconnect(); visible.clear(); };
   }, [fullScreen, readingMode, surahAyahs, pageData, page, pageReadingSurah, updateBookmark]);
-  // Verse by Verse: sample real scroll movement and align as momentum eases,
-  // rather than waiting for a quiet gap after scrolling has stopped.
+  // Verse by Verse: detect the first real deceleration from scroll events.
+  // The ayah under a reading sensor is selected even when its middle is at the top.
   useEffect(() => {
     if (!fullScreen || readingMode === 'reading' || surahLoading || !surahAyahs.length) return;
     const root = readerRef.current;
     if (!root) return;
-    let frame = 0;
-    let idleTimer = 0;
     let lastTop = root.scrollTop;
     let lastTime = performance.now();
     let previousVelocity = 0;
     let peakVelocity = 0;
+    let slowSamples = 0;
     let alignedThisGesture = false;
-    let hasMoved = false;
 
-    const alignNearestAyah = () => {
+    const alignSensorAyah = () => {
       const header = root.querySelector<HTMLElement>('.quran-mobile-header');
       const headerBottom = root.getBoundingClientRect().top + (header?.getBoundingClientRect().height || 0);
+      const sensorY = headerBottom + Math.min(84, root.clientHeight * 0.14);
       const rows = Array.from(root.querySelectorAll<HTMLElement>('.quran-mobile-verse-row'));
-      const visibleRows = rows.filter(row => row.getBoundingClientRect().bottom > headerBottom + 4);
-      if (!visibleRows.length) return;
-      const target = visibleRows.reduce((best, row) =>
-        Math.abs(row.getBoundingClientRect().top - headerBottom) < Math.abs(best.getBoundingClientRect().top - headerBottom) ? row : best
-      );
+      if (!rows.length) return;
+
+      // Prefer the ayah whose full row crosses the sensor, not merely the
+      // ayah whose top edge happens to be closest to the header.
+      const target = rows.find(row => {
+        const rect = row.getBoundingClientRect();
+        return rect.top <= sensorY && rect.bottom > sensorY;
+      }) || rows.reduce((best, row) => {
+        const rect = row.getBoundingClientRect();
+        const bestRect = best.getBoundingClientRect();
+        const distance = sensorY < rect.top ? rect.top - sensorY : sensorY > rect.bottom ? sensorY - rect.bottom : 0;
+        const bestDistance = sensorY < bestRect.top ? bestRect.top - sensorY : sensorY > bestRect.bottom ? sensorY - bestRect.bottom : 0;
+        return distance < bestDistance ? row : best;
+      });
+
       const delta = target.getBoundingClientRect().top - headerBottom;
-      if (Math.abs(delta) < 2) return;
-      // Native smooth scrolling gives the correction a soft finish instead of a hard jump.
-      root.scrollTo({ top: root.scrollTop + delta, behavior: 'smooth' });
+      if (Math.abs(delta) < 3) return;
+      // Keep corrections modest and let the browser ease into the new position.
+      const gentleDelta = Math.max(-120, Math.min(120, delta));
+      root.scrollTo({ top: root.scrollTop + gentleDelta, behavior: 'smooth' });
     };
 
-    const sampleMotion = (now: number) => {
+    const onScroll = () => {
+      const now = performance.now();
       const top = root.scrollTop;
-      const elapsed = Math.max(1, now - lastTime);
+      const elapsed = now - lastTime;
+      if (elapsed <= 0) return;
       const distance = Math.abs(top - lastTop);
-      const velocity = distance / elapsed; // px per ms
-      if (distance > 0.5) hasMoved = true;
-      peakVelocity = Math.max(peakVelocity, velocity);
+      const velocity = distance / elapsed;
 
-      // A clear fall from the gesture's peak, while movement is still happening,
-      // marks the beginning of the natural slowdown (not the end of the scroll).
-      const slowing = peakVelocity > 0.7 &&
-        velocity > 0.035 &&
-        velocity < Math.max(0.32, peakVelocity * 0.48) &&
-        previousVelocity > velocity;
-      if (!alignedThisGesture && hasMoved && slowing) {
-        alignedThisGesture = true;
-        alignNearestAyah();
+      // Ignore long gaps and tiny movement; they are not useful momentum samples.
+      if (elapsed > 110) {
+        previousVelocity = 0;
+        peakVelocity = velocity;
+        slowSamples = 0;
+      } else if (distance > 0.6) {
+        peakVelocity = Math.max(peakVelocity, velocity);
+        const slowing = peakVelocity > 0.5 &&
+          velocity > 0.075 &&
+          velocity < peakVelocity * 0.68 &&
+          previousVelocity > 0 &&
+          velocity < previousVelocity * 0.9;
+        slowSamples = slowing ? slowSamples + 1 : 0;
+
+        // Two consecutive falling samples catch deceleration early, before rest.
+        if (!alignedThisGesture && slowSamples >= 2) {
+          alignedThisGesture = true;
+          alignSensorAyah();
+        }
       }
 
       lastTop = top;
       lastTime = now;
       previousVelocity = velocity;
-      if (!alignedThisGesture) frame = window.requestAnimationFrame(sampleMotion);
-      else frame = 0;
-    };
-
-    const startSampling = () => {
-      if (alignedThisGesture || frame) return;
-      lastTop = root.scrollTop;
-      lastTime = performance.now();
-      previousVelocity = 0;
-      frame = window.requestAnimationFrame(sampleMotion);
-    };
-
-    const onScroll = () => {
-      window.clearTimeout(idleTimer);
-      startSampling();
-      idleTimer = window.setTimeout(() => {
-        if (frame) window.cancelAnimationFrame(frame);
-        frame = 0;
-      }, 180);
     };
 
     const onNewGesture = () => {
-      if (frame) window.cancelAnimationFrame(frame);
-      frame = 0;
-      window.clearTimeout(idleTimer);
       alignedThisGesture = false;
-      hasMoved = false;
+      slowSamples = 0;
       peakVelocity = 0;
       previousVelocity = 0;
       lastTop = root.scrollTop;
@@ -686,8 +684,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     root.addEventListener('touchstart', onNewGesture, { passive: true });
     root.addEventListener('wheel', onNewGesture, { passive: true });
     return () => {
-      if (frame) window.cancelAnimationFrame(frame);
-      window.clearTimeout(idleTimer);
       root.removeEventListener('scroll', onScroll);
       root.removeEventListener('touchstart', onNewGesture);
       root.removeEventListener('wheel', onNewGesture);
