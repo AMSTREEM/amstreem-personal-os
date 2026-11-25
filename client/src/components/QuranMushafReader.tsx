@@ -193,7 +193,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [mobilePageFit, setMobilePageFit] = useState({ fontSize: 21, lineHeight: 2.05 });
   const [surahSearch, setSurahSearch] = useState('');
   const [sidebarTab, setSidebarTab] = useState<'surah' | 'verse' | 'juz' | 'page'>('surah');
-  const [sidebarOpen, setSidebarOpen] = useState(() => window.matchMedia('(min-width: 768px)').matches);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.matchMedia('(min-width: 1024px)').matches);
   const [starredAyahs, setStarredAyahs] = useState<Array<{ surah: number; ayah: number }>>(() => { try { return JSON.parse(localStorage.getItem('atlas_mushaf_starred_ayahs_v1') || '[]'); } catch { return []; } });
   const [selected, setSelected] = useState<{ surah: number; ayah: number } | null>(null);
   const [readingMode, setReadingMode] = useState<'translation' | 'reading' | 'arabic'>(() => { try { const saved = localStorage.getItem('atlas_mushaf_layout_v1'); return saved === 'translation' || saved === 'arabic' || saved === 'reading' ? saved : 'reading'; } catch { return 'reading'; } });
@@ -600,10 +600,11 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       if (!nextPage) return;
       setDesktopVisiblePage(current => current === nextPage ? current : nextPage);
       const firstAyah = node.querySelector<HTMLElement>('[data-mushaf-verse="true"]');
-      if (firstAyah) updateBookmark(nextPage, {
-        surahNumber: Number(firstAyah.dataset.surah),
-        numberInSurah: Number(firstAyah.dataset.ayah)
-      });
+      if (firstAyah) {
+        const location = { surahNumber: Number(firstAyah.dataset.surah), numberInSurah: Number(firstAyah.dataset.ayah) };
+        setSelected(current => current?.surah === location.surahNumber && current.ayah === location.numberInSurah ? current : { surah: location.surahNumber, ayah: location.numberInSurah });
+        updateBookmark(nextPage, location);
+      }
       const lastPage = desktopPageWindow[desktopPageWindow.length - 1]?.page || nextPage;
       if (nextPage >= lastPage - 1 && lastPage < 604 && !desktopPrefetchRef.current.has(lastPage + 1)) {
         desktopPrefetchRef.current.add(lastPage + 1);
