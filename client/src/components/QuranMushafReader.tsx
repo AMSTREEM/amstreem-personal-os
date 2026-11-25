@@ -1075,7 +1075,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   // The Atlas route containers use overflow clipping and animated transforms. A fixed
   // full-screen reader rendered inside them can be clipped/painted behind the shell.
   // Portal the entire Mushaf to document.body so it has a true viewport-level layer.
-  return createPortal(isMobileViewport ? <div className={`quran-mobile-shell${readingMode !== 'reading' ? ' is-verse-mode' : ''}`} ref={readerRef}>
+  void desktopReader;
+  return createPortal(<div className={`quran-mobile-shell${!isMobileViewport ? ' quran-desktop-shell' : ''}${readingMode !== 'reading' ? ' is-verse-mode' : ''}`} ref={readerRef}>
     <header className="quran-mobile-header">
       <div className="quran-mobile-top-row">
         <button className="quran-mobile-surah-trigger" onClick={() => setMobileSurahDrawerOpen(true)}>{mobileActiveSurahNumber}. {mobileActiveSurahName} <span>⌄</span></button>
@@ -1119,5 +1120,5 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       <input value={surahSearch} onChange={event => setSurahSearch(event.target.value)} placeholder="Search 114 Surahs" />
       <div className="quran-mobile-surah-list">{QURAN_SURAHS.filter(surah => (surah.transliteration + ' ' + surah.english + ' ' + surah.number).toLowerCase().includes(surahSearch.toLowerCase())).map(surah => <button key={surah.number} className={surah.number === mobileActiveSurahNumber ? 'is-active' : ''} onClick={() => { jumpSurah(surah.number); setMobileSurahDrawerOpen(false); }}><span><b>{surah.number}. {surah.transliteration}</b><small>{surah.english} · {surah.ayahs} verses</small></span><strong>{surah.arabic}</strong></button>)}</div>
     </aside></div>}
-  </div> : desktopReader, document.body);
+  </div>, document.body);
 }
