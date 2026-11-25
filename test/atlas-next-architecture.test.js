@@ -333,7 +333,7 @@ test('Mobile Qur’an Mushaf renders Quran.com-style chrome, both reading modes,
 
 test('Mobile Mushaf styling is scoped below 768px and uses all ten-theme semantic tokens', () => {
   const css = read('client/src/styles.css');
-  const mobile = css.slice(css.lastIndexOf('/* Mobile Qur\\'an Mushaf'));
+  const mobile = css.slice(css.lastIndexOf("/* Mobile Qur'an Mushaf"));
   assert.match(mobile, /@media \(max-width: 767px\)/);
   assert.match(mobile, /--bg-canvas/);
   assert.match(mobile, /--bg-surface/);
