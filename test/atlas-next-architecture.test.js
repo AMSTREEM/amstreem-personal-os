@@ -310,29 +310,46 @@ test('Uthmanic Hafs font endpoint validates WOFF2 and sends same-origin immutabl
 
 
 
-test('Qur’an reader UI is reset to a neutral placeholder while its data and bookmark hooks remain intact', () => {
+test('Mobile Qur’an Mushaf renders Quran.com-style chrome, both reading modes, and preserved bookmark hooks', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   assert.match(reader, /export function QuranMushafReader\(\{ settings, settingsReady, onLogged/);
-  assert.match(reader, /data-quran-reader-placeholder="true"/);
-  assert.match(reader, /Saved positions are preserved/);
-  assert.match(reader, /useEffect\(/);
-  assert.match(reader, /fetch\('\/api\/quran\/page\//);
-  assert.match(reader, /api\('\/settings', json\('PATCH'/);
+  assert.match(reader, /quran-mobile-shell/);
+  assert.match(reader, /Verse by Verse/);
+  assert.match(reader, /Page by Page/);
+  assert.match(reader, /Tajweed colors/);
+  assert.match(reader, /quran-mobile-hero/);
+  assert.match(reader, /quran-mobile-bismillah/);
+  assert.match(reader, /quran-mobile-page-divider/);
+  assert.match(reader, /quran-mobile-verse-row/);
+  assert.match(reader, /quran-mobile-medallion/);
+  assert.match(reader, /IntersectionObserver/);
+  assert.match(reader, /lastSavedKeyRef/);
   assert.match(reader, /atlas_hifz_bookmark_v2/);
   assert.match(reader, /atlas_murajaah_bookmark_v2/);
-  assert.match(reader, /lastSavedKeyRef/);
-  assert.doesNotMatch(reader, /className=["'](?:mushaf|quran)-/i);
+  assert.match(reader, /fetch\('\/api\/quran\/page\//);
+  assert.match(reader, /fetch\('\/api\/quran\/surah\//);
+  assert.doesNotMatch(reader, /<audio\b|Tafsir|Lessons|Reflections/);
 });
 
-test('Qur’an UI stylesheet wipe removes all Mushaf and Quran class rules without touching app styles', () => {
+test('Mobile Mushaf styling is scoped below 768px and uses all ten-theme semantic tokens', () => {
   const css = read('client/src/styles.css');
-  assert.doesNotMatch(css, /[^{}]*\.(?:mushaf|quran)-[\w-]+[^{}]*\{/i);
+  const mobile = css.slice(css.lastIndexOf('/* Mobile Qur\\'an Mushaf'));
+  assert.match(mobile, /@media \(max-width: 767px\)/);
+  assert.match(mobile, /--bg-canvas/);
+  assert.match(mobile, /--bg-surface/);
+  assert.match(mobile, /--text-primary/);
+  assert.match(mobile, /--text-secondary/);
+  assert.match(mobile, /--border-hairline/);
+  assert.match(mobile, /quran-mobile-header/);
+  assert.match(mobile, /quran-mobile-settings/);
+  assert.match(mobile, /quran-mobile-surah-drawer/);
+  assert.match(mobile, /quran-mobile-medallion/);
+  assert.doesNotMatch(mobile, /@media \(min-width: 768px\)/);
   assert.match(css, /\.sidebar/);
   assert.match(css, /\.main-area/);
-  assert.match(css, /\.faith-section-secondary/);
 });
 
-test('Reader placeholder keeps the original three required public props', () => {
+test('Reader keeps the original required public props', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
   assert.match(reader, /type Props = \{ settings: Settings; settingsReady: boolean; onLogged: \(\) => void/);
   assert.match(reader, /export function QuranMushafReader\(\{ settings, settingsReady, onLogged/);
