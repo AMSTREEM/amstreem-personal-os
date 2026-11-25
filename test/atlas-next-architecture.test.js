@@ -50,13 +50,13 @@ test('project, task, calendar, focus and review records can be linked', () => {
 test('the four core destinations and More menu stay visible while secondary views remain optional', () => {
   const shell = read('client/src/components/AppShell.tsx');
   const settings = read('client/src/pages/SettingsPage.tsx');
-  for (const room of ['Today', 'Deen & Qur’an', 'Focus', 'Goals']) {
+  for (const room of ['Today', 'Deen', 'Focus', 'Goals']) {
     assert.ok(shell.includes("label: '" + room + "'"), 'Missing room ' + room);
   }
   assert.match(shell, /const rooms = \[/);
-  assert.match(shell, /faithTabLabel = quickReligion === 'islam' \? 'Deen & Qur’an'/);
+  assert.match(shell, /faithTabLabel = quickReligion === 'islam' \? 'Deen'/);
   assert.match(shell, /atlas-mobile-dock/);
-  assert.ok(shell.includes('to="/values?openMushaf=1"'));
+  assert.ok(shell.includes('to="/quran"'));
   assert.ok(shell.includes('<BookOpen size={17} strokeWidth={1.8}/><span>Qur’an</span>'));
   assert.ok(shell.includes('atlas-mobile-dock__quran'));
 
@@ -69,7 +69,7 @@ test('the four core destinations and More menu stay visible while secondary view
 });
 
 test('canonical eight-view routes and legacy compatibility redirects cover the personal operating system', () => {
-  for (const route of ['/residence', '/today', '/values', '/habits', '/execution', '/calendar', '/goals', '/learning-library', '/reviews-insights', '/projects', '/tasks', '/focus', '/rituals', '/self-control', '/learning', '/library', '/reviews', '/insights', '/settings', '/admin']) {
+  for (const route of ['/residence', '/today', '/values', '/quran', '/habits', '/execution', '/calendar', '/goals', '/learning-library', '/reviews-insights', '/projects', '/tasks', '/focus', '/rituals', '/self-control', '/learning', '/library', '/reviews', '/insights', '/settings', '/admin']) {
     assert.ok(app.includes('path="' + route + '"'), 'Missing route ' + route);
   }
 });
@@ -91,7 +91,7 @@ test('Today supports fast task capture and deadline-aware priorities', () => {
   const today = read('client/src/pages/TodayPage.tsx');
   assert.ok(today.includes('readHifzPage'));
   assert.ok(today.includes('Open Qur’an · Hifz P.{hifzPage}'));
-  assert.ok(today.includes('to="/values?openMushaf=1"'));
+  assert.ok(today.includes('to="/quran"'));
   assert.match(today, /today-quick-capture/);
   assert.match(today, /api<Task>\('\/tasks'/);
   assert.match(today, /a\.due_date\.localeCompare\(b\.due_date\)/);
@@ -334,7 +334,9 @@ test('Mobile Qur’an Mushaf renders Quran.com-style chrome, both reading modes,
 
 test('Mobile Mushaf styling is scoped below 768px and uses all ten-theme semantic tokens', () => {
   const css = read('client/src/styles.css');
-  const mobile = css.slice(css.lastIndexOf("/* Mobile Qur'an Mushaf"));
+  const mobileStart = css.lastIndexOf("/* Mobile Qur'an Mushaf");
+  const desktopStart = css.indexOf("/* Desktop fallback frame", mobileStart);
+  const mobile = css.slice(mobileStart, desktopStart > -1 ? desktopStart : undefined);
   assert.match(mobile, /@media \(max-width: 767px\)/);
   assert.match(mobile, /--bg-canvas/);
   assert.match(mobile, /--bg-surface/);
