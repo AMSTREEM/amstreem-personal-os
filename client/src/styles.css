@@ -6603,3 +6603,28 @@ html, body, #root, .app-frame, .main-area, .page-container {
 /* Complete Tajweed legend spacing */
 .quran-mobile-shell .quran-mobile-tajweed-legend > div { gap:7px 12px; }
 .quran-mobile-shell .quran-mobile-tajweed-legend > div > span { white-space:nowrap; font-size:11px; font-weight:650; }
+
+
+/* Quran.com QCF V4 Tajweed palette (light palette). Keep rule groups consistent
+   across the mobile and desktop reader; the Arabic text itself is never recoloured
+   by heuristic fallbacks. */
+.quran-mobile-shell .tj-silent { color:#A5A5A5 !important; }
+.quran-mobile-shell .tj-madd-normal,
+.quran-mobile-shell .tj-madd { color:#CE9E00 !important; }
+.quran-mobile-shell .tj-madd-permissible { color:#FF7B00 !important; }
+.quran-mobile-shell .tj-madd-obligatory,
+.quran-mobile-shell .tj-madd-wajib { color:#F40000 !important; }
+.quran-mobile-shell .tj-madd-necessary { color:#B50000 !important; }
+.quran-mobile-shell .tj-qalqalah { color:#2FADFF !important; }
+.quran-mobile-shell .tj-ikhfa,
+.quran-mobile-shell .tj-ikhfa-shafawi,
+.quran-mobile-shell .tj-iqlab,
+.quran-mobile-shell .tj-idgham-shafawi,
+.quran-mobile-shell .tj-idgham-ghunnah,
+.quran-mobile-shell .tj-idgham-no-ghunnah,
+.quran-mobile-shell .tj-idgham-mutajanisayn,
+.quran-mobile-shell .tj-idgham-mutaqaribayn,
+.quran-mobile-shell .tj-idgham,
+.quran-mobile-shell .tj-ghunnah { color:#09B000 !important; }
+.quran-mobile-shell .tj-tafkhim,
+.quran-mobile-shell .tj-heavy { color:#3F48E6 !important; }
