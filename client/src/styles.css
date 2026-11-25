@@ -6522,3 +6522,93 @@ html, body, #root, .app-frame, .main-area, .page-container {
 @media (min-width: 768px) {
   .quran-mobile-shell.is-fixed-page-mode { overflow: hidden !important; }
 }
+
+/* Fit the complete Madinah page, including navigation, inside the mobile viewport. */
+@media (max-width: 767px) {
+  .quran-mobile-shell.is-fixed-page-mode {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    max-height: 100dvh !important;
+    padding-bottom: env(safe-area-inset-bottom) !important;
+    box-sizing: border-box !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-header {
+    flex: 0 0 auto !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-content {
+    display: flex !important;
+    flex: 1 1 0 !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 0 0 4px !important;
+    overflow: hidden !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-page-block {
+    display: flex !important;
+    flex: 1 1 0 !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: 2px 12px 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-page-arabic {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 2px 0 4px !important;
+    overflow: hidden !important;
+    font-size: clamp(13px, 1.95vh, 18px) !important;
+    line-height: 1.58 !important;
+    text-align: justify !important;
+    text-align-last: center !important;
+    word-spacing: 1px !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-page-divider {
+    flex: 0 0 auto !important;
+    margin: 3px 10px !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-bottom-nav {
+    flex: 0 0 auto !important;
+    padding: 4px 10px max(5px, env(safe-area-inset-bottom)) !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-hero {
+    flex: 0 0 auto !important;
+    margin: 3px 0 5px !important;
+    padding: 7px 10px !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-hero-main {
+    grid-template-columns: 58px minmax(0,1fr) !important;
+    gap: 8px !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-hero-arabic {
+    font-size: 28px !important;
+    line-height: 1.2 !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-hero-description,
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-bookmark-modes,
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-hero-subtitle {
+    display: none !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-hero-copy h2 {
+    font-size: 13px !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-bismillah {
+    flex: 0 0 auto !important;
+    padding: 2px 8px 4px !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-bismillah > div {
+    font-size: 19px !important;
+    line-height: 1.35 !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-bismillah p {
+    display: none !important;
+  }
+}
