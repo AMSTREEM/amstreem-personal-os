@@ -488,7 +488,7 @@ async function fetchAlQuranCloudTajweedPage(page) {
           const markup = String(ayah?.text || '');
           if (!Number.isInteger(surahNumber) || !Number.isInteger(numberInSurah) || !markup) continue;
           const segments = parseAlQuranTajweed(markup);
-          if (segments.some(segment => Boolean(segment.className))) {
+          if (segments.length) {
             annotations.set(surahNumber + ':' + numberInSurah, { markup, segments });
           }
         }
@@ -504,7 +504,7 @@ function mergeTajweedEdition(pagePayload, annotations) {
   const ayahs = pagePayload.ayahs.map(ayah => {
     if ((ayah.tajweedSegments || []).some(segment => Boolean(segment.className))) return ayah;
     const annotation = annotations.get(ayah.surahNumber + ':' + ayah.numberInSurah);
-    if (!annotation?.segments?.some(segment => Boolean(segment.className))) return ayah;
+    if (!annotation?.segments?.length) return ayah;
     const comparable = value => normalizeMadinahArabic(stripQuranMarkup(value))
       .replace(/[\s\u064B-\u065F\u0670\u06D6-\u06ED]/g, '');
     const sourceText = comparable(ayah.text);
