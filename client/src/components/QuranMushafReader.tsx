@@ -794,13 +794,13 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
                 return <Fragment key={'surah-run-' + run.surahNumber}>
                   {run.startsSurah && <header className="mushaf-page-surah-banner">
                     <div className="mushaf-page-surah-hero-main"><b lang="ar" dir="rtl">{surah?.arabic || run.arabicName}</b><div><strong>{run.surahNumber}. Surah {surah?.transliteration || run.surahName}</strong><span>{surah?.english || ''}</span></div></div>
-                    <p>{surah?.revelation || 'Qur’an'} · {surah?.ayahs || 0} verses</p>
+                    <p className="mushaf-page-surah-description">Read and explore the full Surah {surah?.transliteration || run.surahName}, consisting of {surah?.ayahs || run.ayahs.length} verses. Revealed in {surah?.revelation || 'the Qur’an'}, with Arabic text and memorisation tools.</p>
                     <div className="mushaf-page-hero-modes" role="group" aria-label="Bookmark mode">
                       <button type="button" className={mode === 'hifz' ? 'is-active' : ''} aria-pressed={mode === 'hifz'} onClick={() => changeMode('hifz')}>Hifz</button>
                       <button type="button" className={mode === 'murajaah' ? 'is-active' : ''} aria-pressed={mode === 'murajaah'} onClick={() => changeMode('murajaah')}>Muraja'ah</button>
                     </div>
                   </header>}
-                  {run.startsSurah && run.surahNumber !== 9 && <div className="mushaf-page-bismillah" lang="ar" dir="rtl"><b>بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</b></div>}
+                  {run.startsSurah && run.surahNumber !== 9 && <div className="mushaf-page-bismillah" lang="ar" dir="rtl"><b>بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</b><span lang="en" dir="ltr">In the Name of Allah—the Most Compassionate, Most Merciful</span></div>}
                   <p className="mushaf-page-run-text" dir="rtl" lang="ar" style={{ fontFamily: "'UthmanicHafs', serif", fontWeight: 400, textAlign: 'justify', textAlignLast: 'center', lineHeight: 2.25, wordSpacing: '3px', width: '100%' }}>
                     {run.ayahs.map((ayah, ayahIndex) => {
                       const key = ayah.surahNumber + ':' + ayah.numberInSurah;
