@@ -189,10 +189,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [mobileControlsVisible, setMobileControlsVisible] = useState(false);
   const [mobileScrolled, setMobileScrolled] = useState(false);
   const [mobileSurahDrawerOpen, setMobileSurahDrawerOpen] = useState(false);
-  const [mobileContinuousPages, setMobileContinuousPages] = useState<MushafPage[]>([]);
-  const [mobileLoadingMore, setMobileLoadingMore] = useState(false);
-  const mobileLoadingMoreRef = useRef(false);
   const [mobileVisiblePage, setMobileVisiblePage] = useState(page);
+  const pageSwipeStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const [mobilePageFit, setMobilePageFit] = useState({ fontSize: 21, lineHeight: 2.05 });
   const [surahSearch, setSurahSearch] = useState('');
@@ -426,63 +424,17 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
 
 
   useEffect(() => {
-    setMobileContinuousPages([]);
     setMobileVisiblePage(page);
-    mobileLoadingMoreRef.current = false;
-    setMobileLoadingMore(false);
+    if (readerRef.current) readerRef.current.scrollTop = 0;
   }, [page]);
-
-  useEffect(() => {
-    if (pageData?.ayahs?.length && pageData.page === page) setMobileContinuousPages([pageData]);
-  }, [pageData, page]);
-
-  const loadNextMobilePage = useCallback(async () => {
-    const lastPage = mobileContinuousPages[mobileContinuousPages.length - 1]?.page || page;
-    const readingSurahNumber = pageReadingSurah;
-    const readingSurah = QURAN_SURAHS[readingSurahNumber - 1];
-    const surahLastPage = getAyahLocation(readingSurahNumber, readingSurah?.ayahs || 1)?.page || lastPage;
-    if (mobileLoadingMoreRef.current || lastPage >= Math.min(604, surahLastPage)) return;
-    mobileLoadingMoreRef.current = true;
-    setMobileLoadingMore(true);
-    try {
-      const cached = readCachedMushafPage(lastPage + 1);
-      let next = cached;
-      if (!next) {
-        const response = await fetch('/api/quran/page/' + (lastPage + 1));
-        if (!response.ok) throw new Error('Could not load the next Mushaf page.');
-        next = sanitizeMushafPage(await response.json() as MushafPage);
-        if (!next.ayahs?.length) throw new Error('The next Mushaf page is empty.');
-        pageMemoryCache.set(lastPage + 1, next);
-        try { localStorage.setItem(CACHE_PREFIX + (lastPage + 1), JSON.stringify(next)); } catch { /* optional cache */ }
-      }
-      setMobileContinuousPages(current => current.some(item => item.page === next!.page) ? current : [...current, next!]);
-    } catch { /* the current page remains readable if prefetch fails */ }
-    finally { mobileLoadingMoreRef.current = false; setMobileLoadingMore(false); }
-  }, [mobileContinuousPages, page, pageReadingSurah]);
 
   useEffect(() => {
     const root = readerRef.current;
     if (!fullScreen || !root) return;
-    const markUserIntent = () => { userScrolledRef.current = true; };
-    root.addEventListener('touchstart', markUserIntent, { passive: true });
-    root.addEventListener('wheel', markUserIntent, { passive: true });
-    root.addEventListener('pointerdown', markUserIntent, { passive: true });
-    const onScroll = () => {
-      setMobileScrolled(root.scrollTop >= 120);
-      const blocks = Array.from(root.querySelectorAll<HTMLElement>('[data-mobile-page-block]'));
-      const atScrollEnd = root.scrollHeight - root.scrollTop - root.clientHeight < 80;
-      const visible = atScrollEnd && blocks.length ? blocks[blocks.length - 1] : blocks.find(block => {
-        const rect = block.getBoundingClientRect();
-        return rect.bottom > 145 && rect.top < root.getBoundingClientRect().bottom;
-      });
-      if (visible) setMobileVisiblePage(Number(visible.dataset.mobilePage) || page);
-      const visibleSurahEndPage = getAyahLocation(pageReadingSurah, QURAN_SURAHS[pageReadingSurah - 1]?.ayahs || 1)?.page || page;
-      if (readingMode === 'reading' && mobileVisiblePage < visibleSurahEndPage && root.scrollHeight - root.scrollTop - root.clientHeight < 620) void loadNextMobilePage();
-    };
+    const onScroll = () => setMobileScrolled(root.scrollTop >= 120);
     root.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-    return () => { root.removeEventListener('scroll', onScroll); root.removeEventListener('touchstart', markUserIntent); root.removeEventListener('wheel', markUserIntent); root.removeEventListener('pointerdown', markUserIntent); };
-  }, [fullScreen, readingMode, loadNextMobilePage, page, mobileContinuousPages.length, mobileVisiblePage, pageReadingSurah]);
+    return () => root.removeEventListener('scroll', onScroll);
+  }, [fullScreen]);
 
   const activeSurahNumber = selected?.surah || pageData?.ayahs?.[0]?.surahNumber || bookmark.surah || 1;
   useEffect(() => {
@@ -784,14 +736,12 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       </>}
     </header>
     {tajweedLegendVisible && <aside className="quran-mobile-tajweed-legend"><b>Tajweed color key</b><div><span className="tj-madd">Madd</span><span className="tj-ghunnah">Ghunnah</span><span className="tj-qalqalah">Qalqalah</span><span className="tj-ikhfa">Ikhfa</span><span className="tj-idgham">Idgham</span></div></aside>}
-    <main className="quran-mobile-content">
+    <main className="quran-mobile-content" onTouchStart={event => { const touch = event.touches[0]; pageSwipeStartRef.current = { x: touch.clientX, y: touch.clientY }; }} onTouchEnd={event => { const start = pageSwipeStartRef.current; pageSwipeStartRef.current = null; if (!start || readingMode !== 'reading' || loading || pageError) return; const touch = event.changedTouches[0]; const dx = touch.clientX - start.x; const dy = touch.clientY - start.y; if (Math.abs(dx) < 65 || Math.abs(dx) < Math.abs(dy) * 1.25) return; const lastPage = getAyahLocation(pageReadingSurah, QURAN_SURAHS[pageReadingSurah - 1]?.ayahs || 1)?.page || 604; if (dx < 0 && page < lastPage) changePage(page + 1); else if (dx > 0 && page > (QURAN_SURAHS[pageReadingSurah - 1]?.pageStart || 1)) changePage(page - 1); }}>
       {loading && <div className="quran-mobile-loading">Loading Qur’an…</div>}
       {pageError && <div className="quran-mobile-error">{pageError}<button onClick={() => changePage(page)}>Retry</button></div>}
-      {!loading && !pageError && readingMode === 'reading' && <div className="quran-mobile-page-quick quran-mobile-page-quick-top"><button disabled={page <= (QURAN_SURAHS[pageReadingSurah - 1]?.pageStart || 1)} onClick={() => changePage(page - 1)}>‹ Previous Page</button><button disabled={page >= (getAyahLocation(pageReadingSurah, QURAN_SURAHS[pageReadingSurah - 1]?.ayahs || 1)?.page || 604)} onClick={() => changePage(page + 1)}>Next Page ›</button></div>}
       {!loading && !pageError && readingMode === 'reading' && pageData && <>
-        {mobileContinuousPages.length ? mobileContinuousPages.map((data, index) => renderPageBlock(data, index === 0)) : renderPageBlock(pageData, true)}
-        {mobileLoadingMore && <p className="quran-mobile-loading">Loading next page…</p>}
-        {mobileVisiblePage >= (getAyahLocation(pageReadingSurah, QURAN_SURAHS[pageReadingSurah - 1]?.ayahs || 1)?.page || 604) ? <div className="quran-mobile-bottom-nav quran-mobile-surah-nav"><button disabled={pageReadingSurah <= 1} onClick={() => jumpSurah(pageReadingSurah - 1)}>‹ Previous Surah</button><button disabled={pageReadingSurah >= 114} onClick={() => jumpSurah(pageReadingSurah + 1)}>Next Surah ›</button></div> : <div className="quran-mobile-bottom-nav"><button onClick={() => changePage(mobileVisiblePage + 1)}>Next Page ›</button></div>}
+        {renderPageBlock(pageData, true)}
+        {page >= (getAyahLocation(pageReadingSurah, QURAN_SURAHS[pageReadingSurah - 1]?.ayahs || 1)?.page || 604) ? <div className="quran-mobile-bottom-nav quran-mobile-surah-nav"><button disabled={pageReadingSurah <= 1} onClick={() => jumpSurah(pageReadingSurah - 1)}>‹ Previous Surah</button><button disabled={pageReadingSurah >= 114} onClick={() => jumpSurah(pageReadingSurah + 1)}>Next Surah ›</button></div> : <div className="quran-mobile-bottom-nav"><button disabled={page <= (QURAN_SURAHS[pageReadingSurah - 1]?.pageStart || 1)} onClick={() => changePage(page - 1)}>‹ Previous Page</button><button onClick={() => changePage(page + 1)}>Next Page ›</button></div>}
       </>}
       {!loading && !pageError && readingMode !== 'reading' && <>
         {surahLoading && <div className="quran-mobile-loading">Loading Surah…</div>}
