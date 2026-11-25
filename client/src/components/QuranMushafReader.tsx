@@ -9,7 +9,7 @@ type Settings = Record<string, string>;
 type TajweedSegment = { text: string; className: string };
 type MushafWord = { text: string; tajweed?: string; codeV2?: string; lineNumber?: number; pageNumber?: number; position?: number; verseKey?: string; charTypeName?: string };
 type MushafAyah = { textSource?: string; pageNumber?: number; number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; tajweedText?: string; tajweedSegments?: TajweedSegment[]; translation: string; transliteration?: string; translations?: Array<{ id: number; name: string; text: string }>; words?: MushafWord[] };
-type MushafPage = { textSource?: string; page: number; juz: number; hizb?: number; tajweedComplete?: boolean; tajweedCoverage?: { totalAyahs: number; sourcedAyahs: number; coloredAyahs: number; missingAyahs: string[]; mismatchedAyahs: string[] }; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
+type MushafPage = { textSource?: string; page: number; juz: number; hizb?: number; tajweedComplete?: boolean; tajweedCoverage?: { totalAyahs: number; sourcedAyahs: number; coloredAyahs: number; uncoloredAyahs: string[]; missingAyahs: string[]; mismatchedAyahs: string[] }; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void; autoOpen?: boolean };
 const CACHE_PREFIX = 'atlas_mushaf_page_v17_';
 const pageMemoryCache = new Map<number, MushafPage>();
