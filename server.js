@@ -837,7 +837,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
       throw new Error('All Qur’an page providers are temporarily unavailable.');
     }
     let annotatedPage = sourcePage;
-    const hasUnmarkedAyahs = annotatedPage.ayahs.some(ayah => !(ayah.tajweedSegments || []).some(segment => Boolean(segment.className)));
+    const hasUnmarkedAyahs = !annotatedPage.qcfAvailable && annotatedPage.ayahs.some(ayah => !(ayah.tajweedSegments || []).some(segment => Boolean(segment.className)));
     if (hasUnmarkedAyahs) {
       try {
         const editionAnnotations = await fetchAlQuranCloudTajweedPage(page);
@@ -887,34 +887,39 @@ app.get('/api/quran/surah/:surah', async (req, res) => {
   }
   const task = (async () => {
     const source = await fetchAlQuranCloudSurah(surahNumber);
+    let enriched = source;
     try {
       const auth = await getQuranApiAuth();
       const annotations = await fetchOfficialTajweedSurah(auth.apiBase, auth.headers, surahNumber);
-      return applyTajweedToPage(source, annotations);
+      enriched = applyTajweedToPage(source, annotations);
+      if (enriched.tajweedComplete) return enriched;
+      console.warn('Official Tajweed source is incomplete for Surah:', surahNumber, enriched.tajweedCoverage);
     } catch (error) {
       console.warn('Official Surah Tajweed enrichment unavailable:', surahNumber, error.message);
-      try {
-        const editions = ['https://api.alquran.cloud/v1', 'https://alquran.api.islamic.network/v1', 'https://alquran.api.alislam.ru/v1'];
-        for (const base of editions) {
-          try {
-            const annotations = await fetchQuranMirror(base + '/surah/' + surahNumber + '/quran-tajweed', body => {
-              const list = body?.data?.ayahs;
-              if (body?.code !== 200 || !Array.isArray(list) || !list.length) throw new Error('Tajweed Surah edition is incomplete.');
-              const map = new Map();
-              for (const ayah of list) {
-                const key = Number(ayah?.surah?.number) + ':' + Number(ayah?.numberInSurah);
-                const markup = String(ayah?.text || '');
-                if (/^\\d+:\\d+$/.test(key) && markup) map.set(key, markup);
-              }
-              return map;
-            }, 1);
-            return mergeTajweedEdition(source, new Map([...annotations].map(([key, markup]) => [key, { markup, segments: parseAlQuranTajweed(markup) }])));
-          } catch (fallbackError) { console.warn('Tajweed Surah mirror failed:', fallbackError.message); }
-        }
-      } catch { /* plain Uthmani source remains readable */ }
-      return source;
     }
-  })();
+    const editions = ['https://api.alquran.cloud/v1', 'https://alquran.api.islamic.network/v1', 'https://alquran.api.alislam.ru/v1'];
+    for (const base of editions) {
+      try {
+        const annotations = await fetchQuranMirror(base + '/surah/' + surahNumber + '/quran-tajweed', body => {
+          const list = body?.data?.ayahs;
+          if (body?.code !== 200 || !Array.isArray(list) || !list.length) throw new Error('Tajweed Surah edition is incomplete.');
+          const map = new Map();
+          for (const ayah of list) {
+            const key = Number(ayah?.surah?.number) + ':' + Number(ayah?.numberInSurah);
+            const markup = String(ayah?.text || '');
+            if (/^\\d+:\\d+$/.test(key) && markup) map.set(key, { markup, segments: parseAlQuranTajweed(markup) });
+          }
+          return map;
+        }, 1);
+        const merged = mergeTajweedEdition(enriched, annotations);
+        if (merged.tajweedComplete) return merged;
+        enriched = merged;
+      } catch (fallbackError) {
+        console.warn('Tajweed Surah mirror failed:', surahNumber, fallbackError.message);
+      }
+    }
+    return enriched;
+  })(););
   quranSurahInflight.set(surahNumber, task);
   try {
     const payload = sanitizeQuranPayload(await task);
