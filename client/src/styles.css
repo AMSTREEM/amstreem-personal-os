@@ -6967,3 +6967,12 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .quran-desktop-shell .quran-mobile-mode-tabs button { min-height:36px; }
   .quran-desktop-shell .quran-mobile-tajweed-center button { min-height:34px; }
 }
+
+
+/* Long Ayahs exceed the visible reading area: never snap or auto-correct them. */
+@media (max-width:767px) {
+  .quran-mobile-shell.is-verse-mode .quran-mobile-verse-row.is-long-ayah {
+    scroll-snap-align:none !important;
+    scroll-snap-stop:normal !important;
+  }
+}
