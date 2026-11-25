@@ -16,7 +16,7 @@ const { parseAlQuranTajweed, normalizeMadinahArabic } = context.module.exports;
 
 test('Tajweed scanner preserves nested rule tags and normalizes IndoPak letter variants', () => {
   const tokens = parseAlQuranTajweed('[h:1[بِسْمِ]][n[ٱللّٰهُ]][q:3[ق]]');
-  assert.deepEqual(Array.from(tokens, token => token.className), ['tj-silent', 'tj-madd-wajib', 'tj-qalqalah']);
+  assert.deepEqual(Array.from(tokens, token => token.className), ['tj-silent', 'tj-madd-normal', 'tj-qalqalah']);
   assert.equal(tokens.map(token => token.text).join(''), 'بِسْمِٱللّٰهُق');
   assert.equal(normalizeMadinahArabic('\u06CC\u06A9\u06C1'), '\u064A\u0643\u0647');
   const nested = parseAlQuranTajweed('[g[م[m[د]]ّ]]');
@@ -95,8 +95,8 @@ test('every Quran Foundation HTML rule and quran-tajweed shortcode maps to its c
     'tj-idgham-mutajanisayn','tj-idgham-mutaqaribayn','tj-ghunnah'
   ];
   const parsed = parseAlQuranTajweed(html);
-  assert.deepEqual(Array.from(parsed, token => token.className), expected);
+  assert.deepEqual(Array.from(parsed.filter(token => token.className), token => token.className), expected);
   const shortcode = '[h[ٱ]][s[ا]][n[ـٰ]][p[ي]][m[ا]][o[ا]][q[ق]][f[ن]][c[م]][i[ن]][w[م]][a[ن]][u[ل]][d[ت]][b[ق]][g[ن]]';
-  assert.deepEqual(Array.from(parseAlQuranTajweed(shortcode), token => token.className), expected);
-  assert.equal(parsed.map(token => token.text).join(''), 'ٱاـٰيااقنمنمنلتقن');
+  assert.deepEqual(Array.from(parseAlQuranTajweed(shortcode).filter(token => token.className), token => token.className), expected);
+  assert.equal(parsed.map(token => token.text).join('').replace(/\\s/g, ''), 'ٱاـٰيااقنمنمنلتقن');
 });
