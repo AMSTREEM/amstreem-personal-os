@@ -803,4 +803,3 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     </aside></div>}
   </div>;
 }
-}
