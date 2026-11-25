@@ -7514,3 +7514,27 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .quran-desktop-shell .mushaf-desktop-segmented button { padding-inline: 7px; font-size: 10px; }
   .quran-desktop-shell .mushaf-desktop-bookmark-pills button { padding-inline: 7px; }
 }
+
+
+@media (min-width: 768px) {
+  .quran-desktop-shell .mushaf-desktop-page-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    min-height: 32.25em;
+    line-height: 2.15;
+  }
+  .quran-desktop-shell .mushaf-desktop-qcf-line {
+    display: block;
+    min-height: 2.15em;
+    width: 100%;
+    overflow: visible;
+    direction: rtl;
+    text-align: justify;
+    text-align-last: justify;
+    white-space: normal;
+    line-height: 2.15;
+  }
+  .quran-desktop-shell .mushaf-desktop-page-fallback { width: 100%; }
+  .quran-desktop-shell .mushaf-desktop-page-bookmark-anchor { display: none; }
+}
