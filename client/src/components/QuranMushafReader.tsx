@@ -409,12 +409,21 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     const updateSnapOffset = () => {
       const headerHeight = header?.getBoundingClientRect().height || 0;
       root.style.setProperty('--quran-mobile-snap-offset', `${Math.ceil(headerHeight + 8)}px`);
+      // Oversized Ayahs must remain freely scrollable; only short cards participate in snapping.
+      const usableHeight = Math.max(0, root.clientHeight - headerHeight - 32);
+      root.querySelectorAll<HTMLElement>('.quran-mobile-verse-row[data-mushaf-verse="true"]').forEach(row => {
+        row.classList.toggle('is-long-ayah', row.getBoundingClientRect().height > usableHeight);
+      });
     };
     updateSnapOffset();
     const headerObserver = typeof ResizeObserver !== 'undefined' && header
       ? new ResizeObserver(updateSnapOffset)
       : null;
     if (header) headerObserver?.observe(header);
+    const rootSizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateSnapOffset) : null;
+    rootSizeObserver?.observe(root);
+    const rowSizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateSnapOffset) : null;
+    root.querySelectorAll<HTMLElement>('.quran-mobile-verse-row[data-mushaf-verse="true"]').forEach(row => rowSizeObserver?.observe(row));
     const alignStoppedAyah = () => {
       if (correcting) return;
       const rootRect = root.getBoundingClientRect();
@@ -431,6 +440,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         return Math.abs(rect.top - sensorY) < Math.abs(bestRect.top - sensorY) ? row : best;
       }, rows[0]);
       const targetRect = target.getBoundingClientRect();
+      const usableHeight = Math.max(0, root.clientHeight - (header?.getBoundingClientRect().height || 0) - 32);
+      if (targetRect.height > usableHeight || target.classList.contains('is-long-ayah')) return;
       const desiredTop = root.scrollTop + targetRect.top - rootRect.top - (headerBottom - rootRect.top) - 8;
       const delta = desiredTop - root.scrollTop;
       if (Math.abs(delta) < 12) return;
@@ -461,6 +472,9 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       window.clearTimeout(settleTimer);
       window.clearTimeout(correctionFallback);
       headerObserver?.disconnect();
+      rootSizeObserver?.disconnect();
+      rowSizeObserver?.disconnect();
+      root.querySelectorAll('.quran-mobile-verse-row.is-long-ayah').forEach(row => row.classList.remove('is-long-ayah'));
       root.style.removeProperty('--quran-mobile-snap-offset');
       root.removeEventListener('scroll', onScroll);
       root.removeEventListener('scrollend', onScrollEnd);
