@@ -321,7 +321,7 @@ test('Qur’an reader UI is reset to a neutral placeholder while its data and bo
   assert.match(reader, /atlas_hifz_bookmark_v2/);
   assert.match(reader, /atlas_murajaah_bookmark_v2/);
   assert.match(reader, /lastSavedKeyRef/);
-  assert.doesNotMatch(reader, /className=["'][^"']*(?:mushaf|quran)-/i);
+  assert.doesNotMatch(reader, /className=["'](?:mushaf|quran)-/i);
 });
 
 test('Qur’an UI stylesheet wipe removes all Mushaf and Quran class rules without touching app styles', () => {
