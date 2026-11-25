@@ -90,7 +90,7 @@ export function BlueprintPage() {
 
       <section className="atlas-blueprint__directions">
         <div className="atlas-blueprint__section-head">
-          <div><span className="atlas-blueprint__eyebrow">02 / YOUR OUTCOMES</span><h2>{selectedArea === 'all' ? 'The things you're working towards' : selectedArea}</h2><p>Each outcome can connect to projects, milestones, actions and focused work.</p></div>
+          <div><span className="atlas-blueprint__eyebrow">02 / YOUR OUTCOMES</span><h2>{selectedArea === 'all' ? "The things you're working towards" : selectedArea}</h2><p>Each outcome can connect to projects, milestones, actions and focused work.</p></div>
           <Link to="/goals" className="atlas-blueprint__manage">Manage goals <ArrowRight size={14}/></Link>
         </div>
         {isLoading ? <div className="atlas-blueprint__goal-skeleton"><i/><i/></div> : filteredGoals.length ? (
