@@ -41,24 +41,41 @@ test('All 114 Surahs cover all 6,236 Ayahs and the complete 604-page Madani Mush
     .replace(/[ٱأإآ]/g, 'ا')
     .replace(/ى/g, 'ي');
   const fetchOfficialSurah = async number => {
-    const query = '?mushaf=19&words=true&word_fields=code_v2,text_uthmani_tajweed,page_number,char_type_name&fields=verse_key,chapter_id,verse_number,page_number,text_uthmani,text_uthmani_tajweed&per_page=300';
-    const urls = [
-      'https://api.quran.com/api/v4/verses/by_chapter/' + number + query,
-      'https://quran.com/api/proxy/content/api/qdc/verses/by_chapter/' + number + query
-    ];
-    let lastError;
-    for (const url of urls) {
-      for (let attempt = 0; attempt < 2; attempt += 1) {
-        try {
-          const response = await fetch(url, { signal: AbortSignal.timeout(20000), headers: { Accept: 'application/json' } });
-          if (!response.ok) throw new Error('HTTP ' + response.status);
-          const body = await response.json();
-          if (!Array.isArray(body?.verses) || !body.verses.length) throw new Error('No verse rows');
-          return body.verses;
-        } catch (error) { lastError = error; }
+    const verses = [];
+    let page = 1;
+    while (page <= 10) {
+      const query = '?mushaf=19&words=true&word_fields=code_v2,text_uthmani_tajweed,page_number,char_type_name&fields=verse_key,chapter_id,verse_number,page_number,text_uthmani,text_uthmani_tajweed&page=' + page + '&per_page=50';
+      const urls = [
+        'https://api.quran.com/api/v4/verses/by_chapter/' + number + query,
+        'https://quran.com/api/proxy/content/api/qdc/verses/by_chapter/' + number + query
+      ];
+      let body = null;
+      let lastError;
+      for (const url of urls) {
+        for (let attempt = 0; attempt < 2; attempt += 1) {
+          try {
+            const response = await fetch(url, { signal: AbortSignal.timeout(20000), headers: { Accept: 'application/json' } });
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            const result = await response.json();
+            if (!Array.isArray(result?.verses)) throw new Error('No verse rows');
+            body = result;
+            break;
+          } catch (error) { lastError = error; }
+        }
+        if (body) break;
       }
+      if (!body) throw new Error('Quran.com could not supply Surah ' + number + ' page ' + page + ': ' + (lastError?.message || 'unknown error'));
+      verses.push(...body.verses);
+      const hasNext = body.pagination?.next_page != null || (body.pagination?.total_pages && page < Number(body.pagination.total_pages));
+      if (!hasNext && body.verses.length < 50) break;
+      if (!hasNext && !body.pagination?.total_pages && body.verses.length === 50) {
+        page += 1;
+        continue;
+      }
+      if (body.pagination?.total_pages && page >= Number(body.pagination.total_pages)) break;
+      page += 1;
     }
-    throw new Error('Quran.com could not supply Surah ' + number + ': ' + (lastError?.message || 'unknown error'));
+    return verses;
   };
   const fetchMirrorSurah = async number => {
     const hosts = ['https://api.alquran.cloud/v1', 'https://alquran.api.islamic.network/v1'];
