@@ -671,7 +671,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     updateBookmark(page, target);
   }, [pageData, loading, page, bookmark.surah, bookmark.ayah, bookmark.page, updateBookmark, readingMode]);
   const renderMedallion = (number: number) => (
-    <span className="quran-mobile-medallion" aria-label={\`Ayah \${number}\`}>
+    <span className="quran-mobile-medallion" aria-label={`Ayah ${number}`}>
       <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17.2" /><circle cx="20" cy="20" r="14.2" /><path d={AYAH_ROSETTE_PATH} /></svg>
       <span>{arabicNumber(number)}</span>
     </span>
@@ -680,19 +680,18 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     const segments = tajweedEnabled && ayah.tajweedSegments?.length ? ayah.tajweedSegments : [{ text: ayah.text, className: '' }];
     return <>{segments.map((segment, index) => <span key={index} className={tajweedEnabled ? segment.className : ''}>{segment.text}</span>)}{renderMedallion(ayah.numberInSurah)}</>;
   };
-  const activeSurahMeta = QURAN_SURAHS[mobileActiveSurahNumber - 1] || QURAN_SURAHS[0];
   const bismillah = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
-  const mobileArabicStyle = { fontFamily: \`"\${arabicFontFamily}", "Amiri Quran", serif\`, fontSize: \`\${arabicFontSize}px\` } as CSSProperties;
+  const mobileArabicStyle = { fontFamily: `"${arabicFontFamily}", "Amiri Quran", serif`, fontSize: `${arabicFontSize}px` } as CSSProperties;
   const renderSurahIntro = (surahNumber: number, surahName: string, arabicName: string, showBismillah: boolean) => {
     const meta = QURAN_SURAHS[surahNumber - 1];
-    return <Fragment key={\`intro-\${surahNumber}\`}>
+    return <Fragment key={`intro-${surahNumber}`}>
       <section className="quran-mobile-hero">
         <div className="quran-mobile-hero-main">
           <div className="quran-mobile-hero-arabic" lang="ar" dir="rtl">{arabicName || meta?.arabic}</div>
           <div className="quran-mobile-hero-copy">
             <h2>{surahNumber}. Surah {surahName || meta?.transliteration}</h2>
             <p className="quran-mobile-hero-subtitle">{meta?.english || 'The Qur’an'}</p>
-            <p className="quran-mobile-hero-description">{meta?.revelation || 'Revelation'} · {meta?.ayahs || 0} verses · {meta?.juzStart ? \`Juz \${meta.juzStart}\` : 'Madinah Mushaf'}<br />Read the complete Surah with its Arabic text and translation.<br />Follow your memorisation and revision from your saved position.</p>
+            <p className="quran-mobile-hero-description">{meta?.revelation || 'Revelation'} · {meta?.ayahs || 0} verses · {meta?.juzStart ? `Juz ${meta.juzStart}` : 'Madinah Mushaf'}<br />Read the complete Surah with its Arabic text and translation.<br />Follow your memorisation and revision from your saved position.</p>
           </div>
         </div>
         <div className="quran-mobile-bookmark-modes">
@@ -714,7 +713,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       else runs.push({ surahNumber: ayah.surahNumber, surahName: ayah.surahName, arabicName: ayah.arabicName, startsSurah: ayah.numberInSurah === 1, ayahs: [ayah] });
     });
     return <section className="quran-mobile-page-block" data-mobile-page-block="true" data-mobile-page={data.page} key={data.page}>
-      {runs.map(run => <Fragment key={\`run-\${run.surahNumber}\`}>
+      {runs.map(run => <Fragment key={`run-${run.surahNumber}`}>
         {run.startsSurah && renderSurahIntro(run.surahNumber, run.surahName, run.arabicName, run.surahNumber !== 9)}
         <p className="quran-mobile-page-arabic" dir="rtl" lang="ar" style={mobileArabicStyle}>
           {run.ayahs.map(ayah => <Fragment key={ayah.number}>{renderArabic(ayah)}{' '}</Fragment>)}
@@ -734,7 +733,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       <div className="quran-mobile-verse-toolbar">
         <span>{ayah.surahNumber}:{ayah.numberInSurah}</span>
         <button aria-label={starred ? 'Remove bookmark' : 'Bookmark ayah'} className={starred ? 'is-active' : ''} onClick={() => toggleStarredAyah(ayah)}><Bookmark size={18} /></button>
-        <button aria-label="Copy ayah" onClick={() => { setSelected({ surah: ayah.surahNumber, ayah: ayah.numberInSurah }); void navigator.clipboard?.writeText(ayah.text + \`\n\n\${surahMeta?.transliteration} \${ayah.surahNumber}:\${ayah.numberInSurah}\`); }}><Copy size={18} /></button>
+        <button aria-label="Copy ayah" onClick={() => { setSelected({ surah: ayah.surahNumber, ayah: ayah.numberInSurah }); void navigator.clipboard?.writeText(ayah.text + `\n\n${surahMeta?.transliteration} ${ayah.surahNumber}:${ayah.numberInSurah}`); }}><Copy size={18} /></button>
       </div>
       <div className="quran-mobile-verse-arabic" dir="rtl" lang="ar" style={mobileArabicStyle}>{renderArabic(ayah)}</div>
       <p className="quran-mobile-translation">{ayah.translation || 'Translation unavailable.'}</p>
