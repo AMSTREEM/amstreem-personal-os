@@ -391,7 +391,7 @@ function normalizeAlQuranCloudSurah(body, surahNumber) {
   };
 }
 async function fetchQuranCdnPage(page) {
-  const query = '?mushaf=5&words=true&translations=131&per_page=50&word_fields=text_qpc_hafs,text_uthmani,line_number,page_number,position,char_type_name&fields=text_qpc_hafs,text_uthmani,verse_key,chapter_id,verse_number,juz_number,hizb_number,page_number';
+  const query = '?mushaf=5&words=true&translations=131,20&per_page=50&word_fields=text_qpc_hafs,text_uthmani,text_uthmani_tajweed,line_number,page_number,position,char_type_name&fields=text_qpc_hafs,text_uthmani,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number,hizb_number,page_number';
   const payload = await fetchQuranMirror('https://api.qurancdn.com/api/qdc/verses/by_page/' + page + query, normalizeQuranCom, page);
   if (!payload.ayahs.length || payload.ayahs.some(ayah => !ayah.text || !ayah.translation)) throw new Error('Quran CDN page response is missing Arabic text or translation.');
   return { ...payload, textSource: 'qpc-hafs', qcfAvailable: false, mushafId: 5 };
