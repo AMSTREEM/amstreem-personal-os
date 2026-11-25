@@ -31,7 +31,7 @@ export function App() {
   if (!session) return <AuthPage />;
   return <Routes>
     <Route element={<AppShell />}>
-      <Route index element={<Navigate to="/today" replace />} />
+      <Route index element={<Navigate to="/residence" replace />} />
       {/* Canonical eight-view destinations */}
       <Route path="/residence" element={<TodayPage />} />
       <Route path="/home" element={<LegacyRedirect to="/residence" />} />
