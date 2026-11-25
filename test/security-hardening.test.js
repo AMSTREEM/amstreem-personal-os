@@ -74,6 +74,7 @@ test('Daily Rhythm records persist per workspace and remain compatible with olde
 
 test('Daily Rhythm separates planned from completed records and updates Residence Activity Pulse', () => {
   const rhythm = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ValuesPage.tsx'), 'utf8');
+  const quran = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'QuranPage.tsx'), 'utf8');
   const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
   const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
   assert.match(rhythm, /status: 'planned'\|'completed'\|'active'\|'answered'/);
