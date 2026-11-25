@@ -1056,7 +1056,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         const content = lineMap.get(line) || [];
         const qcfFont = qcfV4Fonts[data.page];
         if (tajweedEnabled && data.qcfAvailable && qcfFont && word.codeV2) {
-          content.push(<span key={ayah.surahNumber + ':' + ayah.numberInSurah + ':' + index} className="quran-qcf-v4-word" style={qcfV4WordStyle(qcfFont)} dangerouslySetInnerHTML={{ __html: escapeQcfGlyphHtml(word.codeV2) }} />);
+          content.push(<span key={ayah.surahNumber + ':' + ayah.numberInSurah + ':' + index} className="quran-qcf-v4-word" style={qcfV4WordStyle(qcfFont)} dangerouslySetInnerHTML={{ __html: escapeQcfGlyphHtml(word.codeV2 || '') }} />);
         } else {
           const segments = tajweedEnabled && word.tajweed
             ? parseBracketTajweed(word.tajweed)
