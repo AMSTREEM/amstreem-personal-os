@@ -19,7 +19,7 @@ Atlas is a user-directed personal life-development system. It helps people conne
 
 The first slice introduces a new Home experience and a Life Blueprint view using existing workspace APIs for goals, tasks and focus sessions, plus existing task creation and completion endpoints. It does not introduce database changes or new server endpoints.
 
-The previous daily dashboard remains available at `/daily-rhythm` so its existing workflows are not silently discarded. The Qur'an reader and its data, API, cache, bookmark, font and persistence logic are outside this implementation scope.
+The previous daily dashboard remains available at `/daily-rhythm` so its existing workflows are not silently discarded. The new Life Blueprint is available at `/blueprint` and groups existing goals by the categories the user has chosen. The Qur'an reader and its data, API, cache, bookmark, font and persistence logic are outside this implementation scope.
 
 ## Home experience
 
@@ -32,6 +32,7 @@ The previous daily dashboard remains available at `/daily-rhythm` so its existin
 - Current goal and linked-action context.
 - Focus entry point linked to the current next action when available.
 - Calendar entry point.
+- Life Blueprint grouped from existing goal categories, with progress derived from linked records.
 - Honest empty, loading and error states.
 
 ## Data integrity
