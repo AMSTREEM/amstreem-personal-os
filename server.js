@@ -919,7 +919,7 @@ app.get('/api/quran/surah/:surah', async (req, res) => {
       }
     }
     return enriched;
-  })(););
+  })();
   quranSurahInflight.set(surahNumber, task);
   try {
     const payload = sanitizeQuranPayload(await task);
