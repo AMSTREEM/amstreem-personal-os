@@ -518,11 +518,12 @@ function mergeTajweedEdition(pagePayload, annotations) {
   const sourced = ayahs.filter(ayah => ayah.tajweedSource === 'quran-tajweed' || ayah.tajweedSource === 'quran-foundation' || (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).length;
   const colored = ayahs.filter(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).length;
   const missing = ayahs.filter(ayah => !ayah.tajweedSource && !(ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).map(ayah => ayah.surahNumber + ':' + ayah.numberInSurah);
+  const uncolored = ayahs.filter(ayah => (ayah.tajweedSource === 'quran-foundation' || ayah.tajweedSource === 'quran-tajweed') && !(ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).map(ayah => ayah.surahNumber + ':' + ayah.numberInSurah);
   return {
     ...pagePayload,
     ayahs,
     tajweedComplete: ayahs.length > 0 && sourced === ayahs.length,
-    tajweedCoverage: { totalAyahs: ayahs.length, sourcedAyahs: sourced, coloredAyahs: colored, missingAyahs: missing, mismatchedAyahs: [] }
+    tajweedCoverage: { totalAyahs: ayahs.length, sourcedAyahs: sourced, coloredAyahs: colored, uncoloredAyahs: uncolored, missingAyahs: missing, mismatchedAyahs: [] }
   };
 }
 async function fetchAlQuranCloudPage(page) {
@@ -773,12 +774,13 @@ function applyTajweedToPage(pagePayload, tajweedByVerse) {
   const sourced = ayahs.filter(ayah => ayah.tajweedSource === 'quran-foundation' || ayah.tajweedSource === 'quran-tajweed' || (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).length;
   const colored = ayahs.filter(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).length;
   const missing = ayahs.filter(ayah => !ayah.tajweedSource && !(ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).map(ayah => ayah.surahNumber + ':' + ayah.numberInSurah);
+  const uncolored = ayahs.filter(ayah => (ayah.tajweedSource === 'quran-foundation' || ayah.tajweedSource === 'quran-tajweed') && !(ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).map(ayah => ayah.surahNumber + ':' + ayah.numberInSurah);
   const mismatched = ayahs.filter(ayah => ayah.tajweedMismatch).map(ayah => ayah.surahNumber + ':' + ayah.numberInSurah);
   return {
     ...pagePayload,
     ayahs,
     tajweedComplete: sourced === ayahs.length && mismatched.length === 0,
-    tajweedCoverage: { totalAyahs: ayahs.length, sourcedAyahs: sourced, coloredAyahs: colored, missingAyahs: missing, mismatchedAyahs: mismatched }
+    tajweedCoverage: { totalAyahs: ayahs.length, sourcedAyahs: sourced, coloredAyahs: colored, uncoloredAyahs: uncolored, missingAyahs: missing, mismatchedAyahs: mismatched }
   };
 }
 async function fetchQuranMirror(url, normalizer, page, extraHeaders = {}) {
