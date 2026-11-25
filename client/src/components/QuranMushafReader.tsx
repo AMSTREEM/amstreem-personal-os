@@ -194,7 +194,10 @@ async function loadQcfV4PageFont(page: number): Promise<QcfV4Font> {
   if (cached) return cached;
   const task = (async () => {
     const family = 'AtlasQcfV4P' + page + theme + (firefox ? '' : 'Color');
-    const fontFace = new FontFace(family, 'url(/fonts/qcf-v4/' + format + '/' + routeTheme + '/p' + page + '.woff2)');
+    const fontUrl = format === 'ot-svg'
+      ? 'https://verses.quran.foundation/fonts/quran/hafs/v4/ot-svg/' + theme + '/woff2/p' + page + '.woff2'
+      : 'https://verses.quran.foundation/fonts/quran/hafs/v4/colrv1/woff2/p' + page + '.woff2';
+    const fontFace = new FontFace(family, 'url(' + fontUrl + ')');
     fontFace.display = 'block';
     await fontFace.load();
     document.fonts.add(fontFace);
