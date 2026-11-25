@@ -589,7 +589,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       if (!topmost) return;
       const surahNumber = Number(topmost.dataset.surah);
       const ayahNumber = Number(topmost.dataset.ayah);
-      if (readingMode === 'reading' && surahNumber !== pageReadingSurah) return;
+      if (surahNumber !== pageReadingSurah) return;
       const pageNumber = clampPage(Number(topmost.dataset.page) || page);
       if (!surahNumber || !ayahNumber) return;
       setSelected(current => current?.surah === surahNumber && current.ayah === ayahNumber ? current : { surah: surahNumber, ayah: ayahNumber });
