@@ -181,7 +181,7 @@ const prefetchPage = async (pageNumber: number): Promise<void> => {
   } catch { /* prefetch must never interrupt the current reading page */ }
 };
 
-type QcfV4Font = { family: string; palette?: string };
+type QcfV4Font = { family: string; palette?: string; theme: 'light' | 'dark' | 'sepia' };
 const qcfV4FontCache = new Map<string, Promise<QcfV4Font>>();
 async function loadQcfV4PageFont(page: number): Promise<QcfV4Font> {
   const themeId = document.documentElement.getAttribute('data-theme') || 'shadowed-alchemist';
@@ -193,12 +193,12 @@ async function loadQcfV4PageFont(page: number): Promise<QcfV4Font> {
   const cached = qcfV4FontCache.get(key);
   if (cached) return cached;
   const task = (async () => {
-    const family = 'AtlasQcfV4P' + page + (firefox ? theme : 'Color');
+    const family = 'AtlasQcfV4P' + page + theme + (firefox ? '' : 'Color');
     const fontFace = new FontFace(family, 'url(/fonts/qcf-v4/' + format + '/' + routeTheme + '/p' + page + '.woff2)');
     fontFace.display = 'block';
     await fontFace.load();
     document.fonts.add(fontFace);
-    if (format === 'ot-svg') return { family };
+    if (format === 'ot-svg') return { family, theme };
     const palette = '--AtlasQcfV4P' + page + theme;
     let style = document.getElementById('atlas-qcf-v4-palettes') as HTMLStyleElement | null;
     if (!style) {
@@ -208,7 +208,7 @@ async function loadQcfV4PageFont(page: number): Promise<QcfV4Font> {
     }
     const basePalette = theme === 'dark' ? 1 : theme === 'sepia' ? 2 : 0;
     style.textContent += '\n@font-palette-values ' + palette + ' { font-family: "' + family + '"; base-palette: ' + basePalette + '; }';
-    return { family, palette };
+    return { family, palette, theme };
   })();
   qcfV4FontCache.set(key, task);
   try { return await task; } catch (error) { qcfV4FontCache.delete(key); throw error; }
@@ -257,6 +257,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [desktopPageWindow, setDesktopPageWindow] = useState<MushafPage[]>([]);
   const [desktopVisiblePage, setDesktopVisiblePage] = useState(page);
   const [qcfV4Fonts, setQcfV4Fonts] = useState<Record<number, QcfV4Font>>({});
+  const [qcfPaletteTheme, setQcfPaletteTheme] = useState<'light' | 'dark' | 'sepia'>(() => { const id = document.documentElement.getAttribute('data-theme') || 'shadowed-alchemist'; return id.startsWith('light-') ? 'light' : id.includes('sepia') ? 'sepia' : 'dark'; });
   const desktopPrefetchRef = useRef(new Set<number>());
   const readerRef = useRef<HTMLDivElement | null>(null);
   const pageTextRef = useRef<HTMLDivElement | null>(null);
@@ -272,11 +273,23 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   onLoggedRef.current = onLogged;
 
   useEffect(() => {
+    const root = document.documentElement;
+    const updateTheme = () => {
+      const id = root.getAttribute('data-theme') || 'shadowed-alchemist';
+      setQcfPaletteTheme(id.startsWith('light-') ? 'light' : id.includes('sepia') ? 'sepia' : 'dark');
+    };
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+    updateTheme();
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
     if (!fullScreen || !tajweedEnabled || readingMode !== 'reading') return;
     const visiblePages = [...new Set([pageData?.page, ...desktopPageWindow.map(item => item.page)].filter((value): value is number => Number.isInteger(value)))];
     let cancelled = false;
     visiblePages.forEach(number => {
-      if (qcfV4Fonts[number]) return;
+      if (qcfV4Fonts[number]?.theme === qcfPaletteTheme) return;
       void loadQcfV4PageFont(number).then(font => {
         if (!cancelled) setQcfV4Fonts(current => current[number] ? current : { ...current, [number]: font });
       }).catch(error => {
@@ -284,7 +297,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       });
     });
     return () => { cancelled = true; };
-  }, [fullScreen, tajweedEnabled, readingMode, pageData?.page, desktopPageWindow, qcfV4Fonts]);
+  }, [fullScreen, tajweedEnabled, readingMode, pageData?.page, desktopPageWindow, qcfV4Fonts, qcfPaletteTheme]);
 
   useEffect(() => {
     pageMemoryCache.clear();
