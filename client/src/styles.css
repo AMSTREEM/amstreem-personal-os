@@ -6976,3 +6976,25 @@ html, body, #root, .app-frame, .main-area, .page-container {
     scroll-snap-stop:normal !important;
   }
 }
+
+/* Residence-only Qur’an feature card. Kept separate from the Mushaf reader styles. */
+.residence-quran-feature{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:190px;overflow:hidden;padding:clamp(20px,3vw,30px);border:1px solid color-mix(in srgb,#b99a62 34%,var(--line));background:radial-gradient(ellipse at 92% 8%,color-mix(in srgb,#b99a62 15%,transparent),transparent 46%),linear-gradient(125deg,color-mix(in srgb,#b99a62 7%,var(--surface)),var(--surface) 62%);}
+.residence-quran-feature__content{position:relative;z-index:1;min-width:0;}
+.residence-quran-feature__heading{display:flex;align-items:center;gap:14px;margin-top:12px;}
+.residence-quran-feature__icon{display:grid;place-items:center;flex:0 0 46px;width:46px;height:46px;border:1px solid color-mix(in srgb,#b99a62 42%,var(--line));border-radius:15px;background:color-mix(in srgb,#b99a62 12%,var(--surface));color:var(--accent-strong);}
+.residence-quran-feature__heading h2{margin:0;font-size:clamp(21px,2.2vw,27px);letter-spacing:-.04em;}
+.residence-quran-feature__heading p{margin:5px 0 0;color:var(--text-muted);font-size:13px;line-height:1.55;}
+.residence-quran-feature__actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px;}
+.residence-quran-feature__primary,.residence-quran-feature__secondary{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:40px;padding:0 15px;border-radius:11px;text-decoration:none;font-size:12px;font-weight:700;transition:transform .18s,border-color .18s,background .18s;}
+.residence-quran-feature__primary{background:var(--accent-strong);color:var(--surface);border:1px solid var(--accent-strong);}
+.residence-quran-feature__secondary{background:color-mix(in srgb,var(--surface-raised) 78%,transparent);color:var(--text-primary,var(--text));border:1px solid var(--line);}
+.residence-quran-feature__primary:hover,.residence-quran-feature__secondary:hover{transform:translateY(-2px);}
+.residence-quran-feature__page{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-end;flex:0 0 auto;padding-left:24px;border-left:1px solid color-mix(in srgb,#b99a62 28%,var(--line));}
+.residence-quran-feature__page span{color:var(--text-muted);font-size:9px;font-weight:800;letter-spacing:.16em;}
+.residence-quran-feature__page strong{margin:5px 0 0;font-size:clamp(36px,5vw,54px);font-weight:500;line-height:1;letter-spacing:-.07em;color:var(--text-primary,var(--text));font-variant-numeric:tabular-nums;}
+.residence-quran-feature__page small{margin-top:5px;color:var(--text-muted);font-size:10px;}
+.residence-quran-feature__ornament{position:absolute;right:12%;top:-92px;width:250px;height:250px;border:1px solid color-mix(in srgb,#b99a62 16%,transparent);border-radius:50%;pointer-events:none;}
+.residence-quran-feature__ornament span{position:absolute;inset:18px;border:1px solid color-mix(in srgb,#b99a62 13%,transparent);border-radius:50%;}
+.residence-quran-feature__ornament span:nth-child(2){inset:38px;}
+.residence-quran-feature__ornament span:nth-child(3){inset:58px;}
+@media(max-width:600px){.residence-quran-feature{align-items:flex-start;gap:14px;padding:19px 16px;}.residence-quran-feature__page{padding-left:12px;margin-top:6px;}.residence-quran-feature__page strong{font-size:38px;}.residence-quran-feature__heading{gap:10px;}.residence-quran-feature__icon{flex-basis:40px;width:40px;height:40px;border-radius:13px;}.residence-quran-feature__heading p{font-size:12px;}.residence-quran-feature__actions{gap:7px;margin-top:16px;}.residence-quran-feature__primary,.residence-quran-feature__secondary{min-height:38px;padding:0 11px;font-size:11px;}}
