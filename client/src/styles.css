@@ -6840,3 +6840,19 @@ html, body, #root, .app-frame, .main-area, .page-container {
     padding: 14px 16px max(18px, env(safe-area-inset-bottom)) !important;
   }
 }
+
+/* Keep native touch momentum predictable; prevent layout anchoring from
+   nudging the reader while verse visibility/bookmarks update during a scroll. */
+@media (max-width: 767px) {
+  .quran-mobile-shell {
+    scroll-behavior: auto !important;
+    overflow-anchor: none !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y pinch-zoom !important;
+  }
+  .quran-mobile-shell .quran-mobile-content,
+  .quran-mobile-shell .quran-mobile-page-block,
+  .quran-mobile-shell .quran-mobile-verse-row {
+    overflow-anchor: none !important;
+  }
+}
