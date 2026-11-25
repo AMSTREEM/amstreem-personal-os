@@ -265,140 +265,12 @@ test('first-run walkthrough explains the five current Atlas rooms and follows ca
   assert.match(residence, /Good \$\{rhythm/);
 });
 
-test('Qur’an reader uses the Quran.com page proxy, saved bookmarks, no reciter UI and a single portal launcher', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const values = read('client/src/pages/ValuesPage.tsx');
-  assert.ok(server.includes("app.get('/api/quran/page/:page'"));
-  assert.ok(server.includes("app.get('/api/quran/surah/:surah'"));
-  assert.ok(server.includes('quranSurahCache = new Map()'));
-  assert.ok(server.includes('AbortSignal.timeout(15000)'));
-  assert.ok(server.includes('attempt < 2'));
-  assert.ok(server.includes('quranPageCache = new Map()'));
-  assert.ok(server.includes('QURAN_API_TOKEN'));
-  assert.ok(reader.includes("fetch('/api/quran/page/' + page)"));
-  assert.ok(reader.includes('Continue Hifz'));
-  assert.ok(reader.includes('Continue Muraja’ah'));
-  assert.ok(reader.includes('createPortal(') && reader.includes('document.body'));
-  assert.doesNotMatch(reader, /reciters|reciter|Mishary|isPlaying|audioRef|playAyah|togglePlayback|<audio|aria-label="Play verse"|<Play/);
-  assert.ok(reader.includes('hifz_bookmark') && reader.includes('murajaah_bookmark'));
-  assert.ok(values.includes('<QuranMushafReader autoOpen={searchParams.get(\'openMushaf\') === \'1\'}'));
-  assert.ok(reader.includes('autoOpen?: boolean'));
-  assert.ok(reader.includes('autoOpenHandled.current = true'));
-  assert.ok(reader.includes('mushaf-settings-popover'));
-  assert.ok(reader.includes('tajweedEnabled') && reader.includes('Tajweed color key'));
-  assert.ok(reader.includes("openReader('hifz')"));
-  assert.ok(values.includes('<QuranMushafReader settings=') || values.includes('<QuranMushafReader autoOpen='));
-  assert.doesNotMatch(values, /Open Full-Screen Mushaf|rhythm-quran-layout|Save Qur’an record/);
-});
-
-test('Mushaf reading settings persist font, five font sizes, three layouts and Tajweed preference', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const html = read('client/index.html');
-  const css = read('client/src/styles.css');
-  for (const item of ['atlas_mushaf_font_family_v1','atlas_mushaf_font_size_v1','atlas_mushaf_layout_v1','atlas_mushaf_tajweed_v1','Madinah Uthmani','Modern Naskh Clarity','Traditional Calligraphic','Verse by Verse','Page by Page','Arabic Only','Tajweed colors','mushaf-settings-popover','fontSize: arabicFontSize']) assert.ok(reader.includes(item), 'Missing Mushaf setting: ' + item);
-  for (const size of ['20,24,28,32,36']) assert.ok(reader.includes(size), 'Missing five-step Arabic font size scale');
-  assert.ok(html.includes("Noto+Naskh+Arabic"));
-  assert.match(css, /mushaf-settings-popover/);
-  assert.match(css, /--mushaf-arabic-font/);
-  for (const font of ['Amiri Quran','Scheherazade New','Noto Naskh Arabic','Amiri','Lateef','Aref Ruqaa','mushaf-font-preview-card','MUSHAF_FONT_SAMPLE']) assert.ok(reader.includes(font), 'Missing live font preview: ' + font);
-  for (const color of ['#D500B7','#E040FB','#FF5252','#F43F5E','#169200','#22C55E','#0091EA','#38BDF8','#D97706','#F59E0B','#9CA3AF']) assert.ok(css.includes(color), 'Missing Tajweed palette colour: ' + color);
-  assert.ok(reader.includes('Madd Lazim') && reader.includes('Madd Wajib'));
-  assert.match(css, /opacity:\.55/);
-});
-
-test('Mushaf rebuild uses a fixed top bar, three-tab sidebar and two clean reading views', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const css = read('client/src/styles.css');
-  for (const item of ['mushaf-topbar','mushaf-sidebar-tabs','mushaf-surah-hero','mushaf-verse-row','mushaf-page-view','mushaf-page-arrows','Auto-saved']) assert.ok(reader.includes(item), 'Missing reader feature: ' + item);
-  for (const item of ['mushaf-floating-top','mushaf-floating-bottom','mushaf-hud','mushaf-page-scrubber','mushaf-audio-control','reciter','Mishary','<audio','<Play']) assert.ok(!reader.includes(item), 'Legacy UI remains: ' + item);
-  assert.ok(css.includes('height:48px;min-height:48px'));
-  assert.ok(css.includes('flex:0 0 260px'));
-  assert.ok(css.includes('width:min(100%,780px)'));
-  assert.ok(css.includes('width:min(100%,500px)'));
-  assert.ok(css.includes('width:28px;height:28px;min-width:28px'));
-  assert.ok(css.includes('inset 0 0 0 2px var(--bg-canvas)'));
-  assert.ok(css.includes('mushaf-medallion--wide'));
-  assert.ok(css.includes('line-height:2.25'));
-  assert.ok(css.includes('@media(max-width:420px)'));
-  assert.ok(css.includes('position:fixed;right:20px;bottom:20px'));
-  assert.ok(css.includes('@media(max-width:767px)'));
-  assert.ok(css.includes('.mushaf-page-arrows'));
-  assert.ok(css.includes('.mushaf-verse-translation'));
-  assert.ok(css.includes('.mushaf-page-footer'));
-});
-
 test('AlQuranCloud fetches canonical quran-uthmani and Sahih editions directly for page and Surah APIs', () => {
   const offline = JSON.parse(read('server/quran-fallback.json'));
   for (const item of ["app.get('/api/quran/page/:page'","fetchAlQuranCloudPage","'/page/' + page + '/quran-uthmani'","'/page/' + page + '/en.sahih'","'/surah/' + surahNumber + '/editions/quran-uthmani,en.sahih'",'https://api.alquran.cloud/v1','quranPageCache = new Map()','quranPageInflight = new Map()','parseAlQuranTajweed','normalizeMadinahArabic','tajweedSegments','tajweedText','normalizeAlQuranCloudSurah','fetchAlQuranCloudSurah','quranSurahCache = new Map()']) assert.ok(server.includes(item), 'Missing endpoint feature: ' + item);
   assert.ok(!server.includes('alignTajweedToUthmani'), 'Cross-string alignment must not remain');
   assert.deepEqual(Object.keys(offline.pages).sort(), ['1','602','603','604']);
 });
-
-test('Tajweed rendering sanitizes provider HTML, preserves direct tokens and invalidates legacy page caches', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const css = read('client/src/styles.css');
-  const server = read('server.js');
-  for (const item of ['tajweedSegments','TAJWEED_CLASSES','tj-madd','tj-qalqalah','tj-ghunnah','tj-heavy','tajweedEnabled','parseBracketTajweed','normalizeMadinahArabic',"atlas_mushaf_page_v15_","stalePageCacheKeys","atlas_mushaf_cache_","atlas_quran_page_cache_","stripRawQuranMarkup"]) assert.ok(reader.includes(item), 'Missing Tajweed rendering feature: ' + item);
-  for (const item of ['sanitizeQuranPayload','sanitizeQuranAyah','stripQuranMarkup','<[^>]+>']) assert.ok(server.includes(item), 'Missing server Quran HTML sanitizer: ' + item);
-  assert.ok(reader.includes('useLayoutEffect'));
-  assert.ok(reader.includes('new ResizeObserver(schedule)'));
-  assert.ok(reader.includes('fontSize > 14'));
-  assert.ok(reader.includes('const lineHeight = 2.05'));
-  assert.ok(css.includes('height: 100dvh; max-height: 100dvh;'));
-  assert.ok(css.includes('grid-template-rows: 32px minmax(0, 1fr) 34px;'));
-  assert.ok(css.includes('overflow: hidden;'));
-  assert.ok(css.includes('font-size: var(--mushaf-fit-font-size, 22px) !important;'));
-  assert.ok(css.includes('line-height: var(--mushaf-fit-line-height, 1.9) !important;'));
-  assert.ok(css.includes('transition: opacity 200ms ease, visibility 200ms ease;'));
-  for (const rule of ["h:'tj-silent'","s:'tj-silent'","l:'tj-silent'","u:'tj-silent'","n:'tj-madd-wajib'","p:'tj-madd-wajib'","m:'tj-madd'","o:'tj-madd'","q:'tj-qalqalah'","g:'tj-ghunnah'","i:'tj-ghunnah'","c:'tj-ghunnah'","a:'tj-ghunnah'","w:'tj-ghunnah'","f:'tj-ghunnah'","r:'tj-heavy'"]) assert.ok(reader.includes(rule), 'Missing client rule: ' + rule);
-  for (const color of ['#E040FB','#FF5252','#22C55E','#38BDF8','#60A5FA','#9CA3AF']) assert.ok(css.includes(color), 'Missing Quran.com Tajweed color: ' + color);
-  assert.match(css, /\.mushaf-bismillah b\{/);
-  assert.ok(!server.includes('alignTajweedToUthmani'));
-  assert.ok(!reader.includes('new DOMParser('));
-  assert.ok(!reader.includes('dangerouslySetInnerHTML'));
-});
-test('Mushaf keeps bookmarks, automatic Hifz/Muraja’ah logging and direct Residence access', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const values = read('client/src/pages/ValuesPage.tsx');
-  const today = read('client/src/pages/TodayPage.tsx');
-  const shell = read('client/src/components/AppShell.tsx');
-  assert.ok(reader.includes('hifz_bookmark') && reader.includes('murajaah_bookmark'));
-  assert.ok(reader.includes('atlas_quran_auto_logged_pages_'));
-  assert.ok(reader.includes("api('/deen/quran'"));
-  assert.ok(reader.includes('Continue Hifz'));
-  assert.ok(reader.includes('Continue Muraja’ah'));
-  assert.ok(values.includes('<QuranMushafReader'));
-  assert.ok(today.includes('Open Qur’an · Hifz P.{hifzPage}'));
-  assert.ok(shell.includes('nav-link--quran'));
-  assert.ok(shell.includes('atlas-mobile-dock__quran'));
-  assert.ok(reader.includes('createPortal(') && reader.includes('document.body'));
-  assert.ok(reader.includes('window.setTimeout'));
-});
-
-test('Mushaf renders page ayahs directly and restores saved verse without bookmark race', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  assert.ok(reader.includes("scrollIntoView({ behavior: 'auto', block: 'center' })"));
-  assert.ok(reader.includes('pageSurahRuns.map(run =>'));
-  assert.ok(reader.includes('run.ayahs.map((ayah, ayahIndex) =>'));
-  assert.ok(reader.includes('renderTajweedMarkup(ayah.tajweedText || \'\', ayah.tajweedSegments, ayah.text, tajweedEnabled)'));
-  assert.ok(reader.includes('userScrolledRef.current = false'));
-  assert.ok(reader.includes('if (!userScrolledRef.current) return;'));
-  assert.ok(reader.includes('onWheel={() => { userScrolledRef.current = true; }}'));
-  assert.ok(reader.includes('Auto-saved · {bookmarkSurahName} {bookmark.surah}:{bookmark.ayah}'));
-});
-
-test('Mushaf page view has chapter openings, centered verse medallions and a page/Juz footer', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const css = read('client/src/styles.css');
-  for (const item of ['function BismillahOrnament','بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ','mushaf-page-surah-banner','mushaf-page-text','mushaf-page-footer','— Page {page} · Juz {pageJuz} —','mushaf-medallion']) assert.ok(reader.includes(item), 'Missing page reader feature: ' + item);
-  for (const item of ['.mushaf-page-view','.mushaf-page-text','.mushaf-page-surah-banner','.mushaf-page-footer','line-height:2.25']) assert.ok(css.includes(item), 'Missing page style: ' + item);
-});
-
-test('Mushaf scroll locking and local-first dual bookmark persistence are retained', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  for (const item of ["const previousRootOverflow = root.style.overflow","const previousBodyOverflow = document.body.style.overflow","root.style.overflow = 'hidden'","document.body.style.overflow = 'hidden'","localStorage.setItem(HIFZ_KEY, JSON.stringify(hifzMark))","localStorage.setItem(MURAJAAH_KEY, JSON.stringify(murajaahMark))",'window.setTimeout(() =>','}, 1500);','window.clearTimeout(timer)','new IntersectionObserver','data-mushaf-verse="true"','restoreTargetRef','changePage(item.pageStart, { surahNumber: number, numberInSurah: 1 })','onTouchMove={() => { userScrolledRef.current = true; }}','onKeyDown={() => { userScrolledRef.current = true; }}']) assert.ok(reader.includes(item), 'Missing persistence behavior: ' + item);
-});
-
 
 test('global scrollbars use theme tokens consistently and the workspace has a single page-level scroll owner', () => {
   const css = read('client/src/styles.css');
@@ -413,343 +285,11 @@ test('global scrollbars use theme tokens consistently and the workspace has a si
   assert.ok(shell.includes('className="page-container"'));
 });
 
-test('Mushaf page mode keeps all ayahs reachable and restores separate reading positions', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const css = read('client/src/styles.css');
-  assert.ok(reader.includes("readingMode === 'reading' ? pageTextRef.current : readerRef.current"));
-  assert.ok(reader.includes("readingMode !== 'reading' || !pageData?.ayahs?.length || loading"));
-  assert.ok(reader.includes("onScroll={() => { userScrolledRef.current = true; }}"));
-  assert.ok(reader.includes("updateBookmark(page, first)"));
-  assert.ok(reader.includes("updateBookmark(pageNumber, { surahNumber, numberInSurah: ayahNumber })"));
-  assert.match(reader, /onClick=\{\(\) => \{ if \(isMobileViewport && readingMode === 'reading'\) setMobileControlsVisible/);
-  assert.ok(css.includes("overflow-y: auto !important;"));
-  assert.ok(css.includes("height: calc(100dvh - 48px) !important;"));
-  assert.ok(css.includes("opacity: 1 !important;"));
-});
-
-
-test('Mushaf mobile page turns use finger tracking, prefetch and a single centered header pill', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const css = read('client/src/styles.css');
-  assert.ok(reader.includes("drag={isMobileViewport ? 'x' : false}"));
-  assert.ok(reader.includes('dragConstraints={{ left: 0, right: 0 }}'));
-  assert.ok(reader.includes('dragElastic={0.25} dragDirectionLock'));
-  assert.ok(reader.includes('Math.abs(offsetX) > 55 || Math.abs(velocityX) > 350'));
-  assert.ok(reader.includes('direction > 0 && page < 604) changePage(page + 1)'));
-  assert.ok(reader.includes('direction < 0 && page > 1) changePage(page - 1)'));
-  assert.ok(reader.includes('whileDrag={{ opacity: 0.985, scale: 0.985 }}'));
-  assert.ok(reader.includes('duration: 0.22, ease: [0.22, 1, 0.36, 1]'));
-  assert.ok(reader.includes('const prefetchPage = async'));
-  assert.ok(reader.includes('if (page > 1) void prefetchPage(page - 1)'));
-  assert.ok(reader.includes('if (page < 604) void prefetchPage(page + 1)'));
-  assert.ok(reader.includes('const cachedPage = readCachedMushafPage(value)'));
-  assert.ok(css.includes('background: transparent !important;'));
-  assert.ok(css.includes('width: calc(100vw - 32px) !important;'));
-  assert.ok(css.includes('max-width: 400px !important;'));
-  assert.ok(css.includes('padding-left: 22px !important;'));
-  assert.ok(css.includes('padding-right: 22px !important;'));
-  assert.doesNotMatch(css.slice(css.lastIndexOf('/* Mobile Mushaf polish:'), css.lastIndexOf('/* Final Mushaf typography')), /transform\s*:/);
-});
-
-test('Mushaf bookmark autosave is local-first, debounced and stable across parent rerenders', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const server = read('server.js');
-  assert.ok(reader.includes("const lastSavedKeyRef = useRef('')"));
-  assert.ok(reader.includes("const saveKey = `${mode}:${mark.surah}:${mark.ayah}:${mark.page}`"));
-  assert.ok(reader.includes("}, 1500);"));
-  assert.ok(reader.includes("const onLoggedRef = useRef(onLogged)"));
-  assert.ok(reader.includes("onLoggedRef.current = onLogged"));
-  assert.ok(reader.includes("const loggedPagesTodayRef = useRef(new Set<string>())"));
-  assert.ok(reader.includes("loggedPagesTodayRef.current.add(dedupeKey)"));
-  assert.doesNotMatch(reader, /\[fullScreen, loading, pageData, page, mode, onLogged\]/);
-  assert.match(server, /app\.use\('\/api', rateLimit\(\{ max: 300 \}\)\)/);
-  assert.match(server, /'hifz_page','hifz_bookmark','murajaah_page','murajaah_bookmark'/);
-});
-
-test('Mushaf topbar derives every unique page Surah and falls back while page data loads', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const data = read('client/src/data/quranSurahs.ts');
-  assert.ok(reader.includes('const currentPageSurahLabel = useMemo(() =>'));
-  assert.ok(reader.includes('const pageSurahs = new Map<number, string>()'));
-  assert.ok(reader.includes('for (const ayah of pageData?.ayahs || [])'));
-  assert.ok(reader.includes('.join(\' – \')'));
-  assert.ok(reader.includes('const fallbackSurah = getPageSurah(page)'));
-  assert.ok(reader.includes('{currentPageSurahLabel}'));
-  assert.ok(reader.includes('className="mushaf-surah-trigger"'));
-  assert.ok(reader.includes('className="mushaf-topbar-view-toggle"'));
-  assert.ok(reader.includes("onClick={() => changeReadingMode('translation')}"));
-  assert.ok(reader.includes("onClick={() => changeReadingMode('reading')}"));
-  assert.ok(data.includes('export function getPageSurah(page:number)'));
-});
-
-test('Mushaf Arabic typography and medallions use non-overlapping dimensions and mobile surfaces stay calm', () => {
-  const css = read('client/src/styles.css');
-  assert.match(css, /\.mushaf-arabic,[\s\S]*?\.mushaf-verse-arabic,[\s\S]*?\.mushaf-page-text \{\s*line-height: 2\.25 !important;/);
-  assert.match(css, /width: 24px !important;[\s\S]*?height: 24px !important;[\s\S]*?font-size: 10px !important;/);
-  assert.ok(css.includes('background: rgba(128, 128, 128, 0.08) !important;'));
-  assert.ok(css.includes('border: none !important;'));
-  assert.ok(css.includes('max-width: 400px !important;'));
-  assert.ok(css.includes('padding: 14px 20px !important;'));
-});
-
 test('mobile web app capability metadata includes the standard non-Apple declaration', () => {
   const html = read('client/index.html');
   assert.ok(html.includes('<meta name="mobile-web-app-capable" content="yes" />'));
 });
 
-
-test('Mushaf keeps the Surah selector and view controls while Verse by Verse receives its editorial mobile header', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const css = read('client/src/styles.css');
-  const headerStart = reader.indexOf('<header className={\'mushaf-topbar mushaf-fs-header');
-  const headerEnd = reader.indexOf('</header>', headerStart);
-  const header = reader.slice(headerStart, headerEnd);
-  assert.ok(header.includes('{currentPageSurahLabel}'));
-  assert.ok(header.includes('className="mushaf-topbar-view-toggle"'));
-  assert.ok(header.includes('mushaf-settings-trigger'));
-  assert.ok(header.includes('className="mushaf-exit"'));
-  assert.ok(header.includes('Verse by Verse') && header.includes('Page by Page'));
-  assert.ok(reader.includes('mushaf-page-mobile-chrome'));
-  assert.ok(reader.includes('mushaf-page-mobile-meta'));
-  assert.ok(reader.includes('mushaf-page-mobile-controls'));
-  assert.ok(reader.includes('mushaf-verse-aya-pill'));
-  assert.ok(reader.includes('mushaf-verse-tajweed-key'));
-  assert.match(css, /\.mushaf-topbar-view-toggle[\s\S]*?border: none !important;/);
-  assert.match(css, /\.mushaf-topbar\.mushaf-fs-header[\s\S]*?background: rgba\(128, 128, 128, 0\.08\)/);
-  assert.match(css, /\.mushaf-app\.is-mobile-verse-reading \.mushaf-surah-trigger[\s\S]*?font-size: 16px !important;/);
-  assert.match(css, /grid-template-rows: 48px 32px minmax\(0, 1fr\)/);
-});
-
-
-test('mobile Mushaf is distraction-free, single-screen, and tap-toggle HUD is scoped to mobile page reading', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const css = read('client/src/styles.css');
-  assert.match(reader, /setMobileControlsVisible\(value => !value\)/);
-  assert.match(reader, /mobileActiveSurahName/);
-  assert.match(reader, /setMobilePageFit\(\{ fontSize: 21, lineHeight: 2\.05 \}\)/);
-  assert.match(reader, /while \(fontSize > 14 && !fits\(\)\)/);
-  assert.match(reader, /mushaf-mobile-study-toggle/);
-  assert.match(reader, /mushaf-page-footer-mobile/);
-  const mobileRule = css.slice(css.lastIndexOf('/* Distraction-free, single-screen mobile Mushaf.'));
-  assert.match(mobileRule, /@media \(max-width: 767px\)/);
-  assert.match(mobileRule, /height: 100dvh !important/);
-  assert.match(mobileRule, /padding: 8px 18px 4px !important/);
-  assert.match(mobileRule, /line-height: 2\.05 !important/);
-  assert.match(mobileRule, /width: 22px !important/);
-  assert.match(mobileRule, /background: rgba\(128, 128, 128, 0\.14\)/);
-  assert.match(mobileRule, /mobile-controls-visible > \.mushaf-mobile-header-shell/);
-  assert.match(mobileRule, /overflow:visible !important/);
-  assert.match(css, /@media \(min-width: 768px\) and \(max-width: 1100px\)/);
-});
-
-
-test('Page by Page mobile chrome and Surah composition are isolated from Verse by Verse and desktop', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const css = read('client/src/styles.css');
-  assert.ok(reader.includes('mushaf-page-mobile-chrome'));
-  assert.ok(reader.includes('mushaf-page-mobile-meta'));
-  assert.ok(reader.includes('mushaf-page-mobile-controls'));
-  assert.ok(reader.includes('mushaf-page-surah-hero-main'));
-  assert.ok(reader.includes('mushaf-page-hero-modes'));
-  assert.ok(reader.includes('In the Name of Allah—the Most Compassionate, Most Merciful'));
-  assert.match(css, /\.mushaf-app\.is-mobile-page-reading \.mushaf-page-mobile-meta[\s\S]*?height:32px/);
-  assert.match(css, /\.mushaf-app\.is-mobile-page-reading \.mushaf-page-mobile-controls[\s\S]*?height:44px/);
-  assert.match(css, /\.mushaf-app\.is-mobile-page-reading \.mushaf-page-surah-banner[\s\S]*?border-radius:14px/);
-  assert.match(css, /\.mushaf-app\.is-mobile-page-reading \.mushaf-page-text[\s\S]*?text-align:center/);
-  assert.match(css, /\.mushaf-app\.is-mobile-verse-reading/);
-});
-
-
-test('Verse by Verse shares the Quran.com mobile header and clean right-aligned editorial ayah rows', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const css = read('client/src/styles.css');
-  assert.ok(reader.includes("readingMode === 'reading' || readingMode === 'translation'"));
-  assert.ok(reader.includes('mushaf-page-mobile-meta'));
-  assert.ok(reader.includes('mushaf-page-mobile-controls'));
-  assert.ok(!reader.includes('mushaf-verse-subheader'));
-  assert.ok(reader.includes('className="mushaf-surah-hero"'));
-  assert.ok(reader.includes('<BismillahOrnament/>'));
-  const verseMobile = css.slice(css.lastIndexOf('/* Unified Quran.com-style two-row mobile header'));
-  assert.ok(verseMobile.includes('grid-template-rows:76px minmax(0,1fr)'));
-  assert.ok(verseMobile.includes('height:32px!important'));
-  assert.ok(verseMobile.includes('height:44px!important'));
-  assert.ok(verseMobile.includes('padding:20px 18px!important'));
-  assert.ok(verseMobile.includes('text-align:right!important;line-height:2.25!important;word-spacing:3px'));
-  assert.ok(verseMobile.includes('text-align:left!important'));
-  assert.ok(verseMobile.includes('border-bottom:1px solid var(--border-hairline)!important'));
-});
-
-
-test('Mushaf surfaces and controls use active theme tokens in both reading modes', () => {
-  const css = read('client/src/styles.css');
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const themeBlock = css.slice(css.lastIndexOf('/* Mushaf theme contract:'));
-  for (const token of ['--bg-canvas','--bg-surface','--text-primary','--text-secondary','--text-muted','--border-hairline','--border-strong','--accent-primary','--accent-soft']) {
-    assert.ok(themeBlock.includes(token), 'missing Mushaf theme token: ' + token);
-  }
-  for (const color of ['#D500B7','#E53935','#16A34A','#0288D1','#D97706']) assert.ok(themeBlock.includes(color));
-  assert.ok(themeBlock.includes('.mushaf-fs-overlay .mushaf-sidebar,'));
-  assert.ok(themeBlock.includes('.mushaf-fs-overlay .mushaf-settings-popover,'));
-  assert.ok(themeBlock.includes('.mushaf-fs-overlay .mushaf-page-medallion {'));
-  assert.ok(themeBlock.includes('background:var(--mushaf-surface)!important;'));
-  assert.ok(themeBlock.includes('border-color:var(--mushaf-border-strong)!important;'));
-  assert.ok(themeBlock.includes('.mushaf-app.is-mobile-verse-reading .mushaf-verse-arabic { text-align:right'));
-  assert.ok(themeBlock.includes('.mushaf-app.is-mobile-verse-reading .mushaf-verse-translation { margin:12px 0 0!important;text-align:left'));
-  assert.ok(reader.includes("aria-pressed={readingMode === 'translation'}"));
-  assert.ok(reader.includes('className="mushaf-surah-hero"'));
-});
-
-
-test('QPC Hafs font and Quran Foundation Tajweed markup are bundled, defaulted, and styled without verse-end leakage', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const css = read('client/src/styles.css');
-  assert.ok(css.includes("font-family: 'UthmanicHafs';"));
-  assert.ok(css.includes("url('/fonts/UthmanicHafs1Ver18.woff2') format('woff2')"));
-  assert.ok(css.includes("src: url('/fonts/UthmanicHafs1Ver18.woff2') format('woff2')"));
-  assert.ok(!css.includes('https://verses.quran.foundation/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2'));
-  assert.ok(server.includes("app.get('/fonts/' + QURAN_FONT_FILENAME"));
-  assert.ok(server.includes('font/woff2'));
-  assert.ok(server.includes('max-age=31536000, immutable'));
-  assert.ok(server.includes("'/page/' + page + '/quran-uthmani'"));
-  assert.ok(server.includes("/editions/quran-uthmani,en.sahih"));
-  assert.ok(server.includes("textSource: 'quran-uthmani'"));
-  assert.match(reader, /ayah\.textSource === 'quran-uthmani'.*qpc-hafs/);
-  assert.ok(reader.includes("{ name: 'UthmanicHafs', label: 'Madinah Uthmani · King Fahd Complex' }"));
-  for (const rule of ['ham_wasl','slnt','laam_shamsiyah','madda_normal','madda_permissible','madda_necessary','madda_obligatory','qalaqah','ikhafa','ikhafa_shafawi','iqlab','idgham_shafawi','idgham_ghunnah','idgham_wo_ghunnah','ghunnah']) {
-    assert.ok(reader.includes(rule + ":'" + rule + "'"), 'missing official Tajweed mapping: ' + rule);
-    assert.ok(css.includes('.' + rule), 'missing official Tajweed selector: ' + rule);
-  }
-  assert.ok(reader.includes("className={className}"));
-  assert.ok(reader.includes("replace(/<span\\s+class="));
-});
-
-
-test('Quran Mushaf uses QPC Hafs Unicode and responsive layouts in both reading modes', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const css = read('client/src/styles.css');
-  assert.match(server, /text_qpc_hafs \|\| verse\.text_uthmani/);
-  assert.match(server, /verses\/by_chapter\//);
-  assert.match(server, /primary\?\.textSource !== 'qpc-hafs'/);
-  assert.match(reader, /ayah\.textSource === 'qpc-hafs'/);
-  assert.match(css, /\.mushaf-app\.is-mobile-page-reading \.mushaf-page-text[\s\S]*?overflow:visible !important/);
-  assert.match(css, /\.mushaf-app\.is-mobile-verse-reading \.mushaf-verse-arabic/);
-  assert.match(css, /@media \(min-width: 768px\) and \(max-width: 1100px\)/);
-});
-
-
-test('Page-by-Page renders every page through grouped Surah runs and a shared Arabic paragraph', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const server = read('server.js');
-  const css = read('client/src/styles.css');
-  assert.ok(server.includes('https://api.qurancdn.com/api/qdc/verses/by_page/'));
-  assert.match(reader, /const pageSurahRuns = useMemo/);
-  assert.match(reader, /currentRun\.surahNumber === ayah\.surahNumber/);
-  assert.match(reader, /startsSurah: ayah\.numberInSurah === 1/);
-  assert.match(reader, /pageSurahRuns\.map\(run =>/);
-  assert.match(reader, /className="mushaf-page-run-text"/);
-  assert.match(reader, /<AyahMedallion className="mushaf-page-medallion" number=\{ayah\.numberInSurah\}\/>/);
-  assert.match(css, /\.mushaf-page-column/);
-  assert.match(css, /max-width: 520px !important/);
-});
-
-
-test('Mushaf page data retains Unicode Quran source fields while rendering uses one page layout', () => {
-  const server = read('server.js');
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const css = read('client/src/styles.css');
-  assert.ok(server.includes('https://api.qurancdn.com/api/qdc/verses/by_page/'));
-  assert.ok(server.includes('https://api.qurancdn.com/api/qdc/verses/by_chapter/'));
-  assert.ok(server.includes('word_fields=text_qpc_hafs,text_uthmani,line_number,page_number'));
-  assert.ok(!reader.includes('QCFPage'));
-  assert.match(reader, /const pageSurahRuns = useMemo/);
-  assert.doesNotMatch(reader, /const pageLines = useMemo/);
-  assert.match(css, /\.mushaf-page-column/);
-  assert.match(css, /\.mushaf-page-run-text/);
-  assert.match(css, /font-display: swap/);
-});
-
- 
-test('Mushaf font selector controls actual Arabic glyphs in both reading modes', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const css = read('client/src/styles.css');
-  assert.ok(reader.includes("style={{ '--mushaf-arabic-font':"));
-  assert.ok(reader.includes("fontFamily: 'var(--mushaf-arabic-font)'"));
-  assert.ok(css.includes('Atlas Mushaf live typography binding'));
-  assert.match(css, /\.mushaf-app \.mushaf-page-text \*[\s\S]*?font-family: var\(--mushaf-arabic-font/);
-  assert.ok(css.includes('family=Amiri+Quran'));
-  assert.ok(css.includes('family=Scheherazade+New'));
-});
-
-
-test('Page-by-page ayah medallions render once per ayah in the unified Surah paragraph', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  assert.match(reader, /function AyahMedallion\([\s\S]*?arabicNumber\(number\)/);
-  assert.match(reader, /run\.ayahs\.map\(\(ayah, ayahIndex\) =>/);
-  assert.match(reader, /<AyahMedallion className="mushaf-page-medallion" number=\{ayah\.numberInSurah\}\/>/);
-  assert.doesNotMatch(reader, /mushaf-page-qpc-medallion/);
-});
-
-
-test('Ayah medallions have one font-independent visual contract in Page by Page and Verse by Verse', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  const css = read('client/src/styles.css');
-  assert.match(reader, /<AyahMedallion className="mushaf-verse-medallion" number=\{ayah\.numberInSurah\}\/>/);
-  assert.match(reader, /<AyahMedallion className="mushaf-page-medallion" number=\{ayah\.numberInSurah\}\/>/);
-  assert.match(reader, /<AyahMedallion className="mushaf-page-medallion" number=\{ayah\.numberInSurah\}\/>/);
-  const contract = css.slice(css.lastIndexOf('/* Universal ayah medallion contract:'));
-  for (const selector of ['.mushaf-verse-arabic .mushaf-medallion','.mushaf-page-text .mushaf-medallion','.mushaf-medallion-ornament','.mushaf-medallion > span','font-family: "Noto Naskh Arabic"']) assert.ok(contract.includes(selector), 'Missing universal medallion rule: ' + selector);
-  assert.match(contract, /\.mushaf-verse-arabic \.mushaf-verse-medallion[\s\S]*?margin-inline: 7px/);
-});
-
-
-test('Page-by-page page runs keep ayah identity and medallions attached to the source ayah', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  assert.match(reader, /const key = ayah\.surahNumber \+ ':' \+ ayah\.numberInSurah/);
-  assert.match(reader, /data-mushaf-verse="true" data-surah=\{ayah\.surahNumber\} data-ayah=\{ayah\.numberInSurah\}/);
-  assert.match(reader, /onClick=\{\(\) => selectAyah\(ayah\)\}/);
-  assert.match(reader, /<AyahMedallion className="mushaf-page-medallion" number=\{ayah\.numberInSurah\}\/>/);
-  assert.doesNotMatch(reader, /positionMatchedAyah/);
-});
-
-
-test('Page-by-page pages use one centered 520px Mushaf column at every viewport', () => {
-  const css = read('client/src/styles.css');
-  const layout = css.slice(css.lastIndexOf('/* Unified Page-by-Page Mushaf frame'));
-  assert.match(layout, /\.mushaf-app\.is-page-reading \.mushaf-page-view[\s\S]*?width: 100% !important/);
-  assert.match(layout, /max-width: 520px !important/);
-  assert.match(layout, /padding: 16px 20px 64px !important/);
-  assert.match(layout, /\.mushaf-page-run-text[\s\S]*?text-align: justify !important/);
-  assert.match(layout, /line-height: 2\.25 !important/);
-  assert.match(layout, /word-spacing: 3px !important/);
-  assert.match(layout, /@media \(max-width: 767px\)[\s\S]*?max-width: 520px !important/);
-});
-
-
-test('Page-by-page cache versions are invalidated without touching saved reading preferences', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  assert.match(reader, /const CACHE_PREFIX = 'atlas_mushaf_page_v15_'/);
-  assert.match(reader, /stalePageCacheKeys\.forEach\(key => localStorage\.removeItem\(key\)\)/);
-  assert.match(reader, /atlas_mushaf_layout_v1/);
-  assert.match(reader, /atlas_mushaf_font_family_v1/);
-});
-
-
-test('Desktop layout lock explicitly isolates app shell, workspace grids, and Mushaf geometry at 768px+', () => {
-  const css = read('client/src/styles.css');
-  const lock = css.slice(css.lastIndexOf('/* Desktop layout lock-in:'));
-  assert.match(lock, /@media \(min-width: 768px\)/);
-  assert.match(lock, /\.sidebar[\s\S]*?width: 252px !important/);
-  assert.match(lock, /\.main-area[\s\S]*?margin-left: 252px !important/);
-  assert.match(lock, /\.content-grid[\s\S]*?grid-template-columns: minmax\(0, 1\.5fr\) minmax\(260px, 1fr\) !important/);
-  assert.match(lock, /grid-template-columns: 270px minmax\(0, 1fr\) !important/);
-  assert.match(lock, /\.mushaf-sidebar[\s\S]*?width: 270px !important/);
-  assert.match(lock, /\.mushaf-topbar-center[\s\S]*?display: flex !important/);
-  assert.match(lock, /\.mushaf-page-arrows[\s\S]*?position: fixed !important/);
-  assert.match(lock, /@media \(min-width: 768px\) and \(max-width: 1050px\)/);
-  assert.match(lock, /\.sidebar \{ width: 220px !important; \}/);
-  assert.match(css, /@media \(max-width: 767px\) \{\s*\.auth-screen/);
-  assert.match(lock, /\.page-container/);
-});
 
 test('CSP uses same-origin scripts only and index contains no inline script bodies', () => {
   const html = read('client/index.html');
@@ -761,15 +301,6 @@ test('CSP uses same-origin scripts only and index contains no inline script bodi
   assert.ok(scripts.every(match => /\bsrc\s*=/.test(match[1]) && !match[2].trim()));
 });
 
-test('Mushaf bookmark sync is deduplicated and scroll-derived progress is user-scroll gated', () => {
-  const reader = read('client/src/components/QuranMushafReader.tsx');
-  assert.match(reader, /const saveKey =/);
-  assert.match(reader, /if \(lastSavedKeyRef\.current === saveKey\) return/);
-  assert.match(reader, /lastSavedKeyRef\.current = saveKey/);
-  assert.match(reader, /if \(!userScrolledRef\.current\) return/);
-  assert.match(reader, /restoreTargetRef\.current = readingMode === 'reading' \? null : mark\.surah \+ ':' \+ mark\.ayah/);
-});
-
 test('Uthmanic Hafs font endpoint validates WOFF2 and sends same-origin immutable font headers', () => {
   const server = read('server.js');
   assert.match(server, /\.subarray\(0, 4\)\.toString\('ascii'\)\s*===\s*'wOF2'/);
@@ -778,23 +309,31 @@ test('Uthmanic Hafs font endpoint validates WOFF2 and sends same-origin immutabl
 });
 
 
-test('Mobile Page-by-Page Mushaf follows the Quran.com-inspired two-row header and editorial Surah card', () => {
-  const css = read('client/src/styles.css');
+
+test('Qur’an reader UI is reset to a neutral placeholder while its data and bookmark hooks remain intact', () => {
   const reader = read('client/src/components/QuranMushafReader.tsx');
-  const mobile = css.slice(css.lastIndexOf('/* Quran.com-inspired mobile Page-by-Page'));
-  assert.match(mobile, /@media \(max-width: 767px\)/);
-  assert.match(mobile, /grid-template-areas:[\s\S]*?"meta meta meta meta"[\s\S]*?"surah view study settings"/);
-  assert.match(mobile, /\.mushaf-topbar-center[\s\S]*?grid-area: meta/);
-  assert.match(mobile, /\.mushaf-page-surah-banner[\s\S]*?border-radius: 19px/);
-  assert.match(mobile, /\.mushaf-page-run-text[\s\S]*?font-size: clamp\(27px, 7vw, 34px\)/);
-  assert.match(reader, /mushaf-page-surah-description/);
-  assert.match(reader, /In the Name of Allah—the Most Compassionate, Most Merciful/);
+  assert.match(reader, /export function QuranMushafReader\(\{ settings, settingsReady, onLogged/);
+  assert.match(reader, /data-quran-reader-placeholder="true"/);
+  assert.match(reader, /Saved positions are preserved/);
+  assert.match(reader, /useEffect\(/);
+  assert.match(reader, /fetch\('\/api\/quran\/page\//);
+  assert.match(reader, /api\('\/settings', json\('PATCH'/);
+  assert.match(reader, /atlas_hifz_bookmark_v2/);
+  assert.match(reader, /atlas_murajaah_bookmark_v2/);
+  assert.match(reader, /lastSavedKeyRef/);
+  assert.doesNotMatch(reader, /className=["'][^"']*(?:mushaf|quran)-/i);
 });
 
-test('Quran.com-inspired mobile reading styles do not introduce desktop or Verse-by-Verse overrides', () => {
+test('Qur’an UI stylesheet wipe removes all Mushaf and Quran class rules without touching app styles', () => {
   const css = read('client/src/styles.css');
-  const mobile = css.slice(css.lastIndexOf('/* Quran.com-inspired mobile Page-by-Page'));
-  assert.doesNotMatch(mobile, /@media \(min-width:/);
-  assert.doesNotMatch(mobile, /is-mobile-verse-reading|is-verse-reading/);
-  assert.match(mobile, /\.mushaf-app\.is-mobile-page-reading/);
+  assert.doesNotMatch(css, /[^{}]*\.(?:mushaf|quran)-[\w-]+[^{}]*\{/i);
+  assert.match(css, /\.sidebar/);
+  assert.match(css, /\.main-area/);
+  assert.match(css, /\.faith-section-secondary/);
+});
+
+test('Reader placeholder keeps the original three required public props', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  assert.match(reader, /type Props = \{ settings: Settings; settingsReady: boolean; onLogged: \(\) => void/);
+  assert.match(reader, /export function QuranMushafReader\(\{ settings, settingsReady, onLogged/);
 });
