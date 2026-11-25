@@ -115,7 +115,7 @@ function parseBracketTajweed(markup: string): TajweedSegment[] {
   }
   return result.map(segment => ({ ...segment, text: stripRawQuranMarkup(segment.text) }));
 }
-const stripAyahEndMarker = (value: string) => value.replace(/\u06DD[\u0660-\u0669\u06F0-\u06F9]*/g, '').replace(/[\u06DE\u06E9]/g, '').trim();
+const stripAyahEndMarker = (value: string) => value.replace(/\u06DD[\u0660-\u0669\u06F0-\u06F9]*/g, '').trim();
 const sanitizeMushafPage = (payload: MushafPage): MushafPage => ({
   ...payload,
   ayahs: (payload.ayahs || []).map(ayah => {
