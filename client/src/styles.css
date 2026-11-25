@@ -6653,3 +6653,11 @@ html, body, #root, .app-frame, .main-area, .page-container {
 :root:not([data-theme^="light-"]) .quran-mobile-shell .tj-ghunnah { color:#26B55D !important; }
 :root:not([data-theme^="light-"]) .quran-mobile-shell .tj-tafkhim,
 :root:not([data-theme^="light-"]) .quran-mobile-shell .tj-heavy { color:#3C84D5 !important; }
+
+/* Preserve the two distinct obligatory Madd rules from Quran Foundation markup. */
+.quran-mobile-shell .tj-madd-obligatory { color:#2144C1 !important; }
+.quran-mobile-shell .tj-madd-obligatory-connected { color:#F40000 !important; }
+.quran-mobile-shell .tj-madd-obligatory-separated { color:#FF7B00 !important; }
+:root:not([data-theme^="light-"]) .quran-mobile-shell .tj-madd-obligatory { color:#2144C1 !important; }
+:root:not([data-theme^="light-"]) .quran-mobile-shell .tj-madd-obligatory-connected { color:#FF5E8E !important; }
+:root:not([data-theme^="light-"]) .quran-mobile-shell .tj-madd-obligatory-separated { color:#FF8E3B !important; }
