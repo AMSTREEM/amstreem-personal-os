@@ -37,7 +37,7 @@ test('All 114 Surahs cover all 6,236 Ayahs and the complete 604-page Madani Mush
   let coloredAyahs = 0;
   const normalize = value => normalizeMadinahArabic(String(value || '').replace(/<[^>]+>/g, ''))
     .normalize('NFKC')
-    .replace(/[\\s\\u0640\\u064B-\\u065F\\u0670\\u06D6-\\u06ED]/g, '')
+    .replace(/[\s\u0640\u064B-\u065F\u0670\u06D6-\u06ED]/g, '')
     .replace(/[ٱأإآ]/g, 'ا')
     .replace(/ى/g, 'ي');
   const fetchOfficialSurah = async number => {
