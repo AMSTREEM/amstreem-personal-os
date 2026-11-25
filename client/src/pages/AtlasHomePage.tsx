@@ -28,17 +28,6 @@ type HomeGoal = {
   focus_minutes?: number;
 };
 
-type HomeOverview = {
-  today: string;
-  todayMin: number;
-  weekMin: number;
-  completed: number;
-  moduleTotal: number;
-  streak: number;
-  dailyTarget: number;
-  openTasks: number;
-};
-
 type FocusSession = {
   session_date: string;
   minutes: number;
@@ -102,7 +91,6 @@ export function AtlasHomePage() {
 
   const tasksQuery = useQuery({ queryKey: ['tasks'], queryFn: () => api<HomeTask[]>('/tasks') });
   const goalsQuery = useQuery({ queryKey: ['goals'], queryFn: () => api<HomeGoal[]>('/goals') });
-  const overviewQuery = useQuery({ queryKey: ['overview'], queryFn: () => api<HomeOverview>('/overview') });
   const sessionsQuery = useQuery({ queryKey: ['sessions'], queryFn: () => api<FocusSession[]>('/sessions') });
 
   const addTask = useMutation({
@@ -110,7 +98,6 @@ export function AtlasHomePage() {
     onSuccess: () => {
       setCaptureTitle('');
       void queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      void queryClient.invalidateQueries({ queryKey: ['overview'] });
     }
   });
 
