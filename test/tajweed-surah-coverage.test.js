@@ -79,6 +79,33 @@ test('Six selected Surahs tokenize every ayah and retain all provider colour tag
 });
 
 
+test('page Tajweed edition fills only matching unmarked ayahs without replacing existing annotations', () => {
+  const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
+  const start = server.indexOf('function normalizeMadinahArabic(value) {');
+  const end = server.indexOf('async function fetchAlQuranCloudPage(page) {');
+  assert.ok(start >= 0 && end > start, 'Page Tajweed merge helpers must be present');
+  const context = { module: { exports: {} } };
+  vm.runInNewContext(server.slice(start, end) + '\\nmodule.exports = { parseAlQuranTajweed, mergeTajweedEdition };', context);
+  const { parseAlQuranTajweed: parse, mergeTajweedEdition } = context.module.exports;
+  const markup = '[g[بِسْمِ]][n[ اللَّهِ]]';
+  const segments = parse(markup);
+  const page = { page: 1, ayahs: [
+    { surahNumber: 1, numberInSurah: 1, text: 'بِسْمِ اللَّهِ', tajweedSegments: [{ text: 'بِسْمِ اللَّهِ', className: '' }] },
+    { surahNumber: 1, numberInSurah: 2, text: 'ٱلْحَمْدُ لِلَّٰهِ', tajweedSegments: [{ text: 'ٱلْحَمْدُ لِلَّٰهِ', className: 'tj-ghunnah' }] },
+    { surahNumber: 1, numberInSurah: 3, text: 'مَالِكِ يَوْمِ الدِّينِ', tajweedSegments: [{ text: 'مَالِكِ يَوْمِ الدِّينِ', className: '' }] }
+  ] };
+  const annotations = new Map([
+    ['1:1', { markup, segments }],
+    ['1:3', { markup: '[n[نصٌّ مختلف]]', segments: parse('[n[نصٌّ مختلف]]') }]
+  ]);
+  const merged = mergeTajweedEdition(page, annotations);
+  assert.equal(merged.ayahs[0].tajweedSource, 'quran-tajweed');
+  assert.ok(merged.ayahs[0].tajweedSegments.some(segment => segment.className === 'tj-ghunnah'));
+  assert.equal(merged.ayahs[1].tajweedSegments[0].className, 'tj-ghunnah', 'Existing provider annotations must remain untouched');
+  assert.equal(merged.ayahs[2].tajweedSegments[0].className, '', 'Mismatched edition text must never be overlaid');
+  assert.equal(merged.tajweedComplete, false);
+});
+
 test('every Quran Foundation HTML rule and quran-tajweed shortcode maps to its correct Tajweed family', () => {
   const html = '<tajweed class=ham_wasl>ٱ</tajweed><tajweed class=slnt>ا</tajweed>' +
     '<tajweed class=madda_normal>ـٰ</tajweed><tajweed class=madda_permissible>ي</tajweed>' +
