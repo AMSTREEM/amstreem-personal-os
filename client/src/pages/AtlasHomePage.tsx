@@ -147,8 +147,8 @@ export function AtlasHomePage() {
     .reduce((total, session) => total + (Number(session.minutes) || 0), 0);
   const nextTask = activeTasks[0];
   const nextGoal = activeGoals[0];
-  const loading = tasksQuery.isLoading || goalsQuery.isLoading || overviewQuery.isLoading || sessionsQuery.isLoading;
-  const queryError = tasksQuery.isError || goalsQuery.isError || overviewQuery.isError || sessionsQuery.isError;
+  const loading = tasksQuery.isLoading || goalsQuery.isLoading || sessionsQuery.isLoading;
+  const queryError = tasksQuery.isError || goalsQuery.isError || sessionsQuery.isError;
 
   function submitCapture(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -315,13 +315,13 @@ export function AtlasHomePage() {
           <div className="atlas-home__section-heading">
             <div>
               <span className="atlas-home__eyebrow">A CLEARER PICTURE</span>
-              <h2>This week, so far</h2>
+              <h2>Your progress at a glance</h2>
             </div>
             <TrendingUp size={18} />
           </div>
           <div className="atlas-home__week-stats">
-            <div><strong>{loading ? '—' : overviewQuery.data?.weekMin ? formatMinutes(overviewQuery.data.weekMin) : '0m'}</strong><span>Focused time</span></div>
-            <div><strong>{loading ? '—' : tasks.filter(task => !!task.done).length}</strong><span>Actions completed</span></div>
+            <div><strong>{loading ? '—' : formatMinutes(focusMinutes)}</strong><span>Focused time</span></div>
+            <div><strong>{loading ? '—' : tasks.filter(task => !!task.done).length}</strong><span>Completed actions</span></div>
             <div><strong>{loading ? '—' : activeGoals.length}</strong><span>Goals in motion</span></div>
           </div>
           <p className="atlas-home__footnote">A record of activity, not a score of your worth. Progress means different things in different areas of life.</p>
