@@ -776,3 +776,25 @@ test('Uthmanic Hafs font endpoint validates WOFF2 and sends same-origin immutabl
   assert.match(server, /res\.setHeader\('Content-Type',\s*'font\/woff2'\)/);
   assert.match(server, /res\.setHeader\('Cache-Control',\s*'public, max-age=31536000, immutable'\)/);
 });
+
+
+test('Mobile Page-by-Page Mushaf follows the Quran.com-inspired two-row header and editorial Surah card', () => {
+  const css = read('client/src/styles.css');
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  const mobile = css.slice(css.lastIndexOf('/* Quran.com-inspired mobile Page-by-Page'));
+  assert.match(mobile, /@media \(max-width: 767px\)/);
+  assert.match(mobile, /grid-template-areas:[\s\S]*?"meta meta meta meta"[\s\S]*?"surah view study settings"/);
+  assert.match(mobile, /\.mushaf-topbar-center[\s\S]*?grid-area: meta/);
+  assert.match(mobile, /\.mushaf-page-surah-banner[\s\S]*?border-radius: 19px/);
+  assert.match(mobile, /\.mushaf-page-run-text[\s\S]*?font-size: clamp\(27px, 7vw, 34px\)/);
+  assert.match(reader, /mushaf-page-surah-description/);
+  assert.match(reader, /In the Name of Allah—the Most Compassionate, Most Merciful/);
+});
+
+test('Quran.com-inspired mobile reading styles do not introduce desktop or Verse-by-Verse overrides', () => {
+  const css = read('client/src/styles.css');
+  const mobile = css.slice(css.lastIndexOf('/* Quran.com-inspired mobile Page-by-Page'));
+  assert.doesNotMatch(mobile, /@media \(min-width:/);
+  assert.doesNotMatch(mobile, /is-mobile-verse-reading|is-verse-reading/);
+  assert.match(mobile, /\.mushaf-app\.is-mobile-page-reading/);
+});
