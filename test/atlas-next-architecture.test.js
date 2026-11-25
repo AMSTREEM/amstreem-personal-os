@@ -366,8 +366,8 @@ test('Qur’an is a standalone workspace and no longer renders inside Deen', () 
   assert.doesNotMatch(values, /QuranMushafReader|openMushaf/);
   assert.match(quran, /QuranMushafReader/);
   assert.match(quran, /autoOpen/);
-  assert.match(app, /path="\\/quran" element={<QuranPage \/>}/);
-  assert.match(shell, /id: 'quran', label: 'Qur’an', to: '\\/quran'/);
-  assert.doesNotMatch(shell, /to="\\/values\\?openMushaf=1"/);
+  assert.ok(app.includes('path="/quran" element={<QuranPage />}'));
+  assert.ok(shell.includes("id: 'quran', label: 'Qur’an', to: '/quran'"));
+  assert.ok(!shell.includes('/values?openMushaf=1'));
   assert.match(shell, /faithTabLabel = quickReligion === 'islam' \? 'Deen'/);
 });
