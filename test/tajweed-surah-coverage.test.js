@@ -94,9 +94,9 @@ test('every Quran Foundation HTML rule and quran-tajweed shortcode maps to its c
     'tj-idgham-shafawi','tj-idgham-ghunnah','tj-idgham-no-ghunnah',
     'tj-idgham-mutajanisayn','tj-idgham-mutaqaribayn','tj-ghunnah'
   ];
-  const parsed = parseAlQuranTajweed(html.replace(/<\\/tajweed><tajweed/g, '</tajweed> <tajweed'));
+  const parsed = parseAlQuranTajweed(html.replace(/<\/tajweed><tajweed/g, '</tajweed> <tajweed'));
   assert.deepEqual(Array.from(parsed.filter(token => token.className), token => token.className), expected);
   const shortcode = '[h[ٱ]][s[ا]][n[ـٰ]][p[ي]][m[ا]][o[ا]][q[ق]][f[ن]][c[م]][i[ن]][w[م]][a[ن]][u[ل]][d[ت]][b[ق]][g[ن]]';
-  assert.deepEqual(Array.from(parseAlQuranTajweed(shortcode.replace(/\\]\\]\\[/g, ']] [')).filter(token => token.className), token => token.className), expected);
-  assert.equal(parsed.map(token => token.text).join('').replace(/\\s/g, ''), 'ٱاـٰيااقنمنمنلتقن');
+  assert.deepEqual(Array.from(parseAlQuranTajweed(shortcode.replace(/\]\]\[/g, ']] [')).filter(token => token.className), token => token.className), expected);
+  assert.equal(parsed.map(token => token.text).join('').replace(/\s/g, ''), 'ٱاـٰيااقنمنمنلتقن');
 });
