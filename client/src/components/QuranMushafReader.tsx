@@ -1092,7 +1092,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       </div>
       <div className="quran-mobile-tajweed-center"><button onClick={() => setTajweedLegendVisible(value => !value)}>Tajweed colors <span>⌄</span></button></div>
     </header>
-    {tajweedLegendVisible && <aside className="quran-mobile-tajweed-legend"><b>Tajweed color key</b><div><span className="tj-madd">Madd</span><span className="tj-ghunnah">Ghunnah</span><span className="tj-qalqalah">Qalqalah</span><span className="tj-ikhfa">Ikhfa</span><span className="tj-idgham">Idgham</span></div></aside>}
+    {tajweedLegendVisible && <aside className="quran-mobile-tajweed-legend"><b>Tajweed color key</b><div><span className="tj-madd">Madd</span><span className="tj-ghunnah">Ghunnah</span><span className="tj-qalqalah">Qalqalah</span><span className="tj-ikhfa">Ikhfa</span><span className="tj-idgham">Idgham</span>{!isMobileViewport && <><span className="tj-iqlab">Iqlab</span><span className="tj-tafkhim">Tafkhim</span></>}</div></aside>}
     <main className="quran-mobile-content">
       {loading && <div className="quran-mobile-loading">Loading Qur’an…</div>}
       {pageError && <div className="quran-mobile-error">{pageError}<button onClick={() => changePage(page)}>Retry</button></div>}
