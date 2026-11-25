@@ -198,8 +198,8 @@ export function AppShell() {
             const active = item.paths.includes(location.pathname) || (item.id === 'execution' && location.pathname === '/execution');
             return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={'nav-link room-nav-link ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.id === 'rhythm' ? faithTabLabel : item.label}</span><kbd>⌘ {index+1}</kbd></MotionNavLink>;
           })}
-          <NavLink to="/quran" className="nav-link room-nav-link nav-link--quran" onClick={() => setMobileOpen(false)}><BookOpen size={17} strokeWidth={1.8}/><span>Qur’an</span><kbd>↗</kbd></NavLink>
-          <button type="button" className="nav-link room-nav-link" onClick={() => setMobileOpen(true)}><SlidersHorizontal size={17}/><span>More</span><kbd>···</kbd></button>
+          <NavLink to="/quran" className="nav-link room-nav-link nav-link--quran" onClick={() => setMobileOpen(false)}><BookOpen size={17} strokeWidth={1.8}/><span>Qur’an</span></NavLink>
+          <button type="button" className="nav-link room-nav-link" onClick={() => setMobileOpen(true)}><SlidersHorizontal size={17}/><span>More</span></button>
         </div>
       </nav>
       <div className="sidebar-bottom">
