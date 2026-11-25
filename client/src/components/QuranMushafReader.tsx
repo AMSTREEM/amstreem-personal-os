@@ -548,6 +548,82 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
 
   const activeSurah = QURAN_SURAHS[activeSurahNumber - 1];
 
+  const mobileActiveSurahNumber = selected?.surah || pageData?.ayahs?.[0]?.surahNumber || getPageSurah(page)?.number || activeSurahNumber;
+  const mobileActiveSurahName = QURAN_SURAHS[mobileActiveSurahNumber - 1]?.transliteration || activeSurah?.transliteration || 'Al-Fatihah';
+  const currentPageSurahLabel = useMemo(() => {
+    const pageSurahs = new Map<number, string>();
+    for (const ayah of pageData?.ayahs || []) {
+      if (!pageSurahs.has(ayah.surahNumber)) {
+        pageSurahs.set(ayah.surahNumber, ayah.surahName || QURAN_SURAHS[ayah.surahNumber - 1]?.transliteration || 'Surah');
+      }
+    }
+    if (pageSurahs.size) return [...pageSurahs.entries()].map(([number, name]) => `${number}. ${name}`).join(' – ');
+    const fallbackSurah = getPageSurah(page);
+    const fallbackNumber = fallbackSurah?.number || activeSurahNumber;
+    return `${fallbackNumber}. ${fallbackSurah?.transliteration || activeSurah?.transliteration || 'Al-Fatihah'}`;
+  }, [pageData, page, activeSurahNumber, activeSurah]);
+  useEffect(() => {
+    if (!fullScreen || loading || !pageData?.ayahs?.length) return;
+    const date = lagosDate();
+    const dedupeKey = date + ':' + page;
+    const storageKey = 'atlas_quran_auto_logged_pages_' + date;
+    if (loggedPagesTodayRef.current.has(dedupeKey)) return;
+    let stored: number[] = [];
+    try {
+      stored = JSON.parse(localStorage.getItem(storageKey) || '[]') as number[];
+      if (stored.includes(page)) {
+        loggedPagesTodayRef.current.add(dedupeKey);
+        return;
+      }
+    } catch { /* continue with in-memory deduplication */ }
+    // Claim this page before sending the request so rerenders and remounts cannot
+    // enqueue duplicate daily logs while the network request is in flight.
+    loggedPagesTodayRef.current.add(dedupeKey);
+    try { localStorage.setItem(storageKey, JSON.stringify([...stored, page])); } catch { /* in-memory deduplication remains active */ }
+    const first = pageData.ayahs[0];
+    const last = pageData.ayahs[pageData.ayahs.length - 1];
+    const sameSurah = first.surahNumber === last.surahNumber;
+    const label = sameSurah ? (QURAN_SURAHS[first.surahNumber - 1]?.transliteration || first.surahName) : `Page ${page} · ${first.surahName}–${last.surahName}`;
+    void api('/deen/quran', json('POST', {
+      log_date: date,
+      activity: mode === 'hifz' ? 'memorisation' : 'revision',
+      surah: label,
+      ayah_start: sameSurah ? first.numberInSurah : null,
+      ayah_end: sameSurah ? last.numberInSurah : null,
+      pages: 1,
+      juz: pageData.juz || getPageJuz(page) || 1,
+      reflection: `Automatically visited Mushaf page ${page}: ${first.surahName} ${first.numberInSurah}–${last.surahName} ${last.numberInSurah}. ${mode === 'hifz' ? 'Hifz' : 'Muraja’ah'} reading.`
+    })).then(() => onLoggedRef.current()).catch(() => {
+      // Keep the at-most-once guard for today; do not create a request loop on 429.
+    });
+  }, [fullScreen, loading, pageData, page, mode]);
+  useEffect(() => {
+    if (readingMode === 'reading' || !activeSurah) return;
+    let cancelled = false;
+    setSurahLoading(true); setSurahError(''); setSurahAyahs([]);
+    fetch('/api/quran/surah/' + activeSurahNumber)
+      .then(async response => { const payload = await response.json(); if (!response.ok) throw new Error(payload?.error || 'The Surah could not be loaded.'); return payload; })
+      .then(payload => {
+        const result = sanitizeMushafPage(payload as MushafPage);
+        if (!result.ayahs?.length) throw new Error('No verses were returned for ' + activeSurah.transliteration + '.');
+        const ordered = [...result.ayahs].sort((a, b) => a.numberInSurah - b.numberInSurah);
+        if (ordered.length !== activeSurah.ayahs) throw new Error('The Surah response is incomplete (' + ordered.length + '/' + activeSurah.ayahs + ' ayahs).');
+        if (!cancelled) setSurahAyahs(ordered);
+      })
+      .catch(error => { if (!cancelled) setSurahError(error instanceof Error ? error.message : 'This Surah could not be loaded.'); })
+      .finally(() => { if (!cancelled) setSurahLoading(false); });
+    return () => { cancelled = true; };
+  }, [readingMode, activeSurahNumber, activeSurah?.ayahs, activeSurah?.transliteration]);
+
+  const updateBookmark = useCallback((nextPage: number, ayah?: Pick<MushafAyah, 'surahNumber' | 'numberInSurah'> | null) => {
+    const current = mode === 'hifz' ? hifzMark : murajaahMark;
+    const next = { page: clampPage(nextPage), surah: ayah?.surahNumber ?? current.surah, ayah: ayah?.numberInSurah ?? current.ayah, updatedAt: new Date().toISOString() };
+    if (current.page === next.page && current.surah === next.surah && current.ayah === next.ayah) return;
+    const storageKey = mode === 'hifz' ? HIFZ_KEY : MURAJAAH_KEY;
+    try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch { /* localStorage can be unavailable */ }
+    if (mode === 'hifz') setHifzMark(next); else setMurajaahMark(next);
+  }, [mode, hifzMark, murajaahMark]);
+
   // Desktop Page-by-Page uses a small forward window so pages flow naturally.
   useEffect(() => {
     if (isMobileViewport || !fullScreen || readingMode !== 'reading' || !pageData?.ayahs?.length) {
@@ -625,81 +701,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     return () => observer.disconnect();
   }, [isMobileViewport, fullScreen, readingMode, desktopPageWindow, updateBookmark]);
 
-  const mobileActiveSurahNumber = selected?.surah || pageData?.ayahs?.[0]?.surahNumber || getPageSurah(page)?.number || activeSurahNumber;
-  const mobileActiveSurahName = QURAN_SURAHS[mobileActiveSurahNumber - 1]?.transliteration || activeSurah?.transliteration || 'Al-Fatihah';
-  const currentPageSurahLabel = useMemo(() => {
-    const pageSurahs = new Map<number, string>();
-    for (const ayah of pageData?.ayahs || []) {
-      if (!pageSurahs.has(ayah.surahNumber)) {
-        pageSurahs.set(ayah.surahNumber, ayah.surahName || QURAN_SURAHS[ayah.surahNumber - 1]?.transliteration || 'Surah');
-      }
-    }
-    if (pageSurahs.size) return [...pageSurahs.entries()].map(([number, name]) => `${number}. ${name}`).join(' – ');
-    const fallbackSurah = getPageSurah(page);
-    const fallbackNumber = fallbackSurah?.number || activeSurahNumber;
-    return `${fallbackNumber}. ${fallbackSurah?.transliteration || activeSurah?.transliteration || 'Al-Fatihah'}`;
-  }, [pageData, page, activeSurahNumber, activeSurah]);
-  useEffect(() => {
-    if (!fullScreen || loading || !pageData?.ayahs?.length) return;
-    const date = lagosDate();
-    const dedupeKey = date + ':' + page;
-    const storageKey = 'atlas_quran_auto_logged_pages_' + date;
-    if (loggedPagesTodayRef.current.has(dedupeKey)) return;
-    let stored: number[] = [];
-    try {
-      stored = JSON.parse(localStorage.getItem(storageKey) || '[]') as number[];
-      if (stored.includes(page)) {
-        loggedPagesTodayRef.current.add(dedupeKey);
-        return;
-      }
-    } catch { /* continue with in-memory deduplication */ }
-    // Claim this page before sending the request so rerenders and remounts cannot
-    // enqueue duplicate daily logs while the network request is in flight.
-    loggedPagesTodayRef.current.add(dedupeKey);
-    try { localStorage.setItem(storageKey, JSON.stringify([...stored, page])); } catch { /* in-memory deduplication remains active */ }
-    const first = pageData.ayahs[0];
-    const last = pageData.ayahs[pageData.ayahs.length - 1];
-    const sameSurah = first.surahNumber === last.surahNumber;
-    const label = sameSurah ? (QURAN_SURAHS[first.surahNumber - 1]?.transliteration || first.surahName) : `Page ${page} · ${first.surahName}–${last.surahName}`;
-    void api('/deen/quran', json('POST', {
-      log_date: date,
-      activity: mode === 'hifz' ? 'memorisation' : 'revision',
-      surah: label,
-      ayah_start: sameSurah ? first.numberInSurah : null,
-      ayah_end: sameSurah ? last.numberInSurah : null,
-      pages: 1,
-      juz: pageData.juz || getPageJuz(page) || 1,
-      reflection: `Automatically visited Mushaf page ${page}: ${first.surahName} ${first.numberInSurah}–${last.surahName} ${last.numberInSurah}. ${mode === 'hifz' ? 'Hifz' : 'Muraja’ah'} reading.`
-    })).then(() => onLoggedRef.current()).catch(() => {
-      // Keep the at-most-once guard for today; do not create a request loop on 429.
-    });
-  }, [fullScreen, loading, pageData, page, mode]);
-  useEffect(() => {
-    if (readingMode === 'reading' || !activeSurah) return;
-    let cancelled = false;
-    setSurahLoading(true); setSurahError(''); setSurahAyahs([]);
-    fetch('/api/quran/surah/' + activeSurahNumber)
-      .then(async response => { const payload = await response.json(); if (!response.ok) throw new Error(payload?.error || 'The Surah could not be loaded.'); return payload; })
-      .then(payload => {
-        const result = sanitizeMushafPage(payload as MushafPage);
-        if (!result.ayahs?.length) throw new Error('No verses were returned for ' + activeSurah.transliteration + '.');
-        const ordered = [...result.ayahs].sort((a, b) => a.numberInSurah - b.numberInSurah);
-        if (ordered.length !== activeSurah.ayahs) throw new Error('The Surah response is incomplete (' + ordered.length + '/' + activeSurah.ayahs + ' ayahs).');
-        if (!cancelled) setSurahAyahs(ordered);
-      })
-      .catch(error => { if (!cancelled) setSurahError(error instanceof Error ? error.message : 'This Surah could not be loaded.'); })
-      .finally(() => { if (!cancelled) setSurahLoading(false); });
-    return () => { cancelled = true; };
-  }, [readingMode, activeSurahNumber, activeSurah?.ayahs, activeSurah?.transliteration]);
-
-  const updateBookmark = useCallback((nextPage: number, ayah?: Pick<MushafAyah, 'surahNumber' | 'numberInSurah'> | null) => {
-    const current = mode === 'hifz' ? hifzMark : murajaahMark;
-    const next = { page: clampPage(nextPage), surah: ayah?.surahNumber ?? current.surah, ayah: ayah?.numberInSurah ?? current.ayah, updatedAt: new Date().toISOString() };
-    if (current.page === next.page && current.surah === next.surah && current.ayah === next.ayah) return;
-    const storageKey = mode === 'hifz' ? HIFZ_KEY : MURAJAAH_KEY;
-    try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch { /* localStorage can be unavailable */ }
-    if (mode === 'hifz') setHifzMark(next); else setMurajaahMark(next);
-  }, [mode, hifzMark, murajaahMark]);
 
   useEffect(() => {
     if (!fullScreen || readingMode === 'reading') return;
