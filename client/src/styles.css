@@ -6612,3 +6612,97 @@ html, body, #root, .app-frame, .main-area, .page-container {
     display: none !important;
   }
 }
+
+
+/* Page-by-page: use the full reading canvas between the Tajweed control and
+   the Mushaf page number. Keep navigation outside the Arabic text measure. */
+@media (max-width: 767px) {
+  .quran-mobile-shell.is-fixed-page-mode {
+    height: 100dvh !important;
+    min-height: 0 !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-header {
+    flex: 0 0 auto !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-content {
+    flex: 1 1 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-page-block {
+    flex: 1 1 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    padding: 0 12px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-page-arabic {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 6px 0 10px !important;
+    overflow: hidden !important;
+    font-size: clamp(15px, 2.15vh, 21px) !important;
+    line-height: 1.72 !important;
+    text-align: justify !important;
+    text-align-last: center !important;
+    word-spacing: .02em !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-page-divider {
+    flex: 0 0 auto !important;
+    margin: 2px 8px 5px !important;
+    padding-bottom: 2px !important;
+  }
+  .quran-mobile-shell.is-fixed-page-mode .quran-mobile-bottom-nav {
+    flex: 0 0 auto !important;
+    padding: 3px 10px max(4px, env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* Madd remains Tajweed-coloured text, but never receives an extra UI marker,
+   ring, badge, dotted outline, or decorative pseudo-element. */
+.quran-mobile-shell .tj-madd::before,
+.quran-mobile-shell .tj-madd::after,
+.quran-mobile-shell .tj-madd-wajib::before,
+.quran-mobile-shell .tj-madd-wajib::after,
+.quran-mobile-shell .madda_normal::before,
+.quran-mobile-shell .madda_normal::after,
+.quran-mobile-shell .madda_permissible::before,
+.quran-mobile-shell .madda_permissible::after,
+.quran-mobile-shell .madda_necessary::before,
+.quran-mobile-shell .madda_necessary::after,
+.quran-mobile-shell .madda_obligatory::before,
+.quran-mobile-shell .madda_obligatory::after,
+.quran-mobile-shell .madda_obligatory_mottasel::before,
+.quran-mobile-shell .madda_obligatory_mottasel::after,
+.quran-mobile-shell .madda_obligatory_monfasel::before,
+.quran-mobile-shell .madda_obligatory_monfasel::after {
+  content: none !important;
+  display: none !important;
+}
+.quran-mobile-shell .tj-madd,
+.quran-mobile-shell .tj-madd-wajib,
+.quran-mobile-shell .madda_normal,
+.quran-mobile-shell .madda_permissible,
+.quran-mobile-shell .madda_necessary,
+.quran-mobile-shell .madda_obligatory,
+.quran-mobile-shell .madda_obligatory_mottasel,
+.quran-mobile-shell .madda_obligatory_monfasel {
+  outline: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  background: transparent !important;
+}
