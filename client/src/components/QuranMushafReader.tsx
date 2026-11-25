@@ -255,7 +255,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [tajweedLegendVisible, setTajweedLegendVisible] = useState(false);
   const [transliterationEnabled, setTransliterationEnabled] = useState(() => { try { return localStorage.getItem('atlas_mushaf_transliteration_v1') === 'on'; } catch { return false; } });
   const [arabicFontFamily, setArabicFontFamily] = useState(() => { try { const saved = localStorage.getItem('atlas_mushaf_font_family_v1'); return MUSHAF_FONTS.some(font => font.name === saved) ? saved as typeof MUSHAF_FONTS[number]['name'] : 'UthmanicHafs'; } catch { return 'UthmanicHafs'; } });
-  const [arabicFontSize, setArabicFontSize] = useState(() => { try { const saved = Number(localStorage.getItem('atlas_mushaf_font_size_v1')); return [20, 24, 28, 32, 36].includes(saved) ? saved : 24; } catch { return 24; } });
+  const [arabicFontSize, setArabicFontSize] = useState(() => { try { const saved = Number(localStorage.getItem('atlas_mushaf_font_size_v1')); return Number.isInteger(saved) && saved >= 16 && saved <= 44 ? saved : 24; } catch { return 24; } });
   const [pageInput, setPageInput] = useState(String(page));
   const [desktopPageWindow, setDesktopPageWindow] = useState<MushafPage[]>([]);
   const [desktopVisiblePage, setDesktopVisiblePage] = useState(page);
