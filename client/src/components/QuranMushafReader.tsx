@@ -980,11 +980,11 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       {surahStarts.map(ayah => <div className="mushaf-desktop-page-surah-heading" key={'heading-' + ayah.surahNumber}>
         <div className="mushaf-desktop-page-surah-arabic" lang="ar" dir="rtl">{ayah.arabicName || QURAN_SURAHS[ayah.surahNumber - 1]?.arabic}</div>
         <div>{ayah.surahNumber}. {ayah.surahName || QURAN_SURAHS[ayah.surahNumber - 1]?.transliteration}</div>
-        {ayah.surahNumber !== 9 && <div className="mushaf-desktop-page-bismillah" lang="ar" dir="rtl" style={mobileArabicStyle}>{bismillah}</div>}
+        {ayah.surahNumber !== 1 && ayah.surahNumber !== 9 && <div className="mushaf-desktop-page-bismillah" lang="ar" dir="rtl" style={mobileArabicStyle}>{bismillah}</div>}
       </div>)}
       <div className="mushaf-desktop-page-text" lang="ar" dir="rtl" style={mobileArabicStyle}>
         {hasLineData
-          ? [...lineMap.entries()].sort((left, right) => left[0] - right[0]).map(([line, words]) => <div className="mushaf-desktop-qcf-line" key={line}>{words}</div>)
+          ? Array.from({ length: 15 }, (_, index) => index + 1).map(line => <div className="mushaf-desktop-qcf-line" key={line}>{lineMap.get(line) || []}</div>)
           : <div className="mushaf-desktop-page-fallback">{data.ayahs.map(ayah => <span className="mushaf-desktop-page-ayah" key={ayah.number} data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={data.page}>{renderArabic(ayah)}{' '}</span>)}</div>}
       </div>
       {data.ayahs.map(ayah => <span className="mushaf-desktop-page-bookmark-anchor" key={'anchor-' + ayah.number} data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={data.page} />)}
@@ -1048,7 +1048,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         {surahLoading && <div className="quran-mobile-loading">Loading Surah…</div>}
         {!surahLoading && surahAyahs.length > 0 && <>
           {surahAyahs[0].numberInSurah === 1 && renderDesktopHero(activeSurahNumber, activeSurah?.transliteration || surahAyahs[0].surahName, surahAyahs[0].arabicName)}
-          {activeSurahNumber !== 9 && surahAyahs[0].numberInSurah === 1 && <div className="mushaf-desktop-bismillah"><div lang="ar" dir="rtl" style={mobileArabicStyle}>{bismillah}</div><p>In the Name of Allah—the Most Compassionate, Most Merciful</p></div>}
+          {activeSurahNumber !== 1 && activeSurahNumber !== 9 && surahAyahs[0].numberInSurah === 1 && <div className="mushaf-desktop-bismillah"><div lang="ar" dir="rtl" style={mobileArabicStyle}>{bismillah}</div><p>In the Name of Allah—the Most Compassionate, Most Merciful</p></div>}
           {renderVerseRows(surahAyahs)}
         </>}
         {surahError && <div className="quran-mobile-error">{surahError}</div>}
