@@ -456,7 +456,7 @@ async function fetchAlQuranCloudSurah(surahNumber) {
   ]) {
     try {
       const qpcSurah = await fetchQuranMirror(url, normalizeQuranCom, 1);
-      if (qpcSurah?.ayahs?.length && qpcSurah.ayahs.every(ayah => ayah.textSource === 'qpc-hafs')) {
+      if (qpcSurah?.ayahs?.length && qpcSurah.ayahs.every(ayah => ayah.textSource === 'qpc-hafs' && ayah.tajweedSegments?.some(segment => Boolean(segment.className)) && ayah.translation)) {
         return { ...qpcSurah, page: qpcSurah.ayahs[0]?.pageNumber || 1, textSource: 'qpc-hafs' };
       }
     } catch (error) {
@@ -492,7 +492,7 @@ async function fetchQuranFoundationPage(page) {
   ]);
   if (!verseResponse.ok) throw new Error('Quran Foundation by_page returned HTTP ' + verseResponse.status + '.');
   const normalized = normalizeQuranCom(await verseResponse.json(), page);
-  if (!normalized.ayahs.length || !normalized.qcfAvailable || normalized.ayahs.some(ayah => !ayah.translation || !ayah.words?.length || ayah.words.some(word => !word.lineNumber || (word.charTypeName !== 'end' && word.charTypeName !== 'pause' && !word.codeV2)))) throw new Error('Quran Foundation page response is missing translation, QCF V2 word, or line data.');
+  if (!normalized.ayahs.length || !normalized.qcfAvailable || normalized.ayahs.some(ayah => !ayah.translation || !ayah.words?.length || !ayah.tajweedSegments?.some(segment => Boolean(segment.className)) || ayah.words.some(word => !word.lineNumber || (word.charTypeName !== 'end' && word.charTypeName !== 'pause' && !word.codeV2)))) throw new Error('Quran Foundation page response is missing translation, complete Tajweed markup, QCF V2 word, or line data.');
   let pageRange = null;
   if (lookupResponse?.ok) {
     const lookup = await lookupResponse.json();
@@ -509,6 +509,7 @@ async function fetchQuranFoundationSurah(surahNumber) {
   const normalized = normalizeQuranCom(await response.json(), 1);
   if (!normalized.ayahs.length) throw new Error('Quran Foundation returned no Surah verses.');
   if (normalized.ayahs.some(ayah => !ayah.translation)) throw new Error('Quran Foundation Surah response is missing one or more verse translations.');
+  if (normalized.ayahs.some(ayah => !ayah.tajweedSegments?.some(segment => Boolean(segment.className)))) throw new Error('Quran Foundation Surah response is missing Tajweed markup.');
   return { ...normalized, textSource: 'qpc-hafs', qcfAvailable: normalized.ayahs.every(ayah => ayah.words?.length), mushafId: 1 };
 }
 function normalizeQuranCom(body, page) {
