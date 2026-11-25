@@ -6628,3 +6628,5 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .quran-mobile-shell .tj-ghunnah { color:#09B000 !important; }
 .quran-mobile-shell .tj-tafkhim,
 .quran-mobile-shell .tj-heavy { color:#3F48E6 !important; }
+
+.quran-mobile-shell .quran-qcf-v4-word { font-weight:400; font-synthesis:none; white-space:pre; }
