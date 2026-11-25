@@ -1,7 +1,7 @@
 import { Fragment, type CSSProperties, type FormEvent, type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { Bookmark, Copy, Info, Search, Settings, WifiOff, X } from 'lucide-react';
+import { Bookmark, ChevronDown, Copy, Info, Search, Settings, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz, getPageSurah } from '../data/quranSurahs';
 
@@ -24,7 +24,7 @@ const AYAH_ROSETTE_PATH = Array.from({ length: 120 }, (_, index) => {
   const y = (18 + Math.sin(angle) * radius).toFixed(2);
   return (index === 0 ? 'M' : 'L') + x + ' ' + y;
 }).join(' ') + ' Z';
-const TAJWEED_CLASSES = new Set(['tj-hamza','tj-silent','tj-madd','tj-madd-wajib','tj-qalqalah','tj-ghunnah','tj-ikhfa','tj-idgham','tj-tafkhim','tj-heavy','ham_wasl','slnt','laam_shamsiyah','madda_normal','madda_permissible','madda_necessary','madda_obligatory','madda_obligatory_mottasel','madda_obligatory_monfasel','qalaqah','ikhafa','ikhafa_shafawi','iqlab','idgham_shafawi','idgham_ghunnah','idgham_wo_ghunnah','idgham_mutajanisayn','idgham_mutaqaribayn','ghunnah']);
+const TAJWEED_CLASSES = new Set(['tj-hamza','tj-silent','tj-madd','tj-madd-wajib','tj-qalqalah','tj-ghunnah','tj-ikhfa','tj-idgham','tj-iqlab','tj-tafkhim','tj-heavy','ham_wasl','slnt','laam_shamsiyah','madda_normal','madda_permissible','madda_necessary','madda_obligatory','madda_obligatory_mottasel','madda_obligatory_monfasel','qalaqah','ikhafa','ikhafa_shafawi','iqlab','idgham_shafawi','idgham_ghunnah','idgham_wo_ghunnah','idgham_mutajanisayn','idgham_mutaqaribayn','ghunnah']);
 const MUSHAF_FONTS = [
   { name: 'UthmanicHafs', label: 'Madinah Uthmani · King Fahd Complex' },
   { name: 'Scheherazade New', label: 'Traditional Calligraphic' },
@@ -38,19 +38,23 @@ const normalizeMadinahArabic = (value: string) => value.replace(/[\u06CC\u06A9\u
   '\u06CC': '\u064A', '\u06A9': '\u0643', '\u06C1': '\u0647'
 })[character] || character);
 const TAJWEED_RULE_CLASSES: Record<string,string> = {
-  ham_wasl:'ham_wasl',slnt:'slnt',laam_shamsiyah:'laam_shamsiyah',
-  madda_normal:'madda_normal',madda_permissible:'madda_permissible',madda_necessary:'madda_necessary',
-  madda_obligatory:'madda_obligatory',madda_obligatory_mottasel:'madda_obligatory_mottasel',madda_obligatory_monfasel:'madda_obligatory_monfasel',
-  qalaqah:'qalaqah',ikhafa:'ikhafa',ikhafa_shafawi:'ikhafa_shafawi',iqlab:'iqlab',
-  idgham_shafawi:'idgham_shafawi',idgham_ghunnah:'idgham_ghunnah',idgham_wo_ghunnah:'idgham_wo_ghunnah',
-  idgham_mutajanisayn:'idgham_mutajanisayn',idgham_mutaqaribayn:'idgham_mutaqaribayn',ghunnah:'ghunnah',
-  h:'tj-silent',s:'tj-silent',l:'tj-silent',u:'tj-silent',hamzat_wasl:'tj-silent',
-  lam_shamsiyyah:'tj-silent',lam_shamsiyah:'tj-silent',laam_shamsiyyah:'tj-silent',
+  ham_wasl:'tj-silent',hamzat_wasl:'tj-silent',hamzat_al_wasl:'tj-silent',slnt:'tj-silent',
+  laam_shamsiyah:'tj-silent',laam_shamsiyyah:'tj-silent',lam_shamsiyah:'tj-silent',lam_shamsiyyah:'tj-silent',
+  madda_normal:'tj-madd',madda_permissible:'tj-madd',madda_necessary:'tj-madd-wajib',
+  madda_obligatory:'tj-madd-wajib',madda_obligatory_mottasel:'tj-madd-wajib',madda_obligatory_monfasel:'tj-madd-wajib',
   m:'tj-madd',o:'tj-madd',madd:'tj-madd',n:'tj-madd-wajib',p:'tj-madd-wajib',
-  q:'tj-qalqalah',qalqalah:'tj-qalqalah',
-  g:'tj-ghunnah',i:'tj-ghunnah',c:'tj-ghunnah',a:'tj-ghunnah',w:'tj-ghunnah',f:'tj-ghunnah',
-  d:'tj-ghunnah',b:'tj-ghunnah',idgham:'tj-ghunnah',idghaam:'tj-ghunnah',ikhfa:'tj-ghunnah',
-  r:'tj-heavy',heavy:'tj-heavy',tafkhim:'tj-heavy'
+  qalaqah:'tj-qalqalah',qalqalah:'tj-qalqalah',q:'tj-qalqalah',qlq:'tj-qalqalah',
+  ikhafa:'tj-ikhfa',ikhafa_shafawi:'tj-ikhfa',ikhfa:'tj-ikhfa',ikhfa_shafawi:'tj-ikhfa',
+  iqlab:'tj-iqlab',iqlb:'tj-iqlab',qalb:'tj-iqlab',
+  idgham:'tj-idgham',idghaam:'tj-idgham',idgham_shafawi:'tj-idgham',idgham_ghunnah:'tj-idgham',
+  idgham_wo_ghunnah:'tj-idgham',idgham_mutajanisayn:'tj-idgham',idgham_mutaqaribayn:'tj-idgham',
+  idghm_shfw:'tj-idgham',idgh_w_ghn:'tj-idgham',idgh_mus:'tj-idgham',
+  ghunnah:'tj-ghunnah',ghn:'tj-ghunnah',g:'tj-ghunnah',i:'tj-ghunnah',c:'tj-ghunnah',
+  a:'tj-ghunnah',w:'tj-ghunnah',f:'tj-ghunnah',d:'tj-ghunnah',b:'tj-ghunnah',
+  r:'tj-heavy',heavy:'tj-heavy',tafkhim:'tj-heavy',tafkheem:'tj-heavy',
+  'tj-silent':'tj-silent','tj-madd':'tj-madd','tj-madd-wajib':'tj-madd-wajib',
+  'tj-qalqalah':'tj-qalqalah','tj-ghunnah':'tj-ghunnah','tj-ikhfa':'tj-ikhfa',
+  'tj-idgham':'tj-idgham','tj-iqlab':'tj-iqlab','tj-tafkhim':'tj-tafkhim','tj-heavy':'tj-heavy'
 };
 const stripRawQuranMarkup = (value: string) => value
   .replace(/<span\s+class=["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '')
@@ -1079,8 +1083,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   return createPortal(<div className={`quran-mobile-shell${!isMobileViewport ? ' quran-desktop-shell' : ''}${readingMode !== 'reading' ? ' is-verse-mode' : ''}`} ref={readerRef}>
     <header className="quran-mobile-header">
       <div className="quran-mobile-top-row">
-        <button className="quran-mobile-surah-trigger" onClick={() => setMobileSurahDrawerOpen(true)}>{mobileActiveSurahNumber}. {mobileActiveSurahName} <span>⌄</span></button>
-        <div className="quran-mobile-header-actions"><button aria-label="Settings" onClick={() => setSettingsOpen(true)}><Settings size={23} /></button><button aria-label="Exit reader" onClick={() => setFullScreen(false)}><X size={23} /></button></div>
+        <button className="quran-mobile-surah-trigger" onClick={() => setMobileSurahDrawerOpen(true)}>{mobileActiveSurahNumber}. {mobileActiveSurahName} {isMobileViewport ? <span>⌄</span> : <ChevronDown size={16} strokeWidth={1.8} />}</button>
+        <div className="quran-mobile-header-actions"><button aria-label="Settings" onClick={() => setSettingsOpen(true)}><Settings size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button><button aria-label="Exit reader" onClick={() => setFullScreen(false)}><X size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button></div>
       </div>
       <div className="quran-mobile-mode-tabs">
         <button className={readingMode === 'arabic' ? 'is-active' : ''} onClick={() => changeReadingMode('arabic')}>Verse by Verse</button>
