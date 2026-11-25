@@ -474,13 +474,14 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         return rect.bottom > 145 && rect.top < root.getBoundingClientRect().bottom;
       });
       if (visible) setMobileVisiblePage(Number(visible.dataset.mobilePage) || page);
-      const readingSurahEndPage = getAyahLocation(activeSurahNumber, activeSurah?.ayahs || 1)?.page || page;
-      if (readingMode === 'reading' && mobileVisiblePage < readingSurahEndPage && root.scrollHeight - root.scrollTop - root.clientHeight < 620) void loadNextMobilePage();
+      const visibleSurahNumber = selected?.surah || pageData?.ayahs?.[0]?.surahNumber || 1;
+      const visibleSurahEndPage = getAyahLocation(visibleSurahNumber, QURAN_SURAHS[visibleSurahNumber - 1]?.ayahs || 1)?.page || page;
+      if (readingMode === 'reading' && mobileVisiblePage < visibleSurahEndPage && root.scrollHeight - root.scrollTop - root.clientHeight < 620) void loadNextMobilePage();
     };
     root.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
     return () => { root.removeEventListener('scroll', onScroll); root.removeEventListener('touchstart', markUserIntent); root.removeEventListener('wheel', markUserIntent); root.removeEventListener('pointerdown', markUserIntent); };
-  }, [fullScreen, readingMode, loadNextMobilePage, page, mobileContinuousPages.length, mobileVisiblePage, activeSurahNumber, activeSurah?.ayahs]);
+  }, [fullScreen, readingMode, loadNextMobilePage, page, mobileContinuousPages.length, mobileVisiblePage, selected?.surah, pageData]);
 
   const activeSurahNumber = selected?.surah || pageData?.ayahs?.[0]?.surahNumber || bookmark.surah || 1;
   useEffect(() => {
