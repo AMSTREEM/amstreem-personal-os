@@ -47,29 +47,28 @@ test('project, task, calendar, focus and review records can be linked', () => {
   assert.match(server, /study_minutes:studyMinutes/);
 });
 
-test('the four core destinations and More menu stay visible while secondary views remain optional', () => {
+test('six primary destinations and personal life areas shape the Atlas workspace', () => {
   const shell = read('client/src/components/AppShell.tsx');
   const settings = read('client/src/pages/SettingsPage.tsx');
-  for (const room of ['Today', 'Deen', 'Focus', 'Goals']) {
-    assert.ok(shell.includes("label: '" + room + "'"), 'Missing room ' + room);
+  const server = read('server.js');
+  for (const destination of ['Home', 'Actions', 'Goals', 'Focus', 'Growth', 'Calendar']) {
+    assert.ok(shell.includes("label: '" + destination + "'"), 'Missing destination ' + destination);
   }
   assert.match(shell, /const rooms = \[/);
-  assert.match(shell, /faithTabLabel = quickReligion === 'islam' \? 'Deen'/);
+  assert.match(shell, /\^\[1-6\]\$/);
   assert.match(shell, /atlas-mobile-dock/);
-  assert.ok(shell.includes('to="/quran"'));
-  assert.ok(shell.includes('<BookOpen size={17} strokeWidth={1.8}/><span>Qur’an</span>'));
-  assert.ok(shell.includes('atlas-mobile-dock__quran'));
-
-  assert.match(shell, /<span>More/);
-  assert.match(shell, /tabsByRoom/);
-  assert.match(shell, /feature: 'calendar'/);
-  assert.match(shell, /label: 'Goals · Projects · Learning', detail:/);
-  assert.ok(shell.includes("label: 'Private Library'") && shell.includes("to: '/learning-library'"));
-  assert.match(settings, /Optional workspace views/);
+  assert.ok(shell.includes("label: 'Qur’an'") && shell.includes("to: '/quran'"));
+  assert.match(shell, /YOUR LIFE AREAS/);
+  assert.match(shell, /lifeAreaNames/);
+  assert.match(settings, /Your life areas/);
+  assert.match(settings, /life_areas: selectedLifeAreas/);
+  assert.match(server, /'life_areas'/);
+  assert.match(server, /Choose at least one valid life area/);
 });
 
+
 test('canonical eight-view routes and legacy compatibility redirects cover the personal operating system', () => {
-  for (const route of ['/residence', '/today', '/values', '/quran', '/habits', '/execution', '/calendar', '/goals', '/learning-library', '/reviews-insights', '/projects', '/tasks', '/focus', '/rituals', '/self-control', '/learning', '/library', '/reviews', '/insights', '/settings', '/admin']) {
+  for (const route of ['/residence', '/home', '/today', '/values', '/quran', '/habits', '/actions', '/execution', '/calendar', '/goals', '/learning-library', '/growth', '/reviews-insights', '/projects', '/tasks', '/focus', '/rituals', '/self-control', '/learning', '/library', '/reviews', '/insights', '/settings', '/admin']) {
     assert.ok(app.includes('path="' + route + '"'), 'Missing route ' + route);
   }
 });
@@ -241,24 +240,26 @@ test('Web Audio micro-feedback is zero-dependency, opt-in, quiet and tied to che
   assert.match(read('client/src/pages/ValuesPage.tsx'), /playAtlasFeedback\('tick'\)/);
 });
 
-test('first-run walkthrough explains the five current Atlas rooms and follows canonical routes', () => {
+test('first-run walkthrough explains the six Atlas destinations and personal life areas', () => {
   const tour = read('client/src/components/AtlasWalkthrough.tsx');
   const shell = read('client/src/components/AppShell.tsx');
   const residence = read('client/src/pages/TodayPage.tsx');
-  assert.equal((tour.match(/title: '/g) || []).length, 5);
-  assert.match(tour, /Welcome to Residence/);
-  assert.match(tour, /Morning Intention/);
-  assert.match(tour, /Top 3 Priorities/);
-  assert.match(tour, /Activity Pulse/);
-  assert.match(tour, /Ferrofluid Core/);
-  assert.match(tour, /Islam, Christianity, or general reflection/);
-  assert.match(tour, /30-Day Rhythm Constellation/);
-  assert.match(tour, /25m, 50m, 80m/);
-  assert.match(tour, /Life Constellation/);
-  assert.match(tour, /pill switcher/);
-  assert.match(tour, /Private Library/);
-  assert.match(tour, /Reviews & Insights/);
-  assert.match(tour, /10 curated themes/);
+  assert.equal((tour.match(/title: '/g) || []).length, 7);
+  assert.match(tour, /Start with Home/);
+  assert.match(tour, /⌘ 6 · Calendar/);
+  assert.match(tour, /Choose the life areas you want to work on/);
+  assert.match(tour, /Today’s priorities/);
+  assert.match(tour, /Upcoming commitments/);
+  assert.match(tour, /Life-area context/);
+  assert.match(tour, /UNDERSTAND WHERE YOU ARE/);
+  assert.match(tour, /Qur’an, Learning Library and faith practices/);
+  assert.match(tour, /Measurable outcomes/);
+  assert.match(tour, /Focus timer · Study sessions/);
+  assert.match(tour, /Progress evidence/);
+  assert.match(tour, /Daily and weekly schedules/);
+  assert.match(tour, /Learning/);
+  assert.match(tour, /Reviews · Progress evidence/);
+  assert.match(tour, /Personal by design/);
   assert.match(tour, /navigate\(stepRoutes\[index\]\)/);
   assert.match(tour, /onOpenCommand\?\.\(\)/);
   assert.match(shell, /onOpenCommand=\{\(\) => \{ setCommandOpen\(true\);/);
@@ -367,7 +368,7 @@ test('Qur’an is a standalone workspace and no longer renders inside Deen', () 
   assert.match(quran, /QuranMushafReader/);
   assert.match(quran, /autoOpen/);
   assert.ok(app.includes('path="/quran" element={<QuranPage />}'));
-  assert.ok(shell.includes("id: 'quran', label: 'Qur’an', to: '/quran'"));
+  assert.ok(shell.includes("label: 'Qur’an', detail: 'Continue Hifz, Muraja’ah and reading', to: '/quran'"));
   assert.ok(!shell.includes('/values?openMushaf=1'));
   assert.match(shell, /faithTabLabel = quickReligion === 'islam' \? 'Deen'/);
 });
