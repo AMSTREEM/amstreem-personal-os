@@ -1004,7 +1004,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       {runs.map(run => <Fragment key={`run-${run.surahNumber}`}>
         {run.startsSurah && renderSurahIntro(run.surahNumber, run.surahName, run.arabicName, run.surahNumber !== 9)}
         <p className="quran-mobile-page-arabic" dir="rtl" lang="ar" style={mobileArabicStyle}>
-          {run.ayahs.map(ayah => <span className="quran-mobile-page-ayah" key={ayah.number} data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={data.page}>{renderArabic(ayah)}{' '}</span>)}
+          {run.ayahs.map(ayah => <span className="quran-mobile-page-ayah" key={ayah.number} data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={data.page}>{renderPageAyah(ayah, data)}{' '}</span>)}
         </p>
       </Fragment>)}
       <div className="quran-mobile-page-divider"><span></span><b>{data.page}</b><span></span></div>
