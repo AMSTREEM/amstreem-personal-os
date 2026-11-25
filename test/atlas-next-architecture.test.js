@@ -357,3 +357,17 @@ test('Reader keeps the original required public props', () => {
   assert.match(reader, /type Props = \{ settings: Settings; settingsReady: boolean; onLogged: \(\) => void/);
   assert.match(reader, /export function QuranMushafReader\(\{ settings, settingsReady, onLogged/);
 });
+
+test('Qur’an is a standalone workspace and no longer renders inside Deen', () => {
+  const values = read('client/src/pages/ValuesPage.tsx');
+  const quran = read('client/src/pages/QuranPage.tsx');
+  const shell = read('client/src/components/AppShell.tsx');
+  const app = read('client/src/App.tsx');
+  assert.doesNotMatch(values, /QuranMushafReader|openMushaf/);
+  assert.match(quran, /QuranMushafReader/);
+  assert.match(quran, /autoOpen/);
+  assert.match(app, /path="\\/quran" element={<QuranPage \/>}/);
+  assert.match(shell, /id: 'quran', label: 'Qur’an', to: '\\/quran'/);
+  assert.doesNotMatch(shell, /to="\\/values\\?openMushaf=1"/);
+  assert.match(shell, /faithTabLabel = quickReligion === 'islam' \? 'Deen'/);
+});
