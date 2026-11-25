@@ -1,7 +1,7 @@
-import { Sparkles, Cascade } from '../components/Cascade';
+import { Cascade } from '../components/Cascade';
 import { useMemo, useState } from 'react';
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, Check, Pencil, X } from 'lucide-react';
+import { Plus, Trash2, Check, Pencil, Sparkles, X } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { Button, Card, EmptyState, Field, PageHeader, TextInput } from '../components/ui';
 
