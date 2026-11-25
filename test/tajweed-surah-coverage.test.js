@@ -179,5 +179,5 @@ test('every Quran Foundation HTML rule and quran-tajweed shortcode maps to its c
   assert.deepEqual(Array.from(parsed.filter(token => token.className), token => token.className), expected);
   const shortcode = '[h[ٱ]][s[ا]][n[ـٰ]][p[ي]][m[ا]][o[ا]][madda_obligatory_mottasel[و]][madda_obligatory_monfasel[و]][q[ق]][f[ن]][c[م]][i[ن]][w[م]][a[ن]][u[ل]][d[ت]][b[ق]][g[ن]]';
   assert.deepEqual(Array.from(parseAlQuranTajweed(shortcode.replace(/\]\]\[/g, ']] [')).filter(token => token.className), token => token.className), expected);
-  assert.equal(parsed.map(token => token.text).join('').replace(/\s/g, ''), 'ٱاـٰيااقنمنمنلتقن');
+  assert.equal(parsed.map(token => token.text).join('').replace(/\s/g, ''), 'ٱاـٰيااووقنمنمنلتقن');
 });
