@@ -485,7 +485,7 @@ async function fetchAlQuranCloudSurah(surahNumber) {
 async function fetchQuranFoundationPage(page) {
   const { headers, apiBase } = await getQuranApiAuth();
   if (!headers['x-auth-token'] || !headers['x-client-id']) throw new Error('Quran Foundation API credentials are not configured.');
-  const query = '?mushaf=1&words=true&translations=131,20&per_page=50&word_fields=code_v2,text_qpc_hafs,line_number,page_number,position,char_type_name&fields=verse_key,chapter_id,verse_number,juz_number,hizb_number,page_number';
+  const query = '?mushaf=1&words=true&translations=131,20&per_page=50&word_fields=code_v2,text_qpc_hafs,text_uthmani_tajweed,line_number,page_number,position,char_type_name&fields=verse_key,chapter_id,verse_number,juz_number,hizb_number,page_number';
   const [verseResponse, lookupResponse] = await Promise.all([
     fetch(apiBase + '/verses/by_page/' + page + query, { headers: { Accept: 'application/json', ...headers }, signal: AbortSignal.timeout(12000) }),
     fetch(apiBase + '/pages/lookup?page_number=' + page + '&mushaf=1', { headers: { Accept: 'application/json', ...headers }, signal: AbortSignal.timeout(9000) }).catch(() => null)
