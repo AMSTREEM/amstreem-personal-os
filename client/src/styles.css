@@ -6830,24 +6830,30 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .quran-mobile-shell .quran-mobile-page-meta { display:none; }
 .quran-mobile-shell .quran-mode-mobile-icon { display:none; }
 @media (min-width:768px) {
-  .quran-desktop-shell .quran-mobile-header { padding-bottom:10px; }
+  .quran-desktop-shell .quran-mobile-header { padding-bottom:0; }
+  .quran-desktop-shell .quran-mobile-page-meta { display:none; }
+  .quran-desktop-shell .quran-mobile-page-meta-desktop {
+    grid-column:2; grid-row:1; display:flex; align-items:center; justify-content:center;
+    gap:22px; color:var(--text-secondary); font-size:15px; font-weight:600; white-space:nowrap;
+  }
   .quran-desktop-shell .quran-mobile-top-row {
     display:grid; grid-template-columns:minmax(180px,1fr) auto minmax(180px,1fr);
-    align-items:center; min-height:58px; padding:7px clamp(24px,3vw,48px);
+    align-items:center; min-height:58px; padding:7px clamp(24px,3vw,48px) 48px; position:relative;
   }
   .quran-desktop-shell .quran-mobile-page-meta {
     display:flex; align-items:center; justify-content:center; gap:22px;
     color:var(--text-secondary); font-size:15px; font-weight:600; white-space:nowrap;
   }
   .quran-desktop-shell .quran-mobile-mode-tabs {
-    grid-column:1; grid-row:1; justify-self:start;
-    width:auto; min-height:38px; margin:0; padding:0;
+    position:absolute; left:clamp(24px,3vw,48px); bottom:8px;
+    width:auto; min-height:34px; margin:0; padding:0;
     display:flex; gap:0; border:1px solid var(--border-hairline); border-radius:999px;
   }
   .quran-desktop-shell .quran-mobile-mode-tabs button {
     min-height:36px; padding:7px 16px; font-size:13px; white-space:nowrap;
   }
   .quran-desktop-shell .quran-mobile-header-actions { grid-column:3; grid-row:1; justify-self:end; }
+  .quran-desktop-shell .quran-mobile-page-meta-desktop { display:flex; }
   .quran-desktop-shell .quran-mobile-tajweed-center {
     position:absolute; right:clamp(24px,3vw,48px); bottom:10px;
     padding:0; margin:0;
@@ -6858,6 +6864,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
 }
 @media (max-width:767px) {
   .quran-mobile-shell .quran-mobile-header { padding-bottom:0; }
+  .quran-mobile-shell .quran-mobile-page-meta-desktop { display:none; }
   .quran-mobile-shell .quran-mobile-page-meta {
     display:flex; align-items:center; justify-content:space-between;
     min-height:34px; padding:3px 18px 2px;
