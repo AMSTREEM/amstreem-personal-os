@@ -367,6 +367,19 @@ export function TodayPage() {
           <Link className="text-link" to="/values">Open Clarity & Reflection <ArrowRight size={13}/></Link>
         </Card>}
 
+        {religion === 'islam' && <Card className="residence-quran-feature">
+          <div className="residence-quran-feature__ornament" aria-hidden="true"><span/><span/><span/></div>
+          <div className="residence-quran-feature__content">
+            <span className="eyebrow">YOUR QUR’AN JOURNEY</span>
+            <div className="residence-quran-feature__heading"><span className="residence-quran-feature__icon"><BookOpen size={20}/></span><div><h2>Qur’an</h2><p>Continue from your saved Hifz or Muraja’ah position.</p></div></div>
+            <div className="residence-quran-feature__actions">
+              <Link className="residence-quran-feature__primary" to="/quran">Open Qur’an <ArrowRight size={15}/></Link>
+              <Link className="residence-quran-feature__secondary" to="/quran">Resume Muraja’ah <BookOpen size={14}/></Link>
+            </div>
+          </div>
+          <div className="residence-quran-feature__page"><span>LAST SAVED</span><strong>{hifzPage}</strong><small>Hifz page</small></div>
+        </Card>}
+
         <Card className="today-habits-card">
           <div className="today-section-heading"><div><span className="eyebrow">SELF-CONTROL & STREAKS</span><h2>Your daily habits</h2><p>{completedHabits} of {habitList.length} completed</p></div><Link className="text-link" to="/rituals">Manage habits <ArrowRight size={13}/></Link></div>
           {habitList.length ? <div className="today-habit-list">{habitList.map(habit => <label className={'today-habit-row ' + (habit.done ? 'is-done' : '')} key={habit.id}>
