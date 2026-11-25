@@ -457,8 +457,7 @@ function mergeTajweedEdition(pagePayload, annotations) {
     if ((ayah.tajweedSegments || []).some(segment => Boolean(segment.className))) return ayah;
     const annotation = annotations.get(ayah.surahNumber + ':' + ayah.numberInSurah);
     if (!annotation?.segments?.length) return ayah;
-    const comparable = value => normalizeMadinahArabic(stripQuranMarkup(value))
-      .replace(/[\s\u064B-\u065F\u0670\u06D6-\u06ED]/g, '');
+    const comparable = normalizeTajweedComparable;
     const sourceText = comparable(ayah.text);
     const markedText = comparable(annotation.segments.map(segment => segment.text).join(''));
     if (!sourceText || sourceText !== markedText) {
