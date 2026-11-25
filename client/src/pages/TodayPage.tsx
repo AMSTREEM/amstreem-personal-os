@@ -304,7 +304,7 @@ export function TodayPage() {
       <div className="residence-band-heading"><span className="eyebrow">02 / YOUR LIFE AT A GLANCE</span><p>Connected areas of your life, with activity drawn from your existing records.</p></div>
       <section className="residence-pillar-grid" aria-label="Six life pillars">
       {[
-        {title:religion === 'islam' ? 'Deen & Reflection' : religion === 'christianity' ? 'Faith & Reflection' : 'Daily Clarity',detail:religion === 'islam' ? prayerCount + '/5 salah · ' + (rhythmSummary.data?.completed || 0) + ' practices completed' : religion === 'christianity' ? (rhythmSummary.data?.completed || 0) + ' faith activities completed' : (rhythmSummary.data?.completed || 0) + ' clarity activities completed',to:'/values',symbol:'☾',tone:'deen'},
+        {title:religion === 'islam' ? 'Deen & Reflection' : religion === 'christianity' ? 'Faith & Reflection' : 'Daily Clarity',detail:religion === 'islam' ? prayerCount + '/5 salah · ' + (rhythmSummary.data?.completed || 0) + ' practices completed' : religion === 'christianity' ? (rhythmSummary.data?.completed || 0) + ' faith activities completed' : (rhythmSummary.data?.completed || 0) + ' clarity activities completed',to:'/values',icon:MoonStar,tone:'deen'},
         {title:'Self-Control & Streaks',detail:'Habits and commitments',to:'/self-control',icon:ShieldCheck,tone:'self'},
         {title:'Projects & Tasks',detail:'Turn plans into progress',to:'/projects',icon:FolderKanban,tone:'projects'},
         {title:'Focus Room',detail:'Protect your attention',to:'/focus',icon:Timer,tone:'focus'},
