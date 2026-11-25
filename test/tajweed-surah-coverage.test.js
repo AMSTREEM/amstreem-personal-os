@@ -85,7 +85,7 @@ test('page Tajweed edition fills only matching unmarked ayahs without replacing 
   const end = server.indexOf('async function fetchAlQuranCloudPage(page) {');
   assert.ok(start >= 0 && end > start, 'Page Tajweed merge helpers must be present');
   const context = { module: { exports: {} } };
-  vm.runInNewContext(server.slice(start, end) + '\\nmodule.exports = { parseAlQuranTajweed, mergeTajweedEdition };', context);
+  vm.runInNewContext(server.slice(start, end) + '\nmodule.exports = { parseAlQuranTajweed, mergeTajweedEdition };', context);
   const { parseAlQuranTajweed: parse, mergeTajweedEdition } = context.module.exports;
   const markup = '[g[بِسْمِ]][n[ اللَّهِ]]';
   const segments = parse(markup);
