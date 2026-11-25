@@ -371,3 +371,10 @@ test('Qur’an is a standalone workspace and no longer renders inside Deen', () 
   assert.ok(!shell.includes('/values?openMushaf=1'));
   assert.match(shell, /faithTabLabel = quickReligion === 'islam' \? 'Deen'/);
 });
+
+test('standalone Qur’an route initializes the reader open without an effect-timing flash', () => {
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  assert.match(reader, /const \[fullScreen, setFullScreen\] = useState\(\(\) => autoOpen\)/);
+  assert.doesNotMatch(reader, /autoOpenHandled/);
+  assert.match(read('client/src/pages/QuranPage.tsx'), /autoOpen/);
+});
