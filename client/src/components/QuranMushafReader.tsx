@@ -597,20 +597,19 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     targets.forEach(target => observer.observe(target));
     return () => { observer.disconnect(); visible.clear(); };
   }, [fullScreen, readingMode, surahAyahs, pageData, page, pageReadingSurah, updateBookmark]);
-  // Verse by Verse: detect the start of deceleration and align immediately,
-  // without waiting for the scroll/momentum to come to a complete stop.
+  // Verse by Verse: snap at the first real drop in scroll speed.
+  // Measure actual scroll events (including finger-driven scrolling), not a
+  // requestAnimationFrame loop that can miss the gesture's deceleration.
   useEffect(() => {
     if (!fullScreen || readingMode === 'reading' || surahLoading || !surahAyahs.length) return;
     const root = readerRef.current;
     if (!root) return;
-    let frame = 0;
-    let lastTop = root.scrollTop;
-    let lastTime = 0;
+    let previousTop = root.scrollTop;
+    let previousTime = 0;
     let peakVelocity = 0;
-    let touchActive = false;
+    let slowSamples = 0;
     let alignedThisGesture = false;
-    let lastMovement = 0;
-    let decelerationSamples = 0;
+    let lastGestureTime = 0;
 
     const alignNearestAyah = () => {
       const header = root.querySelector<HTMLElement>('.quran-mobile-header');
@@ -622,76 +621,49 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         Math.abs(row.getBoundingClientRect().top - headerBottom) < Math.abs(best.getBoundingClientRect().top - headerBottom) ? row : best
       );
       const delta = target.getBoundingClientRect().top - headerBottom;
-      if (Math.abs(delta) >= 3) root.scrollTop += delta;
+      if (Math.abs(delta) > 2) root.scrollTop += delta;
     };
 
-    const sample = (time: number) => {
-      frame = 0;
-      const top = root.scrollTop;
-      if (!lastTime) {
-        lastTop = top;
-        lastTime = time;
-        frame = requestAnimationFrame(sample);
-        return;
-      }
-      const elapsed = Math.max(1, time - lastTime);
-      const distance = Math.abs(top - lastTop);
-      const velocity = distance / elapsed;
-      if (velocity > peakVelocity) peakVelocity = velocity;
-
-      // Once momentum has clearly begun to slow (but is still moving), snap
-      // once to the nearest ayah. A fresh gesture resets this threshold.
-      const hasMoved = Math.abs(top - lastMovement) > 24;
-      const isDecelerating = peakVelocity > 0.12 && velocity > 0.025 && velocity < peakVelocity * 0.88;
-      decelerationSamples = isDecelerating ? decelerationSamples + 1 : 0;
-      if (!touchActive && !alignedThisGesture && hasMoved && decelerationSamples >= 2) {
-        alignedThisGesture = true;
-        cancelAnimationFrame(frame);
-        alignNearestAyah();
-        return;
-      }
-
-      lastTop = top;
-      lastTime = time;
-      frame = requestAnimationFrame(sample);
-    };
-
-    const beginGesture = () => {
-      cancelAnimationFrame(frame);
-      frame = 0;
+    const resetGesture = () => {
       peakVelocity = 0;
+      slowSamples = 0;
       alignedThisGesture = false;
-      decelerationSamples = 0;
-      lastMovement = root.scrollTop;
-      lastTop = root.scrollTop;
-      lastTime = 0;
-    };
-    const startSampling = () => {
-      if (!frame) frame = requestAnimationFrame(sample);
-    };
-    const onTouchStart = () => {
-      touchActive = true;
-      beginGesture();
-    };
-    const onTouchEnd = () => {
-      touchActive = false;
-      beginGesture();
-      startSampling();
+      previousTop = root.scrollTop;
+      previousTime = 0;
+      lastGestureTime = performance.now();
     };
     const onScroll = () => {
-      if (!touchActive) startSampling();
-    };
+      const now = performance.now();
+      const top = root.scrollTop;
+      if (!previousTime) {
+        previousTop = top;
+        previousTime = now;
+        return;
+      }
+      const elapsed = Math.max(1, now - previousTime);
+      const velocity = Math.abs(top - previousTop) / elapsed;
+      if (velocity > peakVelocity) peakVelocity = velocity;
+      const hasMoved = Math.abs(top - previousTop) > 0.5 && now - lastGestureTime > 0;
+      const slowing = peakVelocity > 0.08 && velocity > 0.015 && velocity < peakVelocity * 0.9;
+      slowSamples = slowing ? slowSamples + 1 : 0;
 
-    root.addEventListener('touchstart', onTouchStart, { passive: true });
-    root.addEventListener('touchend', onTouchEnd, { passive: true });
-    root.addEventListener('touchcancel', onTouchEnd, { passive: true });
+      if (!alignedThisGesture && hasMoved && slowSamples >= 1) {
+        alignedThisGesture = true;
+        alignNearestAyah();
+      }
+      previousTop = top;
+      previousTime = now;
+    };
+    const onTouchStart = () => resetGesture();
+    const onWheel = () => resetGesture();
+
     root.addEventListener('scroll', onScroll, { passive: true });
+    root.addEventListener('touchstart', onTouchStart, { passive: true });
+    root.addEventListener('wheel', onWheel, { passive: true });
     return () => {
-      cancelAnimationFrame(frame);
-      root.removeEventListener('touchstart', onTouchStart);
-      root.removeEventListener('touchend', onTouchEnd);
-      root.removeEventListener('touchcancel', onTouchEnd);
       root.removeEventListener('scroll', onScroll);
+      root.removeEventListener('touchstart', onTouchStart);
+      root.removeEventListener('wheel', onWheel);
     };
   }, [fullScreen, readingMode, surahLoading, surahAyahs, activeSurahNumber]);
 
