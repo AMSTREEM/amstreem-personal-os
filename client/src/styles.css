@@ -6557,3 +6557,23 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .quran-desktop-shell .quran-mobile-settings,
   .quran-desktop-shell .quran-mobile-surah-drawer { width:min(380px,48vw); min-width:300px; }
 }
+
+
+/* Complete Tajweed rule palette — shared by mobile and desktop Mushaf rendering. */
+.quran-mobile-shell .tj-madd,.quran-mobile-shell .madda_normal,.quran-mobile-shell .madda_permissible { color:#e87991 !important; }
+.quran-mobile-shell .tj-madd-wajib,.quran-mobile-shell .madda_necessary,.quran-mobile-shell .madda_obligatory,.quran-mobile-shell .madda_obligatory_mottasel,.quran-mobile-shell .madda_obligatory_monfasel { color:#f0a04b !important; }
+.quran-mobile-shell .tj-ghunnah,.quran-mobile-shell .ghunnah { color:#31b987 !important; }
+.quran-mobile-shell .tj-ikhfa,.quran-mobile-shell .ikhafa,.quran-mobile-shell .ikhafa_shafawi { color:#31b7a5 !important; }
+.quran-mobile-shell .tj-idgham,.quran-mobile-shell .idgham_shafawi,.quran-mobile-shell .idgham_ghunnah,.quran-mobile-shell .idgham_wo_ghunnah,.quran-mobile-shell .idgham_mutajanisayn,.quran-mobile-shell .idgham_mutaqaribayn { color:#b28be0 !important; }
+.quran-mobile-shell .tj-iqlab,.quran-mobile-shell .iqlab { color:#55aee8 !important; }
+.quran-mobile-shell .tj-qalqalah,.quran-mobile-shell .qalaqah { color:#55aee8 !important; }
+.quran-mobile-shell .tj-heavy,.quran-mobile-shell .tj-tafkhim { color:#dca64d !important; }
+.quran-mobile-shell .tj-silent,.quran-mobile-shell .ham_wasl,.quran-mobile-shell .slnt,.quran-mobile-shell .laam_shamsiyah { color:inherit !important; }
+.quran-desktop-shell .quran-mobile-tajweed-legend .tj-madd,
+.quran-desktop-shell .quran-mobile-tajweed-legend .tj-madd-wajib,
+.quran-desktop-shell .quran-mobile-tajweed-legend .tj-ghunnah,
+.quran-desktop-shell .quran-mobile-tajweed-legend .tj-ikhfa,
+.quran-desktop-shell .quran-mobile-tajweed-legend .tj-idgham,
+.quran-desktop-shell .quran-mobile-tajweed-legend .tj-iqlab,
+.quran-desktop-shell .quran-mobile-tajweed-legend .tj-qalqalah,
+.quran-desktop-shell .quran-mobile-tajweed-legend .tj-tafkhim { font-weight:600; }
