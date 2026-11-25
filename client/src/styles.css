@@ -6209,3 +6209,34 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .tj-silent,.ham_wasl,.slnt,.laam_shamsiyah { color:inherit; }
   @keyframes quran-mobile-slide-in { from { transform:translateX(-18px); opacity:.7; } to { transform:translateX(0); opacity:1; } }
 }
+
+
+/* Desktop fallback frame for the rebuilt responsive Qur’an reader. */
+@media (min-width: 768px) {
+  .quran-mobile-shell {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    width: 100%;
+    height: 100dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--bg-canvas);
+    color: var(--text-primary);
+  }
+  .quran-mobile-header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--bg-canvas);
+    border-bottom: 1px solid var(--border-hairline);
+  }
+  .quran-mobile-content {
+    width: min(100%, 760px);
+    margin-inline: auto;
+    padding-bottom: 48px;
+  }
+  .quran-mobile-hero { margin: 18px 20px; }
+  .quran-mobile-page-arabic,
+  .quran-mobile-verse-arabic { font-size: clamp(26px, 2.2vw, 36px); }
+}
