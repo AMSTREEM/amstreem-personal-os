@@ -492,7 +492,7 @@ async function fetchQuranFoundationPage(page) {
   ]);
   if (!verseResponse.ok) throw new Error('Quran Foundation by_page returned HTTP ' + verseResponse.status + '.');
   const normalized = normalizeQuranCom(await verseResponse.json(), page);
-  if (!normalized.ayahs.length || !normalized.qcfAvailable || normalized.ayahs.some(ayah => !ayah.words?.length || ayah.words.some(word => !word.lineNumber || (word.charTypeName !== 'end' && word.charTypeName !== 'pause' && !word.codeV2)))) throw new Error('Quran Foundation page response is missing QCF V2 word or line data.');
+  if (!normalized.ayahs.length || !normalized.qcfAvailable || normalized.ayahs.some(ayah => !ayah.translation || !ayah.words?.length || ayah.words.some(word => !word.lineNumber || (word.charTypeName !== 'end' && word.charTypeName !== 'pause' && !word.codeV2)))) throw new Error('Quran Foundation page response is missing translation, QCF V2 word, or line data.');
   let pageRange = null;
   if (lookupResponse?.ok) {
     const lookup = await lookupResponse.json();
@@ -503,11 +503,12 @@ async function fetchQuranFoundationPage(page) {
 async function fetchQuranFoundationSurah(surahNumber) {
   const { headers, apiBase } = await getQuranApiAuth();
   if (!headers['x-auth-token'] || !headers['x-client-id']) throw new Error('Quran Foundation API credentials are not configured.');
-  const query = '?words=true&translations=131,20&per_page=300&word_fields=code_v2,text_qpc_hafs,line_number,page_number,position,char_type_name&fields=verse_key,chapter_id,verse_number,juz_number,hizb_number,page_number';
+  const query = '?words=true&translations=131,20&per_page=300&word_fields=code_v2,text_qpc_hafs,text_uthmani_tajweed,line_number,page_number,position,char_type_name&fields=verse_key,chapter_id,verse_number,juz_number,hizb_number,page_number';
   const response = await fetch(apiBase + '/verses/by_chapter/' + surahNumber + query, { headers: { Accept: 'application/json', ...headers }, signal: AbortSignal.timeout(15000) });
   if (!response.ok) throw new Error('Quran Foundation by_chapter returned HTTP ' + response.status + '.');
   const normalized = normalizeQuranCom(await response.json(), 1);
   if (!normalized.ayahs.length) throw new Error('Quran Foundation returned no Surah verses.');
+  if (normalized.ayahs.some(ayah => !ayah.translation)) throw new Error('Quran Foundation Surah response is missing one or more verse translations.');
   return { ...normalized, textSource: 'qpc-hafs', qcfAvailable: normalized.ayahs.every(ayah => ayah.words?.length), mushafId: 1 };
 }
 function normalizeQuranCom(body, page) {
