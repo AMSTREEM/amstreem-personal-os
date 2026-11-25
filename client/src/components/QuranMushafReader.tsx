@@ -470,7 +470,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     const onScroll = () => {
       setMobileScrolled(root.scrollTop >= 120);
       const blocks = Array.from(root.querySelectorAll<HTMLElement>('[data-mobile-page-block]'));
-      const visible = blocks.find(block => {
+      const atScrollEnd = root.scrollHeight - root.scrollTop - root.clientHeight < 80;
+      const visible = atScrollEnd && blocks.length ? blocks[blocks.length - 1] : blocks.find(block => {
         const rect = block.getBoundingClientRect();
         return rect.bottom > 145 && rect.top < root.getBoundingClientRect().bottom;
       });
@@ -797,6 +798,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         {!surahLoading && surahAyahs.length > 0 && <>
           {surahAyahs[0].numberInSurah === 1 && renderSurahIntro(activeSurahNumber, activeSurah?.transliteration || surahAyahs[0].surahName, surahAyahs[0].arabicName, activeSurahNumber !== 9)}
           {renderVerseRows(surahAyahs)}
+          <div className="quran-mobile-bottom-nav quran-mobile-surah-nav"><button disabled={activeSurahNumber <= 1} onClick={() => jumpSurah(activeSurahNumber - 1)}>‹ Previous Surah</button><button disabled={activeSurahNumber >= 114} onClick={() => jumpSurah(activeSurahNumber + 1)}>Next Surah ›</button></div>
         </>}
         {surahError && <div className="quran-mobile-error">{surahError}</div>}
       </>}
