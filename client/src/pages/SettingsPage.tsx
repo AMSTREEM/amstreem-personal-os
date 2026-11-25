@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Download, Upload } from 'lucide-react';
+import { Check, Download, Upload } from 'lucide-react';
 import { primeAtlasAudio } from '../lib/microFeedback';
 import { api, json } from '../lib/api';
 import { Button, Card, Field, PageHeader, TextInput } from '../components/ui';
@@ -100,7 +100,7 @@ export function SettingsPage() {
                 {group.items.map(item => <button key={item.id} type="button" className="theme-preset" aria-pressed={theme === item.id} onClick={() => { setTheme(item.id); applyTheme(item.id); }}>
                   <span className="theme-preset__swatches" aria-hidden="true">{item.colors.map((color, index) => <i key={index} style={{ background: color }} />)}</span>
                   <span className="theme-preset__copy"><b>{item.name}</b><small>{item.note}</small></span>
-                  <span className="theme-preset__check">{theme === item.id ? '✓' : ''}</span>
+                  <span className="theme-preset__check">{theme === item.id ? <Check size={14} strokeWidth={2.4}/> : null}</span>
                 </button>)}
               </div>
             </section>)}
