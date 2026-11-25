@@ -185,13 +185,13 @@ type QcfV4Font = { family: string; palette?: string; theme: 'light' | 'dark' | '
 const qcfV4FontCache = new Map<string, Promise<QcfV4Font>>();
 async function loadQcfV4PageFont(page: number): Promise<QcfV4Font> {
   const themeId = document.documentElement.getAttribute('data-theme') || 'shadowed-alchemist';
-  const theme = themeId.startsWith('light-') ? 'light' : themeId.includes('sepia') ? 'sepia' : 'dark';
+  const theme: 'light' | 'dark' | 'sepia' = themeId.startsWith('light-') ? 'light' : themeId.includes('sepia') ? 'sepia' : 'dark';
   const firefox = /firefox/i.test(navigator.userAgent);
   const format = firefox ? 'ot-svg' : 'colrv1';
   const key = page + ':' + format + ':' + theme;
   const cached = qcfV4FontCache.get(key);
   if (cached) return cached;
-  const task = (async () => {
+  const task: Promise<QcfV4Font> = (async (): Promise<QcfV4Font> => {
     const family = 'AtlasQcfV4P' + page + theme + (firefox ? '' : 'Color');
     const fontUrl = format === 'ot-svg'
       ? 'https://verses.quran.foundation/fonts/quran/hafs/v4/ot-svg/' + theme + '/woff2/p' + page + '.woff2'
@@ -988,7 +988,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     const font = qcfV4Fonts[data.page];
     const words = (ayah.words || []).filter(word => word.charTypeName !== 'end' && word.charTypeName !== 'pause' && word.text);
     if (tajweedEnabled && data.qcfAvailable && font && words.length && words.every(word => Boolean(word.codeV2))) {
-      return <>{words.map((word, index) => <Fragment key={ayah.number + ':qcf:' + index}><span className="quran-qcf-v4-word" style={qcfV4WordStyle(font)} dangerouslySetInnerHTML={{ __html: escapeQcfGlyphHtml(word.codeV2) }} />{' '}</Fragment>)}{renderMedallion(ayah.numberInSurah)}</>;
+      return <>{words.map((word, index) => <Fragment key={ayah.number + ':qcf:' + index}><span className="quran-qcf-v4-word" style={qcfV4WordStyle(font)} dangerouslySetInnerHTML={{ __html: escapeQcfGlyphHtml(word.codeV2 || '') }} />{' '}</Fragment>)}{renderMedallion(ayah.numberInSurah)}</>;
     }
     return renderArabic(ayah);
   };
