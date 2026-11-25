@@ -314,6 +314,7 @@ test('Mobile Qur’an Mushaf renders Quran.com-style chrome, both reading modes,
   const reader = read('client/src/components/QuranMushafReader.tsx');
   assert.match(reader, /export function QuranMushafReader\(\{ settings, settingsReady, onLogged/);
   assert.match(reader, /quran-mobile-shell/);
+  assert.doesNotMatch(reader, /Desktop reader layout is being rebuilt separately/);
   assert.match(reader, /Verse by Verse/);
   assert.match(reader, /Page by Page/);
   assert.match(reader, /Tajweed colors/);
