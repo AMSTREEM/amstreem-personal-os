@@ -31,6 +31,7 @@ test('All 114 Surahs cover all 6,236 Ayahs and the complete 604-page Madani Mush
   const verseKeys = new Set();
   const missingMarkup = [];
   const mismatchedText = [];
+  const mismatchSamples = [];
   const uncoloredByBoth = [];
   const mirrorRecoveries = [];
   let totalAyahs = 0;
@@ -118,7 +119,7 @@ test('All 114 Surahs cover all 6,236 Ayahs and the complete 604-page Madani Mush
         let tokens = parseAlQuranTajweed(markup);
         if (!tokens.length) missingMarkup.push(key);
         const plain = String(verse.text_uthmani || '');
-        if (plain && tokens.length && normalize(tokens.map(token => token.text).join('')) !== normalize(plain)) mismatchedText.push(key);
+        if (plain && tokens.length && normalize(tokens.map(token => token.text).join('')) !== normalize(plain)) { mismatchedText.push(key); if (mismatchSamples.length < 5) mismatchSamples.push({ key, plain, marked: tokens.map(token => token.text).join('') }); }
         if (tokens.some(token => token.className)) {
           coloredAyahs += 1;
           continue;
@@ -135,6 +136,7 @@ test('All 114 Surahs cover all 6,236 Ayahs and the complete 604-page Madani Mush
     }
   };
   await Promise.all(Array.from({ length: 3 }, () => worker()));
+  console.info('Tajweed text mismatch samples:', JSON.stringify(mismatchSamples));
   const missingPages = Array.from({ length: 604 }, (_, index) => index + 1).filter(page => !pageNumbers.has(page));
   assert.equal(totalAyahs, 6236, 'The audit must cover every Qur’an Ayah');
   assert.equal(verseKeys.size, 6236, 'Every Ayah must appear exactly once');
@@ -152,7 +154,7 @@ test('All 114 Surahs cover all 6,236 Ayahs and the complete 604-page Madani Mush
 test('page Tajweed edition fills only matching unmarked ayahs without replacing existing annotations', () => {
   const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
   const start = server.indexOf('function normalizeMadinahArabic(value) {');
-  const end = server.indexOf('async function fetchAlQuranCloudPage(page) {');
+  const end = server.indexOf('async function fetchQuranMirror', start);
   assert.ok(start >= 0 && end > start, 'Page Tajweed merge helpers must be present');
   const context = { module: { exports: {} } };
   vm.runInNewContext(server.slice(start, end) + '\nmodule.exports = { parseAlQuranTajweed, mergeTajweedEdition };', context);
