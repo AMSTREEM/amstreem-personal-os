@@ -24,7 +24,7 @@ const AYAH_ROSETTE_PATH = Array.from({ length: 120 }, (_, index) => {
   const y = (18 + Math.sin(angle) * radius).toFixed(2);
   return (index === 0 ? 'M' : 'L') + x + ' ' + y;
 }).join(' ') + ' Z';
-const TAJWEED_CLASSES = new Set(["tj-silent","tj-madd-normal","tj-madd-permissible","tj-madd-necessary","tj-madd-obligatory","tj-madd","tj-madd-wajib","tj-qalqalah","tj-ikhfa","tj-ikhfa-shafawi","tj-iqlab","tj-idgham-shafawi","tj-idgham-ghunnah","tj-idgham-no-ghunnah","tj-idgham-mutajanisayn","tj-idgham-mutaqaribayn","tj-idgham","tj-ghunnah","tj-tafkhim","tj-heavy"]);
+const TAJWEED_CLASSES = new Set(["tj-silent","tj-madd-normal","tj-madd-permissible","tj-madd-necessary","tj-madd-obligatory","tj-madd-obligatory-connected","tj-madd-obligatory-separated","tj-madd","tj-madd-wajib","tj-qalqalah","tj-ikhfa","tj-ikhfa-shafawi","tj-iqlab","tj-idgham-shafawi","tj-idgham-ghunnah","tj-idgham-no-ghunnah","tj-idgham-mutajanisayn","tj-idgham-mutaqaribayn","tj-idgham","tj-ghunnah","tj-tafkhim","tj-heavy"]);
 const MUSHAF_FONTS = [
   { name: 'UthmanicHafs', label: 'Madinah Uthmani · King Fahd Complex' },
   { name: 'Scheherazade New', label: 'Traditional Calligraphic' },
@@ -44,8 +44,8 @@ const TAJWEED_RULE_CLASSES: Record<string,string> = {
   madda_normal:'tj-madd-normal',n:'tj-madd-normal',
   madda_permissible:'tj-madd-permissible',p:'tj-madd-permissible',
   madda_necessary:'tj-madd-necessary',m:'tj-madd-necessary',
-  madda_obligatory:'tj-madd-obligatory',madda_obligatory_mottasel:'tj-madd-obligatory',
-  madda_obligatory_monfasel:'tj-madd-obligatory',o:'tj-madd-obligatory',
+  madda_obligatory:'tj-madd-obligatory',madda_obligatory_mottasel:'tj-madd-obligatory-connected',
+  madda_obligatory_monfasel:'tj-madd-obligatory-separated',o:'tj-madd-obligatory',
   qalaqah:'tj-qalqalah',qalqalah:'tj-qalqalah',qalqala:'tj-qalqalah',q:'tj-qalqalah',qlq:'tj-qalqalah',
   ikhafa:'tj-ikhfa',ikhfa:'tj-ikhfa',f:'tj-ikhfa',
   ikhafa_shafawi:'tj-ikhfa-shafawi',ikhfa_shafawi:'tj-ikhfa-shafawi',c:'tj-ikhfa-shafawi',
@@ -64,7 +64,7 @@ const TAJWEED_RULE_CLASSES: Record<string,string> = {
   'tj-idgham-mutajanisayn':'tj-idgham-mutajanisayn','tj-idgham-mutaqaribayn':'tj-idgham-mutaqaribayn',
   'tj-ghunnah':'tj-ghunnah','tj-tafkhim':'tj-tafkhim','tj-heavy':'tj-tafkhim',
   'tj-madd-normal':'tj-madd-normal','tj-madd-permissible':'tj-madd-permissible',
-  'tj-madd-necessary':'tj-madd-necessary','tj-madd-obligatory':'tj-madd-obligatory'
+  'tj-madd-necessary':'tj-madd-necessary','tj-madd-obligatory':'tj-madd-obligatory','tj-madd-obligatory-connected':'tj-madd-obligatory-connected','tj-madd-obligatory-separated':'tj-madd-obligatory-separated'
 };
 const stripRawQuranMarkup = (value: string) => value
   .replace(/<span\s+class=["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '')
