@@ -955,48 +955,39 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     </section>;
   };
   const renderDesktopPage = (data: MushafPage) => {
-    const grouped = new Map<number, MushafAyah[]>();
+    const lineMap = new Map<number, ReactNode[]>();
+    let hasLineData = false;
     data.ayahs.forEach(ayah => {
-      const list = grouped.get(ayah.surahNumber) || [];
-      list.push(ayah);
-      grouped.set(ayah.surahNumber, list);
+      const words = ayah.words || [];
+      const readableWords = words.filter(word => word.charTypeName !== 'end' && word.text);
+      if (readableWords.some(word => word.lineNumber)) hasLineData = true;
+      readableWords.forEach((word, index) => {
+        const line = word.lineNumber || 1;
+        const content = lineMap.get(line) || [];
+        const segments = tajweedEnabled && word.tajweed
+          ? parseBracketTajweed(word.tajweed)
+          : [{ text: word.text, className: '' }];
+        content.push(<span key={ayah.surahNumber + ':' + ayah.numberInSurah + ':' + index}>
+          {segments.map((segment, segmentIndex) => <span key={segmentIndex} className={tajweedEnabled ? segment.className : ''}>{segment.text}</span>)}
+        </span>);
+        if (index === readableWords.length - 1) content.push(renderMedallion(ayah.numberInSurah));
+        content.push(' ');
+        lineMap.set(line, content);
+      });
     });
+    const surahStarts = data.ayahs.filter(ayah => ayah.numberInSurah === 1);
     return <section className="mushaf-desktop-page" data-desktop-page={data.page} key={data.page}>
-      {[...grouped.entries()].map(([number, ayahs]) => {
-        const lineMap = new Map<number, ReactNode[]>();
-        let hasLineData = false;
-        ayahs.forEach(ayah => {
-          const words = ayah.words || [];
-          const readableWords = words.filter(word => word.charTypeName !== 'end' && word.text);
-          if (readableWords.some(word => word.lineNumber)) hasLineData = true;
-          readableWords.forEach((word, index) => {
-            const line = word.lineNumber || 1;
-            const content = lineMap.get(line) || [];
-            const segments = tajweedEnabled && word.tajweed
-              ? parseBracketTajweed(word.tajweed)
-              : [{ text: word.text, className: '' }];
-            content.push(<span key={ayah.surahNumber + ':' + ayah.numberInSurah + ':' + index}>
-              {segments.map((segment, segmentIndex) => <span key={segmentIndex} className={tajweedEnabled ? segment.className : ''}>{segment.text}</span>)}
-            </span>);
-            if (index === readableWords.length - 1) content.push(renderMedallion(ayah.numberInSurah));
-            content.push(' ');
-            lineMap.set(line, content);
-          });
-        });
-        return <Fragment key={number}>
-          {ayahs[0]?.numberInSurah === 1 && <div className="mushaf-desktop-page-surah-heading">
-            <div className="mushaf-desktop-page-surah-arabic" lang="ar" dir="rtl">{ayahs[0].arabicName || QURAN_SURAHS[number - 1]?.arabic}</div>
-            <div>{number}. {ayahs[0].surahName || QURAN_SURAHS[number - 1]?.transliteration}</div>
-            {number !== 9 && <div className="mushaf-desktop-page-bismillah" lang="ar" dir="rtl" style={mobileArabicStyle}>{bismillah}</div>}
-          </div>}
-          <div className="mushaf-desktop-page-text" lang="ar" dir="rtl" style={mobileArabicStyle}>
-            {hasLineData
-              ? [...lineMap.entries()].sort((left, right) => left[0] - right[0]).map(([line, words]) => <div className="mushaf-desktop-qcf-line" key={line}>{words}</div>)
-              : <div className="mushaf-desktop-page-fallback">{ayahs.map(ayah => <span className="mushaf-desktop-page-ayah" key={ayah.number} data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={data.page}>{renderArabic(ayah)}{' '}</span>)}</div>}
-          </div>
-          {ayahs.map(ayah => <span className="mushaf-desktop-page-bookmark-anchor" key={'anchor-' + ayah.number} data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={data.page} />)}
-        </Fragment>;
-      })}
+      {surahStarts.map(ayah => <div className="mushaf-desktop-page-surah-heading" key={'heading-' + ayah.surahNumber}>
+        <div className="mushaf-desktop-page-surah-arabic" lang="ar" dir="rtl">{ayah.arabicName || QURAN_SURAHS[ayah.surahNumber - 1]?.arabic}</div>
+        <div>{ayah.surahNumber}. {ayah.surahName || QURAN_SURAHS[ayah.surahNumber - 1]?.transliteration}</div>
+        {ayah.surahNumber !== 9 && <div className="mushaf-desktop-page-bismillah" lang="ar" dir="rtl" style={mobileArabicStyle}>{bismillah}</div>}
+      </div>)}
+      <div className="mushaf-desktop-page-text" lang="ar" dir="rtl" style={mobileArabicStyle}>
+        {hasLineData
+          ? [...lineMap.entries()].sort((left, right) => left[0] - right[0]).map(([line, words]) => <div className="mushaf-desktop-qcf-line" key={line}>{words}</div>)
+          : <div className="mushaf-desktop-page-fallback">{data.ayahs.map(ayah => <span className="mushaf-desktop-page-ayah" key={ayah.number} data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={data.page}>{renderArabic(ayah)}{' '}</span>)}</div>}
+      </div>
+      {data.ayahs.map(ayah => <span className="mushaf-desktop-page-bookmark-anchor" key={'anchor-' + ayah.number} data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={data.page} />)}
       <div className="mushaf-desktop-page-divider"><span></span><b>{data.page}</b><span></span></div>
     </section>;
   };
