@@ -23,7 +23,8 @@ const MotionNavLink = motion.create(NavLink);
 
 const rooms = [
   { id: 'residence', label: 'Today', to: '/residence', icon: House, paths: ['/residence'] },
-  { id: 'rhythm', label: 'Deen & Qur’an', to: '/values', icon: MoonStar, paths: ['/values'] },
+  { id: 'rhythm', label: 'Deen', to: '/values', icon: MoonStar, paths: ['/values'] },
+  { id: 'quran', label: 'Qur’an', to: '/quran', icon: BookOpen, paths: ['/quran'] },
   { id: 'execution', label: 'Focus', to: '/focus', icon: Compass, paths: ['/focus', '/execution'] },
   { id: 'growth', label: 'Goals', to: '/goals', icon: GraduationCap, paths: ['/goals'] }
 ];
@@ -173,10 +174,11 @@ export function AppShell() {
     } else document.title = 'Amstreem Atlas';
     return () => { document.title = 'Amstreem Atlas'; };
   }, [focusActive, focusTimer.kind, focusClock, focusContext, current?.label]);
-  const faithTabLabel = quickReligion === 'islam' ? 'Deen & Qur’an' : quickReligion === 'christianity' ? 'Faith & Reflection' : 'Daily Reflection';
+  const faithTabLabel = quickReligion === 'islam' ? 'Deen' : quickReligion === 'christianity' ? 'Faith & Reflection' : 'Daily Reflection';
   const tabsByRoom = {
     residence: [],
     rhythm: [{ label: 'Habits & Self-Control', to: '/habits' }],
+    quran: [],
     execution: [{ label: 'Tasks', to: '/execution' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
     growth: [{ label: 'Projects & Learning', to: '/learning-library' }, { label: 'Reviews & Insights', to: '/reviews-insights' }]
   };
@@ -196,7 +198,7 @@ export function AppShell() {
             const active = item.paths.includes(location.pathname) || (item.id === 'execution' && location.pathname === '/execution');
             return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={'nav-link room-nav-link ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.id === 'rhythm' ? faithTabLabel : item.label}</span><kbd>⌘ {index+1}</kbd></MotionNavLink>;
           })}
-          <NavLink to="/values?openMushaf=1" className="nav-link room-nav-link nav-link--quran" onClick={() => setMobileOpen(false)}><BookOpen size={17} strokeWidth={1.8}/><span>Qur’an</span><kbd>↗</kbd></NavLink>
+          <NavLink to="/quran" className="nav-link room-nav-link nav-link--quran" onClick={() => setMobileOpen(false)}><BookOpen size={17} strokeWidth={1.8}/><span>Qur’an</span><kbd>↗</kbd></NavLink>
           <button type="button" className="nav-link room-nav-link" onClick={() => setMobileOpen(true)}><SlidersHorizontal size={17}/><span>More</span><kbd>···</kbd></button>
         </div>
       </nav>
