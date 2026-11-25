@@ -452,7 +452,7 @@ async function fetchAlQuranCloudTajweedPage(page) {
   throw lastError || new Error('No public quran-tajweed page provider is available.');
 }
 function mergeTajweedEdition(pagePayload, annotations) {
-  if (!pagePayload?.ayahs?.length || !(annotations instanceof Map) || !annotations.size) return pagePayload;
+  if (!pagePayload?.ayahs?.length || typeof annotations?.get !== 'function' || !annotations.size) return pagePayload;
   const ayahs = pagePayload.ayahs.map(ayah => {
     if ((ayah.tajweedSegments || []).some(segment => Boolean(segment.className))) return ayah;
     const annotation = annotations.get(ayah.surahNumber + ':' + ayah.numberInSurah);
