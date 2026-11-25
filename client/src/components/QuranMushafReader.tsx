@@ -318,12 +318,10 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     const root = readerRef.current;
     if (!root) return;
     let settleTimer = 0;
+    let correctionFallback = 0;
     let correcting = false;
     const alignStoppedAyah = () => {
-      if (correcting) {
-        correcting = false;
-        return;
-      }
+      if (correcting) return;
       const header = root.querySelector<HTMLElement>('.quran-mobile-header');
       const rootRect = root.getBoundingClientRect();
       const headerBottom = header?.getBoundingClientRect().bottom ?? rootRect.top;
@@ -343,20 +341,29 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       const delta = desiredTop - root.scrollTop;
       if (Math.abs(delta) < 18) return;
       correcting = true;
+      window.clearTimeout(correctionFallback);
+      correctionFallback = window.setTimeout(() => { correcting = false; }, 1200);
       root.scrollTo({ top: Math.max(0, desiredTop), behavior: 'smooth' });
     };
     const onScroll = () => {
+      if (correcting) return;
       window.clearTimeout(settleTimer);
       settleTimer = window.setTimeout(alignStoppedAyah, 180);
     };
     const onScrollEnd = () => {
       window.clearTimeout(settleTimer);
+      if (correcting) {
+        correcting = false;
+        window.clearTimeout(correctionFallback);
+        return;
+      }
       alignStoppedAyah();
     };
     root.addEventListener('scroll', onScroll, { passive: true });
     root.addEventListener('scrollend', onScrollEnd);
     return () => {
       window.clearTimeout(settleTimer);
+      window.clearTimeout(correctionFallback);
       root.removeEventListener('scroll', onScroll);
       root.removeEventListener('scrollend', onScrollEnd);
     };
