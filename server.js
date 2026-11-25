@@ -712,7 +712,7 @@ function mergeMissingTajweed(primary, fallback) {
   return { ...primary, ayahs, tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))) };
 }
 async function fetchOfficialTajweedVerses(filter, auth, label) {
-  const query = new URLSearchParams({ ...filter, per_page: '300' }).toString();
+  const query = new URLSearchParams(filter).toString();
   const sources = [];
   if (auth?.headers?.['x-auth-token'] && auth?.apiBase) sources.push(auth.apiBase + '/quran/verses/uthmani_tajweed?' + query);
   sources.push('https://api.quran.com/api/v4/quran/verses/uthmani_tajweed?' + query);
