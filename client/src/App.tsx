@@ -9,6 +9,7 @@ import { GoalsPage } from './pages/GoalsPage';
 import { FocusWorkspace } from './components/FocusWorkspace';
 import { CalendarPage } from './pages/CalendarPage';
 import { ValuesPage } from './pages/ValuesPage';
+import { QuranPage } from './pages/QuranPage';
 import { HabitsSelfControlView, LearningLibraryView, ReviewsInsightsView } from './pages/ConsolidatedViews';
 import { SettingsPage } from './pages/SettingsPage';
 import { AdminPage } from './pages/AdminPage';
@@ -35,6 +36,7 @@ export function App() {
       <Route path="/residence" element={<TodayPage />} />
       <Route path="/today" element={<LegacyRedirect to="/residence" />} />
       <Route path="/values" element={<ValuesPage />} />
+      <Route path="/quran" element={<QuranPage />} />
       <Route path="/habits" element={<HabitsSelfControlView />} />
       <Route path="/execution" element={<FocusWorkspace />} />
       <Route path="/focus" element={<FocusWorkspace />} />
