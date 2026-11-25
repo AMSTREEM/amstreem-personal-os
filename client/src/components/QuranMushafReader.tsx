@@ -597,42 +597,96 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     targets.forEach(target => observer.observe(target));
     return () => { observer.disconnect(); visible.clear(); };
   }, [fullScreen, readingMode, surahAyahs, pageData, page, pageReadingSurah, updateBookmark]);
-  // Verse by Verse: allow free scrolling, then gently align the nearest ayah
-  // to the top of the reading area once the user's scroll settles.
+  // Verse by Verse: detect the start of deceleration and align immediately,
+  // without waiting for the scroll/momentum to come to a complete stop.
   useEffect(() => {
     if (!fullScreen || readingMode === 'reading' || surahLoading || !surahAyahs.length) return;
     const root = readerRef.current;
     if (!root) return;
-    let settleTimer = 0;
-    let aligning = false;
+    let frame = 0;
+    let lastTop = root.scrollTop;
+    let lastTime = 0;
+    let peakVelocity = 0;
+    let touchActive = false;
+    let alignedThisGesture = false;
+    let lastMovement = 0;
+
     const alignNearestAyah = () => {
       const header = root.querySelector<HTMLElement>('.quran-mobile-header');
       const headerBottom = root.getBoundingClientRect().top + (header?.getBoundingClientRect().height || 0);
       const rows = Array.from(root.querySelectorAll<HTMLElement>('.quran-mobile-verse-row'));
-      if (!rows.length) return;
       const candidates = rows.filter(row => row.getBoundingClientRect().bottom > headerBottom + 4);
       if (!candidates.length) return;
-      const target = candidates.reduce((best, row) => {
-        const bestTop = best.getBoundingClientRect().top;
-        const rowTop = row.getBoundingClientRect().top;
-        return Math.abs(rowTop - headerBottom) < Math.abs(bestTop - headerBottom) ? row : best;
-      });
+      const target = candidates.reduce((best, row) =>
+        Math.abs(row.getBoundingClientRect().top - headerBottom) < Math.abs(best.getBoundingClientRect().top - headerBottom) ? row : best
+      );
       const delta = target.getBoundingClientRect().top - headerBottom;
-      if (Math.abs(delta) < 3) return;
-      aligning = true;
-      // A decisive, immediate snap gives the ayah a clear top reading position.
-      root.scrollTop += delta;
-      window.setTimeout(() => { aligning = false; }, 180);
+      if (Math.abs(delta) >= 3) root.scrollTop += delta;
     };
-    const scheduleAlign = () => {
-      if (aligning) return;
-      window.clearTimeout(settleTimer);
-      settleTimer = window.setTimeout(alignNearestAyah, 120);
+
+    const sample = (time: number) => {
+      const top = root.scrollTop;
+      if (!lastTime) {
+        lastTop = top;
+        lastTime = time;
+        frame = requestAnimationFrame(sample);
+        return;
+      }
+      const elapsed = Math.max(1, time - lastTime);
+      const distance = Math.abs(top - lastTop);
+      const velocity = distance / elapsed;
+      if (velocity > peakVelocity) peakVelocity = velocity;
+
+      // Once momentum has clearly begun to slow (but is still moving), snap
+      // once to the nearest ayah. A fresh gesture resets this threshold.
+      const hasMoved = Math.abs(top - lastMovement) > 36;
+      const isDecelerating = peakVelocity > 0.45 && velocity > 0.08 && velocity < peakVelocity * 0.68;
+      if (!touchActive && !alignedThisGesture && hasMoved && isDecelerating) {
+        alignedThisGesture = true;
+        cancelAnimationFrame(frame);
+        alignNearestAyah();
+        return;
+      }
+
+      lastTop = top;
+      lastTime = time;
+      frame = requestAnimationFrame(sample);
     };
-    root.addEventListener('scroll', scheduleAlign, { passive: true });
+
+    const beginGesture = () => {
+      cancelAnimationFrame(frame);
+      peakVelocity = 0;
+      alignedThisGesture = false;
+      lastMovement = root.scrollTop;
+      lastTop = root.scrollTop;
+      lastTime = 0;
+    };
+    const startSampling = () => {
+      if (!frame) frame = requestAnimationFrame(sample);
+    };
+    const onTouchStart = () => {
+      touchActive = true;
+      beginGesture();
+    };
+    const onTouchEnd = () => {
+      touchActive = false;
+      beginGesture();
+      startSampling();
+    };
+    const onScroll = () => {
+      if (!touchActive) startSampling();
+    };
+
+    root.addEventListener('touchstart', onTouchStart, { passive: true });
+    root.addEventListener('touchend', onTouchEnd, { passive: true });
+    root.addEventListener('touchcancel', onTouchEnd, { passive: true });
+    root.addEventListener('scroll', onScroll, { passive: true });
     return () => {
-      window.clearTimeout(settleTimer);
-      root.removeEventListener('scroll', scheduleAlign);
+      cancelAnimationFrame(frame);
+      root.removeEventListener('touchstart', onTouchStart);
+      root.removeEventListener('touchend', onTouchEnd);
+      root.removeEventListener('touchcancel', onTouchEnd);
+      root.removeEventListener('scroll', onScroll);
     };
   }, [fullScreen, readingMode, surahLoading, surahAyahs, activeSurahNumber]);
 
