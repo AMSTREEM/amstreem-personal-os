@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Cascade } from '../components/Cascade';
 import { playAtlasFeedback } from '../lib/microFeedback';
@@ -12,7 +12,7 @@ import { CelestialHorizon } from '../components/fx/FlagshipInstruments';
 import { RitualDeck } from '../components/fx/RitualDeck';
 import { DailyArtifact } from '../components/fx/DailyArtifact';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, BookOpen, Flame, FolderKanban, MoonStar, Plus, ShieldCheck, Sparkles, Sun, Target, Timer, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, CalendarDays, Flame, FolderKanban, Heart, MoonStar, Plus, ShieldCheck, Sparkles, Sun, Target, Timer, Zap } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Card, EmptyState, PageHeader } from '../components/ui';
@@ -264,6 +264,7 @@ export function TodayPage() {
       { label: 'Focus', score: focusPercent, detail: formatMinutes(overview.data?.todayMin || 0) + ' / ' + formatMinutes(target) + ' intention' }
     ];
   }, [religion, deen.data, prayerCount, faithCount, rhythmSummary.data, habitList.length, completedHabits, focusPercent, overview.data?.todayMin, target]);
+  const activityPulse = Math.round(scoreDimensions.reduce((sum, item) => sum + item.score, 0) / 3);
 
   const dailyStreak=Math.max(habitStreak,calendarSummary.data?.streaks.faith.current??0,calendarSummary.data?.streaks.habits.current??0);
   const finishRitual=(values:{first:string;second:string;third:string;fourth:string})=>{if(ritualMode==='morning'){setDailyIntention(values.first);saveDaily.mutate({intention:values.first,priority_task_ids:priorityTaskIds,alignment_complete:1},{onSuccess:()=>{playAtlasFeedback('complete');triggerSparkBurst(window.innerWidth/2,window.innerHeight*.42);setRitualMode(null);navigate('/focus');}});}else{setShutdownWins(values.first);setShutdownLessons(values.second);setShutdownChallenges(values.third);setShutdownNextFocus(values.fourth);saveDaily.mutate({wins:values.first,lessons:values.second,challenges:values.third,next_focus:values.fourth,shutdown_complete:[values.first,values.third,values.second,values.fourth].every(v=>v.trim())?1:0},{onSuccess:()=>{playAtlasFeedback('complete');triggerSparkBurst(window.innerWidth/2,window.innerHeight*.42);setRitualMode(null);}});}};
