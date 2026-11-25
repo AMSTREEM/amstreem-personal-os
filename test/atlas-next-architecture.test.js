@@ -259,7 +259,7 @@ test('first-run walkthrough explains the six Atlas destinations and personal lif
   assert.match(tour, /Daily and weekly schedules/);
   assert.match(tour, /Learning/);
   assert.match(tour, /Reviews · Progress evidence/);
-  assert.match(tour, /Personal by design/);
+  assert.match(tour, /PERSONAL BY DESIGN/);
   assert.match(tour, /navigate\(stepRoutes\[index\]\)/);
   assert.match(tour, /onOpenCommand\?\.\(\)/);
   assert.match(shell, /onOpenCommand=\{\(\) => \{ setCommandOpen\(true\);/);
