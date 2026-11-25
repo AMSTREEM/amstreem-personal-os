@@ -178,8 +178,7 @@ export function AppShell() {
     return () => { document.title = 'Amstreem Atlas'; };
   }, [focusActive, focusTimer.kind, focusClock, focusContext, current?.label]);
   const faithTabLabel = quickReligion === 'islam' ? 'Deen' : quickReligion === 'christianity' ? 'Faith & Reflection' : 'Daily Reflection';
-  const tabsByRoom = { home: [], actions: [], goals: [], focus: [], growth: [], calendar: [] };
-  const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => role === 'admin' || !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
+  const activeTabs: { label: string; to: string; feature?: string }[] = [];
   return <div className={"app-frame" + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
     <CursorAura/><SparkBurst/><EnergyVortex/>
     <MobileInstallPrompt />
