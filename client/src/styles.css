@@ -6788,13 +6788,18 @@ html, body, #root, .app-frame, .main-area, .page-container {
    flows below its sticky controls and can be read with ordinary scrolling. */
 @media (max-width: 767px) {
   .quran-mobile-shell {
+    position: fixed !important;
+    inset: 0 !important;
     display: flex !important;
     flex-direction: column !important;
-    height: auto !important;
-    min-height: 100dvh !important;
-    max-height: none !important;
-    overflow: visible !important;
-    overscroll-behavior-y: auto !important;
+    width: 100% !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    max-height: 100dvh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain !important;
+    -webkit-overflow-scrolling: touch !important;
   }
   .quran-mobile-shell .quran-mobile-header {
     position: sticky !important;
