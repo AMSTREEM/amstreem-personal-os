@@ -1174,7 +1174,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   return createPortal(<div className={`quran-mobile-shell${!isMobileViewport ? ' quran-desktop-shell' : ''}${readingMode !== 'reading' ? ' is-verse-mode' : ''}`} ref={readerRef}>
     <header className="quran-mobile-header">
       <div className="quran-mobile-top-row">
-        <button className="quran-mobile-surah-trigger" onClick={() => setMobileSurahDrawerOpen(true)}>{mobileActiveSurahNumber}. {mobileActiveSurahName} <ChevronDown size={16} strokeWidth={1.8} /></button>
+        <button className="quran-mobile-surah-trigger" onClick={() => setMobileSurahDrawerOpen(true)}>{mobileActiveSurahNumber}. {mobileActiveSurahName} <ChevronsUpDown size={17} strokeWidth={1.9} /></button>
         <div className="quran-mobile-header-actions"><button aria-label="Settings" onClick={() => setSettingsOpen(true)}><Settings size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button><button aria-label="Exit reader" onClick={() => setFullScreen(false)}><X size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button></div>
       </div>
       <div className="quran-mobile-mode-tabs">
