@@ -164,7 +164,7 @@ test('Official Tajweed merge marks source completeness separately from Ayahs wit
   const end = server.indexOf('async function fetchQuranMirror', start);
   assert.ok(start >= 0 && end > start, 'Official Tajweed merge helpers must be present');
   const context = { module: { exports: {} }, console };
-  vm.runInNewContext(server.slice(start, end) + '\\nmodule.exports = { applyTajweedToPage };', context);
+  vm.runInNewContext(server.slice(start, end) + '\nmodule.exports = { applyTajweedToPage };', context);
   const applyTajweedToPage = context.module.exports.applyTajweedToPage;
   const page = { page: 1, ayahs: [
     { surahNumber: 1, numberInSurah: 1, text: 'بِسْمِ اللَّهِ', words: [], tajweedSegments: [] },
