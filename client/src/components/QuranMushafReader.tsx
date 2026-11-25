@@ -196,7 +196,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [sidebarOpen, setSidebarOpen] = useState(() => window.matchMedia('(min-width: 768px)').matches);
   const [starredAyahs, setStarredAyahs] = useState<Array<{ surah: number; ayah: number }>>(() => { try { return JSON.parse(localStorage.getItem('atlas_mushaf_starred_ayahs_v1') || '[]'); } catch { return []; } });
   const [selected, setSelected] = useState<{ surah: number; ayah: number } | null>(null);
-  const [lockedAyahKey, setLockedAyahKey] = useState<string | null>(null);
   const [readingMode, setReadingMode] = useState<'translation' | 'reading' | 'arabic'>(() => { try { const saved = localStorage.getItem('atlas_mushaf_layout_v1'); return saved === 'translation' || saved === 'arabic' || saved === 'reading' ? saved : 'reading'; } catch { return 'reading'; } });
   const [tajweedEnabled, setTajweedEnabled] = useState(() => { try { return localStorage.getItem('atlas_mushaf_tajweed_v1') !== 'off'; } catch { return true; } });
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -626,8 +625,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       const ayahNumber = Number(best.node.dataset.ayah);
       const pageNumber = clampPage(Number(best.node.dataset.page) || page);
       if (!surahNumber || !ayahNumber) return;
-      const key = surahNumber + ':' + ayahNumber;
-      setLockedAyahKey(key);
       setSelected(current => current?.surah === surahNumber && current.ayah === ayahNumber ? current : { surah: surahNumber, ayah: ayahNumber });
       updateBookmark(pageNumber, { surahNumber, numberInSurah: ayahNumber });
     };
@@ -773,7 +770,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       {runs.map(run => <Fragment key={`run-${run.surahNumber}`}>
         {run.startsSurah && renderSurahIntro(run.surahNumber, run.surahName, run.arabicName, run.surahNumber !== 9)}
         <p className="quran-mobile-page-arabic" dir="rtl" lang="ar" style={mobileArabicStyle}>
-          {run.ayahs.map(ayah => { const key = ayah.surahNumber + ':' + ayah.numberInSurah; return <span className={'quran-mobile-page-ayah' + (lockedAyahKey === key ? ' is-locked' : '')} key={ayah.number} data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={data.page} aria-current={lockedAyahKey === key ? 'location' : undefined}>{renderArabic(ayah)}{' '}</span>; })}
+          {run.ayahs.map(ayah => <span className="quran-mobile-page-ayah" key={ayah.number} data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={data.page}>{renderArabic(ayah)}{' '}</span>)}
         </p>
       </Fragment>)}
       <div className="quran-mobile-page-divider"><span></span><b>{data.page}</b><span></span></div>
