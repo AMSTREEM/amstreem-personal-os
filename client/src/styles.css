@@ -6781,3 +6781,57 @@ html, body, #root, .app-frame, .main-area, .page-container {
     padding: 3px 10px max(4px, env(safe-area-inset-bottom)) !important;
   }
 }
+
+
+/* Restore the natural, vertically scrollable Mushaf reader.
+   Page content is no longer locked to the viewport or clipped; the reader
+   flows below its sticky controls and can be read with ordinary scrolling. */
+@media (max-width: 767px) {
+  .quran-mobile-shell {
+    display: flex !important;
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overscroll-behavior-y: auto !important;
+  }
+  .quran-mobile-shell .quran-mobile-header {
+    position: sticky !important;
+    top: 0 !important;
+    flex: 0 0 auto !important;
+  }
+  .quran-mobile-shell .quran-mobile-content {
+    display: block !important;
+    flex: 0 0 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    overscroll-behavior: auto !important;
+    padding: 0 0 24px !important;
+    touch-action: pan-y !important;
+  }
+  .quran-mobile-shell .quran-mobile-page-block {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 8px 12px 18px !important;
+  }
+  .quran-mobile-shell .quran-mobile-page-arabic {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    padding: 12px 8px 24px !important;
+    font-size: clamp(25px, 6vw, 34px) !important;
+    line-height: 2.2 !important;
+    text-align: justify !important;
+    text-align-last: center !important;
+  }
+  .quran-mobile-shell .quran-mobile-bottom-nav {
+    position: static !important;
+    padding: 14px 16px max(18px, env(safe-area-inset-bottom)) !important;
+  }
+}
