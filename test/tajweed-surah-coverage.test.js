@@ -77,3 +77,26 @@ test('Six selected Surahs tokenize every ayah and retain all provider colour tag
   assert.equal(results.reduce((sum, item) => sum + item.colouredAyahs, 0), 519);
   console.info('Direct Tajweed coverage by Surah:', JSON.stringify(results));
 });
+
+
+test('every Quran Foundation HTML rule and quran-tajweed shortcode maps to its correct Tajweed family', () => {
+  const html = '<tajweed class=ham_wasl>ٱ</tajweed><tajweed class=slnt>ا</tajweed>' +
+    '<tajweed class=madda_normal>ـٰ</tajweed><tajweed class=madda_permissible>ي</tajweed>' +
+    '<tajweed class=madda_necessary>ا</tajweed><tajweed class=madda_obligatory>ا</tajweed>' +
+    '<tajweed class=qalaqah>ق</tajweed><tajweed class=ikhafa>ن</tajweed>' +
+    '<tajweed class=ikhafa_shafawi>م</tajweed><tajweed class=iqlab>ن</tajweed>' +
+    '<tajweed class=idgham_shafawi>م</tajweed><tajweed class=idgham_ghunnah>ن</tajweed>' +
+    '<tajweed class=idgham_wo_ghunnah>ل</tajweed><tajweed class=idgham_mutajanisayn>ت</tajweed>' +
+    '<tajweed class=idgham_mutaqaribayn>ق</tajweed><tajweed class=ghunnah>ن</tajweed>';
+  const expected = [
+    'tj-silent','tj-silent','tj-madd-normal','tj-madd-permissible','tj-madd-necessary',
+    'tj-madd-obligatory','tj-qalqalah','tj-ikhfa','tj-ikhfa-shafawi','tj-iqlab',
+    'tj-idgham-shafawi','tj-idgham-ghunnah','tj-idgham-no-ghunnah',
+    'tj-idgham-mutajanisayn','tj-idgham-mutaqaribayn','tj-ghunnah'
+  ];
+  const parsed = parseAlQuranTajweed(html);
+  assert.deepEqual(Array.from(parsed, token => token.className), expected);
+  const shortcode = '[h[ٱ]][s[ا]][n[ـٰ]][p[ي]][m[ا]][o[ا]][q[ق]][f[ن]][c[م]][i[ن]][w[م]][a[ن]][u[ل]][d[ت]][b[ق]][g[ن]]';
+  assert.deepEqual(Array.from(parseAlQuranTajweed(shortcode), token => token.className), expected);
+  assert.equal(parsed.map(token => token.text).join(''), 'ٱاـٰياا قنم نملتقن'.replace(/ /g, ''));
+});
