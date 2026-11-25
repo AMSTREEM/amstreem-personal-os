@@ -167,7 +167,7 @@ export function AppShell() {
   if (storedFeatures) { try { enabledFeatures = JSON.parse(storedFeatures).map((feature: string) => feature === 'values' ? 'deen' : feature); } catch { enabledFeatures = null; } }
   const lifeAreaNames: Record<string, string> = { health: 'Health & Fitness', education: 'Education & Learning', career: 'Career & Business', finance: 'Financial Growth', faith: 'Faith & Spirituality', personal: 'Personal Development', relationships: 'Relationships', lifestyle: 'Lifestyle & Organisation' };
   let selectedLifeAreas: string[] = [];
-  try { selectedLifeAreas = settings.data?.life_areas ? JSON.parse(settings.data.life_areas).filter((id: string) => !!lifeAreaNames[id]) : []; } catch { selectedLifeAreas = []; }
+  try { selectedLifeAreas = settings.data?.life_areas ? JSON.parse(settings.data.life_areas).filter((id: string) => !!lifeAreaNames[id]) : Object.keys(lifeAreaNames); } catch { selectedLifeAreas = Object.keys(lifeAreaNames); }
   // The six core pillars are always available; preferences only control secondary views.
   const current = rooms.find(item => item.paths.includes(location.pathname));
   useEffect(() => {
