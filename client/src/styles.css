@@ -6823,3 +6823,80 @@ html, body, #root, .app-frame, .main-area, .page-container {
     height:13px;
   }
 }
+
+
+/* Reference-matched responsive Mushaf header: full desktop toolbar, compact mobile chrome. */
+.quran-mobile-shell .quran-mobile-header { position:sticky; top:0; z-index:30; }
+.quran-mobile-shell .quran-mobile-page-meta { display:none; }
+.quran-mobile-shell .quran-mode-mobile-icon { display:none; }
+@media (min-width:768px) {
+  .quran-desktop-shell .quran-mobile-header { padding-bottom:10px; }
+  .quran-desktop-shell .quran-mobile-top-row {
+    display:grid; grid-template-columns:minmax(180px,1fr) auto minmax(180px,1fr);
+    align-items:center; min-height:58px; padding:7px clamp(24px,3vw,48px);
+  }
+  .quran-desktop-shell .quran-mobile-page-meta {
+    display:flex; align-items:center; justify-content:center; gap:22px;
+    color:var(--text-secondary); font-size:15px; font-weight:600; white-space:nowrap;
+  }
+  .quran-desktop-shell .quran-mobile-mode-tabs {
+    grid-column:1; grid-row:1; justify-self:start;
+    width:auto; min-height:38px; margin:0; padding:0;
+    display:flex; gap:0; border:1px solid var(--border-hairline); border-radius:999px;
+  }
+  .quran-desktop-shell .quran-mobile-mode-tabs button {
+    min-height:36px; padding:7px 16px; font-size:13px; white-space:nowrap;
+  }
+  .quran-desktop-shell .quran-mobile-header-actions { grid-column:3; grid-row:1; justify-self:end; }
+  .quran-desktop-shell .quran-mobile-tajweed-center {
+    position:absolute; right:clamp(24px,3vw,48px); bottom:10px;
+    padding:0; margin:0;
+  }
+  .quran-desktop-shell .quran-mobile-tajweed-center button {
+    min-height:30px; padding:5px 13px; font-size:12px;
+  }
+}
+@media (max-width:767px) {
+  .quran-mobile-shell .quran-mobile-header { padding-bottom:0; }
+  .quran-mobile-shell .quran-mobile-page-meta {
+    display:flex; align-items:center; justify-content:space-between;
+    min-height:34px; padding:3px 18px 2px;
+    color:var(--text-secondary); font-size:12px; font-weight:550;
+    border-bottom:1px solid var(--border-hairline);
+  }
+  .quran-mobile-shell .quran-mobile-top-row {
+    display:flex; min-height:42px; padding:3px 14px;
+    align-items:center; gap:9px;
+  }
+  .quran-mobile-shell .quran-mobile-surah-trigger {
+    flex:1 1 auto; min-width:0; font-size:14px; white-space:nowrap;
+  }
+  .quran-mobile-shell .quran-mobile-mode-tabs {
+    flex:0 0 auto; width:auto; min-height:30px; margin:0; padding:0 3px;
+    display:flex; align-items:center; gap:0;
+    border:1px solid var(--border-hairline); border-radius:999px;
+  }
+  .quran-mobile-shell .quran-mobile-mode-tabs button {
+    display:flex; align-items:center; justify-content:center;
+    min-width:31px; min-height:28px; padding:3px 7px;
+    font-size:0; border-radius:999px;
+  }
+  .quran-mobile-shell .quran-mode-desktop-label { display:none; }
+  .quran-mobile-shell .quran-mode-mobile-icon {
+    display:inline; font-size:17px; line-height:1; font-weight:500;
+  }
+  .quran-mobile-shell .quran-mobile-header-actions { flex:0 0 auto; gap:3px; }
+  .quran-mobile-shell .quran-mobile-header-actions > button {
+    width:29px; height:29px;
+  }
+  .quran-mobile-shell .quran-mobile-header-actions > button[aria-label="Exit reader"] { display:none; }
+  .quran-mobile-shell .quran-mobile-tajweed-center {
+    position:absolute; left:50%; bottom:-13px; transform:translateX(-50%);
+    z-index:4; width:auto; margin:0; padding:0;
+  }
+  .quran-mobile-shell .quran-mobile-tajweed-center button {
+    min-height:25px; padding:3px 10px; font-size:11px;
+    border-radius:0 0 10px 10px; box-shadow:0 3px 8px rgba(0,0,0,.2);
+  }
+  .quran-mobile-shell .quran-mobile-content { padding-top:14px; }
+}
