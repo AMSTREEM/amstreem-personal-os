@@ -688,10 +688,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         </p>
       </Fragment>)}
       <div className="quran-mobile-page-divider"><span></span><b>{data.page}</b><span></span></div>
-      {firstBlock && <div className="quran-mobile-page-quick">
-        <button disabled={data.page <= 1} onClick={() => changePage(data.page - 1)}>‹ Previous Page</button>
-        <button disabled={data.page >= (getAyahLocation(selected?.surah || pageData?.ayahs?.[0]?.surahNumber || data.ayahs[0]?.surahNumber || 1, QURAN_SURAHS[(selected?.surah || pageData?.ayahs?.[0]?.surahNumber || data.ayahs[0]?.surahNumber || 1) - 1]?.ayahs || 1)?.page || 604)} onClick={() => changePage(data.page + 1)}>Next Page ›</button>
-      </div>}
     </section>;
   };
   const renderVerseRows = (ayahs: MushafAyah[]) => ayahs.map(ayah => {
