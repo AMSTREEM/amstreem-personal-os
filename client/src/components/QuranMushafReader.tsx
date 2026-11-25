@@ -429,8 +429,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   }, [page]);
 
   useEffect(() => {
-    if (pageData?.ayahs?.length) setMobileContinuousPages(current => current.length ? current : [pageData]);
-  }, [pageData]);
+    if (pageData?.ayahs?.length && pageData.page === page) setMobileContinuousPages([pageData]);
+  }, [pageData, page]);
 
   const loadNextMobilePage = useCallback(async () => {
     const lastPage = mobileContinuousPages[mobileContinuousPages.length - 1]?.page || page;
@@ -773,6 +773,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     <main className="quran-mobile-content">
       {loading && <div className="quran-mobile-loading">Loading Qur’an…</div>}
       {pageError && <div className="quran-mobile-error">{pageError}<button onClick={() => changePage(page)}>Retry</button></div>}
+      {!loading && !pageError && readingMode === 'reading' && <div className="quran-mobile-page-quick quran-mobile-page-quick-top"><button disabled={page <= 1} onClick={() => changePage(page - 1)}>‹ Previous Page</button><button disabled={page >= 604} onClick={() => changePage(page + 1)}>Next Page ›</button></div>}
       {!loading && !pageError && readingMode === 'reading' && pageData && <>
         {mobileContinuousPages.length ? mobileContinuousPages.map((data, index) => renderPageBlock(data, index === 0)) : renderPageBlock(pageData, true)}
         {mobileLoadingMore && <p className="quran-mobile-loading">Loading next page…</p>}
