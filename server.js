@@ -569,12 +569,27 @@ async function fetchQuranFoundationPage(page) {
   if (!verseResponse.ok) throw new Error('Quran Foundation by_page returned HTTP ' + verseResponse.status + '.');
   const normalized = normalizeQuranCom(await verseResponse.json(), page);
   if (!normalized.ayahs.length || !normalized.qcfAvailable || normalized.ayahs.some(ayah => !ayah.translation || !ayah.words?.length || ayah.words.some(word => word.charTypeName !== 'end' && word.charTypeName !== 'pause' && (!word.lineNumber || !word.codeV2)))) throw new Error('Quran Foundation page response is missing translation, QCF V4 word glyph, or line data.');
+  // QCF V4 supplies the page glyphs, but its Tajweed annotations can be incomplete
+  // on individual pages. Fill those gaps from the official verse endpoint first,
+  // then the public quran-tajweed edition, while keeping the QCF text and layout.
+  let enriched = normalized;
+  const hasCompleteTajweed = normalized.ayahs.every(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className)));
+  if (!hasCompleteTajweed) {
+    enriched = await enrichPageWithQuranJsonTajweed(normalized);
+    if (!enriched.tajweedComplete) {
+      try {
+        enriched = mergeTajweedEdition(enriched, await fetchAlQuranCloudTajweedPage(page));
+      } catch (error) {
+        console.warn('QCF page Tajweed completion fallback unavailable:', page, error.message);
+      }
+    }
+  }
   let pageRange = null;
   if (lookupResponse?.ok) {
     const lookup = await lookupResponse.json();
     pageRange = lookup?.pages?.[String(page)] || null;
   }
-  return { ...normalized, textSource: 'qcf-v4', qcfAvailable: true, mushafId: 19, pageRange };
+  return { ...enriched, textSource: 'qcf-v4', qcfAvailable: true, mushafId: 19, pageRange };
 }
 async function fetchQuranFoundationSurah(surahNumber) {
   const { headers, apiBase } = await getQuranApiAuth();
