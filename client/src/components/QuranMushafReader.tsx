@@ -1174,7 +1174,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   return createPortal(<div className={`quran-mobile-shell${!isMobileViewport ? ' quran-desktop-shell' : ''}${readingMode !== 'reading' ? ' is-verse-mode' : ''}`} ref={readerRef}>
     <header className="quran-mobile-header">
       <div className="quran-mobile-top-row">
-        <button className="quran-mobile-surah-trigger" onClick={() => setMobileSurahDrawerOpen(true)}>{mobileActiveSurahNumber}. {mobileActiveSurahName} <ChevronsUpDown size={17} strokeWidth={1.9} /></button>
+        <motion.button className="quran-mobile-surah-trigger" onClick={() => setMobileSurahDrawerOpen(true)} whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }} transition={{ type: 'spring', stiffness: 420, damping: 28 }}>{mobileActiveSurahNumber}. {mobileActiveSurahName} <motion.span animate={{ rotate: mobileSurahDrawerOpen ? 180 : 0 }} transition={{ duration: prefersReducedMotion ? 0 : 0.22 }}><ChevronsUpDown size={17} strokeWidth={1.9} /></motion.span></motion.button>
         <div className="quran-mobile-header-actions"><button aria-label="Settings" onClick={() => setSettingsOpen(true)}><Settings size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button><button aria-label="Exit reader" onClick={() => setFullScreen(false)}><X size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button></div>
       </div>
       <div className="quran-mobile-mode-tabs">
@@ -1187,7 +1187,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         </button>
       </div>
     </header>
-    {tajweedLegendVisible && <aside className="quran-mobile-tajweed-legend"><b>Tajweed colour key · Quran.com</b><div><span className="tj-silent">Silent letters</span><span className="tj-madd-normal">Normal madd</span><span className="tj-madd-permissible">Separated madd</span><span className="tj-madd-obligatory-connected">Connected madd</span><span className="tj-madd-obligatory-separated">Separated obligatory madd</span><span className="tj-madd-necessary">Necessary madd</span><span className="tj-ghunnah">Ghunna · Ikhfa · Idgham</span><span className="tj-qalqalah">Qalqalah</span><span className="tj-tafkhim">Tafkhim</span></div></aside>}
+    <AnimatePresence initial={false}>{tajweedLegendVisible && <motion.aside className="quran-mobile-tajweed-legend" initial={{ opacity: 0, height: 0, y: -8 }} animate={{ opacity: 1, height: 'auto', y: 0 }} exit={{ opacity: 0, height: 0, y: -8 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }}><b>Tajweed colour key · Quran.com</b><div><span className="tj-silent">Silent letters</span><span className="tj-madd-normal">Normal madd</span><span className="tj-madd-permissible">Separated madd</span><span className="tj-madd-obligatory-connected">Connected madd</span><span className="tj-madd-obligatory-separated">Separated obligatory madd</span><span className="tj-madd-necessary">Necessary madd</span><span className="tj-ghunnah">Ghunna · Ikhfa · Idgham</span><span className="tj-qalqalah">Qalqalah</span><span className="tj-tafkhim">Tafkhim</span></div></motion.aside>}</AnimatePresence>
     <main className="quran-mobile-content">
       {loading && <div className="quran-mobile-loading">Loading Qur’an…</div>}
       {pageError && <div className="quran-mobile-error">{pageError}<button onClick={() => changePage(page)}>Retry</button></div>}
@@ -1205,7 +1205,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         {surahError && <div className="quran-mobile-error">{surahError}</div>}
       </>}
     </main>
-    {settingsOpen && <div className="quran-mobile-settings-backdrop" onClick={() => setSettingsOpen(false)}><section className="quran-mobile-settings" onClick={event => event.stopPropagation()}>
+    <AnimatePresence initial={false}>{settingsOpen && <motion.div className="quran-mobile-settings-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: prefersReducedMotion ? 0 : 0.2 }} onClick={() => setSettingsOpen(false)}><motion.section className="quran-mobile-settings" initial={{ x: '100%', opacity: 0.7 }} animate={{ x: 0, opacity: 1 }} exit={{ x: '100%', opacity: 0.7 }} transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 360, damping: 36, mass: 0.82 }} onClick={event => event.stopPropagation()}>
       <header><b>Reading settings</b><button aria-label="Close settings" onClick={() => setSettingsOpen(false)}><X size={20} /></button></header>
       <label>Arabic font<select value={arabicFontFamily} onChange={event => changeArabicFont(event.target.value)}>{MUSHAF_FONTS.map(font => <option key={font.name} value={font.name}>{font.label}</option>)}</select></label>
       <div className="quran-mobile-font-preview" dir="rtl" lang="ar" style={mobileArabicStyle}>{MUSHAF_FONT_SAMPLE}</div>
@@ -1213,11 +1213,11 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       <button className="quran-mobile-setting-toggle" onClick={toggleTajweed}><span>Tajweed colors</span><strong>{tajweedEnabled ? 'On' : 'Off'}</strong></button>
       <button className="quran-mobile-setting-toggle" onClick={toggleTransliteration}><span>Transliteration</span><strong>{transliterationEnabled ? 'On' : 'Off'}</strong></button>
       <div className="quran-mobile-bookmark-modes"><button className={mode === 'hifz' ? 'is-active' : ''} onClick={() => changeMode('hifz')}>Hifz</button><button className={mode === 'murajaah' ? 'is-active' : ''} onClick={() => changeMode('murajaah')}>Muraja’ah</button></div>
-    </section></div>}
-    {mobileSurahDrawerOpen && <div className="quran-mobile-drawer-backdrop" onClick={() => setMobileSurahDrawerOpen(false)}><aside className="quran-mobile-surah-drawer" onClick={event => event.stopPropagation()}>
+    </motion.section></motion.div>}</AnimatePresence>
+    <AnimatePresence initial={false}>{mobileSurahDrawerOpen && <motion.div className="quran-mobile-drawer-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: prefersReducedMotion ? 0 : 0.2 }} onClick={() => setMobileSurahDrawerOpen(false)}><motion.aside className="quran-mobile-surah-drawer" initial={{ x: '-100%', opacity: 0.7 }} animate={{ x: 0, opacity: 1 }} exit={{ x: '-100%', opacity: 0.7 }} transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 360, damping: 36, mass: 0.82 }} onClick={event => event.stopPropagation()}>
       <header><b>Surahs</b><button aria-label="Close Surah list" onClick={() => setMobileSurahDrawerOpen(false)}><X size={20} /></button></header>
       <input value={surahSearch} onChange={event => setSurahSearch(event.target.value)} placeholder="Search 114 Surahs" />
-      <div className="quran-mobile-surah-list">{QURAN_SURAHS.filter(surah => (surah.transliteration + ' ' + surah.english + ' ' + surah.number).toLowerCase().includes(surahSearch.toLowerCase())).map(surah => <button key={surah.number} className={surah.number === mobileActiveSurahNumber ? 'is-active' : ''} onClick={() => { jumpSurah(surah.number); setMobileSurahDrawerOpen(false); }}><span><b>{surah.number}. {surah.transliteration}</b><small>{surah.english} · {surah.ayahs} verses</small></span><strong>{surah.arabic}</strong></button>)}</div>
-    </aside></div>}
+      <div className="quran-mobile-surah-list">{QURAN_SURAHS.filter(surah => (surah.transliteration + ' ' + surah.english + ' ' + surah.number).toLowerCase().includes(surahSearch.toLowerCase())).map((surah, index) => <motion.button key={surah.number} initial={prefersReducedMotion ? false : { opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={prefersReducedMotion ? { duration: 0 } : { delay: Math.min(index * 0.012, 0.18), duration: 0.22, ease: [0.22, 1, 0.36, 1] }} className={surah.number === mobileActiveSurahNumber ? 'is-active' : ''} onClick={() => { jumpSurah(surah.number); setMobileSurahDrawerOpen(false); }}><span><b>{surah.number}. {surah.transliteration}</b><small>{surah.english} · {surah.ayahs} verses</small></span><strong>{surah.arabic}</strong></motion.button>)}</div>
+    </motion.aside></motion.div>}</AnimatePresence>
   </div>, document.body);
 }
