@@ -360,6 +360,19 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   }, [settingsReady, settings.hifz_page, settings.murajaah_page, settings.hifz_bookmark, settings.murajaah_bookmark]);
 
   useEffect(() => {
+    if (!fullScreen) return;
+    const root = readerRef.current;
+    if (!root) return;
+    const markUserScroll = () => { userScrolledRef.current = true; };
+    root.addEventListener('touchmove', markUserScroll, { passive: true });
+    root.addEventListener('wheel', markUserScroll, { passive: true });
+    return () => {
+      root.removeEventListener('touchmove', markUserScroll);
+      root.removeEventListener('wheel', markUserScroll);
+    };
+  }, [fullScreen]);
+
+  useEffect(() => {
     const mark = mode === 'hifz' ? hifzMark : murajaahMark;
     userScrolledRef.current = false;
     restoreTargetRef.current = readingMode === 'reading' ? null : mark.surah + ':' + mark.ayah;
@@ -376,16 +389,38 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     const mark = mode === 'hifz' ? hifzMark : murajaahMark;
     const saveKey = `${mode}:${mark.surah}:${mark.ayah}:${mark.page}`;
     if (lastSavedKeyRef.current === saveKey) return;
-    lastSavedKeyRef.current = saveKey;
     const payload = mode === 'hifz'
       ? { hifz_page: String(mark.page), hifz_bookmark: JSON.stringify(mark) }
       : { murajaah_page: String(mark.page), murajaah_bookmark: JSON.stringify(mark) };
-    const timer = window.setTimeout(() => {
-      void api('/settings', json('PATCH', payload)).catch(() => {
-        // The local bookmark is already durable; a later bookmark change can retry remote sync.
-      });
-    }, 1500);
-    return () => window.clearTimeout(timer);
+    let cancelled = false;
+    let inFlight = false;
+    let retryTimer: number | null = null;
+    const sync = async () => {
+      if (cancelled || inFlight) return;
+      inFlight = true;
+      try {
+        await api('/settings', json('PATCH', payload));
+        if (!cancelled) lastSavedKeyRef.current = saveKey;
+      } catch {
+        // Keep retrying silently: local storage already has the latest bookmark.
+        if (!cancelled) retryTimer = window.setTimeout(() => { void sync(); }, 5000);
+      } finally {
+        inFlight = false;
+      }
+    };
+    const retryWhenOnline = () => {
+      if (retryTimer !== null) window.clearTimeout(retryTimer);
+      retryTimer = null;
+      void sync();
+    };
+    const debounceTimer = window.setTimeout(() => { void sync(); }, 1200);
+    window.addEventListener('online', retryWhenOnline);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(debounceTimer);
+      if (retryTimer !== null) window.clearTimeout(retryTimer);
+      window.removeEventListener('online', retryWhenOnline);
+    };
   }, [hifzMark, murajaahMark, mode, settingsReady]);
 
   useEffect(() => {
