@@ -180,7 +180,10 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [surahError, setSurahError] = useState('');
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState('');
-  const [fullScreen, setFullScreen] = useState(false);
+  // The standalone Qur’an route must mount directly into the reader. Initializing
+  // this state avoids a launcher flash and prevents effect timing/StrictMode from
+  // leaving the dedicated route on the closed launcher after its first paint.
+  const [fullScreen, setFullScreen] = useState(() => autoOpen);
   const [isMobileViewport, setIsMobileViewport] = useState(() => window.matchMedia('(max-width: 767px)').matches);
   const [mobileControlsVisible, setMobileControlsVisible] = useState(false);
   const [mobileScrolled, setMobileScrolled] = useState(false);
@@ -627,12 +630,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     setLoading(true);  setPageError('');
     setFullScreen(true);
   };
-  const autoOpenHandled = useRef(false);
-  useEffect(() => {
-    if (!autoOpen || !settingsReady || autoOpenHandled.current) return;
-    autoOpenHandled.current = true;
-    openReader('hifz');
-  }, [autoOpen, settingsReady]);
   const changeReadingMode = (next: 'translation' | 'reading' | 'arabic') => { if (next !== readingMode) { updateBookmark(page, selectedAyah); setReadingMode(next); try { localStorage.setItem('atlas_mushaf_layout_v1', next); } catch { /* storage is optional */ } } };
   const changeArabicFont = (next: string) => { if (!MUSHAF_FONTS.some(font => font.name === next)) return; const selectedFont = next as typeof MUSHAF_FONTS[number]['name']; setArabicFontFamily(selectedFont); try { localStorage.setItem('atlas_mushaf_font_family_v1', selectedFont); } catch { /* storage is optional */ } };
   const changeArabicFontSize = (next: number) => { setArabicFontSize(next); try { localStorage.setItem('atlas_mushaf_font_size_v1', String(next)); } catch { /* storage is optional */ } };
