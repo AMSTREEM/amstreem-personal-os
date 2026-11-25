@@ -6857,3 +6857,23 @@ html, body, #root, .app-frame, .main-area, .page-container {
   }
 }
 
+
+
+/* Verse-by-Verse: native proximity snapping aligns Ayah cards after a
+   gesture without mandatory traps on long Ayahs. The sticky reader header is
+   approximately 132px tall (Surah row, mode tabs, and Tajweed control). */
+.quran-mobile-shell.is-verse-mode {
+  --quran-sticky-header-height: 132px;
+  scroll-snap-type: y proximity;
+  scroll-behavior: smooth;
+}
+.quran-mobile-shell.is-verse-mode .quran-mobile-verse-row {
+  scroll-snap-align: start;
+  scroll-margin-top: calc(var(--quran-sticky-header-height) + 8px);
+}
+@media (max-width: 767px) {
+  .quran-mobile-shell.is-verse-mode {
+    scroll-snap-type: y proximity !important;
+    scroll-behavior: smooth !important;
+  }
+}
