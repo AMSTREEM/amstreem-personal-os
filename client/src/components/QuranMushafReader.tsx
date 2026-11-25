@@ -554,7 +554,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     }, { root, threshold: 0.01 });
     targets.forEach(target => observer.observe(target));
     return () => { observer.disconnect(); visible.clear(); };
-  }, [fullScreen, readingMode, surahAyahs, pageData, mobileContinuousPages, page, pageReadingSurah, updateBookmark]);
+  }, [fullScreen, readingMode, surahAyahs, pageData, page, pageReadingSurah, updateBookmark]);
   const changePage = (next: number, location?: { surahNumber: number; numberInSurah: number }) => {
     userScrolledRef.current = false;
     const requestedPage = clampPage(next);
@@ -711,7 +711,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   // The Atlas route containers use overflow clipping and animated transforms. A fixed
   // full-screen reader rendered inside them can be clipped/painted behind the shell.
   // Portal the entire Mushaf to document.body so it has a true viewport-level layer.
-  return createPortal(<div className="quran-mobile-shell" ref={readerRef}>
+  return createPortal(<div className={`quran-mobile-shell${readingMode === 'reading' ? ' is-fixed-page-mode' : ''}`} ref={readerRef}>
     <header className="quran-mobile-header">
       {!mobileScrolled ? <>
         <div className="quran-mobile-top-row">
