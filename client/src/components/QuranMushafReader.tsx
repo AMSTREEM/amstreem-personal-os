@@ -24,7 +24,7 @@ const AYAH_ROSETTE_PATH = Array.from({ length: 120 }, (_, index) => {
   const y = (18 + Math.sin(angle) * radius).toFixed(2);
   return (index === 0 ? 'M' : 'L') + x + ' ' + y;
 }).join(' ') + ' Z';
-const TAJWEED_CLASSES = new Set(['tj-hamza','tj-silent','tj-madd','tj-madd-wajib','tj-qalqalah','tj-ghunnah','tj-ikhfa','tj-idgham','tj-iqlab','tj-tafkhim','tj-heavy','ham_wasl','slnt','laam_shamsiyah','madda_normal','madda_permissible','madda_necessary','madda_obligatory','madda_obligatory_mottasel','madda_obligatory_monfasel','qalaqah','ikhafa','ikhafa_shafawi','iqlab','idgham_shafawi','idgham_ghunnah','idgham_wo_ghunnah','idgham_mutajanisayn','idgham_mutaqaribayn','ghunnah']);
+const TAJWEED_CLASSES = new Set(["tj-silent","tj-madd-normal","tj-madd-permissible","tj-madd-necessary","tj-madd-obligatory","tj-madd","tj-madd-wajib","tj-qalqalah","tj-ikhfa","tj-ikhfa-shafawi","tj-iqlab","tj-idgham-shafawi","tj-idgham-ghunnah","tj-idgham-no-ghunnah","tj-idgham-mutajanisayn","tj-idgham-mutaqaribayn","tj-idgham","tj-ghunnah","tj-tafkhim","tj-heavy"]);
 const MUSHAF_FONTS = [
   { name: 'UthmanicHafs', label: 'Madinah Uthmani · King Fahd Complex' },
   { name: 'Scheherazade New', label: 'Traditional Calligraphic' },
@@ -38,23 +38,33 @@ const normalizeMadinahArabic = (value: string) => value.replace(/[\u06CC\u06A9\u
   '\u06CC': '\u064A', '\u06A9': '\u0643', '\u06C1': '\u0647'
 })[character] || character);
 const TAJWEED_RULE_CLASSES: Record<string,string> = {
-  ham_wasl:'tj-silent',hamzat_wasl:'tj-silent',hamzat_al_wasl:'tj-silent',slnt:'tj-silent',
-  laam_shamsiyah:'tj-silent',laam_shamsiyyah:'tj-silent',lam_shamsiyah:'tj-silent',lam_shamsiyyah:'tj-silent',
-  madda_normal:'tj-madd',madda_permissible:'tj-madd',madda_necessary:'tj-madd-wajib',
-  madda_obligatory:'tj-madd-wajib',madda_obligatory_mottasel:'tj-madd-wajib',madda_obligatory_monfasel:'tj-madd-wajib',
-  m:'tj-madd',o:'tj-madd',madd:'tj-madd',n:'tj-madd-wajib',p:'tj-madd-wajib',
-  qalaqah:'tj-qalqalah',qalqalah:'tj-qalqalah',q:'tj-qalqalah',qlq:'tj-qalqalah',
-  ikhafa:'tj-ikhfa',ikhafa_shafawi:'tj-ikhfa',ikhfa:'tj-ikhfa',ikhfa_shafawi:'tj-ikhfa',
-  iqlab:'tj-iqlab',iqlb:'tj-iqlab',qalb:'tj-iqlab',
-  idgham:'tj-idgham',idghaam:'tj-idgham',idgham_shafawi:'tj-idgham',idgham_ghunnah:'tj-idgham',
-  idgham_wo_ghunnah:'tj-idgham',idgham_mutajanisayn:'tj-idgham',idgham_mutaqaribayn:'tj-idgham',
-  idghm_shfw:'tj-idgham',idgh_w_ghn:'tj-idgham',idgh_mus:'tj-idgham',
-  ghunnah:'tj-ghunnah',ghn:'tj-ghunnah',g:'tj-ghunnah',i:'tj-ghunnah',c:'tj-ghunnah',
-  a:'tj-ghunnah',w:'tj-ghunnah',f:'tj-ghunnah',d:'tj-ghunnah',b:'tj-ghunnah',
-  r:'tj-heavy',heavy:'tj-heavy',tafkhim:'tj-heavy',tafkheem:'tj-heavy',
-  'tj-silent':'tj-silent','tj-madd':'tj-madd','tj-madd-wajib':'tj-madd-wajib',
-  'tj-qalqalah':'tj-qalqalah','tj-ghunnah':'tj-ghunnah','tj-ikhfa':'tj-ikhfa',
-  'tj-idgham':'tj-idgham','tj-iqlab':'tj-iqlab','tj-tafkhim':'tj-tafkhim','tj-heavy':'tj-heavy'
+  ham_wasl:'tj-silent',hamzat_wasl:'tj-silent',hamzat_al_wasl:'tj-silent',h:'tj-silent',
+  slnt:'tj-silent',silent:'tj-silent',s:'tj-silent',laam_shamsiyah:'tj-silent',laam_shamsiyyah:'tj-silent',
+  lam_shamsiyah:'tj-silent',lam_shamsiyyah:'tj-silent',l:'tj-silent',
+  madda_normal:'tj-madd-normal',n:'tj-madd-normal',
+  madda_permissible:'tj-madd-permissible',p:'tj-madd-permissible',
+  madda_necessary:'tj-madd-necessary',m:'tj-madd-necessary',
+  madda_obligatory:'tj-madd-obligatory',madda_obligatory_mottasel:'tj-madd-obligatory',
+  madda_obligatory_monfasel:'tj-madd-obligatory',o:'tj-madd-obligatory',
+  qalaqah:'tj-qalqalah',qalqalah:'tj-qalqalah',qalqala:'tj-qalqalah',q:'tj-qalqalah',qlq:'tj-qalqalah',
+  ikhafa:'tj-ikhfa',ikhfa:'tj-ikhfa',f:'tj-ikhfa',
+  ikhafa_shafawi:'tj-ikhfa-shafawi',ikhfa_shafawi:'tj-ikhfa-shafawi',c:'tj-ikhfa-shafawi',
+  iqlab:'tj-iqlab',iqlb:'tj-iqlab',i:'tj-iqlab',
+  idgham_shafawi:'tj-idgham-shafawi',idghm_shfw:'tj-idgham-shafawi',w:'tj-idgham-shafawi',
+  idgham_ghunnah:'tj-idgham-ghunnah',idgh_w_ghn:'tj-idgham-ghunnah',a:'tj-idgham-ghunnah',
+  idgham_wo_ghunnah:'tj-idgham-no-ghunnah',u:'tj-idgham-no-ghunnah',
+  idgham_mutajanisayn:'tj-idgham-mutajanisayn',idgh_mus:'tj-idgham-mutajanisayn',d:'tj-idgham-mutajanisayn',
+  idgham_mutaqaribayn:'tj-idgham-mutaqaribayn',b:'tj-idgham-mutaqaribayn',
+  ghunnah:'tj-ghunnah',ghn:'tj-ghunnah',g:'tj-ghunnah',
+  tafkhim:'tj-tafkhim',tafkheem:'tj-tafkhim',heavy:'tj-tafkhim',r:'tj-tafkhim',
+  'tj-silent':'tj-silent','tj-madd':'tj-madd-normal','tj-madd-wajib':'tj-madd-obligatory',
+  'tj-qalqalah':'tj-qalqalah','tj-ikhfa':'tj-ikhfa','tj-ikhfa-shafawi':'tj-ikhfa-shafawi',
+  'tj-iqlab':'tj-iqlab','tj-idgham':'tj-idgham-ghunnah','tj-idgham-shafawi':'tj-idgham-shafawi',
+  'tj-idgham-ghunnah':'tj-idgham-ghunnah','tj-idgham-no-ghunnah':'tj-idgham-no-ghunnah',
+  'tj-idgham-mutajanisayn':'tj-idgham-mutajanisayn','tj-idgham-mutaqaribayn':'tj-idgham-mutaqaribayn',
+  'tj-ghunnah':'tj-ghunnah','tj-tafkhim':'tj-tafkhim','tj-heavy':'tj-tafkhim',
+  'tj-madd-normal':'tj-madd-normal','tj-madd-permissible':'tj-madd-permissible',
+  'tj-madd-necessary':'tj-madd-necessary','tj-madd-obligatory':'tj-madd-obligatory'
 };
 const stripRawQuranMarkup = (value: string) => value
   .replace(/<span\s+class=["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '')
