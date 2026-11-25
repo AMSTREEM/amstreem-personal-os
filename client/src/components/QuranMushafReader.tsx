@@ -310,6 +310,58 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     readerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [page, fullScreen]);
 
+  // Guarantee Verse-by-Verse alignment even when the user stops halfway through an Ayah.
+  // CSS proximity snapping remains the first layer; this settles the Ayah crossing
+  // the reading line after momentum ends, then gently aligns that whole card.
+  useEffect(() => {
+    if (!fullScreen || readingMode === 'reading' || loading || !surahAyahs.length) return;
+    const root = readerRef.current;
+    if (!root) return;
+    let settleTimer = 0;
+    let correcting = false;
+    const alignStoppedAyah = () => {
+      if (correcting) {
+        correcting = false;
+        return;
+      }
+      const header = root.querySelector<HTMLElement>('.quran-mobile-header');
+      const rootRect = root.getBoundingClientRect();
+      const headerBottom = header?.getBoundingClientRect().bottom ?? rootRect.top;
+      const sensorY = Math.min(rootRect.bottom - 24, headerBottom + 28);
+      const rows = Array.from(root.querySelectorAll<HTMLElement>('[data-mushaf-verse="true"]'));
+      if (!rows.length) return;
+      const target = rows.find(row => {
+        const rect = row.getBoundingClientRect();
+        return rect.top <= sensorY && rect.bottom > sensorY;
+      }) || rows.reduce((best, row) => {
+        const rect = row.getBoundingClientRect();
+        const bestRect = best.getBoundingClientRect();
+        return Math.abs(rect.top - sensorY) < Math.abs(bestRect.top - sensorY) ? row : best;
+      }, rows[0]);
+      const targetRect = target.getBoundingClientRect();
+      const desiredTop = root.scrollTop + targetRect.top - rootRect.top - (headerBottom - rootRect.top) - 8;
+      const delta = desiredTop - root.scrollTop;
+      if (Math.abs(delta) < 18) return;
+      correcting = true;
+      root.scrollTo({ top: Math.max(0, desiredTop), behavior: 'smooth' });
+    };
+    const onScroll = () => {
+      window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(alignStoppedAyah, 180);
+    };
+    const onScrollEnd = () => {
+      window.clearTimeout(settleTimer);
+      alignStoppedAyah();
+    };
+    root.addEventListener('scroll', onScroll, { passive: true });
+    root.addEventListener('scrollend', onScrollEnd);
+    return () => {
+      window.clearTimeout(settleTimer);
+      root.removeEventListener('scroll', onScroll);
+      root.removeEventListener('scrollend', onScrollEnd);
+    };
+  }, [fullScreen, readingMode, loading, surahAyahs]);
+
   useEffect(() => {
     if (!fullScreen || readingMode === 'reading' || !selected || !restoreTargetRef.current || loading || surahLoading || !surahAyahs.length) return;
     const key = selected.surah + ':' + selected.ayah;
