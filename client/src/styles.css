@@ -6129,9 +6129,10 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .quran-mobile-page-divider b { min-width:18px; text-align:center; font-weight:500; }
   .quran-mobile-page-quick,.quran-mobile-bottom-nav {
     width:min(100%, 820px); box-sizing:border-box; margin:0 auto;
-    display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:stretch;
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:stretch;
     gap:12px; padding:12px 16px 20px;
   }
+  .quran-mobile-bottom-nav.quran-mobile-reader-actions { grid-template-columns:repeat(3,minmax(0,1fr)); }
   .quran-mobile-page-quick button,.quran-mobile-bottom-nav button {
     width:100%; min-width:0; min-height:44px; box-sizing:border-box;
     display:inline-flex; align-items:center; justify-content:center; gap:8px;
@@ -6358,7 +6359,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .quran-mobile-page-divider b { min-width:18px; text-align:center; font-weight:500; }
   .quran-mobile-page-quick,.quran-mobile-bottom-nav {
     width:100%; box-sizing:border-box; display:grid;
-    grid-template-columns:repeat(3,minmax(0,1fr)); align-items:stretch;
+    grid-template-columns:repeat(2,minmax(0,1fr)); align-items:stretch;
     gap:10px; padding:10px 12px 18px; margin:0 auto;
   }
   .quran-mobile-page-quick button,.quran-mobile-bottom-nav button {
