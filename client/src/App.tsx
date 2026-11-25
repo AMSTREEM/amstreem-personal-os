@@ -4,7 +4,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './auth/AuthProvider';
 import { AuthPage } from './components/AuthPage';
 import { AppShell } from './components/AppShell';
-import { TodayPage } from './pages/TodayPage';\nimport { AtlasHomePage } from './pages/AtlasHomePage';
+import { TodayPage } from './pages/TodayPage';
+import { AtlasHomePage } from './pages/AtlasHomePage';
 import { GoalsPage } from './pages/GoalsPage';
 import { FocusWorkspace } from './components/FocusWorkspace';
 import { CalendarPage } from './pages/CalendarPage';
@@ -33,7 +34,8 @@ export function App() {
     <Route element={<AppShell />}>
       <Route index element={<Navigate to="/residence" replace />} />
       {/* Canonical eight-view destinations */}
-      <Route path="/residence" element={<AtlasHomePage />} />\n      <Route path="/daily-rhythm" element={<TodayPage />} />
+      <Route path="/residence" element={<AtlasHomePage />} />
+      <Route path="/daily-rhythm" element={<TodayPage />} />
       <Route path="/home" element={<LegacyRedirect to="/residence" />} />
       <Route path="/today" element={<LegacyRedirect to="/residence" />} />
       <Route path="/values" element={<ValuesPage />} />
