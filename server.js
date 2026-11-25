@@ -787,17 +787,15 @@ app.get('/api/quran/page/:page', async (req, res) => {
       if (offline?.ayahs?.length) return { ...offline, page, offlineFallback: true, qcfAvailable: false };
       throw new Error('All Qur’an page providers are temporarily unavailable.');
     }
-    let annotatedPage = sourcePage;
-    const hasUnmarkedAyahs = !annotatedPage.qcfAvailable && annotatedPage.ayahs.some(ayah => !(ayah.tajweedSegments || []).some(segment => Boolean(segment.className)));
-    if (hasUnmarkedAyahs) {
+    let enrichedPage = await enrichPageWithQuranJsonTajweed(sourcePage);
+    if (!enrichedPage.tajweedComplete) {
       try {
         const editionAnnotations = await fetchAlQuranCloudTajweedPage(page);
-        annotatedPage = mergeTajweedEdition(annotatedPage, editionAnnotations);
+        enrichedPage = mergeTajweedEdition(enrichedPage, editionAnnotations);
       } catch (error) {
         console.warn('AlQuranCloud quran-tajweed page fallback unavailable:', page, error.message);
       }
     }
-    const enrichedPage = await enrichPageWithQuranJsonTajweed(annotatedPage);
     enrichedPage.tajweedComplete = Boolean(enrichedPage.tajweedComplete);
     return {
       ...enrichedPage, page, juz: enrichedPage.juz || getPageJuzFallback(page),
