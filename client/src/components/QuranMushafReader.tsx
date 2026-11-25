@@ -326,7 +326,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         const rowRect = row.getBoundingClientRect();
         const headerHeight = header?.getBoundingClientRect().height || 0;
         const targetTop = root.scrollTop + rowRect.top - rootRect.top - headerHeight - 12;
-        root.scrollTo({ top: Math.max(0, targetTop), behavior: 'auto' });
+        root.scrollTo({ top: Math.max(0, targetTop), behavior: 'instant' });
       });
     });
     return () => {
@@ -597,98 +597,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     targets.forEach(target => observer.observe(target));
     return () => { observer.disconnect(); visible.clear(); };
   }, [fullScreen, readingMode, surahAyahs, pageData, page, pageReadingSurah, updateBookmark]);
-  // Verse by Verse: detect the first real deceleration from scroll events.
-  // The ayah under a reading sensor is selected even when its middle is at the top.
-  useEffect(() => {
-    if (!fullScreen || readingMode === 'reading' || surahLoading || !surahAyahs.length) return;
-    const root = readerRef.current;
-    if (!root) return;
-    let lastTop = root.scrollTop;
-    let lastTime = performance.now();
-    let previousVelocity = 0;
-    let peakVelocity = 0;
-    let slowSamples = 0;
-    let alignedThisGesture = false;
-
-    const alignSensorAyah = () => {
-      const header = root.querySelector<HTMLElement>('.quran-mobile-header');
-      const headerBottom = root.getBoundingClientRect().top + (header?.getBoundingClientRect().height || 0);
-      const sensorY = headerBottom + Math.min(84, root.clientHeight * 0.14);
-      const rows = Array.from(root.querySelectorAll<HTMLElement>('.quran-mobile-verse-row'));
-      if (!rows.length) return;
-
-      // Prefer the ayah whose full row crosses the sensor, not merely the
-      // ayah whose top edge happens to be closest to the header.
-      const target = rows.find(row => {
-        const rect = row.getBoundingClientRect();
-        return rect.top <= sensorY && rect.bottom > sensorY;
-      }) || rows.reduce((best, row) => {
-        const rect = row.getBoundingClientRect();
-        const bestRect = best.getBoundingClientRect();
-        const distance = sensorY < rect.top ? rect.top - sensorY : sensorY > rect.bottom ? sensorY - rect.bottom : 0;
-        const bestDistance = sensorY < bestRect.top ? bestRect.top - sensorY : sensorY > bestRect.bottom ? sensorY - bestRect.bottom : 0;
-        return distance < bestDistance ? row : best;
-      });
-
-      const delta = target.getBoundingClientRect().top - headerBottom;
-      if (Math.abs(delta) < 3) return;
-      // Keep corrections modest and let the browser ease into the new position.
-      const gentleDelta = Math.max(-120, Math.min(120, delta));
-      root.scrollTo({ top: root.scrollTop + gentleDelta, behavior: 'smooth' });
-    };
-
-    const onScroll = () => {
-      const now = performance.now();
-      const top = root.scrollTop;
-      const elapsed = now - lastTime;
-      if (elapsed <= 0) return;
-      const distance = Math.abs(top - lastTop);
-      const velocity = distance / elapsed;
-
-      // Ignore long gaps and tiny movement; they are not useful momentum samples.
-      if (elapsed > 110) {
-        previousVelocity = 0;
-        peakVelocity = velocity;
-        slowSamples = 0;
-      } else if (distance > 0.6) {
-        peakVelocity = Math.max(peakVelocity, velocity);
-        const slowing = peakVelocity > 0.5 &&
-          velocity > 0.075 &&
-          velocity < peakVelocity * 0.68 &&
-          previousVelocity > 0 &&
-          velocity < previousVelocity * 0.9;
-        slowSamples = slowing ? slowSamples + 1 : 0;
-
-        // Two consecutive falling samples catch deceleration early, before rest.
-        if (!alignedThisGesture && slowSamples >= 2) {
-          alignedThisGesture = true;
-          alignSensorAyah();
-        }
-      }
-
-      lastTop = top;
-      lastTime = now;
-      previousVelocity = velocity;
-    };
-
-    const onNewGesture = () => {
-      alignedThisGesture = false;
-      slowSamples = 0;
-      peakVelocity = 0;
-      previousVelocity = 0;
-      lastTop = root.scrollTop;
-      lastTime = performance.now();
-    };
-
-    root.addEventListener('scroll', onScroll, { passive: true });
-    root.addEventListener('touchstart', onNewGesture, { passive: true });
-    root.addEventListener('wheel', onNewGesture, { passive: true });
-    return () => {
-      root.removeEventListener('scroll', onScroll);
-      root.removeEventListener('touchstart', onNewGesture);
-      root.removeEventListener('wheel', onNewGesture);
-    };
-  }, [fullScreen, readingMode, surahLoading, surahAyahs, activeSurahNumber]);
+  // Verse-by-Verse alignment is handled by native CSS proximity snapping.
+  // This avoids competing with iOS momentum scrolling and keeps long Ayahs readable.
 
   // In Page by Page mode, let natural scrolling finish, then lock the ayah
   // closest to the reader's focus line and persist that exact location.
@@ -886,7 +796,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   // The Atlas route containers use overflow clipping and animated transforms. A fixed
   // full-screen reader rendered inside them can be clipped/painted behind the shell.
   // Portal the entire Mushaf to document.body so it has a true viewport-level layer.
-  return createPortal(<div className="quran-mobile-shell" ref={readerRef}>
+  return createPortal(<div className={`quran-mobile-shell${readingMode !== 'reading' ? ' is-verse-mode' : ''}`} ref={readerRef}>
     <header className="quran-mobile-header">
       <div className="quran-mobile-top-row">
         <button className="quran-mobile-surah-trigger" onClick={() => setMobileSurahDrawerOpen(true)}>{mobileActiveSurahNumber}. {mobileActiveSurahName} <span>⌄</span></button>
