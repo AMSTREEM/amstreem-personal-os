@@ -12,7 +12,7 @@ import { CelestialHorizon } from '../components/fx/FlagshipInstruments';
 import { RitualDeck } from '../components/fx/RitualDeck';
 import { DailyArtifact } from '../components/fx/DailyArtifact';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, BookOpen, Flame, MoonStar, Plus, Target, Timer, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, Flame, FolderKanban, MoonStar, Plus, ShieldCheck, Sparkles, Target, Timer, Zap } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Card, EmptyState, PageHeader } from '../components/ui';
@@ -305,12 +305,12 @@ export function TodayPage() {
       <section className="residence-pillar-grid" aria-label="Six life pillars">
       {[
         {title:religion === 'islam' ? 'Deen & Reflection' : religion === 'christianity' ? 'Faith & Reflection' : 'Daily Clarity',detail:religion === 'islam' ? prayerCount + '/5 salah · ' + (rhythmSummary.data?.completed || 0) + ' practices completed' : religion === 'christianity' ? (rhythmSummary.data?.completed || 0) + ' faith activities completed' : (rhythmSummary.data?.completed || 0) + ' clarity activities completed',to:'/values',symbol:'☾',tone:'deen'},
-        {title:'Self-Control & Streaks',detail:'Habits and commitments',to:'/self-control',symbol:'◇',tone:'self'},
-        {title:'Projects & Tasks',detail:'Turn plans into progress',to:'/projects',symbol:'↗',tone:'projects'},
-        {title:'Focus Room',detail:'Protect your attention',to:'/focus',symbol:'◷',tone:'focus'},
-        {title:'Learning Studio',detail:'Build knowledge deliberately',to:'/learning',symbol:'▤',tone:'learning'},
-        {title:'Goals',detail:'Keep long-term direction visible',to:'/goals',symbol:'◎',tone:'goals'}
-      ].map(pillar=><Link className={'residence-pillar atlas-spotlight residence-pillar--'+pillar.tone} to={pillar.to} key={pillar.to}><span>{pillar.symbol}</span><div><b>{pillar.title}</b><small>{pillar.detail}</small></div><ArrowRight size={14}/></Link>)}
+        {title:'Self-Control & Streaks',detail:'Habits and commitments',to:'/self-control',icon:ShieldCheck,tone:'self'},
+        {title:'Projects & Tasks',detail:'Turn plans into progress',to:'/projects',icon:FolderKanban,tone:'projects'},
+        {title:'Focus Room',detail:'Protect your attention',to:'/focus',icon:Timer,tone:'focus'},
+        {title:'Learning Studio',detail:'Build knowledge deliberately',to:'/learning',icon:BookOpen,tone:'learning'},
+        {title:'Goals',detail:'Keep long-term direction visible',to:'/goals',icon:Target,tone:'goals'}
+      ].map(pillar=><Link className={'residence-pillar atlas-spotlight residence-pillar--'+pillar.tone} to={pillar.to} key={pillar.to}><span className="residence-pillar__icon"><pillar.icon size={19} strokeWidth={1.8}/></span><div><b>{pillar.title}</b><small>{pillar.detail}</small></div><ArrowRight size={14}/></Link>)}
     </section>
     <Card className="residence-pulse-card">
       <section className="residence-pulse" aria-label="Your daily activity pulse">
@@ -371,7 +371,7 @@ export function TodayPage() {
           <div className="today-section-heading"><div><span className="eyebrow">SELF-CONTROL & STREAKS</span><h2>Your daily habits</h2><p>{completedHabits} of {habitList.length} completed</p></div><Link className="text-link" to="/rituals">Manage habits <ArrowRight size={13}/></Link></div>
           {habitList.length ? <div className="today-habit-list">{habitList.map(habit => <label className={'today-habit-row ' + (habit.done ? 'is-done' : '')} key={habit.id}>
             <input className="today-habit-check" type="checkbox" checked={!!habit.done} onChange={() => toggleHabit.mutate(habit)} />
-            <span className="today-habit-emoji">{habit.emoji || '•'}</span><span className="today-habit-copy"><span className="today-habit-title">{habit.title}</span>{habit.goal_title && <small>Goal · {habit.goal_title}</small>}</span><span className="today-habit-state">{habit.done ? 'Done' : 'Mark done'}</span>
+            <span className="today-habit-emoji">{habit.emoji || <Sparkles size={14} strokeWidth={1.8}/>}</span><span className="today-habit-copy"><span className="today-habit-title">{habit.title}</span>{habit.goal_title && <small>Goal · {habit.goal_title}</small>}</span><span className="today-habit-state">{habit.done ? 'Done' : 'Mark done'}</span>
           </label>)}</div> : <EmptyState title="Start with a few daily habits." detail="Add the repeatable actions you want to become consistent with." />}
           <div className="today-card-footer"><span>{completedHabits === habitList.length && habitList.length ? 'All habits completed for today' : (habitList.length - completedHabits) + ' remaining today'}</span><Link to="/self-control" className="text-link">Open Self-Control <ArrowRight size={13}/></Link></div>
         </Card>
