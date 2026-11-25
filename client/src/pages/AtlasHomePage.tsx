@@ -170,7 +170,7 @@ export function AtlasHomePage() {
           <h2>Build a life with intention.</h2>
           <p>Choose what matters, give it your attention, and let the small steps add up.</p>
           <div className="atlas-home__hero-actions">
-            <Link className="atlas-home__gold-button" to="/goals">Explore your goals <ArrowRight size={15} /></Link>
+            <Link className="atlas-home__gold-button" to="/blueprint">Open your blueprint <ArrowRight size={15} /></Link>
             <Link className="atlas-home__text-button" to="/growth">See your growth</Link>
           </div>
           <div className="atlas-home__hero-orbit" aria-hidden="true"><span /><span /><span /></div>
