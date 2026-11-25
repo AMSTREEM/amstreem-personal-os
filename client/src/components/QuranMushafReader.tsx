@@ -1186,13 +1186,16 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   void desktopReader;
   return createPortal(<div className={`quran-mobile-shell${!isMobileViewport ? ' quran-desktop-shell' : ''}${readingMode !== 'reading' ? ' is-verse-mode' : ''}`} ref={readerRef}>
     <header className="quran-mobile-header">
+      <div className="quran-mobile-page-meta" aria-label={`Page ${page}, Juz ${getPageJuz(page)}`}>
+        <span>Page {page}</span><span>Juz {getPageJuz(page)} / Hizb {Math.ceil(page / 10)}</span>
+      </div>
       <div className="quran-mobile-top-row">
         <motion.button className="quran-mobile-surah-trigger" onClick={() => setMobileSurahDrawerOpen(true)} whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }} transition={{ type: 'spring', stiffness: 420, damping: 28 }}>{mobileActiveSurahNumber}. {mobileActiveSurahName} <motion.span animate={{ rotate: mobileSurahDrawerOpen ? 180 : 0 }} transition={{ duration: prefersReducedMotion ? 0 : 0.22 }}><ChevronsUpDown size={17} strokeWidth={1.9} /></motion.span></motion.button>
+        <div className="quran-mobile-mode-tabs">
+          <button aria-label="Verse by Verse" title="Verse by Verse" className={readingMode === 'arabic' ? 'is-active' : ''} onClick={() => changeReadingMode('arabic')}><span className="quran-mode-desktop-label">Verse by Verse</span><span className="quran-mode-mobile-icon">▤</span></button>
+          <button aria-label="Page by Page" title="Page by Page" className={readingMode === 'reading' ? 'is-active' : ''} onClick={() => changeReadingMode('reading')}><span className="quran-mode-desktop-label">Page by Page</span><span className="quran-mode-mobile-icon">▧</span></button>
+        </div>
         <div className="quran-mobile-header-actions"><button aria-label="Settings" onClick={() => setSettingsOpen(true)}><Settings size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button><button aria-label="Exit reader" onClick={() => setFullScreen(false)}><X size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button></div>
-      </div>
-      <div className="quran-mobile-mode-tabs">
-        <button className={readingMode === 'arabic' ? 'is-active' : ''} onClick={() => changeReadingMode('arabic')}>Verse by Verse</button>
-        <button className={readingMode === 'reading' ? 'is-active' : ''} onClick={() => changeReadingMode('reading')}>Page by Page <small>Reading</small></button>
       </div>
       <div className="quran-mobile-tajweed-center">
         <button className={tajweedLegendVisible ? 'is-active' : ''} aria-expanded={tajweedLegendVisible} onClick={() => setTajweedLegendVisible(value => !value)}>
