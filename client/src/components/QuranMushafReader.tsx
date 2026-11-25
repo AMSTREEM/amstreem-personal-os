@@ -597,17 +597,20 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     targets.forEach(target => observer.observe(target));
     return () => { observer.disconnect(); visible.clear(); };
   }, [fullScreen, readingMode, surahAyahs, pageData, page, pageReadingSurah, updateBookmark]);
-  // Verse by Verse: wait for a brief natural easing in scroll events, then
-  // make one decisive alignment. Momentum scroll events keep resetting the
-  // short timer, so alignment happens as scrolling first starts to slow.
+  // Verse by Verse: sample real scroll movement and align as momentum eases,
+  // rather than waiting for a quiet gap after scrolling has stopped.
   useEffect(() => {
     if (!fullScreen || readingMode === 'reading' || surahLoading || !surahAyahs.length) return;
     const root = readerRef.current;
     if (!root) return;
-    let alignTimer = 0;
-    let gestureResetTimer = 0;
+    let frame = 0;
+    let idleTimer = 0;
+    let lastTop = root.scrollTop;
+    let lastTime = performance.now();
+    let previousVelocity = 0;
+    let peakVelocity = 0;
     let alignedThisGesture = false;
-    let programmatic = false;
+    let hasMoved = false;
 
     const alignNearestAyah = () => {
       const header = root.querySelector<HTMLElement>('.quran-mobile-header');
@@ -620,40 +623,71 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       );
       const delta = target.getBoundingClientRect().top - headerBottom;
       if (Math.abs(delta) < 2) return;
-      programmatic = true;
-      root.scrollTop += delta;
-      window.setTimeout(() => { programmatic = false; }, 120);
+      // Native smooth scrolling gives the correction a soft finish instead of a hard jump.
+      root.scrollTo({ top: root.scrollTop + delta, behavior: 'smooth' });
+    };
+
+    const sampleMotion = (now: number) => {
+      const top = root.scrollTop;
+      const elapsed = Math.max(1, now - lastTime);
+      const distance = Math.abs(top - lastTop);
+      const velocity = distance / elapsed; // px per ms
+      if (distance > 0.5) hasMoved = true;
+      peakVelocity = Math.max(peakVelocity, velocity);
+
+      // A clear fall from the gesture's peak, while movement is still happening,
+      // marks the beginning of the natural slowdown (not the end of the scroll).
+      const slowing = peakVelocity > 0.7 &&
+        velocity > 0.035 &&
+        velocity < Math.max(0.32, peakVelocity * 0.48) &&
+        previousVelocity > velocity;
+      if (!alignedThisGesture && hasMoved && slowing) {
+        alignedThisGesture = true;
+        alignNearestAyah();
+      }
+
+      lastTop = top;
+      lastTime = now;
+      previousVelocity = velocity;
+      if (!alignedThisGesture) frame = window.requestAnimationFrame(sampleMotion);
+      else frame = 0;
+    };
+
+    const startSampling = () => {
+      if (alignedThisGesture || frame) return;
+      lastTop = root.scrollTop;
+      lastTime = performance.now();
+      previousVelocity = 0;
+      frame = window.requestAnimationFrame(sampleMotion);
     };
 
     const onScroll = () => {
-      if (programmatic) return;
-      window.clearTimeout(alignTimer);
-      window.clearTimeout(gestureResetTimer);
-      if (!alignedThisGesture) {
-        // Scroll events continue during momentum. A 95ms quiet gap catches
-        // the first easing between momentum events, before full rest.
-        alignTimer = window.setTimeout(() => {
-          alignedThisGesture = true;
-          alignNearestAyah();
-        }, 95);
-      }
-      gestureResetTimer = window.setTimeout(() => {
-        alignedThisGesture = false;
-      }, 420);
+      window.clearTimeout(idleTimer);
+      startSampling();
+      idleTimer = window.setTimeout(() => {
+        if (frame) window.cancelAnimationFrame(frame);
+        frame = 0;
+      }, 180);
     };
 
     const onNewGesture = () => {
-      window.clearTimeout(alignTimer);
-      window.clearTimeout(gestureResetTimer);
+      if (frame) window.cancelAnimationFrame(frame);
+      frame = 0;
+      window.clearTimeout(idleTimer);
       alignedThisGesture = false;
+      hasMoved = false;
+      peakVelocity = 0;
+      previousVelocity = 0;
+      lastTop = root.scrollTop;
+      lastTime = performance.now();
     };
 
     root.addEventListener('scroll', onScroll, { passive: true });
     root.addEventListener('touchstart', onNewGesture, { passive: true });
     root.addEventListener('wheel', onNewGesture, { passive: true });
     return () => {
-      window.clearTimeout(alignTimer);
-      window.clearTimeout(gestureResetTimer);
+      if (frame) window.cancelAnimationFrame(frame);
+      window.clearTimeout(idleTimer);
       root.removeEventListener('scroll', onScroll);
       root.removeEventListener('touchstart', onNewGesture);
       root.removeEventListener('wheel', onNewGesture);
