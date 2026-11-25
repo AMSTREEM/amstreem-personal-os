@@ -397,9 +397,9 @@ async function fetchQuranCdnPage(page) {
   return { ...payload, textSource: 'qpc-hafs', qcfAvailable: false, mushafId: 5 };
 }
 async function fetchQuranCdnSurah(surahNumber) {
-  const query = '?words=true&translations=131&per_page=300&word_fields=text_qpc_hafs,text_uthmani,line_number,page_number,position,char_type_name&fields=text_qpc_hafs,text_uthmani,verse_key,chapter_id,verse_number,juz_number,hizb_number,page_number';
+  const query = '?words=true&translations=131,20&per_page=300&word_fields=text_qpc_hafs,text_uthmani,text_uthmani_tajweed,line_number,page_number,position,char_type_name&fields=text_qpc_hafs,text_uthmani,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number,hizb_number,page_number';
   const payload = await fetchQuranMirror('https://api.qurancdn.com/api/qdc/verses/by_chapter/' + surahNumber + query, normalizeQuranCom, surahNumber);
-  if (!payload.ayahs.length || payload.ayahs.some(ayah => !ayah.text)) throw new Error('Quran CDN Surah response is missing Arabic text.');
+  if (!payload.ayahs.length || payload.ayahs.some(ayah => !ayah.text || !ayah.translation)) throw new Error('Quran CDN Surah response is missing Arabic text or verse translation.');
   return { ...payload, textSource: 'qpc-hafs', qcfAvailable: false, mushafId: 5 };
 }
 async function fetchAlQuranCloudPage(page) {
@@ -485,7 +485,7 @@ async function fetchAlQuranCloudSurah(surahNumber) {
 async function fetchQuranFoundationPage(page) {
   const { headers, apiBase } = await getQuranApiAuth();
   if (!headers['x-auth-token'] || !headers['x-client-id']) throw new Error('Quran Foundation API credentials are not configured.');
-  const query = '?mushaf=1&words=true&translations=131&per_page=50&word_fields=code_v2,text_qpc_hafs,line_number,page_number,position,char_type_name&fields=verse_key,chapter_id,verse_number,juz_number,hizb_number,page_number';
+  const query = '?mushaf=1&words=true&translations=131,20&per_page=50&word_fields=code_v2,text_qpc_hafs,line_number,page_number,position,char_type_name&fields=verse_key,chapter_id,verse_number,juz_number,hizb_number,page_number';
   const [verseResponse, lookupResponse] = await Promise.all([
     fetch(apiBase + '/verses/by_page/' + page + query, { headers: { Accept: 'application/json', ...headers }, signal: AbortSignal.timeout(12000) }),
     fetch(apiBase + '/pages/lookup?page_number=' + page + '&mushaf=1', { headers: { Accept: 'application/json', ...headers }, signal: AbortSignal.timeout(9000) }).catch(() => null)
@@ -503,7 +503,7 @@ async function fetchQuranFoundationPage(page) {
 async function fetchQuranFoundationSurah(surahNumber) {
   const { headers, apiBase } = await getQuranApiAuth();
   if (!headers['x-auth-token'] || !headers['x-client-id']) throw new Error('Quran Foundation API credentials are not configured.');
-  const query = '?words=true&translations=131&per_page=300&word_fields=code_v2,text_qpc_hafs,line_number,page_number,position,char_type_name&fields=verse_key,chapter_id,verse_number,juz_number,hizb_number,page_number';
+  const query = '?words=true&translations=131,20&per_page=300&word_fields=code_v2,text_qpc_hafs,line_number,page_number,position,char_type_name&fields=verse_key,chapter_id,verse_number,juz_number,hizb_number,page_number';
   const response = await fetch(apiBase + '/verses/by_chapter/' + surahNumber + query, { headers: { Accept: 'application/json', ...headers }, signal: AbortSignal.timeout(15000) });
   if (!response.ok) throw new Error('Quran Foundation by_chapter returned HTTP ' + response.status + '.');
   const normalized = normalizeQuranCom(await response.json(), 1);
@@ -552,7 +552,16 @@ function normalizeQuranCom(body, page) {
 }
 // Identity adapter retained for the page pipeline. Provider-tagged Tajweed is
 // tokenized directly and is never reconstructed from offsets in another edition.
-async function enrichPageWithQuranJsonTajweed(pagePayload) { return pagePayload; }
+async function enrichPageWithQuranJsonTajweed(pagePayload) {
+  try {
+    const { headers, apiBase } = await getQuranApiAuth();
+    const tajweedByVerse = await fetchOfficialTajweedPage(apiBase, headers, pagePayload.page);
+    return applyTajweedToPage(pagePayload, tajweedByVerse);
+  } catch (error) {
+    // Public Quran.com mirrors are merged below when authenticated Tajweed is unavailable.
+    return pagePayload;
+  }
+}
 function splitTajweedWords(markup) {
   const tokens = String(markup || '').match(/<[^>]*>|[^<\s]+|\s+/g) || [];
   const words = [];
@@ -634,7 +643,8 @@ app.get('/api/quran/page/:page', async (req, res) => {
     catch (error) { console.warn('AlQuranCloud providers exhausted:', error.message); }
     let fallback = null;
     const query = `?mushaf=1&words=true&translations=20&word_fields=code_v2,line_number,line_v2,page_number,v2_page,text_uthmani,text_qpc_hafs,text_uthmani_tajweed,position,verse_key,char_type_name&fields=text_uthmani,text_qpc_hafs,text_uthmani_tajweed,verse_key,chapter_id,verse_number,juz_number,hizb_number&page=${page}&per_page=50`;
-    if (primary?.textSource !== 'qpc-hafs') {
+    const primaryAnnotations = (primary?.ayahs || []).filter(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).length;
+    if (primary?.ayahs?.length && primaryAnnotations < primary.ayahs.length) {
       for (const url of [`https://quran.com/api/proxy/content/api/qdc/verses/by_page/${page}${query}`,`https://api.quran.com/api/v4/verses/by_page/${page}${query}`]) {
         try {
           fallback = await fetchQuranMirror(url, normalizeQuranCom, page);
@@ -644,8 +654,8 @@ app.get('/api/quran/page/:page', async (req, res) => {
     }
     const annotationCount = candidate => (candidate?.ayahs || []).filter(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).length;
     const sourcePage = fallback?.textSource === 'qpc-hafs'
-      ? fallback
-      : (primary?.ayahs?.length ? primary : (fallback?.qcfAvailable ? fallback : null));
+      ? mergeMissingTajweed(fallback, primary)
+      : (primary?.ayahs?.length ? mergeMissingTajweed(primary, fallback) : (fallback?.qcfAvailable ? fallback : null));
     if (!sourcePage?.ayahs?.length) {
       const offline = quranOfflinePages[String(page)];
       if (offline?.ayahs?.length) return { ...offline, page, offlineFallback: true, qcfAvailable: false };
