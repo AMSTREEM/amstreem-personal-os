@@ -1,7 +1,7 @@
 import { Fragment, type CSSProperties, type FormEvent, type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { Bookmark, ChevronDown, Copy, Info, Search, Settings, WifiOff, X } from 'lucide-react';
+import { Bookmark, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Copy, Info, Search, Settings, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz, getPageSurah } from '../data/quranSurahs';
 
@@ -9,9 +9,9 @@ type Settings = Record<string, string>;
 type TajweedSegment = { text: string; className: string };
 type MushafWord = { text: string; tajweed?: string; codeV2?: string; lineNumber?: number; pageNumber?: number; position?: number; verseKey?: string; charTypeName?: string };
 type MushafAyah = { textSource?: string; pageNumber?: number; number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; tajweedText?: string; tajweedSegments?: TajweedSegment[]; translation: string; transliteration?: string; translations?: Array<{ id: number; name: string; text: string }>; words?: MushafWord[] };
-type MushafPage = { textSource?: string; page: number; juz: number; hizb?: number; tajweedComplete?: boolean; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
+type MushafPage = { textSource?: string; page: number; juz: number; hizb?: number; tajweedComplete?: boolean; tajweedCoverage?: { totalAyahs: number; sourcedAyahs: number; coloredAyahs: number; missingAyahs: string[]; mismatchedAyahs: string[] }; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void; autoOpen?: boolean };
-const CACHE_PREFIX = 'atlas_mushaf_page_v16_';
+const CACHE_PREFIX = 'atlas_mushaf_page_v17_';
 const pageMemoryCache = new Map<number, MushafPage>();
 const HIFZ_KEY = 'atlas_hifz_bookmark_v2';
 const MURAJAAH_KEY = 'atlas_murajaah_bookmark_v2';
@@ -1009,7 +1009,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     <header className="mushaf-desktop-topbar">
       <div className="mushaf-desktop-topbar-left">
         <button className="mushaf-desktop-surah-trigger" onClick={() => setSidebarOpen(value => !value)}>
-          {activeSurahNumber}. {activeSurah?.transliteration || 'Al-Fatihah'} <span>⌄</span>
+          {activeSurahNumber}. {activeSurah?.transliteration || 'Al-Fatihah'} <ChevronDown size={16} strokeWidth={1.8} />
         </button>
       </div>
       <div className="mushaf-desktop-topbar-center">
@@ -1027,7 +1027,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
           <button className={mode === 'murajaah' ? 'is-active' : ''} onClick={() => changeMode('murajaah')}>Muraja’ah</button>
         </div>
         <button className="mushaf-desktop-icon-button" aria-label="Settings" title="Settings" onClick={() => setSettingsOpen(true)}><Settings size={18} /></button>
-        <button className="mushaf-desktop-exit" aria-label="Exit reader" onClick={() => setFullScreen(false)}>✕</button>
+        <button className="mushaf-desktop-exit" aria-label="Exit reader" onClick={() => setFullScreen(false)}><X size={17} /></button>
       </div>
     </header>
     {sidebarOpen && <aside className="mushaf-desktop-sidebar">
@@ -1069,8 +1069,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       </>}
     </main>
     {readingMode === 'reading' && <div className="mushaf-desktop-page-controls">
-      <button aria-label="Previous Page" title="Previous Page" disabled={desktopVisiblePage <= 1} onClick={() => changePage(desktopVisiblePage - 1)}>▲</button>
-      <button aria-label="Next Page" title="Next Page" disabled={desktopVisiblePage >= 604} onClick={() => changePage(desktopVisiblePage + 1)}>▼</button>
+      <button aria-label="Previous Page" title="Previous Page" disabled={desktopVisiblePage <= 1} onClick={() => changePage(desktopVisiblePage - 1)}><ChevronUp size={18} /></button>
+      <button aria-label="Next Page" title="Next Page" disabled={desktopVisiblePage >= 604} onClick={() => changePage(desktopVisiblePage + 1)}><ChevronDown size={18} /></button>
     </div>}
     {settingsOpen && <div className="mushaf-desktop-settings-backdrop" onClick={() => setSettingsOpen(false)}>
       <section className="mushaf-desktop-settings" onClick={event => event.stopPropagation()}>
@@ -1100,15 +1100,15 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         <button className={readingMode === 'arabic' ? 'is-active' : ''} onClick={() => changeReadingMode('arabic')}>Verse by Verse</button>
         <button className={readingMode === 'reading' ? 'is-active' : ''} onClick={() => changeReadingMode('reading')}>Page by Page <small>Reading</small></button>
       </div>
-      <div className="quran-mobile-tajweed-center"><button onClick={() => setTajweedLegendVisible(value => !value)}>Tajweed colors <span>⌄</span></button></div>
+      <div className="quran-mobile-tajweed-center"><button onClick={() => setTajweedLegendVisible(value => !value)}>Tajweed colors <ChevronDown size={15} /></button></div>
     </header>
-    {tajweedLegendVisible && <aside className="quran-mobile-tajweed-legend"><b>Tajweed colour key</b><div><span className="tj-madd-normal">Madd · Normal</span><span className="tj-madd-permissible">Madd · Permissible</span><span className="tj-madd-necessary">Madd · Necessary</span><span className="tj-madd-obligatory">Madd · Obligatory</span><span className="tj-qalqalah">Qalqalah</span><span className="tj-ikhfa">Ikhfa</span><span className="tj-ikhfa-shafawi">Ikhfa Shafawi</span><span className="tj-iqlab">Iqlab</span><span className="tj-idgham-shafawi">Idgham Shafawi</span><span className="tj-idgham-ghunnah">Idgham with Ghunnah</span><span className="tj-idgham-no-ghunnah">Idgham without Ghunnah</span><span className="tj-idgham-mutajanisayn">Idgham Mutajanisayn</span><span className="tj-idgham-mutaqaribayn">Idgham Mutaqaribayn</span><span className="tj-ghunnah">Ghunnah</span><span className="tj-tafkhim">Tafkhim</span></div></aside>}
+    {tajweedLegendVisible && <aside className="quran-mobile-tajweed-legend"><b>Tajweed colour key · Quran.com</b><div><span className="tj-silent">Silent letters</span><span className="tj-madd-normal">Normal madd</span><span className="tj-madd-permissible">Separated madd</span><span className="tj-madd-obligatory">Connected madd</span><span className="tj-madd-necessary">Necessary madd</span><span className="tj-ghunnah">Ghunna · Ikhfa · Idgham</span><span className="tj-qalqalah">Qalqalah</span><span className="tj-tafkhim">Tafkhim</span></div></aside>}
     <main className="quran-mobile-content">
       {loading && <div className="quran-mobile-loading">Loading Qur’an…</div>}
       {pageError && <div className="quran-mobile-error">{pageError}<button onClick={() => changePage(page)}>Retry</button></div>}
       {!loading && !pageError && readingMode === 'reading' && pageData && <>
         {renderPageBlock(pageData, true)}
-        {page >= (getAyahLocation(pageReadingSurah, QURAN_SURAHS[pageReadingSurah - 1]?.ayahs || 1)?.page || 604) ? <div className="quran-mobile-bottom-nav quran-mobile-surah-nav"><button disabled={pageReadingSurah <= 1} onClick={() => jumpSurah(pageReadingSurah - 1)}>‹ Previous Surah</button><button disabled={pageReadingSurah >= 114} onClick={() => jumpSurah(pageReadingSurah + 1)}>Next Surah ›</button></div> : <div className="quran-mobile-bottom-nav"><button disabled={page <= (QURAN_SURAHS[pageReadingSurah - 1]?.pageStart || 1)} onClick={() => changePage(page - 1)}>‹ Previous Page</button><button onClick={() => changePage(page + 1)}>Next Page ›</button></div>}
+        {page >= (getAyahLocation(pageReadingSurah, QURAN_SURAHS[pageReadingSurah - 1]?.ayahs || 1)?.page || 604) ? <div className="quran-mobile-bottom-nav quran-mobile-surah-nav"><button disabled={pageReadingSurah <= 1} onClick={() => jumpSurah(pageReadingSurah - 1)}><ChevronLeft size={16} /> Previous Surah</button><button disabled={pageReadingSurah >= 114} onClick={() => jumpSurah(pageReadingSurah + 1)}>Next Surah <ChevronRight size={16} /></button></div> : <div className="quran-mobile-bottom-nav"><button disabled={page <= (QURAN_SURAHS[pageReadingSurah - 1]?.pageStart || 1)} onClick={() => changePage(page - 1)}><ChevronLeft size={16} /> Previous Page</button><button onClick={() => changePage(page + 1)}>Next Page <ChevronRight size={16} /></button></div>}
       </>}
       {!loading && !pageError && readingMode !== 'reading' && <>
         {surahLoading && <div className="quran-mobile-loading">Loading Surah…</div>}
