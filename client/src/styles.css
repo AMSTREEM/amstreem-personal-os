@@ -6840,10 +6840,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
     display:grid; grid-template-columns:minmax(180px,1fr) auto minmax(180px,1fr);
     align-items:center; min-height:58px; padding:7px clamp(24px,3vw,48px) 48px; position:relative;
   }
-  .quran-desktop-shell .quran-mobile-page-meta {
-    display:flex; align-items:center; justify-content:center; gap:22px;
-    color:var(--text-secondary); font-size:15px; font-weight:600; white-space:nowrap;
-  }
+  .quran-desktop-shell .quran-mobile-page-meta { display:none; }
   .quran-desktop-shell .quran-mobile-mode-tabs {
     position:absolute; left:clamp(24px,3vw,48px); bottom:8px;
     width:auto; min-height:34px; margin:0; padding:0;
