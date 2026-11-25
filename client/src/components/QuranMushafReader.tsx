@@ -115,18 +115,6 @@ function parseBracketTajweed(markup: string): TajweedSegment[] {
   }
   return result.map(segment => ({ ...segment, text: stripRawQuranMarkup(segment.text) }));
 }
-function renderTajweedMarkup(markup: string, segments?: TajweedSegment[], fallback = '', enabled = true): ReactNode {
-  const source = String(markup || '');
-  if (!enabled) return normalizeMadinahArabic(stripAyahEndMarker(stripRawQuranMarkup(fallback || source)));
-  const hasRawMarkup = /<[^>]+>|\[[a-zA-Z][a-zA-Z0-9_-]*(?::\d+)?\[/i.test(source);
-  const parsed = hasRawMarkup ? parseBracketTajweed(source) : segments?.length ? segments : parseBracketTajweed(source);
-  if (!parsed.length || (parsed.length === 1 && !parsed[0].className && !source.includes('['))) return stripAyahEndMarker(stripRawQuranMarkup(fallback || source));
-  return <>{parsed.map((segment, index) => {
-    const className = TAJWEED_CLASSES.has(segment.className) ? segment.className : '';
-    const text = normalizeMadinahArabic(stripRawQuranMarkup(String(segment.text || ''))).replace(/\u06DD/g, '');
-    return className ? <span key={index} className={className}>{text}</span> : <Fragment key={index}>{text}</Fragment>;
-  })}</>;
-}
 const stripAyahEndMarker = (value: string) => value.replace(/\u06DD/g, '').trim();
 const sanitizeMushafPage = (payload: MushafPage): MushafPage => ({
   ...payload,
@@ -179,20 +167,6 @@ const prefetchPage = async (pageNumber: number): Promise<void> => {
   } catch { /* prefetch must never interrupt the current reading page */ }
 };
 
-function AyahMedallion({ number, className }: { number: number; className: string }) {
-  return <span className={'mushaf-medallion ' + (number >= 100 ? 'mushaf-medallion--wide ' : '') + className} aria-label={'Ayah ' + number}>
-    <svg className="mushaf-medallion-ornament" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
-      <path className="mushaf-medallion-scallop" d={AYAH_ROSETTE_PATH} />
-      <circle cx="18" cy="18" r="11.6" />
-      <circle cx="18" cy="18" r="9.9" className="mushaf-medallion-inner" />
-      <path className="mushaf-medallion-crown" d="M13.5 4.2 C14.2 2.8 15.8 2.8 18 4.4 C20.2 2.8 21.8 2.8 22.5 4.2" />
-    </svg>
-    <span>{arabicNumber(number)}</span>
-  </span>;
-}
-function BismillahOrnament() {
-  return <div className="mushaf-bismillah" lang="ar" dir="rtl"><b>بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ</b><span>In the Name of Allah—the Most Compassionate, Most Merciful</span></div>;
-}
 const readBookmark = (key: string) => { try { const value = JSON.parse(localStorage.getItem(key) || '{}') || {}; return { page: clampPage(Number(value.page) || 1), surah: Number(value.surah) || 1, ayah: Number(value.ayah) || 1, updatedAt: String(value.updatedAt || '') }; } catch { return { page: 1, surah: 1, ayah: 1, updatedAt: '' }; } };
 function lagosDate() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
 export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen = false }: Props) {
