@@ -6684,3 +6684,31 @@ html, body, #root, .app-frame, .main-area, .page-container {
 :root:not([data-theme^="light-"]) .quran-mobile-shell .tj-madd-obligatory { color:#2144C1 !important; }
 :root:not([data-theme^="light-"]) .quran-mobile-shell .tj-madd-obligatory-connected { color:#FF5E8E !important; }
 :root:not([data-theme^="light-"]) .quran-mobile-shell .tj-madd-obligatory-separated { color:#FF8E3B !important; }
+
+
+/* Atlas motion language — restrained, tactile, and consistent. */
+.quran-mobile-settings-backdrop,.quran-mobile-drawer-backdrop { overflow:hidden; backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); }
+.quran-mobile-settings,.quran-mobile-surah-drawer { will-change:transform; }
+.quran-mobile-surah-drawer { animation:none; }
+.quran-mobile-settings header button,.quran-mobile-surah-drawer header button,
+.quran-mobile-header-actions > button,.quran-mobile-tajweed-center button,
+.quran-mobile-bottom-nav button,.quran-mobile-setting-toggle,
+.quran-mobile-bookmark-modes button,.quran-mobile-mode-tabs button,
+.quran-mobile-surah-list button {
+  transition: color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .24s ease, transform .24s cubic-bezier(.2,.8,.2,1);
+}
+.quran-mobile-settings header button:active,.quran-mobile-surah-drawer header button:active,
+.quran-mobile-header-actions > button:active,.quran-mobile-tajweed-center button:active,
+.quran-mobile-bottom-nav button:active,.quran-mobile-setting-toggle:active,
+.quran-mobile-bookmark-modes button:active,.quran-mobile-surah-list button:active { transform:scale(.97); }
+.quran-mobile-surah-trigger { transition:color .2s ease, opacity .2s ease; }
+.quran-mobile-surah-trigger:active { opacity:.72; }
+.quran-mobile-mode-tabs button.is-active::after { transition:left .28s cubic-bezier(.22,1,.36,1),right .28s cubic-bezier(.22,1,.36,1); }
+.quran-mobile-surah-list button:hover { background:color-mix(in srgb,var(--accent,#d9ae59) 7%,transparent); }
+.quran-mobile-surah-list button.is-active { box-shadow:inset 3px 0 0 var(--accent,#d9ae59); }
+.quran-mobile-setting-toggle:hover,.quran-mobile-bookmark-modes button:hover { border-color:color-mix(in srgb,var(--accent,#d9ae59) 48%,var(--border-hairline)); }
+.quran-mobile-tajweed-legend { overflow:hidden; transform-origin:top center; }
+@media (prefers-reduced-motion: reduce) {
+  .quran-mobile-settings-backdrop,.quran-mobile-drawer-backdrop { backdrop-filter:none; -webkit-backdrop-filter:none; }
+  .quran-mobile-settings,.quran-mobile-surah-drawer { will-change:auto; }
+}
