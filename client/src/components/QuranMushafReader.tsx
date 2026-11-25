@@ -181,6 +181,42 @@ const prefetchPage = async (pageNumber: number): Promise<void> => {
   } catch { /* prefetch must never interrupt the current reading page */ }
 };
 
+type QcfV4Font = { family: string; palette?: string };
+const qcfV4FontCache = new Map<string, Promise<QcfV4Font>>();
+async function loadQcfV4PageFont(page: number): Promise<QcfV4Font> {
+  const themeId = document.documentElement.getAttribute('data-theme') || 'shadowed-alchemist';
+  const theme = themeId.startsWith('light-') ? 'light' : themeId.includes('sepia') ? 'sepia' : 'dark';
+  const firefox = /firefox/i.test(navigator.userAgent);
+  const format = firefox ? 'ot-svg' : 'colrv1';
+  const routeTheme = firefox ? theme : 'palette';
+  const key = page + ':' + format + ':' + routeTheme;
+  const cached = qcfV4FontCache.get(key);
+  if (cached) return cached;
+  const task = (async () => {
+    const family = 'AtlasQcfV4P' + page + (firefox ? theme : 'Color');
+    const fontFace = new FontFace(family, 'url(/fonts/qcf-v4/' + format + '/' + routeTheme + '/p' + page + '.woff2)');
+    fontFace.display = 'block';
+    await fontFace.load();
+    document.fonts.add(fontFace);
+    if (format === 'ot-svg') return { family };
+    const palette = '--AtlasQcfV4P' + page + theme;
+    let style = document.getElementById('atlas-qcf-v4-palettes') as HTMLStyleElement | null;
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'atlas-qcf-v4-palettes';
+      document.head.appendChild(style);
+    }
+    const basePalette = theme === 'dark' ? 1 : theme === 'sepia' ? 2 : 0;
+    style.textContent += '\n@font-palette-values ' + palette + ' { font-family: "' + family + '"; base-palette: ' + basePalette + '; }';
+    return { family, palette };
+  })();
+  qcfV4FontCache.set(key, task);
+  try { return await task; } catch (error) { qcfV4FontCache.delete(key); throw error; }
+}
+const qcfV4WordStyle = (font: QcfV4Font): CSSProperties => ({
+  fontFamily: '"' + font.family + '", serif',
+  ...(font.palette ? { fontPalette: font.palette } : {})
+} as CSSProperties);
 const readBookmark = (key: string) => { try { const value = JSON.parse(localStorage.getItem(key) || '{}') || {}; return { page: clampPage(Number(value.page) || 1), surah: Number(value.surah) || 1, ayah: Number(value.ayah) || 1, updatedAt: String(value.updatedAt || '') }; } catch { return { page: 1, surah: 1, ayah: 1, updatedAt: '' }; } };
 function lagosDate() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
 export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen = false }: Props) {
@@ -220,6 +256,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [pageInput, setPageInput] = useState(String(page));
   const [desktopPageWindow, setDesktopPageWindow] = useState<MushafPage[]>([]);
   const [desktopVisiblePage, setDesktopVisiblePage] = useState(page);
+  const [qcfV4Fonts, setQcfV4Fonts] = useState<Record<number, QcfV4Font>>({});
   const desktopPrefetchRef = useRef(new Set<number>());
   const readerRef = useRef<HTMLDivElement | null>(null);
   const pageTextRef = useRef<HTMLDivElement | null>(null);
@@ -233,6 +270,21 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const loggedPagesTodayRef = useRef(new Set<string>());
   const onLoggedRef = useRef(onLogged);
   onLoggedRef.current = onLogged;
+
+  useEffect(() => {
+    if (!fullScreen || !tajweedEnabled || readingMode !== 'reading') return;
+    const visiblePages = [...new Set([pageData?.page, ...desktopPageWindow.map(item => item.page)].filter((value): value is number => Number.isInteger(value)))];
+    let cancelled = false;
+    visiblePages.forEach(number => {
+      if (qcfV4Fonts[number]) return;
+      void loadQcfV4PageFont(number).then(font => {
+        if (!cancelled) setQcfV4Fonts(current => current[number] ? current : { ...current, [number]: font });
+      }).catch(error => {
+        console.warn('QCF V4 Tajweed font could not be loaded for page ' + number + ':', error);
+      });
+    });
+    return () => { cancelled = true; };
+  }, [fullScreen, tajweedEnabled, readingMode, pageData?.page, desktopPageWindow, qcfV4Fonts]);
 
   useEffect(() => {
     pageMemoryCache.clear();
@@ -916,6 +968,14 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       </div>}
     </Fragment>;
   };
+  const renderPageAyah = (ayah: MushafAyah, data: MushafPage) => {
+    const font = qcfV4Fonts[data.page];
+    const words = (ayah.words || []).filter(word => word.charTypeName !== 'end' && word.charTypeName !== 'pause' && word.text);
+    if (tajweedEnabled && data.qcfAvailable && font && words.length && words.every(word => Boolean(word.codeV2))) {
+      return <>{words.map((word, index) => <span key={ayah.number + ':qcf:' + index} className="quran-qcf-v4-word" style={qcfV4WordStyle(font)}>{word.codeV2}{' '}</span>)}{renderMedallion(ayah.numberInSurah)}</>;
+    }
+    return renderArabic(ayah);
+  };
   const renderPageBlock = (data: MushafPage, firstBlock: boolean) => {
     const runs: Array<{ surahNumber: number; surahName: string; arabicName: string; startsSurah: boolean; ayahs: MushafAyah[] }> = [];
     const readingSurahNumber = pageReadingSurah;
@@ -978,12 +1038,17 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       readableWords.forEach((word, index) => {
         const line = word.lineNumber || 1;
         const content = lineMap.get(line) || [];
-        const segments = tajweedEnabled && word.tajweed
-          ? parseBracketTajweed(word.tajweed)
-          : [{ text: word.text, className: '' }];
-        content.push(<span key={ayah.surahNumber + ':' + ayah.numberInSurah + ':' + index}>
-          {segments.map((segment, segmentIndex) => <span key={segmentIndex} className={tajweedEnabled ? segment.className : ''}>{segment.text}</span>)}
-        </span>);
+        const qcfFont = qcfV4Fonts[data.page];
+        if (tajweedEnabled && data.qcfAvailable && qcfFont && word.codeV2) {
+          content.push(<span key={ayah.surahNumber + ':' + ayah.numberInSurah + ':' + index} className="quran-qcf-v4-word" style={qcfV4WordStyle(qcfFont)}>{word.codeV2}</span>);
+        } else {
+          const segments = tajweedEnabled && word.tajweed
+            ? parseBracketTajweed(word.tajweed)
+            : [{ text: word.text, className: '' }];
+          content.push(<span key={ayah.surahNumber + ':' + ayah.numberInSurah + ':' + index}>
+            {segments.map((segment, segmentIndex) => <span key={segmentIndex} className={tajweedEnabled ? segment.className : ''}>{segment.text}</span>)}
+          </span>);
+        }
         if (index === readableWords.length - 1) content.push(renderMedallion(ayah.numberInSurah));
         content.push(' ');
         lineMap.set(line, content);
