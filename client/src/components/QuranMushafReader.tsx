@@ -1,7 +1,7 @@
 import { Fragment, type CSSProperties, type FormEvent, type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { ArrowDown, ArrowUp, Bookmark, ChevronsUpDown, ChevronLeft, ChevronRight, Copy, Info, Palette, Search, Settings, WifiOff, X } from 'lucide-react';
+import { AlignJustify, ArrowDown, ArrowUp, Bookmark, BookOpen, ChevronsUpDown, ChevronLeft, ChevronRight, Copy, Info, Palette, Search, Settings, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz, getPageSurah } from '../data/quranSurahs';
 
@@ -1184,21 +1184,21 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   // full-screen reader rendered inside them can be clipped/painted behind the shell.
   // Portal the entire Mushaf to document.body so it has a true viewport-level layer.
   void desktopReader;
-  return createPortal(<div className={`quran-mobile-shell${!isMobileViewport ? ' quran-desktop-shell' : ''}${readingMode !== 'reading' ? ' is-verse-mode' : ''}`} ref={readerRef}>
+  return createPortal(<div className={`quran-mobile-shell${!isMobileViewport ? ' quran-desktop-shell' : ''}${readingMode !== 'reading' ? ' is-verse-mode' : ''}`} ref={readerRef} style={{ '--mushaf-user-font-size': `${arabicFontSize}px` } as CSSProperties}>
     <header className="quran-mobile-header">
       <div className="quran-mobile-top-row">
         <motion.button className="quran-mobile-surah-trigger" onClick={() => setMobileSurahDrawerOpen(true)} whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }} transition={{ type: 'spring', stiffness: 420, damping: 28 }}>{mobileActiveSurahNumber}. {mobileActiveSurahName} <motion.span animate={{ rotate: mobileSurahDrawerOpen ? 180 : 0 }} transition={{ duration: prefersReducedMotion ? 0 : 0.22 }}><ChevronsUpDown size={17} strokeWidth={1.9} /></motion.span></motion.button>
         <div className="quran-mobile-page-meta-desktop"><span>Page {page}</span><span>Juz {getPageJuz(page)}{pageData?.hizb ? ` / Hizb ${pageData.hizb}` : ''}</span></div>
         <div className="quran-mobile-mode-tabs">
-          <button aria-label="Verse by Verse" title="Verse by Verse" className={readingMode === 'arabic' ? 'is-active' : ''} onClick={() => changeReadingMode('arabic')}><span className="quran-mode-desktop-label">Verse by Verse</span><span className="quran-mode-mobile-icon">▤</span></button>
-          <button aria-label="Page by Page" title="Page by Page" className={readingMode === 'reading' ? 'is-active' : ''} onClick={() => changeReadingMode('reading')}><span className="quran-mode-desktop-label">Page by Page</span><span className="quran-mode-mobile-icon">▧</span></button>
+          <button aria-label="Verse by Verse" title="Verse by Verse" className={readingMode === 'arabic' ? 'is-active' : ''} onClick={() => changeReadingMode('arabic')}><span className="quran-mode-desktop-label">Verse by Verse</span><span className="quran-mode-mobile-icon"><AlignJustify size={16} strokeWidth={1.9} /></span></button>
+          <button aria-label="Page by Page" title="Page by Page" className={readingMode === 'reading' ? 'is-active' : ''} onClick={() => changeReadingMode('reading')}><span className="quran-mode-desktop-label">Page by Page</span><span className="quran-mode-mobile-icon"><BookOpen size={16} strokeWidth={1.9} /></span></button>
+        </div>
+        <div className="quran-mobile-tajweed-center">
+          <button className={tajweedLegendVisible ? 'is-active' : ''} aria-expanded={tajweedLegendVisible} onClick={() => setTajweedLegendVisible(value => !value)}>
+            <Palette size={15} strokeWidth={2} /><span>Tajweed</span>
+          </button>
         </div>
         <div className="quran-mobile-header-actions"><button aria-label="Settings" onClick={() => setSettingsOpen(true)}><Settings size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button><button aria-label="Exit reader" onClick={() => setFullScreen(false)}><X size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button></div>
-      </div>
-      <div className="quran-mobile-tajweed-center">
-        <button className={tajweedLegendVisible ? 'is-active' : ''} aria-expanded={tajweedLegendVisible} onClick={() => setTajweedLegendVisible(value => !value)}>
-          <Palette size={15} strokeWidth={2} /><span>Tajweed colors</span>
-        </button>
       </div>
     </header>
     <AnimatePresence initial={false}>{tajweedLegendVisible && <motion.aside className="quran-mobile-tajweed-legend" initial={{ opacity: 0, height: 0, y: -8 }} animate={{ opacity: 1, height: 'auto', y: 0 }} exit={{ opacity: 0, height: 0, y: -8 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }}><b>Tajweed colour key · Quran.com</b><div><span className="tj-silent">Silent letters</span><span className="tj-madd-normal">Normal madd</span><span className="tj-madd-permissible">Separated madd</span><span className="tj-madd-obligatory-connected">Connected madd</span><span className="tj-madd-obligatory-separated">Separated obligatory madd</span><span className="tj-madd-necessary">Necessary madd</span><span className="tj-ghunnah">Ghunna · Ikhfa · Idgham</span><span className="tj-qalqalah">Qalqalah</span><span className="tj-tafkhim">Tafkhim</span></div></motion.aside>}</AnimatePresence>
@@ -1223,7 +1223,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       <header><b>Reading settings</b><button aria-label="Close settings" onClick={() => setSettingsOpen(false)}><X size={20} /></button></header>
       <label>Arabic font<select value={arabicFontFamily} onChange={event => changeArabicFont(event.target.value)}>{MUSHAF_FONTS.map(font => <option key={font.name} value={font.name}>{font.label}</option>)}</select></label>
       <div className="quran-mobile-font-preview" dir="rtl" lang="ar" style={mobileArabicStyle}>{MUSHAF_FONT_SAMPLE}</div>
-      <label>Font size <strong>{arabicFontSize}px</strong><input type="range" min="20" max="36" step="4" value={arabicFontSize} onChange={event => changeArabicFontSize(Number(event.target.value))} /></label>
+      <label>Font size <strong>{arabicFontSize}px</strong><input type="range" min="16" max="44" step="1" value={arabicFontSize} onChange={event => changeArabicFontSize(Number(event.target.value))} /></label>
       <button className="quran-mobile-setting-toggle" onClick={toggleTajweed}><span>Tajweed colors</span><strong>{tajweedEnabled ? 'On' : 'Off'}</strong></button>
       <button className="quran-mobile-setting-toggle" onClick={toggleTransliteration}><span>Transliteration</span><strong>{transliterationEnabled ? 'On' : 'Off'}</strong></button>
       <div className="quran-mobile-bookmark-modes"><button className={mode === 'hifz' ? 'is-active' : ''} onClick={() => changeMode('hifz')}>Hifz</button><button className={mode === 'murajaah' ? 'is-active' : ''} onClick={() => changeMode('murajaah')}>Muraja’ah</button></div>
