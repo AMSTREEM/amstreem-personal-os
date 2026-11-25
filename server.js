@@ -730,7 +730,7 @@ async function fetchOfficialTajweedVerses(filter, auth, label) {
         }
         if (!annotations.size) throw new Error('Quran Foundation returned no Tajweed markup for ' + label + '.');
         return annotations;
-      }, 1);
+      }, 1, url.startsWith(auth?.apiBase || '\u0000') ? (auth?.headers || {}) : {});
     } catch (error) {
       lastError = error;
       console.warn('Quran Foundation Tajweed source failed for ' + label + ':', error.message);
