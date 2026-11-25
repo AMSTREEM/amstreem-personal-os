@@ -456,6 +456,10 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   useEffect(() => {
     const root = readerRef.current;
     if (!fullScreen || !isMobileViewport || !root) return;
+    const markUserIntent = () => { userScrolledRef.current = true; };
+    root.addEventListener('touchstart', markUserIntent, { passive: true });
+    root.addEventListener('wheel', markUserIntent, { passive: true });
+    root.addEventListener('pointerdown', markUserIntent, { passive: true });
     const onScroll = () => {
       setMobileScrolled(root.scrollTop >= 120);
       const blocks = Array.from(root.querySelectorAll<HTMLElement>('[data-mobile-page-block]'));
@@ -468,7 +472,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     };
     root.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
-    return () => root.removeEventListener('scroll', onScroll);
+    return () => { root.removeEventListener('scroll', onScroll); root.removeEventListener('touchstart', markUserIntent); root.removeEventListener('wheel', markUserIntent); root.removeEventListener('pointerdown', markUserIntent); };
   }, [fullScreen, isMobileViewport, readingMode, loadNextMobilePage, page, mobileContinuousPages.length]);
 
   const activeSurahNumber = selected?.surah || pageData?.ayahs?.[0]?.surahNumber || bookmark.surah || 1;
@@ -478,7 +482,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   }, [sidebarOpen, activeSurahNumber]);
 
   const activeSurah = QURAN_SURAHS[activeSurahNumber - 1];
-  const mobileActiveSurahNumber = pageData?.ayahs?.[0]?.surahNumber || getPageSurah(page)?.number || activeSurahNumber;
+  const mobileActiveSurahNumber = selected?.surah || pageData?.ayahs?.[0]?.surahNumber || getPageSurah(page)?.number || activeSurahNumber;
   const mobileActiveSurahName = QURAN_SURAHS[mobileActiveSurahNumber - 1]?.transliteration || activeSurah?.transliteration || 'Al-Fatihah';
   const currentPageSurahLabel = useMemo(() => {
     const pageSurahs = new Map<number, string>();
@@ -556,7 +560,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
 
   useEffect(() => {
     if (!fullScreen) return;
-    const root = readingMode === 'reading' ? pageTextRef.current : readerRef.current;
+    const root = readerRef.current;
     if (!root) return;
     const targets = Array.from(root.querySelectorAll<HTMLElement>('[data-mushaf-verse="true"]'));
     if (!targets.length) return;
@@ -588,7 +592,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     }, { root, threshold: 0.01 });
     targets.forEach(target => observer.observe(target));
     return () => { observer.disconnect(); visible.clear(); };
-  }, [fullScreen, readingMode, surahAyahs, pageData, page, updateBookmark]);
+  }, [fullScreen, readingMode, surahAyahs, pageData, mobileContinuousPages, page, updateBookmark]);
   const changePage = (next: number, location?: { surahNumber: number; numberInSurah: number }) => {
     userScrolledRef.current = false;
     const value = clampPage(next);
@@ -716,7 +720,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       {runs.map(run => <Fragment key={`run-${run.surahNumber}`}>
         {run.startsSurah && renderSurahIntro(run.surahNumber, run.surahName, run.arabicName, run.surahNumber !== 9)}
         <p className="quran-mobile-page-arabic" dir="rtl" lang="ar" style={mobileArabicStyle}>
-          {run.ayahs.map(ayah => <Fragment key={ayah.number}>{renderArabic(ayah)}{' '}</Fragment>)}
+          {run.ayahs.map(ayah => <span className="quran-mobile-page-ayah" key={ayah.number} data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={data.page}>{renderArabic(ayah)}{' '}</span>)}
         </p>
       </Fragment>)}
       <div className="quran-mobile-page-divider"><span></span><b>{data.page}</b><span></span></div>
@@ -754,7 +758,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         </div>
         <div className="quran-mobile-tajweed-center"><button onClick={() => setTajweedLegendVisible(value => !value)}>Tajweed colors <span>⌄</span></button></div>
       </> : <>
-        <div className="quran-mobile-sticky-meta"><span><Bookmark size={16} /> Page {mobileVisiblePage}</span><span>Juz {pageJuz} · Auto-saved</span></div>
+        <div className="quran-mobile-sticky-meta"><span><Bookmark size={16} /> Page {mobileVisiblePage}</span><span>Juz {getPageJuz(mobileVisiblePage) || pageJuz} · Auto-saved</span></div>
         <div className="quran-mobile-sticky-row">
           <button className="quran-mobile-surah-trigger" onClick={() => setMobileSurahDrawerOpen(true)}>{mobileActiveSurahNumber}. {mobileActiveSurahName} <span>⌄</span></button>
           <div className="quran-mobile-header-actions">
