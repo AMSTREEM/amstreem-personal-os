@@ -726,7 +726,7 @@ async function fetchOfficialTajweedVerses(filter, auth, label) {
         for (const verse of verses) {
           const key = String(verse?.verse_key || '');
           const markup = String(verse?.text_uthmani_tajweed || '');
-          if (/^\\d+:\\d+$/.test(key) && markup) annotations.set(key, markup);
+          if (/^\d+:\d+$/.test(key) && markup) annotations.set(key, markup);
         }
         if (!annotations.size) throw new Error('Quran Foundation returned no Tajweed markup for ' + label + '.');
         return annotations;
@@ -747,7 +747,7 @@ async function fetchOfficialTajweedSurah(apiBase, headers, surahNumber) {
 function normalizeTajweedComparable(value) {
   return normalizeMadinahArabic(stripQuranMarkup(value))
     .normalize('NFKC')
-    .replace(/[\\s\\u0640\\u064B-\\u065F\\u0670\\u06D6-\\u06ED]/g, '')
+    .replace(/[\s\u0640\u064B-\u065F\u0670\u06D6-\u06ED]/g, '')
     .replace(/[ٱأإآ]/g, 'ا')
     .replace(/ى/g, 'ي');
 }
@@ -907,7 +907,7 @@ app.get('/api/quran/surah/:surah', async (req, res) => {
           for (const ayah of list) {
             const key = Number(ayah?.surah?.number) + ':' + Number(ayah?.numberInSurah);
             const markup = String(ayah?.text || '');
-            if (/^\\d+:\\d+$/.test(key) && markup) map.set(key, { markup, segments: parseAlQuranTajweed(markup) });
+            if (/^\d+:\d+$/.test(key) && markup) map.set(key, { markup, segments: parseAlQuranTajweed(markup) });
           }
           return map;
         }, 1);
