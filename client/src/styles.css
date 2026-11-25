@@ -6729,3 +6729,52 @@ html, body, #root, .app-frame, .main-area, .page-container {
     .quran-mobile-shell.is-verse-mode { scroll-behavior: auto; }
   }
 }
+
+
+/* Compact mobile Mushaf chrome: reclaim reading space without hiding controls. */
+@media (max-width: 767px) {
+  .quran-mobile-shell .quran-mobile-header {
+    box-shadow:0 1px 5px rgba(0,0,0,.055);
+  }
+  .quran-mobile-shell .quran-mobile-top-row {
+    min-height:40px;
+    padding:3px 14px;
+    gap:8px;
+  }
+  .quran-mobile-shell .quran-mobile-surah-trigger {
+    gap:6px;
+    font-size:14px;
+    line-height:1.2;
+  }
+  .quran-mobile-shell .quran-mobile-surah-trigger span { font-size:17px; }
+  .quran-mobile-shell .quran-mobile-header-actions { gap:7px; }
+  .quran-mobile-shell .quran-mobile-header-actions > button {
+    width:30px;
+    height:30px;
+  }
+  .quran-mobile-shell .quran-mobile-header-actions > button svg {
+    width:19px;
+    height:19px;
+  }
+  .quran-mobile-shell .quran-mobile-mode-tabs {
+    min-height:36px;
+    padding:0 12px;
+  }
+  .quran-mobile-shell .quran-mobile-mode-tabs button {
+    min-height:34px;
+    padding:5px 3px 7px;
+    font-size:12px;
+  }
+  .quran-mobile-shell .quran-mobile-mode-tabs button.is-active::after {
+    height:2px;
+  }
+  .quran-mobile-shell .quran-mobile-tajweed-center {
+    padding:3px 12px 5px;
+  }
+  .quran-mobile-shell .quran-mobile-tajweed-center button {
+    min-height:24px;
+    padding:3px 10px;
+    font-size:11px;
+    gap:5px;
+  }
+}
