@@ -625,6 +625,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     };
 
     const sample = (time: number) => {
+      frame = 0;
       const top = root.scrollTop;
       if (!lastTime) {
         lastTop = top;
@@ -655,6 +656,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
 
     const beginGesture = () => {
       cancelAnimationFrame(frame);
+      frame = 0;
       peakVelocity = 0;
       alignedThisGesture = false;
       lastMovement = root.scrollTop;
