@@ -12,6 +12,7 @@ type HomeTask = {
   due_date: string | null;
   done: number;
   priority?: number;
+  category?: string;
   goal_title?: string | null;
   project_title?: string | null;
 };
