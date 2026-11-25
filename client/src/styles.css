@@ -6213,30 +6213,130 @@ html, body, #root, .app-frame, .main-area, .page-container {
 
 /* Desktop fallback frame for the rebuilt responsive Qur’an reader. */
 @media (min-width: 768px) {
+  /* The reader is portalled to body: keep it above every Atlas shell/drawer layer
+     and give it its own predictable stacking and scrolling context. */
   .quran-mobile-shell {
-    position: fixed;
-    inset: 0;
-    z-index: 1200;
-    width: 100%;
-    height: 100dvh;
-    overflow-y: auto;
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 2147483000 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
     overscroll-behavior: contain;
+    isolation: isolate;
+    pointer-events: auto !important;
     background: var(--bg-canvas);
     color: var(--text-primary);
   }
+  .quran-mobile-shell button,
+  .quran-mobile-shell input,
+  .quran-mobile-shell select { pointer-events: auto !important; cursor: pointer; }
   .quran-mobile-header {
     position: sticky;
     top: 0;
-    z-index: 5;
+    z-index: 30;
+    flex: 0 0 auto;
     background: var(--bg-canvas);
     border-bottom: 1px solid var(--border-hairline);
   }
-  .quran-mobile-content {
-    width: min(100%, 760px);
-    margin-inline: auto;
-    padding-bottom: 48px;
+  .quran-mobile-top-row,
+  .quran-mobile-sticky-row {
+    min-height: 54px;
+    padding: 8px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
   }
-  .quran-mobile-hero { margin: 18px 20px; }
+  .quran-mobile-surah-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 9px;
+    color: var(--text-primary);
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+  }
+  .quran-mobile-header-actions { display: flex; align-items: center; gap: 10px; }
+  .quran-mobile-header-actions > button {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border-hairline);
+    border-radius: 50%;
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    cursor: pointer;
+  }
+  .quran-mobile-mode-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 36px;
+    min-height: 48px;
+  }
+  .quran-mobile-mode-tabs button {
+    position: relative;
+    min-width: 150px;
+    padding: 10px 14px;
+    border: 0;
+    color: var(--text-secondary);
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+  }
+  .quran-mobile-mode-tabs button.is-active { color: var(--text-primary); }
+  .quran-mobile-mode-tabs button.is-active::after {
+    content: "";
+    position: absolute;
+    right: 12%;
+    bottom: 0;
+    left: 12%;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+    background: var(--accent, #d9ae59);
+  }
+  .quran-mobile-tajweed-center { display: flex; justify-content: center; padding: 8px 12px; }
+  .quran-mobile-tajweed-center button {
+    min-height: 32px;
+    padding: 5px 14px;
+    border: 1px solid var(--border-hairline);
+    border-radius: 999px;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    cursor: pointer;
+  }
+  .quran-mobile-content {
+    width: min(100%, 900px);
+    flex: 1 0 auto;
+    margin-inline: auto;
+    padding: 0 0 56px;
+    box-sizing: border-box;
+    pointer-events: auto;
+  }
+  .quran-mobile-loading,.quran-mobile-error { padding: 32px; text-align: center; color: var(--text-secondary); }
+  .quran-mobile-error button,
+  .quran-mobile-page-quick button,
+  .quran-mobile-bottom-nav button {
+    min-height: 40px;
+    padding: 8px 16px;
+    border: 1px solid var(--border-hairline);
+    border-radius: 999px;
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    cursor: pointer;
+  }
+  .quran-mobile-page-quick,.quran-mobile-bottom-nav { display:flex; justify-content:center; gap:12px; padding:14px 20px; }
+  .quran-mobile-hero { margin: 22px 28px; }
   .quran-mobile-page-arabic,
-  .quran-mobile-verse-arabic { font-size: clamp(26px, 2.2vw, 36px); }
+  .quran-mobile-verse-arabic { font-size: clamp(28px, 2.2vw, 40px); }
+  .quran-mobile-settings-backdrop,.quran-mobile-drawer-backdrop { z-index: 2147483001 !important; }
 }
