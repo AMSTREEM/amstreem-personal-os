@@ -1186,9 +1186,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   void desktopReader;
   return createPortal(<div className={`quran-mobile-shell${!isMobileViewport ? ' quran-desktop-shell' : ''}${readingMode !== 'reading' ? ' is-verse-mode' : ''}`} ref={readerRef}>
     <header className="quran-mobile-header">
-      <div className="quran-mobile-page-meta" aria-label={`Page ${page}, Juz ${getPageJuz(page)}`}>
-        <span>Page {page}</span><span>Juz {getPageJuz(page)}{pageData?.hizb ? ` / Hizb ${pageData.hizb}` : ''}</span>
-      </div>
       <div className="quran-mobile-top-row">
         <motion.button className="quran-mobile-surah-trigger" onClick={() => setMobileSurahDrawerOpen(true)} whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }} transition={{ type: 'spring', stiffness: 420, damping: 28 }}>{mobileActiveSurahNumber}. {mobileActiveSurahName} <motion.span animate={{ rotate: mobileSurahDrawerOpen ? 180 : 0 }} transition={{ duration: prefersReducedMotion ? 0 : 0.22 }}><ChevronsUpDown size={17} strokeWidth={1.9} /></motion.span></motion.button>
         <div className="quran-mobile-page-meta-desktop"><span>Page {page}</span><span>Juz {getPageJuz(page)}{pageData?.hizb ? ` / Hizb ${pageData.hizb}` : ''}</span></div>
