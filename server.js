@@ -255,6 +255,7 @@ function tajweedClassForRule(rule) {
 const stripQuranMarkup = value => String(value || '')
   .replace(/<span\s+class=["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '')
   .replace(/<[^>]+>/g, '')
+  .replace(/[<>]/g, '')
   .replace(/\[[a-zA-Z]+(?::\d+)?\[/g, '')
   .replace(/\]/g, '');
 function parseAlQuranTajweed(markup) {
