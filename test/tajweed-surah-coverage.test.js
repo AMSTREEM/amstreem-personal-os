@@ -42,6 +42,8 @@ test('All 114 Surahs cover all 6,236 Ayahs and the complete 604-page Madani Mush
     .replace(/[\s\u00A0\u0640\u064B-\u065F\u06D6-\u06ED\u061C\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/g, '')
     .replace(/[ٱأإآٲٳٵٰ]/g, 'ا')
     .replace(/[ىٮ]/g, 'ي')
+    .replace(/ئ/g, 'ي')
+    .replace(/ؤ/g, 'و')
     .replace(/ی/g, 'ي')
     .replace(/ک/g, 'ك');
   const fetchOfficialSurah = async number => {
