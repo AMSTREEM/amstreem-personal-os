@@ -25,59 +25,112 @@ test('Tajweed scanner preserves nested rule tags and normalizes IndoPak letter v
   assert.ok(nested.every(token => !/[\[\]]/.test(token.text)));
 });
 
-test('Six selected Surahs tokenize every ayah and retain all provider colour tags', { timeout: 90000 }, async () => {
-  const surahs = [
-    { number: 1, name: 'Al-Fatihah', ayahs: 7 },
-    { number: 2, name: 'Al-Baqarah', ayahs: 286 },
-    { number: 18, name: 'Al-Kahf', ayahs: 110 },
-    { number: 36, name: 'Ya-Sin', ayahs: 83 },
-    { number: 67, name: 'Al-Mulk', ayahs: 30 },
-    { number: 112, name: 'Al-Ikhlas', ayahs: 4 }
-  ];
-  const fetchSurah = async number => {
-    const hosts = ['https://api.alquran.cloud/v1', 'https://alquran.api.islamic.network/v1'];
+test('All 114 Surahs cover all 6,236 Ayahs and the complete 604-page Madani Mushaf', { timeout: 240000 }, async () => {
+  const queue = Array.from({ length: 114 }, (_, index) => index + 1);
+  const pageNumbers = new Set();
+  const verseKeys = new Set();
+  const missingMarkup = [];
+  const mismatchedText = [];
+  const uncoloredByBoth = [];
+  const mirrorRecoveries = [];
+  let totalAyahs = 0;
+  let coloredAyahs = 0;
+  const normalize = value => normalizeMadinahArabic(String(value || '').replace(/<[^>]+>/g, ''))
+    .normalize('NFKC')
+    .replace(/[\\s\\u0640\\u064B-\\u065F\\u0670\\u06D6-\\u06ED]/g, '')
+    .replace(/[ٱأإآ]/g, 'ا')
+    .replace(/ى/g, 'ي');
+  const fetchOfficialSurah = async number => {
+    const query = '?mushaf=19&words=true&word_fields=text_uthmani_tajweed,page_number,char_type_name&fields=verse_key,chapter_id,verse_number,page_number,text_uthmani,text_uthmani_tajweed&per_page=300';
+    const urls = [
+      'https://api.quran.com/api/v4/verses/by_chapter/' + number + query,
+      'https://quran.com/api/proxy/content/api/qdc/verses/by_chapter/' + number + query
+    ];
     let lastError;
+    for (const url of urls) {
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const response = await fetch(url, { signal: AbortSignal.timeout(20000), headers: { Accept: 'application/json' } });
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          const body = await response.json();
+          if (!Array.isArray(body?.verses) || !body.verses.length) throw new Error('No verse rows');
+          return body.verses;
+        } catch (error) { lastError = error; }
+      }
+    }
+    throw new Error('Quran.com could not supply Surah ' + number + ': ' + (lastError?.message || 'unknown error'));
+  };
+  const fetchMirrorSurah = async number => {
+    const hosts = ['https://api.alquran.cloud/v1', 'https://alquran.api.islamic.network/v1'];
     for (const host of hosts) {
       try {
-        const response = await fetch(host + '/surah/' + number + '/editions/quran-tajweed,en.sahih', { signal: AbortSignal.timeout(15000) });
-        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const response = await fetch(host + '/surah/' + number + '/quran-tajweed', { signal: AbortSignal.timeout(20000) });
+        if (!response.ok) continue;
         const body = await response.json();
-        if (body?.code !== 200 || !Array.isArray(body?.data)) throw new Error('Invalid quran-tajweed editions response');
-        const tajweed = body.data.find(item => item.edition?.identifier === 'quran-tajweed');
-        if (!Array.isArray(tajweed?.ayahs)) throw new Error('Missing quran-tajweed edition');
-        return tajweed.ayahs;
-      } catch (error) { lastError = error; }
+        if (body?.code === 200 && Array.isArray(body?.data?.ayahs)) return body.data.ayahs;
+      } catch { /* try the next public mirror */ }
     }
-    throw new Error('Could not fetch quran-tajweed Surah ' + number + ': ' + (lastError?.message || 'unknown error'));
+    return [];
   };
-  const results = await Promise.all(surahs.map(async surah => {
-    const ayahs = await fetchSurah(surah.number);
-    assert.equal(ayahs.length, surah.ayahs, surah.name + ' ayah count');
-    let fallbackByAyah = new Map();
-    if (ayahs.some(ayah => !parseAlQuranTajweed(String(ayah.text || '')).some(token => token.className))) {
-      const query = '?mushaf=19&words=true&translations=20&word_fields=text_uthmani_tajweed,verse_key,char_type_name&fields=text_uthmani_tajweed,verse_key,chapter_id,verse_number&per_page=300';
-      const fallbackResponse = await fetch('https://api.quran.com/api/v4/verses/by_chapter/' + surah.number + query, { signal: AbortSignal.timeout(15000) });
-      assert.ok(fallbackResponse.ok, surah.name + ' Quran.com Tajweed fallback request failed');
-      const fallbackBody = await fallbackResponse.json();
-      fallbackByAyah = new Map((fallbackBody.verses || []).map(verse => [Number(verse.verse_number), String(verse.text_uthmani_tajweed || (verse.words || []).map(word => word.text_uthmani_tajweed || '').join(' '))]));
+  const worker = async () => {
+    while (queue.length) {
+      const number = queue.shift();
+      if (!number) return;
+      const verses = await fetchOfficialSurah(number);
+      const mirrorByAyah = new Map();
+      const needsMirror = verses.some(verse => {
+        const markup = String(verse.text_uthmani_tajweed || (verse.words || []).map(word => word.text_uthmani_tajweed || '').join(' '));
+        return !parseAlQuranTajweed(markup).some(token => token.className);
+      });
+      if (needsMirror) {
+        const mirror = await fetchMirrorSurah(number);
+        mirror.forEach(ayah => mirrorByAyah.set(Number(ayah.numberInSurah), String(ayah.text || '')));
+      }
+      for (let index = 0; index < verses.length; index += 1) {
+        const verse = verses[index];
+        const verseNumber = Number(verse.verse_number);
+        const key = String(verse.verse_key || (number + ':' + verseNumber));
+        assert.equal(verseNumber, index + 1, 'Surah ' + number + ' has a missing or out-of-order Ayah at ' + (index + 1));
+        assert.ok(!verseKeys.has(key), 'Duplicate Qur’an verse ' + key);
+        verseKeys.add(key);
+        totalAyahs += 1;
+        const page = Number(verse.page_number || (verse.words || []).find(word => word.page_number)?.page_number);
+        assert.ok(Number.isInteger(page) && page >= 1 && page <= 604, 'Invalid Madani page number for ' + key + ': ' + page);
+        pageNumbers.add(page);
+        const markup = String(verse.text_uthmani_tajweed || (verse.words || []).map(word => word.text_uthmani_tajweed || '').join(' '));
+        let tokens = parseAlQuranTajweed(markup);
+        if (!tokens.length) missingMarkup.push(key);
+        const plain = String(verse.text_uthmani || '');
+        if (plain && tokens.length && normalize(tokens.map(token => token.text).join('')) !== normalize(plain)) mismatchedText.push(key);
+        if (tokens.some(token => token.className)) {
+          coloredAyahs += 1;
+          continue;
+        }
+        const mirrorMarkup = mirrorByAyah.get(verseNumber) || '';
+        const mirrorTokens = parseAlQuranTajweed(mirrorMarkup);
+        if (mirrorTokens.some(token => token.className) && (!plain || normalize(mirrorTokens.map(token => token.text).join('')) === normalize(plain))) {
+          mirrorRecoveries.push(key);
+          coloredAyahs += 1;
+        } else {
+          uncoloredByBoth.push(key);
+        }
+      }
     }
-    let colouredAyahs = 0;
-    for (const ayah of ayahs) {
-      let tokens = parseAlQuranTajweed(String(ayah.text || ''));
-      if (!tokens.some(token => token.className)) tokens = parseAlQuranTajweed(fallbackByAyah.get(Number(ayah.numberInSurah)) || '');
-      assert.ok(tokens.length > 0, surah.name + ' ' + ayah.numberInSurah + ' produced no parsed Tajweed tokens');
-      if (tokens.some(token => token.className)) colouredAyahs += 1;
-      else assert.equal(surah.number + ':' + ayah.numberInSurah, '18:85', 'Only Al-Kahf 18:85 is unmarked by both upstream Tajweed datasets');
-      assert.ok(tokens.every(token => !/[\[\]]/.test(token.text)), surah.name + ' ' + ayah.numberInSurah + ' leaked a bracket');
-    }
-    assert.equal(colouredAyahs, surah.number === 18 ? surah.ayahs - 1 : surah.ayahs, surah.name + ' provider-coloured ayah coverage');
-    return { name: surah.name, ayahs: ayahs.length, colouredAyahs };
+  };
+  await Promise.all(Array.from({ length: 5 }, () => worker()));
+  const missingPages = Array.from({ length: 604 }, (_, index) => index + 1).filter(page => !pageNumbers.has(page));
+  assert.equal(totalAyahs, 6236, 'The audit must cover every Qur’an Ayah');
+  assert.equal(verseKeys.size, 6236, 'Every Ayah must appear exactly once');
+  assert.equal(pageNumbers.size, 604, 'Every Madani page must contain mapped verses');
+  assert.deepEqual(missingPages, [], 'Every one of the 604 page numbers must be covered');
+  assert.deepEqual(missingMarkup, [], 'Every Ayah must have source Tajweed text');
+  assert.deepEqual(mismatchedText, [], 'Tajweed markup must preserve the canonical Arabic text');
+  console.info('Full Quran Tajweed audit:', JSON.stringify({
+    ayahs: totalAyahs, pages: pageNumbers.size, colouredAyahs: coloredAyahs,
+    mirrorRecoveries: mirrorRecoveries.length, uncolouredByBoth: uncoloredByBoth.length,
+    uncolouredAyahKeys: uncoloredByBoth
   }));
-  assert.equal(results.reduce((sum, item) => sum + item.ayahs, 0), 520);
-  assert.equal(results.reduce((sum, item) => sum + item.colouredAyahs, 0), 519);
-  console.info('Direct Tajweed coverage by Surah:', JSON.stringify(results));
 });
-
 
 test('page Tajweed edition fills only matching unmarked ayahs without replacing existing annotations', () => {
   const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
