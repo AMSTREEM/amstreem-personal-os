@@ -467,10 +467,14 @@ function mergeTajweedEdition(pagePayload, annotations) {
     }
     return { ...ayah, tajweedText: annotation.markup, tajweedSegments: annotation.segments, tajweedSource: 'quran-tajweed' };
   });
+  const sourced = ayahs.filter(ayah => ayah.tajweedSource === 'quran-tajweed' || ayah.tajweedSource === 'quran-foundation').length;
+  const colored = ayahs.filter(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).length;
+  const missing = ayahs.filter(ayah => !ayah.tajweedSource).map(ayah => ayah.surahNumber + ':' + ayah.numberInSurah);
   return {
     ...pagePayload,
     ayahs,
-    tajweedComplete: ayahs.length > 0 && ayahs.every(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className)))
+    tajweedComplete: ayahs.length > 0 && sourced === ayahs.length,
+    tajweedCoverage: { totalAyahs: ayahs.length, sourcedAyahs: sourced, coloredAyahs: colored, missingAyahs: missing, mismatchedAyahs: [] }
   };
 }
 async function fetchAlQuranCloudPage(page) {
@@ -718,7 +722,7 @@ function applyTajweedToPage(pagePayload, tajweedByVerse) {
       : ayah.words;
     return { ...ayah, tajweedText, tajweedSegments: segments, words, tajweedSource: 'quran-foundation', tajweedMismatch: false };
   });
-  const sourced = ayahs.filter(ayah => ayah.tajweedSource === 'quran-foundation' || Boolean(ayah.tajweedText)).length;
+  const sourced = ayahs.filter(ayah => ayah.tajweedSource === 'quran-foundation').length;
   const colored = ayahs.filter(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).length;
   const missing = ayahs.filter(ayah => !ayah.tajweedText).map(ayah => ayah.surahNumber + ':' + ayah.numberInSurah);
   const mismatched = ayahs.filter(ayah => ayah.tajweedMismatch).map(ayah => ayah.surahNumber + ':' + ayah.numberInSurah);
@@ -793,8 +797,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
       }
     }
     const enrichedPage = await enrichPageWithQuranJsonTajweed(annotatedPage);
-    enrichedPage.tajweedComplete = enrichedPage.ayahs.length > 0 &&
-      enrichedPage.ayahs.every(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className)));
+    enrichedPage.tajweedComplete = Boolean(enrichedPage.tajweedComplete);
     return {
       ...enrichedPage, page, juz: enrichedPage.juz || getPageJuzFallback(page),
       ayahs: enrichedPage.ayahs.map(ayah => ({
