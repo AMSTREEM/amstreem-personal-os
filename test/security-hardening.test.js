@@ -43,6 +43,7 @@ test('production installs dependencies, builds the frontend, and CI audits all d
 
 
 test('Residence pins saved priorities, completes them inline, and links focus to the selected task', () => {
+  const quran = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'QuranPage.tsx'), 'utf8');
   const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
   const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
   assert.match(residence, /YOUR PINNED TOP 3/);
@@ -79,7 +80,7 @@ test('Daily Rhythm separates planned from completed records and updates Residenc
   assert.match(rhythm, /value:'qada'/);
   assert.match(rhythm, /Jumu’ah checklist/);
   assert.match(rhythm, /P-R-A-Y Reflection|P-R-A-Y REFLECTION/);
-  assert.match(rhythm, /<QuranMushafReader (?:autoOpen=\{[^}]+\} )?settings=/);
+  assert.match(quran, /<QuranMushafReader[\s\S]*settings=/);
   assert.match(rhythm, /Start Devotional Focus/);
   assert.match(rhythm, /Clarity & Reflection/);
   assert.match(rhythm, /invalidateQueries\(\{ queryKey: \['rhythm-summary'\] \}\)/);
