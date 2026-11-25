@@ -227,8 +227,11 @@ function tajweedClassForRule(rule) {
   if (/^(m|o)$/.test(value) || /^madda?_/.test(value) || /^madd/.test(value)) return 'tj-madd';
   if (/^(n|p)$/.test(value)) return 'tj-madd-wajib';
   if (/^(q|qlq|qalaqah|qalqalah|qalqala)$/.test(value) || /qalqalah|qalqala/.test(value)) return 'tj-qalqalah';
-  if (/^(g|i|c|a|w|f|ghn|iqlb|idghm_shfw|idgh_w_ghn|d|b|idgh_mus)$/.test(value) || /ghunnah|idgham|idghaam|idghm|idgh_|ikhfa|iqlab/.test(value)) return 'tj-ghunnah';
-  if (/^(r|heavy|tafkhim)$/.test(value) || /tafkhim|heavy/.test(value)) return 'tj-heavy';
+  if (/^(iqlab|iqlb|qalb)$/.test(value) || /iqlab|iqlb/.test(value)) return 'tj-iqlab';
+  if (/^(ikhfa|ikhafa|ikhfa_shafawi|ikhafa_shafawi)$/.test(value) || /ikhfa|ikhafa/.test(value)) return 'tj-ikhfa';
+  if (/^(idgham|idghaam|idghm|idghm_shfw|idgh_w_ghn|idgh_mus)$/.test(value) || /idgham|idghaam|idghm|idgh_/.test(value)) return 'tj-idgham';
+  if (/^(g|i|c|a|w|f|ghn|d|b|ghunnah)$/.test(value) || /ghunnah/.test(value)) return 'tj-ghunnah';
+  if (/^(r|heavy|tafkhim|tafkheem)$/.test(value) || /tafkhim|tafkheem|heavy/.test(value)) return 'tj-heavy';
   return '';
 }
 const stripQuranMarkup = value => String(value || '')
