@@ -213,6 +213,7 @@ async function loadQcfV4PageFont(page: number): Promise<QcfV4Font> {
   qcfV4FontCache.set(key, task);
   try { return await task; } catch (error) { qcfV4FontCache.delete(key); throw error; }
 }
+const escapeQcfGlyphHtml = (value: string) => String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#39;');
 const qcfV4WordStyle = (font: QcfV4Font): CSSProperties => ({
   fontFamily: '"' + font.family + '", serif',
   ...(font.palette ? { fontPalette: font.palette } : {})
@@ -985,7 +986,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     const font = qcfV4Fonts[data.page];
     const words = (ayah.words || []).filter(word => word.charTypeName !== 'end' && word.charTypeName !== 'pause' && word.text);
     if (tajweedEnabled && data.qcfAvailable && font && words.length && words.every(word => Boolean(word.codeV2))) {
-      return <>{words.map((word, index) => <span key={ayah.number + ':qcf:' + index} className="quran-qcf-v4-word" style={qcfV4WordStyle(font)}>{word.codeV2}{' '}</span>)}{renderMedallion(ayah.numberInSurah)}</>;
+      return <>{words.map((word, index) => <span key={ayah.number + ':qcf:' + index} className="quran-qcf-v4-word" style={qcfV4WordStyle(font)} dangerouslySetInnerHTML={{ __html: escapeQcfGlyphHtml(word.codeV2) }} />{' '})}{renderMedallion(ayah.numberInSurah)}</>;
     }
     return renderArabic(ayah);
   };
@@ -1053,7 +1054,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         const content = lineMap.get(line) || [];
         const qcfFont = qcfV4Fonts[data.page];
         if (tajweedEnabled && data.qcfAvailable && qcfFont && word.codeV2) {
-          content.push(<span key={ayah.surahNumber + ':' + ayah.numberInSurah + ':' + index} className="quran-qcf-v4-word" style={qcfV4WordStyle(qcfFont)}>{word.codeV2}</span>);
+          content.push(<span key={ayah.surahNumber + ':' + ayah.numberInSurah + ':' + index} className="quran-qcf-v4-word" style={qcfV4WordStyle(qcfFont)} dangerouslySetInnerHTML={{ __html: escapeQcfGlyphHtml(word.codeV2) }} />);
         } else {
           const segments = tajweedEnabled && word.tajweed
             ? parseBracketTajweed(word.tajweed)
