@@ -610,6 +610,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     let touchActive = false;
     let alignedThisGesture = false;
     let lastMovement = 0;
+    let decelerationSamples = 0;
 
     const alignNearestAyah = () => {
       const header = root.querySelector<HTMLElement>('.quran-mobile-header');
@@ -640,9 +641,10 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
 
       // Once momentum has clearly begun to slow (but is still moving), snap
       // once to the nearest ayah. A fresh gesture resets this threshold.
-      const hasMoved = Math.abs(top - lastMovement) > 36;
-      const isDecelerating = peakVelocity > 0.45 && velocity > 0.08 && velocity < peakVelocity * 0.68;
-      if (!touchActive && !alignedThisGesture && hasMoved && isDecelerating) {
+      const hasMoved = Math.abs(top - lastMovement) > 24;
+      const isDecelerating = peakVelocity > 0.12 && velocity > 0.025 && velocity < peakVelocity * 0.88;
+      decelerationSamples = isDecelerating ? decelerationSamples + 1 : 0;
+      if (!touchActive && !alignedThisGesture && hasMoved && decelerationSamples >= 2) {
         alignedThisGesture = true;
         cancelAnimationFrame(frame);
         alignNearestAyah();
@@ -659,6 +661,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       frame = 0;
       peakVelocity = 0;
       alignedThisGesture = false;
+      decelerationSamples = 0;
       lastMovement = root.scrollTop;
       lastTop = root.scrollTop;
       lastTime = 0;
