@@ -317,7 +317,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   // CSS proximity snapping remains the first layer; this settles the Ayah crossing
   // the reading line after momentum ends, then gently aligns that whole card.
   useEffect(() => {
-    if (!fullScreen || readingMode === 'reading' || loading || !surahAyahs.length) return;
+    if (isMobileViewport === false || !fullScreen || readingMode === 'reading' || loading || !surahAyahs.length) return;
     const root = readerRef.current;
     if (!root) return;
     let settleTimer = 0;
@@ -370,7 +370,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       root.removeEventListener('scroll', onScroll);
       root.removeEventListener('scrollend', onScrollEnd);
     };
-  }, [fullScreen, readingMode, loading, surahAyahs]);
+  }, [isMobileViewport, fullScreen, readingMode, loading, surahAyahs]);
 
   useEffect(() => {
     if (!fullScreen || readingMode === 'reading' || !selected || !restoreTargetRef.current || loading || surahLoading || !surahAyahs.length) return;
