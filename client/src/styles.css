@@ -6778,3 +6778,48 @@ html, body, #root, .app-frame, .main-area, .page-container {
     gap:5px;
   }
 }
+
+
+/* Put the reading modes and Tajweed switch on one compact control row. */
+@media (max-width: 767px) {
+  .quran-mobile-shell .quran-mobile-header {
+    position:sticky;
+    isolation:isolate;
+  }
+  .quran-mobile-shell .quran-mobile-mode-tabs {
+    width:68%;
+    min-height:34px;
+    margin:0;
+    padding:0 8px 0 12px;
+    box-sizing:border-box;
+  }
+  .quran-mobile-shell .quran-mobile-mode-tabs button {
+    min-height:32px;
+    padding:4px 2px 6px;
+    font-size:11px;
+    white-space:nowrap;
+  }
+  .quran-mobile-shell .quran-mobile-mode-tabs small {
+    font-size:9px;
+  }
+  .quran-mobile-shell .quran-mobile-tajweed-center {
+    position:absolute;
+    right:9px;
+    bottom:4px;
+    width:auto;
+    margin:0;
+    padding:0;
+    justify-content:flex-end;
+  }
+  .quran-mobile-shell .quran-mobile-tajweed-center button {
+    min-height:26px;
+    padding:3px 8px;
+    gap:4px;
+    font-size:10px;
+    white-space:nowrap;
+  }
+  .quran-mobile-shell .quran-mobile-tajweed-center button svg {
+    width:13px;
+    height:13px;
+  }
+}
