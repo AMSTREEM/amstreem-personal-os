@@ -6211,6 +6211,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
 
 }
 
+/* Desktop fallback frame for the rebuilt responsive Qur’an reader. */
 /* Desktop uses the same Mushaf component styles, with desktop sizing overrides below. */
 @media (min-width: 768px) {
   .quran-mobile-launch {
@@ -6430,7 +6431,6 @@ html, body, #root, .app-frame, .main-area, .page-container {
 }
 
 
-/* Desktop fallback frame for the rebuilt responsive Qur’an reader. */
 /* Desktop Qur’an reader: same layout, controls and reading experience as mobile. */
 @media (min-width: 768px) {
   .quran-desktop-shell {
