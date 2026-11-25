@@ -711,7 +711,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   // The Atlas route containers use overflow clipping and animated transforms. A fixed
   // full-screen reader rendered inside them can be clipped/painted behind the shell.
   // Portal the entire Mushaf to document.body so it has a true viewport-level layer.
-  return createPortal(<div className={`quran-mobile-shell${readingMode === 'reading' ? ' is-fixed-page-mode' : ''}`} ref={readerRef}>
+  return createPortal(<div className="quran-mobile-shell" ref={readerRef}>
     <header className="quran-mobile-header">
       {!mobileScrolled ? <>
         <div className="quran-mobile-top-row">
@@ -736,7 +736,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       </>}
     </header>
     {tajweedLegendVisible && <aside className="quran-mobile-tajweed-legend"><b>Tajweed color key</b><div><span className="tj-madd">Madd</span><span className="tj-ghunnah">Ghunnah</span><span className="tj-qalqalah">Qalqalah</span><span className="tj-ikhfa">Ikhfa</span><span className="tj-idgham">Idgham</span></div></aside>}
-    <main className="quran-mobile-content" onTouchStart={event => { const touch = event.touches[0]; pageSwipeStartRef.current = { x: touch.clientX, y: touch.clientY }; }} onTouchEnd={event => { const start = pageSwipeStartRef.current; pageSwipeStartRef.current = null; if (!start || readingMode !== 'reading' || loading || pageError) return; const touch = event.changedTouches[0]; const dx = touch.clientX - start.x; const dy = touch.clientY - start.y; if (Math.abs(dx) < 65 || Math.abs(dx) < Math.abs(dy) * 1.25) return; const lastPage = getAyahLocation(pageReadingSurah, QURAN_SURAHS[pageReadingSurah - 1]?.ayahs || 1)?.page || 604; if (dx < 0 && page < lastPage) changePage(page + 1); else if (dx > 0 && page > (QURAN_SURAHS[pageReadingSurah - 1]?.pageStart || 1)) changePage(page - 1); }}>
+    <main className="quran-mobile-content">
       {loading && <div className="quran-mobile-loading">Loading Qur’an…</div>}
       {pageError && <div className="quran-mobile-error">{pageError}<button onClick={() => changePage(page)}>Retry</button></div>}
       {!loading && !pageError && readingMode === 'reading' && pageData && <>
