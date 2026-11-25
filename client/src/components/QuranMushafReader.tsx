@@ -605,18 +605,20 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     const root = readerRef.current;
     if (!root) return;
     let settleTimer = 0;
-    const lockNearestAyah = () => {
-      const nodes = Array.from(root.querySelectorAll<HTMLElement>('[data-mushaf-verse="true"]'));
-      if (!nodes.length) return;
+    let touchStartY: number | null = null;
+    const getFocusY = () => {
       const header = root.querySelector<HTMLElement>('.quran-mobile-header');
-      const rootRect = root.getBoundingClientRect();
       const headerHeight = header?.getBoundingClientRect().height || 0;
-      const focusY = rootRect.top + headerHeight + Math.max(36, (root.clientHeight - headerHeight) * 0.38);
+      return root.getBoundingClientRect().top + headerHeight + Math.max(36, (root.clientHeight - headerHeight) * 0.38);
+    };
+    const getAyahNodes = () => Array.from(root.querySelectorAll<HTMLElement>('[data-mushaf-verse="true"]'))
+      .filter(node => Number(node.dataset.surah) === pageReadingSurah);
+    const lockNearestAyah = () => {
+      const nodes = getAyahNodes();
+      const focusY = getFocusY();
       let best: { node: HTMLElement; distance: number } | null = null;
       for (const node of nodes) {
-        if (Number(node.dataset.surah) !== pageReadingSurah) continue;
-        const fragments = Array.from(node.getClientRects());
-        for (const rect of fragments) {
+        for (const rect of Array.from(node.getClientRects())) {
           const distance = focusY < rect.top ? rect.top - focusY : focusY > rect.bottom ? focusY - rect.bottom : 0;
           if (!best || distance < best.distance) best = { node, distance };
         }
@@ -633,14 +635,54 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     };
     const scheduleLock = () => {
       window.clearTimeout(settleTimer);
-      settleTimer = window.setTimeout(lockNearestAyah, 220);
+      settleTimer = window.setTimeout(lockNearestAyah, 260);
+    };
+    // A deliberate vertical swipe advances exactly one ayah. Native scrolling
+    // remains available for accessibility and non-touch input; after the gesture,
+    // guide the next/previous ayah into the reader's focus line.
+    const onTouchStart = (event: TouchEvent) => {
+      touchStartY = event.touches[0]?.clientY ?? null;
+      userScrolledRef.current = true;
+    };
+    const onTouchEnd = (event: TouchEvent) => {
+      if (touchStartY === null) return;
+      const endY = event.changedTouches[0]?.clientY;
+      const delta = typeof endY === 'number' ? endY - touchStartY : 0;
+      touchStartY = null;
+      if (Math.abs(delta) < 24) return;
+      const nodes = getAyahNodes();
+      if (nodes.length < 2) return;
+      let currentIndex = nodes.findIndex(node => node.dataset.surah + ':' + node.dataset.ayah === lockedAyahKey);
+      if (currentIndex < 0) {
+        const focusY = getFocusY();
+        let bestDistance = Number.POSITIVE_INFINITY;
+        nodes.forEach((node, index) => {
+          const rects = Array.from(node.getClientRects());
+          const distance = rects.reduce((minimum, rect) => Math.min(minimum, focusY < rect.top ? rect.top - focusY : focusY > rect.bottom ? focusY - rect.bottom : 0), Number.POSITIVE_INFINITY);
+          if (distance < bestDistance) { bestDistance = distance; currentIndex = index; }
+        });
+      }
+      const nextIndex = Math.max(0, Math.min(nodes.length - 1, currentIndex + (delta < 0 ? 1 : -1)));
+      const target = nodes[nextIndex];
+      if (!target || nextIndex === currentIndex) { scheduleLock(); return; }
+      const rect = target.getClientRects()[0] || target.getBoundingClientRect();
+      const rootRect = root.getBoundingClientRect();
+      const focusOffset = getFocusY() - rootRect.top;
+      const targetTop = root.scrollTop + rect.top - rootRect.top - focusOffset;
+      setLockedAyahKey(target.dataset.surah + ':' + target.dataset.ayah);
+      root.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+      scheduleLock();
     };
     root.addEventListener('scroll', scheduleLock, { passive: true });
+    root.addEventListener('touchstart', onTouchStart, { passive: true });
+    root.addEventListener('touchend', onTouchEnd, { passive: true });
     // Establish a visible lock when a page first opens, including a restored bookmark.
     scheduleLock();
     return () => {
       window.clearTimeout(settleTimer);
       root.removeEventListener('scroll', scheduleLock);
+      root.removeEventListener('touchstart', onTouchStart);
+      root.removeEventListener('touchend', onTouchEnd);
     };
   }, [fullScreen, readingMode, loading, pageData, page, pageReadingSurah, updateBookmark]);
 
