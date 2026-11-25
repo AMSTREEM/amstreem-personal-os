@@ -515,9 +515,9 @@ function mergeTajweedEdition(pagePayload, annotations) {
     }
     return { ...ayah, tajweedText: annotation.markup, tajweedSegments: annotation.segments, tajweedSource: 'quran-tajweed' };
   });
-  const sourced = ayahs.filter(ayah => ayah.tajweedSource === 'quran-tajweed' || ayah.tajweedSource === 'quran-foundation').length;
+  const sourced = ayahs.filter(ayah => ayah.tajweedSource === 'quran-tajweed' || ayah.tajweedSource === 'quran-foundation' || (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).length;
   const colored = ayahs.filter(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).length;
-  const missing = ayahs.filter(ayah => !ayah.tajweedSource).map(ayah => ayah.surahNumber + ':' + ayah.numberInSurah);
+  const missing = ayahs.filter(ayah => !ayah.tajweedSource && !(ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).map(ayah => ayah.surahNumber + ':' + ayah.numberInSurah);
   return {
     ...pagePayload,
     ayahs,
@@ -611,11 +611,11 @@ async function fetchQuranFoundationPage(page) {
   const query = '?mushaf=19&words=true&translations=131,20&per_page=50&word_fields=code_v2,text_qpc_hafs,text_uthmani_tajweed,line_number,page_number,position,char_type_name&fields=verse_key,chapter_id,verse_number,juz_number,hizb_number,page_number,text_uthmani_tajweed';
   const [verseResponse, lookupResponse] = await Promise.all([
     fetch(apiBase + '/verses/by_page/' + page + query, { headers: { Accept: 'application/json', ...headers }, signal: AbortSignal.timeout(12000) }),
-    fetch(apiBase + '/pages/lookup?page_number=' + page + '&mushaf=1', { headers: { Accept: 'application/json', ...headers }, signal: AbortSignal.timeout(9000) }).catch(() => null)
+    fetch(apiBase + '/pages/lookup?page_number=' + page + '&mushaf=19', { headers: { Accept: 'application/json', ...headers }, signal: AbortSignal.timeout(9000) }).catch(() => null)
   ]);
   if (!verseResponse.ok) throw new Error('Quran Foundation by_page returned HTTP ' + verseResponse.status + '.');
   const normalized = normalizeQuranCom(await verseResponse.json(), page);
-  if (!normalized.ayahs.length || !normalized.qcfAvailable || normalized.ayahs.some(ayah => !ayah.translation || !ayah.words?.length || ayah.words.some(word => !word.lineNumber || (word.charTypeName !== 'end' && word.charTypeName !== 'pause' && !word.codeV2)))) throw new Error('Quran Foundation page response is missing translation, QCF V4 word glyph, or line data.');
+  if (!normalized.ayahs.length || !normalized.qcfAvailable || normalized.ayahs.some(ayah => !ayah.translation || !ayah.words?.length || ayah.words.some(word => word.charTypeName !== 'end' && word.charTypeName !== 'pause' && (!word.lineNumber || !word.codeV2)))) throw new Error('Quran Foundation page response is missing translation, QCF V4 word glyph, or line data.');
   let pageRange = null;
   if (lookupResponse?.ok) {
     const lookup = await lookupResponse.json();
@@ -770,9 +770,9 @@ function applyTajweedToPage(pagePayload, tajweedByVerse) {
       : ayah.words;
     return { ...ayah, tajweedText, tajweedSegments: segments, words, tajweedSource: 'quran-foundation', tajweedMismatch: false };
   });
-  const sourced = ayahs.filter(ayah => ayah.tajweedSource === 'quran-foundation').length;
+  const sourced = ayahs.filter(ayah => ayah.tajweedSource === 'quran-foundation' || ayah.tajweedSource === 'quran-tajweed' || (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).length;
   const colored = ayahs.filter(ayah => (ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).length;
-  const missing = ayahs.filter(ayah => !ayah.tajweedText).map(ayah => ayah.surahNumber + ':' + ayah.numberInSurah);
+  const missing = ayahs.filter(ayah => !ayah.tajweedSource && !(ayah.tajweedSegments || []).some(segment => Boolean(segment.className))).map(ayah => ayah.surahNumber + ':' + ayah.numberInSurah);
   const mismatched = ayahs.filter(ayah => ayah.tajweedMismatch).map(ayah => ayah.surahNumber + ':' + ayah.numberInSurah);
   return {
     ...pagePayload,
