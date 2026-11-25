@@ -6712,3 +6712,20 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .quran-mobile-settings-backdrop,.quran-mobile-drawer-backdrop { backdrop-filter:none; -webkit-backdrop-filter:none; }
   .quran-mobile-settings,.quran-mobile-surah-drawer { will-change:auto; }
 }
+
+
+/* Mobile verse-by-verse alignment: native proximity snap plus header-aware settling. */
+@media (max-width: 767px) {
+  .quran-mobile-shell.is-verse-mode {
+    overflow-y: auto;
+    scroll-snap-type: y proximity;
+    scroll-behavior: smooth;
+  }
+  .quran-mobile-shell.is-verse-mode .quran-mobile-verse-row[data-mushaf-verse="true"] {
+    scroll-snap-align: start;
+    scroll-margin-top: var(--quran-mobile-snap-offset, 112px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .quran-mobile-shell.is-verse-mode { scroll-behavior: auto; }
+  }
+}
