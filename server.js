@@ -621,7 +621,7 @@ async function fetchQuranFoundationPage(page) {
     const lookup = await lookupResponse.json();
     pageRange = lookup?.pages?.[String(page)] || null;
   }
-  return { ...normalized, textSource: 'qcf-v2', qcfAvailable: true, mushafId: 19, pageRange };
+  return { ...normalized, textSource: 'qcf-v4', qcfAvailable: true, mushafId: 19, pageRange };
 }
 async function fetchQuranFoundationSurah(surahNumber) {
   const { headers, apiBase } = await getQuranApiAuth();
