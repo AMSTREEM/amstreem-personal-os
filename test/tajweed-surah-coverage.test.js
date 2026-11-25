@@ -159,6 +159,30 @@ test('page Tajweed edition fills only matching unmarked ayahs without replacing 
   assert.equal(merged.tajweedComplete, false);
 });
 
+test('Official Tajweed merge marks source completeness separately from Ayahs with actual rules', () => {
+  const start = server.indexOf('function normalizeMadinahArabic(value) {');
+  const end = server.indexOf('async function fetchQuranMirror', start);
+  assert.ok(start >= 0 && end > start, 'Official Tajweed merge helpers must be present');
+  const context = { module: { exports: {} }, console };
+  vm.runInNewContext(server.slice(start, end) + '\\nmodule.exports = { applyTajweedToPage };', context);
+  const applyTajweedToPage = context.module.exports.applyTajweedToPage;
+  const page = { page: 1, ayahs: [
+    { surahNumber: 1, numberInSurah: 1, text: 'بِسْمِ اللَّهِ', words: [], tajweedSegments: [] },
+    { surahNumber: 1, numberInSurah: 2, text: 'الْحَمْدُ لِلَّهِ', words: [], tajweedSegments: [] }
+  ] };
+  const official = new Map([
+    ['1:1', '<tajweed class=ghunnah>ب</tajweed>ِسْمِ اللَّهِ'],
+    ['1:2', 'الْحَمْدُ لِلَّهِ']
+  ]);
+  const result = applyTajweedToPage(page, official);
+  assert.equal(result.tajweedComplete, true, 'Every verse has official source text even if a verse has no Tajweed rule');
+  assert.equal(result.tajweedCoverage.totalAyahs, 2);
+  assert.equal(result.tajweedCoverage.sourcedAyahs, 2);
+  assert.equal(result.tajweedCoverage.coloredAyahs, 1);
+  assert.deepEqual(Array.from(result.tajweedCoverage.uncoloredAyahs), ['1:2']);
+  assert.deepEqual(Array.from(result.tajweedCoverage.missingAyahs), []);
+});
+
 test('every Quran Foundation HTML rule and quran-tajweed shortcode maps to its correct Tajweed family', () => {
   const html = '<tajweed class=ham_wasl>ٱ</tajweed><tajweed class=slnt>ا</tajweed>' +
     '<tajweed class=madda_normal>ـٰ</tajweed><tajweed class=madda_permissible>ي</tajweed>' +
