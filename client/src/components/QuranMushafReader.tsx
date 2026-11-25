@@ -1,7 +1,7 @@
 import { Fragment, type CSSProperties, type FormEvent, type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { Bookmark, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Copy, Info, Search, Settings, WifiOff, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Bookmark, ChevronsUpDown, ChevronLeft, ChevronRight, Copy, Info, Search, Settings, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz, getPageSurah } from '../data/quranSurahs';
 
@@ -294,7 +294,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     visiblePages.forEach(number => {
       if (qcfV4Fonts[number]?.theme === qcfPaletteTheme) return;
       void loadQcfV4PageFont(number).then(font => {
-        if (!cancelled) setQcfV4Fonts(current => current[number] ? current : { ...current, [number]: font });
+        if (!cancelled) setQcfV4Fonts(current => current[number]?.theme === font.theme ? current : { ...current, [number]: font });
       }).catch(error => {
         console.warn('QCF V4 Tajweed font could not be loaded for page ' + number + ':', error);
       });
@@ -987,7 +987,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const renderPageAyah = (ayah: MushafAyah, data: MushafPage) => {
     const font = qcfV4Fonts[data.page];
     const words = (ayah.words || []).filter(word => word.charTypeName !== 'end' && word.charTypeName !== 'pause' && word.text);
-    if (tajweedEnabled && data.qcfAvailable && font && words.length && words.every(word => Boolean(word.codeV2))) {
+    if (tajweedEnabled && font && words.length && words.every(word => Boolean(word.codeV2))) {
       return <>{words.map((word, index) => <Fragment key={ayah.number + ':qcf:' + index}><span className="quran-qcf-v4-word" style={qcfV4WordStyle(font)} dangerouslySetInnerHTML={{ __html: escapeQcfGlyphHtml(word.codeV2 || '') }} />{' '}</Fragment>)}{renderMedallion(ayah.numberInSurah)}</>;
     }
     return renderArabic(ayah);
@@ -1090,7 +1090,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     <header className="mushaf-desktop-topbar">
       <div className="mushaf-desktop-topbar-left">
         <button className="mushaf-desktop-surah-trigger" onClick={() => setSidebarOpen(value => !value)}>
-          {activeSurahNumber}. {activeSurah?.transliteration || 'Al-Fatihah'} <ChevronDown size={16} strokeWidth={1.8} />
+          {activeSurahNumber}. {activeSurah?.transliteration || 'Al-Fatihah'} <ChevronsUpDown size={17} strokeWidth={1.9} />
         </button>
       </div>
       <div className="mushaf-desktop-topbar-center">
@@ -1150,8 +1150,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       </>}
     </main>
     {readingMode === 'reading' && <div className="mushaf-desktop-page-controls">
-      <button aria-label="Previous Page" title="Previous Page" disabled={desktopVisiblePage <= 1} onClick={() => changePage(desktopVisiblePage - 1)}><ChevronUp size={18} /></button>
-      <button aria-label="Next Page" title="Next Page" disabled={desktopVisiblePage >= 604} onClick={() => changePage(desktopVisiblePage + 1)}><ChevronDown size={18} /></button>
+      <button aria-label="Previous Page" title="Previous Page" disabled={desktopVisiblePage <= 1} onClick={() => changePage(desktopVisiblePage - 1)}><ArrowUp size={18} /></button>
+      <button aria-label="Next Page" title="Next Page" disabled={desktopVisiblePage >= 604} onClick={() => changePage(desktopVisiblePage + 1)}><ArrowDown size={18} /></button>
     </div>}
     {settingsOpen && <div className="mushaf-desktop-settings-backdrop" onClick={() => setSettingsOpen(false)}>
       <section className="mushaf-desktop-settings" onClick={event => event.stopPropagation()}>
@@ -1181,7 +1181,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         <button className={readingMode === 'arabic' ? 'is-active' : ''} onClick={() => changeReadingMode('arabic')}>Verse by Verse</button>
         <button className={readingMode === 'reading' ? 'is-active' : ''} onClick={() => changeReadingMode('reading')}>Page by Page <small>Reading</small></button>
       </div>
-      <div className="quran-mobile-tajweed-center"><button onClick={() => setTajweedLegendVisible(value => !value)}>Tajweed colors <ChevronDown size={15} /></button></div>
+      <div className="quran-mobile-tajweed-center"><button onClick={() => setTajweedLegendVisible(value => !value)}>Tajweed colors <ChevronsUpDown size={15} /></button></div>
     </header>
     {tajweedLegendVisible && <aside className="quran-mobile-tajweed-legend"><b>Tajweed colour key · Quran.com</b><div><span className="tj-silent">Silent letters</span><span className="tj-madd-normal">Normal madd</span><span className="tj-madd-permissible">Separated madd</span><span className="tj-madd-obligatory-connected">Connected madd</span><span className="tj-madd-obligatory-separated">Separated obligatory madd</span><span className="tj-madd-necessary">Necessary madd</span><span className="tj-ghunnah">Ghunna · Ikhfa · Idgham</span><span className="tj-qalqalah">Qalqalah</span><span className="tj-tafkhim">Tafkhim</span></div></aside>}
     <main className="quran-mobile-content">
