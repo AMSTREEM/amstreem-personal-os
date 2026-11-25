@@ -988,7 +988,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     const font = qcfV4Fonts[data.page];
     const words = (ayah.words || []).filter(word => word.charTypeName !== 'end' && word.charTypeName !== 'pause' && word.text);
     if (tajweedEnabled && data.qcfAvailable && font && words.length && words.every(word => Boolean(word.codeV2))) {
-      return <>{words.map((word, index) => <span key={ayah.number + ':qcf:' + index} className="quran-qcf-v4-word" style={qcfV4WordStyle(font)} dangerouslySetInnerHTML={{ __html: escapeQcfGlyphHtml(word.codeV2) }} />{' '})}{renderMedallion(ayah.numberInSurah)}</>;
+      return <>{words.map((word, index) => <Fragment key={ayah.number + ':qcf:' + index}><span className="quran-qcf-v4-word" style={qcfV4WordStyle(font)} dangerouslySetInnerHTML={{ __html: escapeQcfGlyphHtml(word.codeV2) }} />{' '}</Fragment>)}{renderMedallion(ayah.numberInSurah)}</>;
     }
     return renderArabic(ayah);
   };
