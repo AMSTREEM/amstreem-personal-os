@@ -6856,3 +6856,14 @@ html, body, #root, .app-frame, .main-area, .page-container {
     overflow-anchor: none !important;
   }
 }
+
+
+/* Page by Page ayah lock: a quiet focus highlight appears after scrolling settles. */
+.quran-mobile-shell .quran-mobile-page-ayah.is-locked {
+  background: color-mix(in srgb, var(--accent, #b48b4a) 13%, transparent);
+  border-radius: 7px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  outline: 1px solid color-mix(in srgb, var(--accent, #b48b4a) 34%, transparent);
+  outline-offset: 2px;
+}
