@@ -41,7 +41,7 @@ test('All 114 Surahs cover all 6,236 Ayahs and the complete 604-page Madani Mush
     .replace(/[ٱأإآ]/g, 'ا')
     .replace(/ى/g, 'ي');
   const fetchOfficialSurah = async number => {
-    const query = '?mushaf=19&words=true&word_fields=text_uthmani_tajweed,page_number,char_type_name&fields=verse_key,chapter_id,verse_number,page_number,text_uthmani,text_uthmani_tajweed&per_page=300';
+    const query = '?mushaf=19&words=true&word_fields=code_v2,text_uthmani_tajweed,page_number,char_type_name&fields=verse_key,chapter_id,verse_number,page_number,text_uthmani,text_uthmani_tajweed&per_page=300';
     const urls = [
       'https://api.quran.com/api/v4/verses/by_chapter/' + number + query,
       'https://quran.com/api/proxy/content/api/qdc/verses/by_chapter/' + number + query
@@ -117,7 +117,7 @@ test('All 114 Surahs cover all 6,236 Ayahs and the complete 604-page Madani Mush
       }
     }
   };
-  await Promise.all(Array.from({ length: 5 }, () => worker()));
+  await Promise.all(Array.from({ length: 3 }, () => worker()));
   const missingPages = Array.from({ length: 604 }, (_, index) => index + 1).filter(page => !pageNumbers.has(page));
   assert.equal(totalAyahs, 6236, 'The audit must cover every Qur’an Ayah');
   assert.equal(verseKeys.size, 6236, 'Every Ayah must appear exactly once');
