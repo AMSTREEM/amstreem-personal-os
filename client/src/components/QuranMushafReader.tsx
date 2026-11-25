@@ -597,73 +597,92 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     targets.forEach(target => observer.observe(target));
     return () => { observer.disconnect(); visible.clear(); };
   }, [fullScreen, readingMode, surahAyahs, pageData, page, pageReadingSurah, updateBookmark]);
-  // Verse by Verse: snap at the first real drop in scroll speed.
-  // Measure actual scroll events (including finger-driven scrolling), not a
-  // requestAnimationFrame loop that can miss the gesture's deceleration.
+  // Verse by Verse: align as soon as scroll momentum begins to ease.
   useEffect(() => {
     if (!fullScreen || readingMode === 'reading' || surahLoading || !surahAyahs.length) return;
     const root = readerRef.current;
     if (!root) return;
     let previousTop = root.scrollTop;
-    let previousTime = 0;
+    let previousTime = performance.now();
+    let previousVelocity = 0;
     let peakVelocity = 0;
     let slowSamples = 0;
     let alignedThisGesture = false;
-    let lastGestureTime = 0;
+    let resetTimer = 0;
+    let programmatic = false;
 
     const alignNearestAyah = () => {
       const header = root.querySelector<HTMLElement>('.quran-mobile-header');
       const headerBottom = root.getBoundingClientRect().top + (header?.getBoundingClientRect().height || 0);
       const rows = Array.from(root.querySelectorAll<HTMLElement>('.quran-mobile-verse-row'));
-      const candidates = rows.filter(row => row.getBoundingClientRect().bottom > headerBottom + 4);
-      if (!candidates.length) return;
-      const target = candidates.reduce((best, row) =>
-        Math.abs(row.getBoundingClientRect().top - headerBottom) < Math.abs(best.getBoundingClientRect().top - headerBottom) ? row : best
-      );
+      if (!rows.length) return;
+      const target = rows.reduce((best, row) => {
+        const bestDistance = Math.abs(best.getBoundingClientRect().top - headerBottom);
+        const rowDistance = Math.abs(row.getBoundingClientRect().top - headerBottom);
+        const bestVisible = best.getBoundingClientRect().bottom > headerBottom + 4;
+        const rowVisible = row.getBoundingClientRect().bottom > headerBottom + 4;
+        if (rowVisible && !bestVisible) return row;
+        return rowVisible === bestVisible && rowDistance < bestDistance ? row : best;
+      });
       const delta = target.getBoundingClientRect().top - headerBottom;
-      if (Math.abs(delta) > 2) root.scrollTop += delta;
+      if (Math.abs(delta) < 3) return;
+      programmatic = true;
+      root.scrollTop += delta;
+      window.setTimeout(() => { programmatic = false; }, 100);
     };
 
     const resetGesture = () => {
-      peakVelocity = 0;
-      slowSamples = 0;
-      alignedThisGesture = false;
-      previousTop = root.scrollTop;
-      previousTime = 0;
-      lastGestureTime = performance.now();
+      window.clearTimeout(resetTimer);
+      resetTimer = window.setTimeout(() => {
+        alignedThisGesture = false;
+        peakVelocity = 0;
+        previousVelocity = 0;
+        slowSamples = 0;
+      }, 350);
     };
+
     const onScroll = () => {
+      if (programmatic) return;
       const now = performance.now();
       const top = root.scrollTop;
-      if (!previousTime) {
-        previousTop = top;
-        previousTime = now;
-        return;
-      }
       const elapsed = Math.max(1, now - previousTime);
-      const velocity = Math.abs(top - previousTop) / elapsed;
+      const distance = Math.abs(top - previousTop);
+      const velocity = distance / elapsed;
       if (velocity > peakVelocity) peakVelocity = velocity;
-      const hasMoved = Math.abs(top - previousTop) > 0.5 && now - lastGestureTime > 0;
-      const slowing = peakVelocity > 0.08 && velocity > 0.015 && velocity < peakVelocity * 0.9;
-      slowSamples = slowing ? slowSamples + 1 : 0;
 
-      if (!alignedThisGesture && hasMoved && slowSamples >= 1) {
+      // Compare adjacent velocity samples as well as the gesture peak. This
+      // catches the first real easing in momentum instead of waiting for rest.
+      const easingFromPrevious = previousVelocity > 0.025 && velocity > 0.012 && velocity < previousVelocity * 0.94;
+      const easingFromPeak = peakVelocity > 0.08 && velocity > 0.012 && velocity < peakVelocity * 0.94;
+      slowSamples = easingFromPrevious || easingFromPeak ? slowSamples + 1 : 0;
+      if (!alignedThisGesture && slowSamples >= 1 && distance > 0.25) {
         alignedThisGesture = true;
         alignNearestAyah();
       }
+
       previousTop = top;
       previousTime = now;
+      previousVelocity = velocity;
+      resetGesture();
     };
-    const onTouchStart = () => resetGesture();
-    const onWheel = () => resetGesture();
+
+    const onNewGesture = () => {
+      alignedThisGesture = false;
+      peakVelocity = 0;
+      previousVelocity = 0;
+      slowSamples = 0;
+      previousTop = root.scrollTop;
+      previousTime = performance.now();
+    };
 
     root.addEventListener('scroll', onScroll, { passive: true });
-    root.addEventListener('touchstart', onTouchStart, { passive: true });
-    root.addEventListener('wheel', onWheel, { passive: true });
+    root.addEventListener('touchstart', onNewGesture, { passive: true });
+    root.addEventListener('wheel', onNewGesture, { passive: true });
     return () => {
+      window.clearTimeout(resetTimer);
       root.removeEventListener('scroll', onScroll);
-      root.removeEventListener('touchstart', onTouchStart);
-      root.removeEventListener('wheel', onWheel);
+      root.removeEventListener('touchstart', onNewGesture);
+      root.removeEventListener('wheel', onNewGesture);
     };
   }, [fullScreen, readingMode, surahLoading, surahAyahs, activeSurahNumber]);
 
