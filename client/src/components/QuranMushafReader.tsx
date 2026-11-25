@@ -741,7 +741,10 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     </article>;
   });
   if (!fullScreen) return <section className="faith-section-secondary quran-mobile-launch"><div><h3>Qur’an</h3><p>Continue from your saved Hifz or Muraja’ah position.</p><div><button onClick={() => openReader('hifz')}>Open Qur’an</button><button onClick={() => openReader('murajaah')}>Resume Muraja’ah</button></div></div></section>;
-  return <div className="quran-mobile-shell" ref={readerRef}>
+  // The Atlas route containers use overflow clipping and animated transforms. A fixed
+  // full-screen reader rendered inside them can be clipped/painted behind the shell.
+  // Portal the entire Mushaf to document.body so it has a true viewport-level layer.
+  return createPortal(<div className="quran-mobile-shell" ref={readerRef}>
     <header className="quran-mobile-header">
       {!mobileScrolled ? <>
         <div className="quran-mobile-top-row">
@@ -798,5 +801,5 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       <input value={surahSearch} onChange={event => setSurahSearch(event.target.value)} placeholder="Search 114 Surahs" />
       <div className="quran-mobile-surah-list">{QURAN_SURAHS.filter(surah => (surah.transliteration + ' ' + surah.english + ' ' + surah.number).toLowerCase().includes(surahSearch.toLowerCase())).map(surah => <button key={surah.number} className={surah.number === mobileActiveSurahNumber ? 'is-active' : ''} onClick={() => { jumpSurah(surah.number); setMobileSurahDrawerOpen(false); }}><span><b>{surah.number}. {surah.transliteration}</b><small>{surah.english} · {surah.ayahs} verses</small></span><strong>{surah.arabic}</strong></button>)}</div>
     </aside></div>}
-  </div>;
+  </div>, document.body);
 }
