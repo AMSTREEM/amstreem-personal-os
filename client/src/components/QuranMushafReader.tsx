@@ -314,7 +314,25 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     if (!fullScreen || readingMode === 'reading' || !selected || !restoreTargetRef.current || loading || surahLoading || !surahAyahs.length) return;
     const key = selected.surah + ':' + selected.ayah;
     if (restoreTargetRef.current !== key) return;
-    verseRowRefs.current.get(key)?.scrollIntoView({ behavior: 'auto', block: 'center' });
+    let firstFrame = 0;
+    let secondFrame = 0;
+    firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        const root = readerRef.current;
+        const row = verseRowRefs.current.get(key);
+        if (!root || !row || restoreTargetRef.current !== key) return;
+        const header = root.querySelector<HTMLElement>('.quran-mobile-header');
+        const rootRect = root.getBoundingClientRect();
+        const rowRect = row.getBoundingClientRect();
+        const headerHeight = header?.getBoundingClientRect().height || 0;
+        const targetTop = root.scrollTop + rowRect.top - rootRect.top - headerHeight - 12;
+        root.scrollTo({ top: Math.max(0, targetTop), behavior: 'auto' });
+      });
+    });
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+    };
   }, [fullScreen, selected, loading, surahLoading, surahAyahs, readingMode]);
 
   const selectedAyah = pageData?.ayahs.find(item => item.surahNumber === selected?.surah && item.numberInSurah === selected?.ayah) || null;
