@@ -32,7 +32,6 @@ const rooms = [
 
 const commandDestinations = [
   { label: 'Faith & Spirituality', detail: 'Qur’an, daily practice and spiritual reflection', to: '/values', icon: MoonStar },
-  { label: 'Qur’an', detail: 'Continue Hifz, Muraja’ah and reading', to: '/quran', icon: BookOpen },
   { label: 'Habits & Self-Control', detail: 'Build routines and personal commitments', to: '/habits', icon: Heart },
   { label: 'Education & Learning', detail: 'Learning paths, lessons and private library', to: '/learning-library', icon: GraduationCap },
   { label: 'Projects & Milestones', detail: 'Connect meaningful work to your goals', to: '/goals', icon: Target },
@@ -194,7 +193,14 @@ export function AppShell() {
             const active = item.paths.includes(location.pathname);
             return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={'nav-link room-nav-link ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>⌘ {index+1}</kbd></MotionNavLink>;
           })}
-          <button type="button" className="nav-link room-nav-link" onClick={() => setMobileOpen(true)}><SlidersHorizontal size={17}/><span>Personal tools</span></button>
+        </div>
+        <div className="nav-group nav-group--specialist">
+          <div className="nav-group__label">PERSONAL TOOLS</div>
+          <MotionNavLink to="/quran" end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={'nav-link room-nav-link ' + (location.pathname === '/quran' ? 'nav-link--active' : '')}>
+            {location.pathname === '/quran' && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}
+            <BookOpen size={17} strokeWidth={1.8}/><span>Qur’an</span>
+          </MotionNavLink>
+          <button type="button" className="nav-link room-nav-link" onClick={() => setMobileOpen(true)}><SlidersHorizontal size={17}/><span>More personal tools</span></button>
         </div>
       </nav>
       <div className="sidebar-bottom">
