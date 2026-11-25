@@ -801,7 +801,7 @@ app.get('/api/quran/page/:page', async (req, res) => {
   const page = Number(req.params.page);
   if (!Number.isInteger(page) || page < 1 || page > 604) return res.status(400).json({ error: 'Qur’an page must be between 1 and 604.' });
   const send = (payload, source) => {
-    res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+    res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Quran-Cache', source);
     return res.json(sanitizeQuranPayload(payload));
   };
@@ -876,7 +876,7 @@ app.get('/api/quran/surah/:surah', async (req, res) => {
     return res.status(400).json({ error: 'Qur’an Surah must be between 1 and 114.' });
   }
   const send = (payload, source) => {
-    res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+    res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Quran-Cache', source);
     return res.json(sanitizeQuranPayload(payload));
   };
