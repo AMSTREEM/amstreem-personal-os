@@ -268,7 +268,7 @@ test('Room 3 has a dedicated Focus Room with safe context handoffs and a persist
   const learning = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LearningPage.tsx'), 'utf8');
   const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
-  assert.match(app, /path="\/execution" element={<FocusWorkspace \/>}/);
+  assert.match(app, /path="\/actions" element={<FocusWorkspace \/>}/);
   assert.match(app, /path="\/focus" element={<FocusWorkspace \/>}/);
   assert.match(shell, /paths: \['\/focus'\]/);
   assert.match(shell, /label: 'Focus', to: '\/focus'/);
