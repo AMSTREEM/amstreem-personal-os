@@ -6132,7 +6132,6 @@ html, body, #root, .app-frame, .main-area, .page-container {
     display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:stretch;
     gap:12px; padding:12px 16px 20px;
   }
-  .quran-mobile-bottom-nav.quran-mobile-reader-actions { grid-template-columns:repeat(3,minmax(0,1fr)); }
   .quran-mobile-page-quick button,.quran-mobile-bottom-nav button {
     width:100%; min-width:0; min-height:44px; box-sizing:border-box;
     display:inline-flex; align-items:center; justify-content:center; gap:8px;
@@ -6141,7 +6140,8 @@ html, body, #root, .app-frame, .main-area, .page-container {
     font-size:clamp(10px,2.45vw,12px); line-height:1.15; white-space:nowrap;
   }
   .quran-mobile-page-quick button:disabled,.quran-mobile-bottom-nav button:disabled { opacity:.35; }
-  .quran-mobile-bottom-nav.quran-mobile-reader-actions button.is-active { color:var(--accent,#d9ae59); border-color:var(--accent,#d9ae59); background:color-mix(in srgb,var(--accent,#d9ae59) 10%,var(--bg-surface)); }
+  .quran-mobile-tajweed-center button { display:inline-flex; align-items:center; justify-content:center; gap:7px; }
+  .quran-mobile-tajweed-center button.is-active { color:var(--accent,#d9ae59); border-color:var(--accent,#d9ae59); background:color-mix(in srgb,var(--accent,#d9ae59) 10%,var(--bg-surface)); }
   .quran-mobile-verse-row { width:min(100%, 820px); box-sizing:border-box; margin:0 auto; padding:22px clamp(18px, 3vw, 28px); border:1px solid var(--border-hairline); border-bottom:0; background:var(--bg-surface); }
   .quran-mobile-verse-row:first-child { border-radius:16px 16px 0 0; }
   .quran-mobile-verse-row:last-child { border-bottom:1px solid var(--border-hairline); border-radius:0 0 16px 16px; }
