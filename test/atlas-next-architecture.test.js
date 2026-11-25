@@ -57,7 +57,9 @@ test('six primary destinations and personal life areas shape the Atlas workspace
   assert.match(shell, /const rooms = \[/);
   assert.match(shell, /\^\[1-6\]\$/);
   assert.match(shell, /atlas-mobile-dock/);
-  assert.ok(shell.includes("label: 'Qur’an'") && shell.includes("to: '/quran'"));
+  assert.match(shell, /to="\/quran"/);
+  assert.match(shell, /PERSONAL TOOLS/);
+  assert.match(shell, /<span>Qur’an<\/span>/);
   assert.match(shell, /YOUR LIFE AREAS/);
   assert.match(shell, /lifeAreaNames/);
   assert.match(settings, /Your life areas/);
@@ -142,6 +144,9 @@ test('Residence derives a daily consistency pulse from active life areas', () =>
   assert.match(residence, /api<Deen>\('\/deen\/summary/);
   assert.match(residence, /api<Faith\[]>\('\/faith/);
   assert.match(residence, /scoreDimensions/);
+  assert.match(residence, /selectedLifeAreas/);
+  assert.match(residence, /lifeAreaCards\.filter/);
+  assert.match(residence, /Progress is personal/);
   assert.match(residence, /atlas-focus-timer-v1/);
   assert.match(residence, /activeFocusContext/);
   assert.match(residence, /showCalendar/);
@@ -368,7 +373,8 @@ test('Qur’an is a standalone workspace and no longer renders inside Deen', () 
   assert.match(quran, /QuranMushafReader/);
   assert.match(quran, /autoOpen/);
   assert.ok(app.includes('path="/quran" element={<QuranPage />}'));
-  assert.ok(shell.includes("label: 'Qur’an', detail: 'Continue Hifz, Muraja’ah and reading', to: '/quran'"));
+  assert.match(shell, /to="\/quran"/);
+  assert.match(shell, /PERSONAL TOOLS/);
   assert.ok(!shell.includes('/values?openMushaf=1'));
   assert.match(shell, /faithTabLabel = quickReligion === 'islam' \? 'Deen'/);
 });
