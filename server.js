@@ -169,54 +169,6 @@ app.get('/fonts/qcf-v2/p:page.woff2', async (req, res) => {
     return res.status(502).type('text/plain').send('The Mushaf page font is temporarily unavailable.');
   }
 });
-const qcfV4FontInflight = new Map();
-async function loadQcfV4FontBuffer(page, format, theme) {
-  if (!Number.isInteger(page) || page < 1 || page > 604 || !['colrv1','ot-svg'].includes(format) || !['palette','light','dark','sepia'].includes(theme)) {
-    throw new Error('Invalid QCF V4 Tajweed font request.');
-  }
-  const key = page + ':' + format + ':' + theme;
-  const fontPath = path.join(__dirname, 'public', 'fonts', 'qcf-v4', format, theme, 'p' + page + '.woff2');
-  try {
-    const local = await fs.promises.readFile(fontPath);
-    if (local.length && local.subarray(0, 4).toString('ascii') === 'wOF2') return local;
-  } catch { /* fetch the requested page font */ }
-  if (qcfV4FontInflight.has(key)) return qcfV4FontInflight.get(key);
-  const upstreamPath = format === 'ot-svg'
-    ? 'ot-svg/' + theme + '/woff2/p' + page + '.woff2'
-    : 'colrv1/woff2/p' + page + '.woff2';
-  const task = (async () => {
-    const response = await fetch('https://verses.quran.foundation/fonts/quran/hafs/v4/' + upstreamPath, {
-      headers: { Accept: 'font/woff2,application/octet-stream' }, signal: AbortSignal.timeout(15000)
-    });
-    if (!response.ok) throw new Error('QCF V4 font returned HTTP ' + response.status + '.');
-    const buffer = Buffer.from(await response.arrayBuffer());
-    if (!buffer.length || buffer.length > 5 * 1024 * 1024 || buffer.subarray(0, 4).toString('ascii') !== 'wOF2') {
-      throw new Error('QCF V4 page font is not a valid WOFF2 binary.');
-    }
-    await fs.promises.mkdir(path.dirname(fontPath), { recursive: true });
-    await fs.promises.writeFile(fontPath, buffer);
-    return buffer;
-  })();
-  qcfV4FontInflight.set(key, task);
-  try { return await task; } finally { qcfV4FontInflight.delete(key); }
-}
-app.get('/fonts/qcf-v4/:format/:theme/p:page.woff2', async (req, res) => {
-  const page = Number(req.params.page);
-  const { format, theme } = req.params;
-  if (!Number.isInteger(page) || page < 1 || page > 604 || !['colrv1','ot-svg'].includes(format) || !['palette','light','dark','sepia'].includes(theme)) {
-    return res.status(400).type('text/plain').send('Invalid QCF V4 font request.');
-  }
-  try {
-    const font = await loadQcfV4FontBuffer(page, format, theme);
-    res.setHeader('Content-Type', 'font/woff2');
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    res.setHeader('Content-Length', String(font.length));
-    return res.status(200).send(font);
-  } catch (error) {
-    console.error('QCF V4 Tajweed font delivery failed:', page, format, theme, error.message);
-    return res.status(502).type('text/plain').send('The Tajweed font is temporarily unavailable.');
-  }
-});
 app.use('/api/admin', rateLimit({ max: 30, prefix: 'admin' }));
 app.use('/api', rateLimit({ max: 300 }));
 
