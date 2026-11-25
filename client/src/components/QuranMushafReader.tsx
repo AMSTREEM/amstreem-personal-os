@@ -597,6 +597,44 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     targets.forEach(target => observer.observe(target));
     return () => { observer.disconnect(); visible.clear(); };
   }, [fullScreen, readingMode, surahAyahs, pageData, page, pageReadingSurah, updateBookmark]);
+  // Verse by Verse: allow free scrolling, then gently align the nearest ayah
+  // to the top of the reading area once the user's scroll settles.
+  useEffect(() => {
+    if (!fullScreen || readingMode === 'reading' || surahLoading || !surahAyahs.length) return;
+    const root = readerRef.current;
+    if (!root) return;
+    let settleTimer = 0;
+    let aligning = false;
+    const alignNearestAyah = () => {
+      const header = root.querySelector<HTMLElement>('.quran-mobile-header');
+      const headerBottom = root.getBoundingClientRect().top + (header?.getBoundingClientRect().height || 0);
+      const rows = Array.from(root.querySelectorAll<HTMLElement>('.quran-mobile-verse-row'));
+      if (!rows.length) return;
+      const candidates = rows.filter(row => row.getBoundingClientRect().bottom > headerBottom + 4);
+      if (!candidates.length) return;
+      const target = candidates.reduce((best, row) => {
+        const bestTop = best.getBoundingClientRect().top;
+        const rowTop = row.getBoundingClientRect().top;
+        return Math.abs(rowTop - headerBottom) < Math.abs(bestTop - headerBottom) ? row : best;
+      });
+      const delta = target.getBoundingClientRect().top - headerBottom;
+      if (Math.abs(delta) < 10) return;
+      aligning = true;
+      root.scrollTo({ top: root.scrollTop + delta, behavior: 'smooth' });
+      window.setTimeout(() => { aligning = false; }, 500);
+    };
+    const scheduleAlign = () => {
+      if (aligning) return;
+      window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(alignNearestAyah, 260);
+    };
+    root.addEventListener('scroll', scheduleAlign, { passive: true });
+    return () => {
+      window.clearTimeout(settleTimer);
+      root.removeEventListener('scroll', scheduleAlign);
+    };
+  }, [fullScreen, readingMode, surahLoading, surahAyahs, activeSurahNumber]);
+
   // In Page by Page mode, let natural scrolling finish, then lock the ayah
   // closest to the reader's focus line and persist that exact location.
   useEffect(() => {
