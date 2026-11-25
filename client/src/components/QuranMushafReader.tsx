@@ -1,7 +1,7 @@
 import { Fragment, type CSSProperties, type FormEvent, type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { ArrowDown, ArrowUp, Bookmark, ChevronsUpDown, ChevronLeft, ChevronRight, Copy, Info, Search, Settings, WifiOff, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Bookmark, ChevronsUpDown, ChevronLeft, ChevronRight, Copy, Info, Palette, Search, Settings, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
 import { QURAN_JUZ_STARTS, QURAN_SURAHS, getAyahLocation, getPageJuz, getPageSurah } from '../data/quranSurahs';
 
@@ -1181,7 +1181,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         <button className={readingMode === 'arabic' ? 'is-active' : ''} onClick={() => changeReadingMode('arabic')}>Verse by Verse</button>
         <button className={readingMode === 'reading' ? 'is-active' : ''} onClick={() => changeReadingMode('reading')}>Page by Page <small>Reading</small></button>
       </div>
-      <div className="quran-mobile-tajweed-center"><button onClick={() => setTajweedLegendVisible(value => !value)}>Tajweed colors <ChevronsUpDown size={15} /></button></div>
+      
     </header>
     {tajweedLegendVisible && <aside className="quran-mobile-tajweed-legend"><b>Tajweed colour key · Quran.com</b><div><span className="tj-silent">Silent letters</span><span className="tj-madd-normal">Normal madd</span><span className="tj-madd-permissible">Separated madd</span><span className="tj-madd-obligatory-connected">Connected madd</span><span className="tj-madd-obligatory-separated">Separated obligatory madd</span><span className="tj-madd-necessary">Necessary madd</span><span className="tj-ghunnah">Ghunna · Ikhfa · Idgham</span><span className="tj-qalqalah">Qalqalah</span><span className="tj-tafkhim">Tafkhim</span></div></aside>}
     <main className="quran-mobile-content">
@@ -1189,7 +1189,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       {pageError && <div className="quran-mobile-error">{pageError}<button onClick={() => changePage(page)}>Retry</button></div>}
       {!loading && !pageError && readingMode === 'reading' && pageData && <>
         {renderPageBlock(pageData, true)}
-        {page >= (getAyahLocation(pageReadingSurah, QURAN_SURAHS[pageReadingSurah - 1]?.ayahs || 1)?.page || 604) ? <div className="quran-mobile-bottom-nav quran-mobile-surah-nav"><button disabled={pageReadingSurah <= 1} onClick={() => jumpSurah(pageReadingSurah - 1)}><ChevronLeft size={16} /> Previous Surah</button><button disabled={pageReadingSurah >= 114} onClick={() => jumpSurah(pageReadingSurah + 1)}>Next Surah <ChevronRight size={16} /></button></div> : <div className="quran-mobile-bottom-nav"><button disabled={page <= (QURAN_SURAHS[pageReadingSurah - 1]?.pageStart || 1)} onClick={() => changePage(page - 1)}><ChevronLeft size={16} /> Previous Page</button><button onClick={() => changePage(page + 1)}>Next Page <ChevronRight size={16} /></button></div>}
+        <div className="quran-mobile-bottom-nav quran-mobile-reader-actions"><button className={tajweedLegendVisible ? 'is-active' : ''} aria-expanded={tajweedLegendVisible} onClick={() => setTajweedLegendVisible(value => !value)}><Palette size={16} strokeWidth={2} /><span>Tajweed colors</span></button><button disabled={page <= 1} onClick={() => changePage(page - 1)}><ChevronLeft size={17} strokeWidth={2.2} /><span>Previous Page</span></button><button disabled={page >= 604} onClick={() => changePage(page + 1)}><span>Next Page</span><ChevronRight size={17} strokeWidth={2.2} /></button></div>
       </>}
       {!loading && !pageError && readingMode !== 'reading' && <>
         {surahLoading && <div className="quran-mobile-loading">Loading Surah…</div>}
