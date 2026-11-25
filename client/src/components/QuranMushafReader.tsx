@@ -618,15 +618,16 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         return Math.abs(rowTop - headerBottom) < Math.abs(bestTop - headerBottom) ? row : best;
       });
       const delta = target.getBoundingClientRect().top - headerBottom;
-      if (Math.abs(delta) < 10) return;
+      if (Math.abs(delta) < 3) return;
       aligning = true;
-      root.scrollTo({ top: root.scrollTop + delta, behavior: 'smooth' });
-      window.setTimeout(() => { aligning = false; }, 500);
+      // A decisive, immediate snap gives the ayah a clear top reading position.
+      root.scrollTop += delta;
+      window.setTimeout(() => { aligning = false; }, 180);
     };
     const scheduleAlign = () => {
       if (aligning) return;
       window.clearTimeout(settleTimer);
-      settleTimer = window.setTimeout(alignNearestAyah, 260);
+      settleTimer = window.setTimeout(alignNearestAyah, 120);
     };
     root.addEventListener('scroll', scheduleAlign, { passive: true });
     return () => {
