@@ -26,7 +26,7 @@ type Prayer = { prayer: string; completed: number; on_time: number };
 type Deen = { date: string; prayers: Prayer[]; quran: { activity: string; pages: number; entries: number }[]; tahajjud: { woke_up: number; prayed: number } };
 type Faith = { activity: string; completed: number };
 type RhythmSummary = { date: string; tradition: string; completed: number; planned: number; total: number; records: { id: number; record_type: string; title: string; status: string }[] };
-type Goal = { id: number; title: string; target_date: string | null; status: string };
+type Goal = { id: number; title: string; target_date: string | null; status: string; category?: string };
 type Announcement = { id: number; title: string; body: string; kind: string; created_at: string; published_at: string | null };
 type DailyReview = { id: number; period_type: 'daily' | 'weekly'; period_start: string; period_end: string; wins: string; challenges: string; lessons: string; next_focus: string; intention: string; priority_task_ids: number[]; alignment_complete: number; shutdown_complete: number; updated_at: string };
 type AnnouncementFeed = { items: Announcement[]; readIds: number[] };
@@ -36,6 +36,16 @@ type StoredTimer = { remaining: number; deadline: number | null; taskId?: string
 type FocusSession = { session_date: string; minutes: number; focus: string };
 const TIMER_KEY = 'atlas-focus-timer-v1';
 const faithPractices = ['bible', 'prayer', 'reflection', 'worship', 'service'];
+const lifeAreaCards = [
+  { id: 'health', title: 'Health & Fitness', detail: 'Training, nutrition and wellbeing', categories: ['health'], to: '/habits', icon: ShieldCheck, tone: 'self' },
+  { id: 'education', title: 'Education & Learning', detail: 'Study, reading and new skills', categories: ['learning', 'education'], to: '/learning-library', icon: BookOpen, tone: 'learning' },
+  { id: 'career', title: 'Career & Business', detail: 'Work, business and professional growth', categories: ['career', 'business'], to: '/goals', icon: FolderKanban, tone: 'projects' },
+  { id: 'finance', title: 'Financial Growth', detail: 'Saving and financial outcomes', categories: ['finance'], to: '/goals', icon: Target, tone: 'goals' },
+  { id: 'faith', title: 'Faith & Spirituality', detail: 'Worship and spiritual development', categories: ['faith'], to: '/values', icon: MoonStar, tone: 'deen' },
+  { id: 'personal', title: 'Personal Development', detail: 'Discipline and self-improvement', categories: ['personal'], to: '/habits', icon: Heart, tone: 'self' },
+  { id: 'relationships', title: 'Relationships', detail: 'Family, friends and connection', categories: ['relationships'], to: '/goals', icon: Heart, tone: 'projects' },
+  { id: 'lifestyle', title: 'Lifestyle & Organisation', detail: 'Routines, time and daily life', categories: ['lifestyle'], to: '/calendar', icon: CalendarDays, tone: 'focus' }
+];
 
 function todayKey() {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
@@ -92,6 +102,11 @@ export function TodayPage() {
   useEffect(() => { const tick = window.setInterval(() => setWallClock(Date.now()), 30000); return () => window.clearInterval(tick); }, []);
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Settings>('/settings') });
   const religion = settings.data?.faith_tradition || settings.data?.religion || 'none';
+  let selectedLifeAreas: string[] = lifeAreaCards.map(area => area.id);
+  try {
+    const savedAreas = settings.data?.life_areas ? JSON.parse(settings.data.life_areas) : null;
+    if (Array.isArray(savedAreas)) selectedLifeAreas = savedAreas.filter((id: string) => lifeAreaCards.some(area => area.id === id));
+  } catch { /* Existing workspaces retain the full default set. */ }
   let showCalendar = true;
   if (settings.data?.features) { try { showCalendar = JSON.parse(settings.data.features).includes('calendar'); } catch { showCalendar = true; } }
   const dailyReviews = useQuery({ queryKey: ['reviews', 'daily'], queryFn: () => api<DailyReview[]>('/reviews?period=daily') });
@@ -249,7 +264,6 @@ export function TodayPage() {
       { label: 'Focus', score: focusPercent, detail: formatMinutes(overview.data?.todayMin || 0) + ' / ' + formatMinutes(target) + ' intention' }
     ];
   }, [religion, deen.data, prayerCount, faithCount, rhythmSummary.data, habitList.length, completedHabits, focusPercent, overview.data?.todayMin, target]);
-  const activityPulse = Math.round(scoreDimensions.reduce((sum, item) => sum + item.score, 0) / 3);
 
   const dailyStreak=Math.max(habitStreak,calendarSummary.data?.streaks.faith.current??0,calendarSummary.data?.streaks.habits.current??0);
   const finishRitual=(values:{first:string;second:string;third:string;fourth:string})=>{if(ritualMode==='morning'){setDailyIntention(values.first);saveDaily.mutate({intention:values.first,priority_task_ids:priorityTaskIds,alignment_complete:1},{onSuccess:()=>{playAtlasFeedback('complete');triggerSparkBurst(window.innerWidth/2,window.innerHeight*.42);setRitualMode(null);navigate('/focus');}});}else{setShutdownWins(values.first);setShutdownLessons(values.second);setShutdownChallenges(values.third);setShutdownNextFocus(values.fourth);saveDaily.mutate({wins:values.first,lessons:values.second,challenges:values.third,next_focus:values.fourth,shutdown_complete:[values.first,values.third,values.second,values.fourth].every(v=>v.trim())?1:0},{onSuccess:()=>{playAtlasFeedback('complete');triggerSparkBurst(window.innerWidth/2,window.innerHeight*.42);setRitualMode(null);}});}};
@@ -302,23 +316,26 @@ export function TodayPage() {
 
     <section className="residence-band residence-band--overview" aria-label="Life at a glance"><MagneticDotField/>
       <div className="residence-band-heading"><span className="eyebrow">02 / YOUR LIFE AT A GLANCE</span><p>Connected areas of your life, with activity drawn from your existing records.</p></div>
-      <section className="residence-pillar-grid" aria-label="Six life pillars">
-      {[
-        {title:religion === 'islam' ? 'Deen & Reflection' : religion === 'christianity' ? 'Faith & Reflection' : 'Daily Clarity',detail:religion === 'islam' ? prayerCount + '/5 salah · ' + (rhythmSummary.data?.completed || 0) + ' practices completed' : religion === 'christianity' ? (rhythmSummary.data?.completed || 0) + ' faith activities completed' : (rhythmSummary.data?.completed || 0) + ' clarity activities completed',to:'/values',icon:MoonStar,tone:'deen'},
-        {title:'Self-Control & Streaks',detail:'Habits and commitments',to:'/self-control',icon:ShieldCheck,tone:'self'},
-        {title:'Projects & Tasks',detail:'Turn plans into progress',to:'/projects',icon:FolderKanban,tone:'projects'},
-        {title:'Focus Room',detail:'Protect your attention',to:'/focus',icon:Timer,tone:'focus'},
-        {title:'Learning Studio',detail:'Build knowledge deliberately',to:'/learning',icon:BookOpen,tone:'learning'},
-        {title:'Goals',detail:'Keep long-term direction visible',to:'/goals',icon:Target,tone:'goals'}
-      ].map(pillar=><Link className={'residence-pillar atlas-spotlight residence-pillar--'+pillar.tone} to={pillar.to} key={pillar.to}><span className="residence-pillar__icon"><pillar.icon size={19} strokeWidth={1.8}/></span><div><b>{pillar.title}</b><small>{pillar.detail}</small></div><ArrowRight size={14}/></Link>)}
+      <section className="residence-pillar-grid" aria-label="Your selected life areas">
+      {lifeAreaCards.filter(area => selectedLifeAreas.includes(area.id)).map(area => {
+        const Icon = area.icon;
+        const linkedGoals = (goals.data || []).filter(goal => goal.status === 'active' && area.categories.includes((goal.category || '').toLowerCase()));
+        const detail = area.id === 'faith'
+          ? religion === 'islam' ? prayerCount + '/5 salah · ' + (rhythmSummary.data?.completed || 0) + ' practices today' : (rhythmSummary.data?.completed || 0) + ' faith activities today'
+          : linkedGoals.length ? linkedGoals.length + ' active outcome' + (linkedGoals.length === 1 ? '' : 's') + ' connected' : area.detail + ' · Add an outcome when ready';
+        return <Link className={'residence-pillar atlas-spotlight residence-pillar--' + area.tone} to={area.to} key={area.id}>
+          <span className="residence-pillar__icon"><Icon size={19} strokeWidth={1.8}/></span>
+          <div><b>{area.title}</b><small>{detail}</small></div><ArrowRight size={14}/>
+        </Link>;
+      })}
     </section>
     <Card className="residence-pulse-card">
       <section className="residence-pulse" aria-label="Your daily activity pulse">
         <div className="residence-pulse__top">
           <div className="residence-pulse__main">
             <div className="residence-pulse__heading"><span className="eyebrow">TODAY'S ACTIVITY PULSE</span><span className="residence-pulse__date">{today}</span></div>
-            <div className="residence-pulse__score" style={{ "--pulse-score": activityPulse + "%" } as CSSProperties & { "--pulse-score": string }}><OdometerNumber value={activityPulse} suffix="%"/><span>across 3 active areas</span></div>
-            <p>A clear snapshot of today's Deen, habits and focused work — based only on activity you choose to track.</p>
+            <div className="residence-pulse__score"><span>Progress is personal.</span></div>
+            <p>These are separate activity signals, not a combined life score. Use them to understand your day without reducing every area of life to one number.</p>
           </div>
           <div className="residence-pulse__core" aria-hidden="true"><FerrofluidCore active={focusRunning || prioritiesCompleted}/></div>
         </div>
