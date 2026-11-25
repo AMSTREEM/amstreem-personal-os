@@ -455,7 +455,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
 
   useEffect(() => {
     const root = readerRef.current;
-    if (!fullScreen || !isMobileViewport || !root) return;
+    if (!fullScreen || !root) return;
     const markUserIntent = () => { userScrolledRef.current = true; };
     root.addEventListener('touchstart', markUserIntent, { passive: true });
     root.addEventListener('wheel', markUserIntent, { passive: true });
@@ -473,7 +473,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     root.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
     return () => { root.removeEventListener('scroll', onScroll); root.removeEventListener('touchstart', markUserIntent); root.removeEventListener('wheel', markUserIntent); root.removeEventListener('pointerdown', markUserIntent); };
-  }, [fullScreen, isMobileViewport, readingMode, loadNextMobilePage, page, mobileContinuousPages.length]);
+  }, [fullScreen, readingMode, loadNextMobilePage, page, mobileContinuousPages.length]);
 
   const activeSurahNumber = selected?.surah || pageData?.ayahs?.[0]?.surahNumber || bookmark.surah || 1;
   useEffect(() => {
@@ -744,7 +744,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     </article>;
   });
   if (!fullScreen) return <section className="faith-section-secondary quran-mobile-launch"><div><h3>Qur’an</h3><p>Continue from your saved Hifz or Muraja’ah position.</p><div><button onClick={() => openReader('hifz')}>Open Qur’an</button><button onClick={() => openReader('murajaah')}>Resume Muraja’ah</button></div></div></section>;
-  if (!isMobileViewport) return <section className="faith-section-secondary quran-mobile-launch"><div><h3>Qur’an reader</h3><p>Desktop reader layout is being rebuilt separately.</p><button onClick={() => setFullScreen(false)}>Close reader</button></div></section>;
   return <div className="quran-mobile-shell" ref={readerRef}>
     <header className="quran-mobile-header">
       {!mobileScrolled ? <>
