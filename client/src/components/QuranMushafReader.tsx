@@ -196,6 +196,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const [sidebarOpen, setSidebarOpen] = useState(() => window.matchMedia('(min-width: 768px)').matches);
   const [starredAyahs, setStarredAyahs] = useState<Array<{ surah: number; ayah: number }>>(() => { try { return JSON.parse(localStorage.getItem('atlas_mushaf_starred_ayahs_v1') || '[]'); } catch { return []; } });
   const [selected, setSelected] = useState<{ surah: number; ayah: number } | null>(null);
+  const [lockedAyahKey, setLockedAyahKey] = useState<string | null>(null);
   const [readingMode, setReadingMode] = useState<'translation' | 'reading' | 'arabic'>(() => { try { const saved = localStorage.getItem('atlas_mushaf_layout_v1'); return saved === 'translation' || saved === 'arabic' || saved === 'reading' ? saved : 'reading'; } catch { return 'reading'; } });
   const [tajweedEnabled, setTajweedEnabled] = useState(() => { try { return localStorage.getItem('atlas_mushaf_tajweed_v1') !== 'off'; } catch { return true; } });
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -562,7 +563,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   }, [mode, hifzMark, murajaahMark]);
 
   useEffect(() => {
-    if (!fullScreen) return;
+    if (!fullScreen || readingMode === 'reading') return;
     const root = readerRef.current;
     if (!root) return;
     const targets = Array.from(root.querySelectorAll<HTMLElement>('[data-mushaf-verse="true"]'));
@@ -597,6 +598,52 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     targets.forEach(target => observer.observe(target));
     return () => { observer.disconnect(); visible.clear(); };
   }, [fullScreen, readingMode, surahAyahs, pageData, page, pageReadingSurah, updateBookmark]);
+  // In Page by Page mode, let natural scrolling finish, then lock the ayah
+  // closest to the reader's focus line and persist that exact location.
+  useEffect(() => {
+    if (!fullScreen || readingMode !== 'reading' || loading || !pageData?.ayahs?.length) return;
+    const root = readerRef.current;
+    if (!root) return;
+    let settleTimer = 0;
+    const lockNearestAyah = () => {
+      const nodes = Array.from(root.querySelectorAll<HTMLElement>('[data-mushaf-verse="true"]'));
+      if (!nodes.length) return;
+      const header = root.querySelector<HTMLElement>('.quran-mobile-header');
+      const rootRect = root.getBoundingClientRect();
+      const headerHeight = header?.getBoundingClientRect().height || 0;
+      const focusY = rootRect.top + headerHeight + Math.max(36, (root.clientHeight - headerHeight) * 0.38);
+      let best: { node: HTMLElement; distance: number } | null = null;
+      for (const node of nodes) {
+        if (Number(node.dataset.surah) !== pageReadingSurah) continue;
+        const fragments = Array.from(node.getClientRects());
+        for (const rect of fragments) {
+          const distance = focusY < rect.top ? rect.top - focusY : focusY > rect.bottom ? focusY - rect.bottom : 0;
+          if (!best || distance < best.distance) best = { node, distance };
+        }
+      }
+      if (!best) return;
+      const surahNumber = Number(best.node.dataset.surah);
+      const ayahNumber = Number(best.node.dataset.ayah);
+      const pageNumber = clampPage(Number(best.node.dataset.page) || page);
+      if (!surahNumber || !ayahNumber) return;
+      const key = surahNumber + ':' + ayahNumber;
+      setLockedAyahKey(key);
+      setSelected(current => current?.surah === surahNumber && current.ayah === ayahNumber ? current : { surah: surahNumber, ayah: ayahNumber });
+      updateBookmark(pageNumber, { surahNumber, numberInSurah: ayahNumber });
+    };
+    const scheduleLock = () => {
+      window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(lockNearestAyah, 220);
+    };
+    root.addEventListener('scroll', scheduleLock, { passive: true });
+    // Establish a visible lock when a page first opens, including a restored bookmark.
+    scheduleLock();
+    return () => {
+      window.clearTimeout(settleTimer);
+      root.removeEventListener('scroll', scheduleLock);
+    };
+  }, [fullScreen, readingMode, loading, pageData, page, pageReadingSurah, updateBookmark]);
+
   const changePage = (next: number, location?: { surahNumber: number; numberInSurah: number }) => {
     userScrolledRef.current = false;
     const requestedPage = clampPage(next);
@@ -726,7 +773,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
       {runs.map(run => <Fragment key={`run-${run.surahNumber}`}>
         {run.startsSurah && renderSurahIntro(run.surahNumber, run.surahName, run.arabicName, run.surahNumber !== 9)}
         <p className="quran-mobile-page-arabic" dir="rtl" lang="ar" style={mobileArabicStyle}>
-          {run.ayahs.map(ayah => <span className="quran-mobile-page-ayah" key={ayah.number} data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={data.page}>{renderArabic(ayah)}{' '}</span>)}
+          {run.ayahs.map(ayah => { const key = ayah.surahNumber + ':' + ayah.numberInSurah; return <span className={'quran-mobile-page-ayah' + (lockedAyahKey === key ? ' is-locked' : '')} key={ayah.number} data-mushaf-verse="true" data-surah={ayah.surahNumber} data-ayah={ayah.numberInSurah} data-page={data.page} aria-current={lockedAyahKey === key ? 'location' : undefined}>{renderArabic(ayah)}{' '}</span>; })}
         </p>
       </Fragment>)}
       <div className="quran-mobile-page-divider"><span></span><b>{data.page}</b><span></span></div>
