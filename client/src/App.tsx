@@ -34,23 +34,26 @@ export function App() {
       <Route index element={<Navigate to="/today" replace />} />
       {/* Canonical eight-view destinations */}
       <Route path="/residence" element={<TodayPage />} />
+      <Route path="/home" element={<LegacyRedirect to="/residence" />} />
       <Route path="/today" element={<LegacyRedirect to="/residence" />} />
       <Route path="/values" element={<ValuesPage />} />
       <Route path="/quran" element={<QuranPage />} />
       <Route path="/habits" element={<HabitsSelfControlView />} />
-      <Route path="/execution" element={<FocusWorkspace />} />
+      <Route path="/actions" element={<FocusWorkspace />} />
+      <Route path="/execution" element={<LegacyRedirect to="/actions" />} />
       <Route path="/focus" element={<FocusWorkspace />} />
       <Route path="/calendar" element={<CalendarPage />} />
       <Route path="/goals" element={<GoalsPage />} />
       <Route path="/learning-library" element={<LearningLibraryView />} />
-      <Route path="/reviews-insights" element={<ReviewsInsightsView />} />
+      <Route path="/growth" element={<ReviewsInsightsView />} />
+      <Route path="/reviews-insights" element={<LegacyRedirect to="/growth" />} />
       {/* Legacy bookmarks and deep links remain valid and preserve query/hash context. */}
-      <Route path="/insights" element={<LegacyRedirect to="/reviews-insights" />} />
-      <Route path="/reviews" element={<LegacyRedirect to="/reviews-insights" />} />
+      <Route path="/insights" element={<LegacyRedirect to="/growth" />} />
+      <Route path="/reviews" element={<LegacyRedirect to="/growth" />} />
       <Route path="/rituals" element={<LegacyRedirect to="/habits" />} />
       <Route path="/self-control" element={<LegacyRedirect to="/habits" />} />
       <Route path="/projects" element={<LegacyRedirect to="/goals" />} />
-      <Route path="/tasks" element={<LegacyRedirect to="/execution" />} />
+      <Route path="/tasks" element={<LegacyRedirect to="/actions" />} />
       <Route path="/learning" element={<LegacyRedirect to="/goals" />} />
       <Route path="/library" element={<LegacyRedirect to="/learning-library" />} />
       <Route path="/settings" element={<SettingsPage />} />
