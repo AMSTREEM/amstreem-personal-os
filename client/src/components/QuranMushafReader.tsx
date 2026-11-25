@@ -188,8 +188,7 @@ async function loadQcfV4PageFont(page: number): Promise<QcfV4Font> {
   const theme = themeId.startsWith('light-') ? 'light' : themeId.includes('sepia') ? 'sepia' : 'dark';
   const firefox = /firefox/i.test(navigator.userAgent);
   const format = firefox ? 'ot-svg' : 'colrv1';
-  const routeTheme = firefox ? theme : 'palette';
-  const key = page + ':' + format + ':' + routeTheme;
+  const key = page + ':' + format + ':' + theme;
   const cached = qcfV4FontCache.get(key);
   if (cached) return cached;
   const task = (async () => {
