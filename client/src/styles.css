@@ -7063,3 +7063,23 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .signup-confirmation-screen .auth-panel { flex:1; padding:34px 24px 48px; }
   .signup-confirmation-screen .auth-panel__inner { max-width:520px; }
 }
+
+
+/* Tajweed guide swatches explain the supplied colour standard without changing Quran glyph colours. */
+.quran-tajweed-guide > p { margin:5px 0 12px; color:var(--text-secondary, var(--muted)); font-size:12px; line-height:1.55; }
+.quran-tajweed-guide-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px 16px; }
+.quran-tajweed-guide-item { display:flex; align-items:center; gap:9px; min-width:0; }
+.quran-tajweed-guide-swatch { width:12px; height:12px; flex:none; border-radius:50%; box-shadow:0 0 0 3px color-mix(in srgb,currentColor 13%,transparent); }
+.quran-tajweed-guide-swatch--deep-red { background:#b91c1c; color:#b91c1c; }
+.quran-tajweed-guide-swatch--red { background:#ef4444; color:#ef4444; }
+.quran-tajweed-guide-swatch--orange-red { background:#f05a24; color:#f05a24; }
+.quran-tajweed-guide-swatch--green { background:#16a34a; color:#16a34a; }
+.quran-tajweed-guide-swatch--dark-blue { background:#1d4ed8; color:#1d4ed8; }
+.quran-tajweed-guide-swatch--light-blue { background:#38bdf8; color:#38bdf8; }
+.quran-tajweed-guide-swatch--grey { background:#9ca3af; color:#9ca3af; }
+.quran-tajweed-guide-copy { display:grid; gap:2px; min-width:0; }
+.quran-tajweed-guide-copy b { color:var(--text-primary,var(--text)); font-size:11px; font-weight:650; }
+.quran-tajweed-guide-copy small { color:var(--text-secondary,var(--muted)); font-size:10px; line-height:1.4; }
+.quran-mobile-shell .quran-mobile-tajweed-legend .quran-tajweed-guide-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 14px; margin-top:10px; }
+.quran-mobile-shell .quran-mobile-tajweed-legend .quran-tajweed-guide-item { white-space:normal; }
+@media(max-width:520px) { .quran-tajweed-guide-grid { grid-template-columns:1fr; } }
