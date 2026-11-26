@@ -6876,7 +6876,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .quran-mobile-shell .quran-mobile-header-actions > button {
     width:29px; height:29px;
   }
-  .quran-mobile-shell .quran-mobile-header-actions > button[aria-label="Exit reader"] { display:none; }
+  
   .quran-mobile-shell .quran-mobile-tajweed-center {
     position:absolute; left:50%; bottom:-13px; transform:translateX(-50%);
     z-index:4; width:auto; margin:0; padding:0;
@@ -6942,7 +6942,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .quran-mobile-shell .quran-mobile-tajweed-center button { min-height:30px; padding:4px 7px !important; font-size:10px; gap:3px; }
   .quran-mobile-shell .quran-mobile-tajweed-center button svg { width:13px; height:13px; }
   .quran-mobile-shell .quran-mobile-header-actions > button { width:30px; height:30px; flex-basis:30px; }
-  .quran-mobile-shell .quran-mobile-header-actions > button[aria-label="Exit reader"] { display:none; }
+  
 }
 @media (min-width:768px) {
   .quran-desktop-shell .quran-mobile-top-row { min-height:58px !important; padding:8px 24px !important; }
@@ -7001,4 +7001,21 @@ html, body, #root, .app-frame, .main-area, .page-container {
     box-sizing: border-box;
     background: var(--bg-canvas);
   }
+}
+
+
+/* Keep a clear, tappable way out of the Mushaf on mobile and desktop. */
+.quran-mobile-shell .quran-mobile-header-actions > .quran-mobile-leave-button {
+  display:inline-flex !important; align-items:center; justify-content:center; gap:5px;
+  width:auto !important; min-width:64px; height:34px; flex:0 0 auto !important;
+  padding:0 9px !important; border:1px solid var(--border-hairline) !important;
+  border-radius:999px !important; color:var(--text-primary); background:var(--bg-surface);
+  font-size:12px; font-weight:650; white-space:nowrap; touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+.quran-mobile-shell .quran-mobile-header-actions > .quran-mobile-leave-button svg { flex:0 0 auto; }
+.quran-mobile-shell .quran-mobile-header-actions > .quran-mobile-leave-button:active { background:var(--bg-surface); transform:scale(.97); }
+@media (max-width:767px) {
+  .quran-mobile-shell .quran-mobile-header-actions { gap:4px !important; }
+  .quran-mobile-shell .quran-mobile-header-actions > .quran-mobile-leave-button { min-width:58px; height:32px; padding:0 7px !important; font-size:11px; }
 }
