@@ -6969,6 +6969,22 @@ html, body, #root, .app-frame, .main-area, .page-container {
 }
 
 
+/* Keep the mobile Mushaf toolbar pinned while the reader shell scrolls. */
+@media (max-width:767px) {
+  .quran-mobile-shell {
+    scroll-behavior:auto;
+    scroll-padding-top:var(--quran-mobile-snap-offset, 0px);
+  }
+  .quran-mobile-shell .quran-mobile-header {
+    position:sticky !important;
+    top:0 !important;
+    z-index:10001 !important;
+    align-self:stretch;
+    flex:0 0 auto;
+    transform:none;
+  }
+}
+
 /* Long Ayahs exceed the visible reading area: never snap or auto-correct them. */
 @media (max-width:767px) {
   .quran-mobile-shell.is-verse-mode .quran-mobile-verse-row.is-long-ayah {
