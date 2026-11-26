@@ -471,7 +471,7 @@ test('first-run walkthrough teaches the four-room structure and keeps its route 
   const tour = read('client/src/components/AtlasWalkthrough.tsx');
   assert.ok(tour.includes("const stepRoutes = ['/residence', '/daily-rhythm', '/actions', '/goals']"));
   for (const room of ['RESIDENCE', 'DAILY RHYTHM', 'EXECUTION & FOCUS', 'GROWTH & DIRECTION']) assert.ok(tour.includes(room));
-  assert.match(tour, /function goToStep/);
+  assert.match(tour, /const goToStep =/);
   assert.match(tour, /onClick=\{\(\) => goToStep\(i\)\}/);
   assert.doesNotMatch(tour, /⌘ 5|⌘ 6/);
 });
