@@ -7,7 +7,9 @@ type AuthState = {
   session: Session | null;
   user: UserProfile | null;
   role: string | null;
-  loading: boolean;\n  signupConfirmationPending: boolean;\n  continueAfterSignup: () => void;
+  loading: boolean;
+  signupConfirmationPending: boolean;
+  continueAfterSignup: () => void;
   signIn: (identifier: string, password: string) => Promise<void>;
   signUp: (name: string, username: string, email: string, password: string) => Promise<boolean>;
   signOut: () => Promise<void>;
@@ -21,7 +23,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [role, setRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);\n  const [signupConfirmationPending, setSignupConfirmationPending] = useState(initialAuthFlowType === 'signup');\n  const continueAfterSignup = useCallback(() => {\n    setSignupConfirmationPending(false);\n    window.history.replaceState(null, '', window.location.pathname);\n  }, []);
+  const [loading, setLoading] = useState(true);
+  const [signupConfirmationPending, setSignupConfirmationPending] = useState(initialAuthFlowType === 'signup');
+  const continueAfterSignup = useCallback(() => {
+    setSignupConfirmationPending(false);
+    window.history.replaceState(null, '', window.location.pathname);
+  }, []);
 
   const hydrate = useCallback(async (next: Session | null) => {
     if (!next) { setUser(null); setRole(null); return; }
