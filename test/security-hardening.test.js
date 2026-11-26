@@ -301,7 +301,8 @@ test('Atlas rooms use distinct spatial layouts, an actionable task inspector and
   assert.ok(css.includes('.execution-split.has-task-inspector'));
   assert.match(css, /execution-timer-ring__progress/);
   assert.match(css, /growth-horizon-layout/);
-  assert.match(residence, /--pulse-score/);
+  assert.match(residence, /residence-pulse__score/);
+  assert.match(residence, /Progress is personal/);
   assert.match(rhythm, /daily-rhythm-sanctuary/);
   assert.match(goals, /growth-horizon-layout/);
   assert.match(goals, /goals-horizon/);
