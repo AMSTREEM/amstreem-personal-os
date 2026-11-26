@@ -6714,23 +6714,6 @@ html, body, #root, .app-frame, .main-area, .page-container {
 }
 
 
-/* Mobile verse-by-verse alignment: native proximity snap plus header-aware settling. */
-@media (max-width: 767px) {
-  .quran-mobile-shell.is-verse-mode {
-    overflow-y: auto;
-    scroll-snap-type: y proximity;
-    scroll-behavior: smooth;
-  }
-  .quran-mobile-shell.is-verse-mode .quran-mobile-verse-row[data-mushaf-verse="true"] {
-    scroll-snap-align: start;
-    scroll-margin-top: var(--quran-mobile-snap-offset, 112px);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .quran-mobile-shell.is-verse-mode { scroll-behavior: auto; }
-  }
-}
-
-
 /* Compact mobile Mushaf chrome: reclaim reading space without hiding controls. */
 @media (max-width: 767px) {
   .quran-mobile-shell .quran-mobile-header {
@@ -6968,14 +6951,6 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .quran-desktop-shell .quran-mobile-tajweed-center button { min-height:34px; }
 }
 
-
-/* Long Ayahs exceed the visible reading area: never snap or auto-correct them. */
-@media (max-width:767px) {
-  .quran-mobile-shell.is-verse-mode .quran-mobile-verse-row.is-long-ayah {
-    scroll-snap-align:none !important;
-    scroll-snap-stop:normal !important;
-  }
-}
 
 /* Residence-only Qur’an feature card. Kept separate from the Mushaf reader styles. */
 .residence-quran-feature{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:190px;overflow:hidden;padding:clamp(20px,3vw,30px);border:1px solid color-mix(in srgb,#b99a62 34%,var(--line));background:radial-gradient(ellipse at 92% 8%,color-mix(in srgb,#b99a62 15%,transparent),transparent 46%),linear-gradient(125deg,color-mix(in srgb,#b99a62 7%,var(--surface)),var(--surface) 62%);}
