@@ -216,16 +216,15 @@ const qcfV4FontCache = new Map<string, Promise<QcfV4Font>>();
 async function loadQcfV4PageFont(page: number): Promise<QcfV4Font> {
   const themeId = document.documentElement.getAttribute('data-theme') || 'shadowed-alchemist';
   const theme: 'light' | 'dark' | 'sepia' = themeId.startsWith('light-') ? 'light' : themeId.includes('sepia') ? 'sepia' : 'dark';
-  const firefox = /firefox/i.test(navigator.userAgent);
-  const format = firefox ? 'ot-svg' : 'colrv1';
-  const key = page + ':' + format + ':' + theme;
+  // Use COLRv1 so Atlas can override the embedded CPAL Tajweed colours.
+  // Firefox falls back to the annotated Unicode renderer below: Quran Foundation's
+  // OT-SVG theme files have baked-in colours and cannot take Atlas's custom palette.
+  const key = page + ':colrv1:' + theme;
   const cached = qcfV4FontCache.get(key);
   if (cached) return cached;
   const task: Promise<QcfV4Font> = (async (): Promise<QcfV4Font> => {
-    const family = 'AtlasQcfV4P' + page + theme + (firefox ? '' : 'Color');
-    const fontUrl = format === 'ot-svg'
-      ? 'https://verses.quran.foundation/fonts/quran/hafs/v4/ot-svg/' + theme + '/woff2/p' + page + '.woff2'
-      : 'https://verses.quran.foundation/fonts/quran/hafs/v4/colrv1/woff2/p' + page + '.woff2';
+    const family = 'AtlasQcfV4P' + page + theme + 'Color';
+    const fontUrl = 'https://verses.quran.foundation/fonts/quran/hafs/v4/colrv1/woff2/p' + page + '.woff2';
     const fontFace = new FontFace(family, 'url(' + fontUrl + ')');
     fontFace.display = 'block';
     await fontFace.load();
@@ -233,7 +232,6 @@ async function loadQcfV4PageFont(page: number): Promise<QcfV4Font> {
     document.fonts.add(fontFace);
     await document.fonts.load('16px "' + family + '"');
     if (!document.fonts.check('16px "' + family + '"')) throw new Error('QCF V4 font is not available for page ' + page);
-    if (format === 'ot-svg') return { family, theme };
     const palette = '--AtlasQcfV4P' + page + theme;
     let style = document.getElementById('atlas-qcf-v4-palettes') as HTMLStyleElement | null;
     if (!style) {
@@ -242,7 +240,16 @@ async function loadQcfV4PageFont(page: number): Promise<QcfV4Font> {
       document.head.appendChild(style);
     }
     const basePalette = theme === 'dark' ? 1 : theme === 'sepia' ? 2 : 0;
-    style.textContent += '\n@font-palette-values ' + palette + ' { font-family: "' + family + '"; base-palette: ' + basePalette + '; }';
+    // Verified QCF V4 CPAL slots: 1/2/15 silent, 3 necessary madd,
+    // 4 permissible madd, 5 normal madd, 6 ghunnah, 7 tafkhim,
+    // 8 qalqalah, 9 obligatory madd. Keep non-rule ink/medallion slots
+    // from the selected built-in light/dark/sepia base palette.
+    const atlasTajweedOverrides = [
+      '1 #9ca3af', '2 #9ca3af', '3 #b91c1c', '4 #f05a24',
+      '5 #f05a24', '6 #16a34a', '7 #1d4ed8', '8 #38bdf8',
+      '9 #ef4444', '15 #9ca3af'
+    ].join(', ');
+    style.textContent += '\n@font-palette-values ' + palette + ' { font-family: "' + family + '"; base-palette: ' + basePalette + '; override-colors: ' + atlasTajweedOverrides + '; }';
     return { family, palette, theme };
   })();
   qcfV4FontCache.set(key, task);
@@ -345,6 +352,9 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
 
   useEffect(() => {
     if (!fullScreen || !tajweedEnabled || readingMode !== 'reading') return;
+    // QCF's Firefox OT-SVG files ship fixed colours; use Atlas's annotated
+    // Unicode Tajweed spans there rather than showing a mismatched font palette.
+    if (/firefox/i.test(navigator.userAgent)) return;
     const visiblePages = [...new Set([pageData?.page, ...desktopPageWindow.map(item => item.page)].filter((value): value is number => Number.isInteger(value)))];
     let cancelled = false;
     visiblePages.forEach(number => {
