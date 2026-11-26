@@ -1,13 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { isInvalidRefreshTokenError, supabase } from '../lib/supabase';
+import { initialAuthFlowType, isInvalidRefreshTokenError, supabase } from '../lib/supabase';
 
 type UserProfile = { id: string; email: string; name: string; username: string };
 type AuthState = {
   session: Session | null;
   user: UserProfile | null;
   role: string | null;
-  loading: boolean;
+  loading: boolean;\n  signupConfirmationPending: boolean;\n  continueAfterSignup: () => void;
   signIn: (identifier: string, password: string) => Promise<void>;
   signUp: (name: string, username: string, email: string, password: string) => Promise<boolean>;
   signOut: () => Promise<void>;
@@ -21,7 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [role, setRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);\n  const [signupConfirmationPending, setSignupConfirmationPending] = useState(initialAuthFlowType === 'signup');\n  const continueAfterSignup = useCallback(() => {\n    setSignupConfirmationPending(false);\n    window.history.replaceState(null, '', window.location.pathname);\n  }, []);
 
   const hydrate = useCallback(async (next: Session | null) => {
     if (!next) { setUser(null); setRole(null); return; }
@@ -128,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   }, []);
 
-  const value = useMemo(() => ({ session, user, role, loading, signIn, signUp, signOut, requestPasswordReset, updatePassword, completeOnboarding }), [session, user, role, loading, signIn, signUp, signOut, requestPasswordReset, updatePassword, completeOnboarding]);
+  const value = useMemo(() => ({ session, user, role, loading, signupConfirmationPending, continueAfterSignup, signIn, signUp, signOut, requestPasswordReset, updatePassword, completeOnboarding }), [session, user, role, loading, signupConfirmationPending, continueAfterSignup, signIn, signUp, signOut, requestPasswordReset, updatePassword, completeOnboarding]);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 
