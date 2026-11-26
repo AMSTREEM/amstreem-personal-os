@@ -28,7 +28,8 @@ export function App() {
   const hashType = new URLSearchParams(window.location.hash.slice(1)).get('type');
   const queryType = new URLSearchParams(window.location.search).get('type');
   if (hashType === 'recovery' || queryType === 'recovery') return <PasswordRecoveryPage />;
-  if (!session) return <AuthPage />;\n  if (signupConfirmationPending) return <SignupThankYouPage onContinue={continueAfterSignup} />;
+  if (!session) return <AuthPage />;
+  if (signupConfirmationPending) return <SignupThankYouPage onContinue={continueAfterSignup} />;
   return <Routes>
     <Route element={<AppShell />}>
       <Route index element={<Navigate to="/residence" replace />} />
