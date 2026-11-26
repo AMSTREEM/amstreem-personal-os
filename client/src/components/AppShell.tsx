@@ -22,7 +22,7 @@ import { useSpotlightGrid } from './fx/useSpotlightGrid';
 const MotionNavLink = motion.create(NavLink);
 
 const rooms = [
-  { id: 'home', label: 'Home', to: '/residence', icon: House, paths: ['/residence'] },
+  { id: 'home', label: 'Home', to: '/residence', icon: House, paths: ['/residence', '/blueprint'] },
   { id: 'actions', label: 'Actions', to: '/actions', icon: ListChecks, paths: ['/actions'] },
   { id: 'goals', label: 'Goals', to: '/goals', icon: Target, paths: ['/goals'] },
   { id: 'focus', label: 'Focus', to: '/focus', icon: Timer, paths: ['/focus'] },

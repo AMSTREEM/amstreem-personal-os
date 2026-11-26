@@ -5,6 +5,8 @@ import { useAuth } from './auth/AuthProvider';
 import { AuthPage } from './components/AuthPage';
 import { AppShell } from './components/AppShell';
 import { TodayPage } from './pages/TodayPage';
+import { AtlasHomePage } from './pages/AtlasHomePage';
+import { BlueprintPage } from './pages/BlueprintPage';
 import { GoalsPage } from './pages/GoalsPage';
 import { FocusWorkspace } from './components/FocusWorkspace';
 import { CalendarPage } from './pages/CalendarPage';
@@ -33,7 +35,9 @@ export function App() {
     <Route element={<AppShell />}>
       <Route index element={<Navigate to="/residence" replace />} />
       {/* Canonical eight-view destinations */}
-      <Route path="/residence" element={<TodayPage />} />
+      <Route path="/residence" element={<AtlasHomePage />} />
+      <Route path="/blueprint" element={<BlueprintPage />} />
+      <Route path="/daily-rhythm" element={<TodayPage />} />
       <Route path="/home" element={<LegacyRedirect to="/residence" />} />
       <Route path="/today" element={<LegacyRedirect to="/residence" />} />
       <Route path="/values" element={<ValuesPage />} />
