@@ -68,3 +68,6 @@
 @media (prefers-reduced-motion: reduce) {
   .module-subnav__link { transition: none; }
 }
+
+.route-loading { min-height: 36vh; display: grid; place-items: center; color: var(--muted); font-size: 12px; }
+@media (prefers-reduced-motion: reduce) { .route-loading { transition: none; } }

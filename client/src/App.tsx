@@ -1,22 +1,30 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
+import type { ReactNode } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './auth/AuthProvider';
 import { AuthPage } from './components/AuthPage';
 import { AppShell } from './components/AppShell';
-import { TodayPage } from './pages/TodayPage';
-import { AtlasHomePage } from './pages/AtlasHomePage';
-import { BlueprintPage } from './pages/BlueprintPage';
-import { GoalsPage } from './pages/GoalsPage';
-import { FocusWorkspace } from './components/FocusWorkspace';
-import { CalendarPage } from './pages/CalendarPage';
-import { ValuesPage } from './pages/ValuesPage';
 import { QuranPage } from './pages/QuranPage';
-import { HabitsSelfControlView, LearningLibraryView, ReviewsInsightsView } from './pages/ConsolidatedViews';
-import { SettingsPage } from './pages/SettingsPage';
-import { AdminPage } from './pages/AdminPage';
 import { PasswordRecoveryPage } from './pages/PasswordRecoveryPage';
 import { SignupThankYouPage } from './components/SignupThankYouPage';
+
+const TodayPage = lazy(() => import('./pages/TodayPage').then(module => ({ default: module.TodayPage })));
+const AtlasHomePage = lazy(() => import('./pages/AtlasHomePage').then(module => ({ default: module.AtlasHomePage })));
+const BlueprintPage = lazy(() => import('./pages/BlueprintPage').then(module => ({ default: module.BlueprintPage })));
+const GoalsPage = lazy(() => import('./pages/GoalsPage').then(module => ({ default: module.GoalsPage })));
+const FocusWorkspace = lazy(() => import('./components/FocusWorkspace').then(module => ({ default: module.FocusWorkspace })));
+const CalendarPage = lazy(() => import('./pages/CalendarPage').then(module => ({ default: module.CalendarPage })));
+const ValuesPage = lazy(() => import('./pages/ValuesPage').then(module => ({ default: module.ValuesPage })));
+const HabitsSelfControlView = lazy(() => import('./pages/ConsolidatedViews').then(module => ({ default: module.HabitsSelfControlView })));
+const LearningLibraryView = lazy(() => import('./pages/ConsolidatedViews').then(module => ({ default: module.LearningLibraryView })));
+const ReviewsInsightsView = lazy(() => import('./pages/ConsolidatedViews').then(module => ({ default: module.ReviewsInsightsView })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then(module => ({ default: module.SettingsPage })));
+const AdminPage = lazy(() => import('./pages/AdminPage').then(module => ({ default: module.AdminPage })));
+
+function SuspendedPage({ children }: { children: ReactNode }) {
+  return <Suspense fallback={<div className="route-loading" role="status" aria-live="polite">Opening your workspace…</div>}>{children}</Suspense>;
+}
 
 function LegacyRedirect({ to }: { to: string }) {
   const location = useLocation();
@@ -37,21 +45,21 @@ export function App() {
     <Route element={<AppShell />}>
       <Route index element={<Navigate to="/residence" replace />} />
       {/* Canonical eight-view destinations */}
-      <Route path="/residence" element={<AtlasHomePage />} />
-      <Route path="/blueprint" element={<BlueprintPage />} />
-      <Route path="/daily-rhythm" element={<TodayPage />} />
+      <Route path="/residence" element={<SuspendedPage><AtlasHomePage /></SuspendedPage>} />
+      <Route path="/blueprint" element={<SuspendedPage><BlueprintPage /></SuspendedPage>} />
+      <Route path="/daily-rhythm" element={<SuspendedPage><TodayPage /></SuspendedPage>} />
       <Route path="/home" element={<LegacyRedirect to="/residence" />} />
       <Route path="/today" element={<LegacyRedirect to="/residence" />} />
-      <Route path="/values" element={<ValuesPage />} />
+      <Route path="/values" element={<SuspendedPage><ValuesPage /></SuspendedPage>} />
       <Route path="/quran" element={<QuranPage />} />
-      <Route path="/habits" element={<HabitsSelfControlView />} />
-      <Route path="/actions" element={<FocusWorkspace />} />
+      <Route path="/habits" element={<SuspendedPage><HabitsSelfControlView /></SuspendedPage>} />
+      <Route path="/actions" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>} />
       <Route path="/execution" element={<LegacyRedirect to="/actions" />} />
-      <Route path="/focus" element={<FocusWorkspace />} />
-      <Route path="/calendar" element={<CalendarPage />} />
-      <Route path="/goals" element={<GoalsPage />} />
-      <Route path="/learning-library" element={<LearningLibraryView />} />
-      <Route path="/growth" element={<ReviewsInsightsView />} />
+      <Route path="/focus" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>} />
+      <Route path="/calendar" element={<SuspendedPage><CalendarPage /></SuspendedPage>} />
+      <Route path="/goals" element={<SuspendedPage><GoalsPage /></SuspendedPage>} />
+      <Route path="/learning-library" element={<SuspendedPage><LearningLibraryView /></SuspendedPage>} />
+      <Route path="/growth" element={<SuspendedPage><ReviewsInsightsView /></SuspendedPage>} />
       <Route path="/reviews-insights" element={<LegacyRedirect to="/growth" />} />
       {/* Legacy bookmarks and deep links remain valid and preserve query/hash context. */}
       <Route path="/insights" element={<LegacyRedirect to="/growth" />} />
@@ -62,8 +70,8 @@ export function App() {
       <Route path="/tasks" element={<LegacyRedirect to="/actions" />} />
       <Route path="/learning" element={<LegacyRedirect to="/goals" />} />
       <Route path="/library" element={<LegacyRedirect to="/learning-library" />} />
-      <Route path="/settings" element={<SettingsPage />} />
-      <Route path="/admin" element={role === "admin" ? <AdminPage /> : <Navigate to="/today" replace />} />
+      <Route path="/settings" element={<SuspendedPage><SettingsPage /></SuspendedPage>} />
+      <Route path="/admin" element={role === "admin" ? <SuspendedPage><AdminPage /></SuspendedPage> : <Navigate to="/today" replace />} />
       <Route path="*" element={<Navigate to="/today" replace />} />
     </Route>
   </Routes>;

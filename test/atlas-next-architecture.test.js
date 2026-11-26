@@ -454,3 +454,14 @@ test('personal intelligence suggestions are actionable, feedback-aware, and coun
   assert.match(insights, /feedback\.mutate\('not_useful'\)/);
   assert.match(insights, /feedback\.mutate\('opened'\)/);
 });
+
+
+test('route-level code splitting keeps the specialist Qur’an route statically loaded', () => {
+  const app = read('client/src/App.tsx');
+  assert.match(app, /const AtlasHomePage = lazy\(\(\) => import\('\.\/pages\/AtlasHomePage'\)/);
+  assert.match(app, /const FocusWorkspace = lazy\(\(\) => import\('\.\/components\/FocusWorkspace'\)/);
+  assert.match(app, /function SuspendedPage/);
+  assert.match(app, /import \{ QuranPage \} from '\.\/pages\/QuranPage'/);
+  assert.ok(app.includes('path="/quran" element={<QuranPage />}'));
+  assert.ok(!app.includes('lazy(() => import(\'./pages/QuranPage\')'));
+});

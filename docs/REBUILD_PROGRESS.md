@@ -228,3 +228,11 @@ No Render deployment or production Supabase data/schema change has been made fro
 - Added loading and error states so a temporary API failure is not presented as an empty or misleading insight.
 - Corrected the intelligence engine's focus comparisons to count only `session_kind='focus'` records; break sessions no longer inflate daily, weekly, or weekday focus patterns.
 - No new tables, external AI calls, or schema changes were introduced. Recommendations remain deterministic, explainable and derived from the current user's workspace records.
+
+
+## Full transformation — route-level performance · 2026-11-26
+
+- Added route-level lazy loading for Home, Blueprint, Daily Check-in, Faith, Habits, Actions/Focus, Calendar, Goals, Learning/Library, Reviews/Insights, Settings and Admin.
+- Kept the Qur'an page statically imported and its route untouched by the code-splitting pass. This avoids changing the reader's loading boundary while reducing the initial cost of unrelated destinations.
+- Added a lightweight, accessible page-loading fallback inside the persistent application shell so room navigation remains mounted while a destination chunk loads.
+- No dependency changes or server/data changes were required.
