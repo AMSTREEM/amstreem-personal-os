@@ -516,3 +516,11 @@ test('Qur’an remains a one-tap independent mobile destination outside the four
   assert.ok(shell.includes("location.pathname === '/quran' ? 'is-active' : ''"));
   assert.match(css, /grid-template-columns: repeat\(6, minmax\(0, 1fr\)\)/);
 });
+
+
+test('legacy bookmarks resolve to their matching rooms instead of losing their original meaning', () => {
+  const app = read('client/src/App.tsx');
+  assert.ok(app.includes('path="/today" element={<LegacyRedirect to="/daily-rhythm" />}'));
+  assert.ok(app.includes('path="/projects" element={<LegacyRedirect to="/actions" />}'));
+  assert.ok(app.includes('path="/home" element={<LegacyRedirect to="/residence" />}'));
+});

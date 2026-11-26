@@ -49,7 +49,7 @@ export function App() {
       <Route path="/blueprint" element={<SuspendedPage><BlueprintPage /></SuspendedPage>} />
       <Route path="/daily-rhythm" element={<SuspendedPage><TodayPage /></SuspendedPage>} />
       <Route path="/home" element={<LegacyRedirect to="/residence" />} />
-      <Route path="/today" element={<LegacyRedirect to="/residence" />} />
+      <Route path="/today" element={<LegacyRedirect to="/daily-rhythm" />} />
       <Route path="/values" element={<SuspendedPage><ValuesPage /></SuspendedPage>} />
       <Route path="/quran" element={<QuranPage />} />
       <Route path="/habits" element={<SuspendedPage><HabitsSelfControlView /></SuspendedPage>} />
@@ -66,7 +66,7 @@ export function App() {
       <Route path="/reviews" element={<LegacyRedirect to="/growth" />} />
       <Route path="/rituals" element={<LegacyRedirect to="/habits" />} />
       <Route path="/self-control" element={<LegacyRedirect to="/habits" />} />
-      <Route path="/projects" element={<LegacyRedirect to="/goals" />} />
+      <Route path="/projects" element={<LegacyRedirect to="/actions" />} />
       <Route path="/tasks" element={<LegacyRedirect to="/actions" />} />
       <Route path="/learning" element={<LegacyRedirect to="/learning-library" />} />
       <Route path="/library" element={<LegacyRedirect to="/learning-library" />} />

@@ -278,3 +278,9 @@ No Render deployment or production Supabase data/schema change has been made fro
 - Restored its one-tap mobile dock shortcut alongside the four rooms and More, matching the original direct-access affordance.
 - The Daily Rhythm room no longer marks Qur'an as one of its own subviews; desktop Personal Tools and the mobile dock/drawer keep direct access.
 - No Qur'an reader, data, font, Tajweed, recitation, bookmark or settings implementation was changed.
+
+
+## Full transformation — legacy route continuity · 2026-11-26
+
+- Preserved the meaning of existing bookmarks: `/today` now opens the preserved Daily Check-in rather than the new Residence Home, and `/projects` opens Execution & Focus rather than Goals.
+- Legacy redirects continue to preserve query strings and hash fragments.
