@@ -929,7 +929,9 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   );
   const renderArabic = (ayah: MushafAyah) => {
     const segments = tajweedEnabled && ayah.tajweedSegments?.length ? ayah.tajweedSegments : [{ text: ayah.text, className: '' }];
-    return <>{segments.map((segment, index) => <span key={index} className={tajweedEnabled ? segment.className : ''}>{segment.text}</span>)}{renderMedallion(ayah.numberInSurah)}</>;
+    return <>{segments.map((segment, index) => <span key={index} className={tajweedEnabled ? segment.className : ''}>{Array.from(segment.text).map((character, characterIndex) => character === '\\u0672'
+      ? <span key={characterIndex} className="quran-special-letter-fallback" style={{ fontFamily: '"Noto Naskh Arabic", "Scheherazade New", serif' }}>{character}</span>
+      : character)}</span>)}{renderMedallion(ayah.numberInSurah)}</>;
   };
   const bismillah = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
   const mobileArabicStyle = { fontFamily: `"${arabicFontFamily}", "Amiri Quran", serif`, fontSize: `${arabicFontSize}px` } as CSSProperties;
@@ -959,7 +961,10 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const renderPageAyah = (ayah: MushafAyah, data: MushafPage) => {
     const font = qcfV4Fonts[data.page];
     const words = (ayah.words || []).filter(word => word.charTypeName !== 'end' && word.charTypeName !== 'pause' && word.text);
-    if (tajweedEnabled && font && words.length && words.every(word => Boolean(word.codeV2))) {
+    // QCF's page-specific glyph font does not reliably cover U+0672 (ٲ).
+    // Use the Unicode renderer for this Ayah so that letter can use the
+    // dedicated Noto/Scheherazade fallback glyph without changing other text.
+    if (tajweedEnabled && font && words.length && words.every(word => Boolean(word.codeV2)) && !ayah.text.includes('\\u0672')) {
       return <>{words.map((word, index) => <Fragment key={ayah.number + ':qcf:' + index}><span className="quran-qcf-v4-word" style={qcfV4WordStyle(font)} dangerouslySetInnerHTML={{ __html: escapeQcfGlyphHtml(word.codeV2 || '') }} />{' '}</Fragment>)}{renderMedallion(ayah.numberInSurah)}</>;
     }
     return renderArabic(ayah);
