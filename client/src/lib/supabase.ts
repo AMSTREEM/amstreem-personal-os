@@ -1,5 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
+export const initialAuthFlowType = typeof window !== 'undefined'
+  ? new URLSearchParams(window.location.hash.slice(1)).get('type') || new URLSearchParams(window.location.search).get('type')
+  : null;
+
 const config = window.PERSONAL_OS_SUPABASE;
 
 if (!config?.url || !config?.publishableKey) {
