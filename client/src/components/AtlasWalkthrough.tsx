@@ -11,35 +11,35 @@ const steps = [
   {
     eyebrow: '01 · RESIDENCE',
     title: 'Start with what matters.',
-    description: 'Your Home gives you a clear view of your current direction, the next actions that matter, and the progress you have actually recorded. Your Life Blueprint connects those actions to the outcomes you care about.',
+    description: 'Your Home starts with one meaningful next move, then brings your open actions, longer-term direction and real progress into view. Your Life Blueprint connects the work you do today to the outcomes you care about.',
     rows: ['⌘ 1 · Residence', 'Your current direction · Next actions', 'Focus time · Life Blueprint'],
     label: 'SEE THE BIG PICTURE'
   },
   {
     eyebrow: '02 · DAILY RHYTHM',
     title: 'Give your days a rhythm.',
-    description: 'Use your daily check-in to stay aware of the day. Keep Faith & Practice and Habits & Self-Control in one calm room, while specialist tools such as Qur’an remain independently accessible.',
+    description: 'Shape your day without turning it into a scorecard. Keep reflection, Faith & Practice and Habits & Self-Control close, while specialist tools such as Qur’an remain independently accessible.',
     rows: ['⌘ 2 · Daily Rhythm', 'Daily Check-in · Faith & Practice', 'Habits & Self-Control · Qur’an'],
     label: 'BUILD A RHYTHM THAT LASTS'
   },
   {
     eyebrow: '03 · EXECUTION & FOCUS',
     title: 'Turn intention into action.',
-    description: 'Bring projects, tasks, calendar commitments and focused work together. Start with one clear action, protect time for it, and keep the session connected to the work it supports.',
+    description: 'Capture what is on your mind, choose the next action, and protect time to do it. Projects, tasks, calendar commitments and focus sessions stay connected.',
     rows: ['⌘ 3 · Execution & Focus', 'Projects & Tasks · Calendar', 'Focus timer · Linked sessions'],
     label: 'MAKE PROGRESS VISIBLE'
   },
   {
     eyebrow: '04 · GROWTH & DIRECTION',
     title: 'Build towards outcomes that matter.',
-    description: 'Give your goals a direction, connect them to learning and milestones, and review the evidence of how your work is changing over time.',
+    description: 'Set outcomes, connect them to learning and milestones, and review real evidence of how your work is changing over time.',
     rows: ['⌘ 4 · Growth & Direction', 'Goals & Milestones · Learning & Library', 'Reviews & Insights · Useful next steps'],
     label: 'GROW WITH INTENTION'
   },
   {
     eyebrow: 'PERSONAL BY DESIGN',
     title: 'Make Atlas yours.',
-    description: 'Choose the life areas you want to work on. Keep optional spaces optional, protect your private records, and change your priorities whenever life changes. Atlas should support your life, not become another obligation.',
+    description: 'Choose the areas that matter right now. Keep optional spaces optional, protect your private records, and change direction whenever life changes. Atlas should support your life—not become another obligation.',
     rows: ['Your life areas · Your priorities', 'Specialist tools · Private by design', 'A fresh start is always available'],
     label: 'YOUR LIFE. YOUR DIRECTION. YOUR GROWTH'
   }
@@ -106,7 +106,7 @@ export function AtlasWalkthrough({ onClose, onOpenCommand }: Props) {
         <aside className="atlas-tour__intro">
           <span className="atlas-tour__eyebrow">A GUIDED INTRODUCTION</span>
           <h2>Make room for what matters.</h2>
-          <p>Seven quick stops to see how Atlas helps you choose direction, take action and make meaningful progress.</p>
+          <p>Five quick stops to see how Atlas helps you choose direction, take action and make meaningful progress.</p>
           <div className="atlas-tour__progress" aria-label={`Step ${index + 1} of ${steps.length}`}><i style={{ width: `${((index + 1) / steps.length) * 100}%` }} /></div>
           <nav className="atlas-tour__nav" aria-label="Walkthrough steps">
             {steps.map((item, i) => <button key={item.label} type="button" aria-label={`Go to step ${i + 1}: ${item.title}`} aria-current={i === index ? 'step' : undefined} onClick={() => goToStep(i)}>{String(i + 1).padStart(2, '0')}</button>)}
@@ -126,7 +126,7 @@ export function AtlasWalkthrough({ onClose, onOpenCommand }: Props) {
         <button className="button button--ghost" type="button" onClick={finish}>Close tour</button>
         <div>
           <button className="button button--secondary" type="button" disabled={index === 0} onClick={() => goToStep(index - 1)}><ChevronLeft size={15} /> Back</button>
-          <button className="button button--primary" type="button" onClick={advance}>{index < steps.length - 1 ? <>Next <ChevronRight size={15} /></> : <>Open command dock <ChevronRight size={15} /></>}</button>
+          <button className="button button--primary" type="button" onClick={advance}>{index < steps.length - 1 ? <>Next <ChevronRight size={15} /></> : <>Start exploring <ChevronRight size={15} /></>}</button>
         </div>
       </footer>
     </motion.section>
