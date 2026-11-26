@@ -525,3 +525,14 @@
 .app-frame.atlas-renaissance .room4-resource-list .list-row { border-color:#ecebe3; }
 .app-frame.atlas-renaissance .insight-feedback button { border-color:#dfe3d7; background:#f5f6ef; color:#687a5d; }
 .app-frame.atlas-renaissance .insight-feedback button:hover { background:#eaf0e2; }
+
+/* Route components render inside the shared page frame; prevent a second nested gutter. */
+.app-frame.atlas-renaissance .page-container .page-container {
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding:0;
+}
+.app-frame.atlas-renaissance .room-view-transition { min-width:0; }
+.app-frame.atlas-renaissance .stack { min-width:0; }
+.app-frame.atlas-renaissance .stack > * { min-width:0; }
