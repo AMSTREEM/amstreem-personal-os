@@ -6142,7 +6142,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .quran-mobile-page-quick button:disabled,.quran-mobile-bottom-nav button:disabled { opacity:.35; }
   .quran-mobile-tajweed-center button { display:inline-flex; align-items:center; justify-content:center; gap:7px; }
   .quran-mobile-tajweed-center button.is-active { color:var(--accent,#d9ae59); border-color:var(--accent,#d9ae59); background:color-mix(in srgb,var(--accent,#d9ae59) 10%,var(--bg-surface)); }
-  .quran-mobile-verse-row { width:min(100%, 820px); box-sizing:border-box; margin:0 auto 18px; padding:12px clamp(18px, 3vw, 28px) 18px; border:0; border-bottom:1px solid color-mix(in srgb,var(--border-hairline) 72%,transparent); border-radius:0; background:transparent; box-shadow:none; }
+  .quran-mobile-verse-row { width:min(100%, 820px); box-sizing:border-box; margin:0 auto 18px; padding:12px clamp(18px, 3vw, 28px) 18px; border:0; border-bottom:1px solid color-mix(in srgb,var(--border-hairline) 45%,var(--text-secondary) 55%); border-radius:0; background:transparent; box-shadow:none; }
   .quran-mobile-verse-row:last-child { border-bottom:0; }
   .quran-mobile-verse-toolbar { display:flex; align-items:center; gap:12px; color:var(--text-secondary); font-size:12px; }
   .quran-mobile-verse-toolbar span { margin-right:auto; color:var(--text-secondary); font-weight:600; }
@@ -6370,7 +6370,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
   }
   .quran-mobile-page-quick button:disabled,.quran-mobile-bottom-nav button:disabled { opacity:.35; }
   .quran-mobile-bottom-nav.quran-mobile-reader-actions button.is-active { color:var(--accent,#d9ae59); border-color:var(--accent,#d9ae59); background:color-mix(in srgb,var(--accent,#d9ae59) 10%,var(--bg-surface)); }
-  .quran-mobile-verse-row { margin:0 auto 12px; padding:14px 18px 20px; border:0; border-bottom:1px solid color-mix(in srgb,var(--border-hairline) 72%,transparent); border-radius:0; background:transparent; box-shadow:none; }
+  .quran-mobile-verse-row { margin:0 auto 12px; padding:14px 18px 20px; border:0; border-bottom:1px solid color-mix(in srgb,var(--border-hairline) 45%,var(--text-secondary) 55%); border-radius:0; background:transparent; box-shadow:none; }
   .quran-mobile-verse-row:last-child { border-bottom:0; }
   .quran-mobile-verse-toolbar { display:flex; align-items:center; gap:12px; color:var(--text-secondary); font-size:12px; }
   .quran-mobile-verse-toolbar span { margin-right:auto; color:var(--text-secondary); font-weight:600; }
