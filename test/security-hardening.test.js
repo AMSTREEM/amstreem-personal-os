@@ -152,7 +152,7 @@ test('Room 3 uses the unified FocusWorkspace route and preserves project/task bo
   assert.match(app, /path="\/tasks" element={<LegacyRedirect to="\/actions" \/>}/);
   assert.match(app, /path="\/focus" element={<FocusWorkspace \/>}/);
   assert.match(shell, /to: '\/actions'/);
-  assert.match(shell, /label: 'Actions', to: '\/actions'/);
+  assert.ok(shell.includes("label: 'Execution & Focus', mobileLabel: 'Focus', to: '/actions'"));
   assert.match(css, /\.execution-heading/);
   assert.match(fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8'), /project/i);
 });
