@@ -250,30 +250,23 @@ test('Web Audio micro-feedback is zero-dependency, opt-in, quiet and tied to che
   assert.match(read('client/src/pages/ValuesPage.tsx'), /playAtlasFeedback\('tick'\)/);
 });
 
-test('first-run walkthrough explains the six Atlas destinations and personal life areas', () => {
+test('first-run walkthrough introduces the four Atlas rooms and personal life areas', () => {
   const tour = read('client/src/components/AtlasWalkthrough.tsx');
   const shell = read('client/src/components/AppShell.tsx');
-  const residence = read('client/src/pages/TodayPage.tsx');
-  assert.equal((tour.match(/title: '/g) || []).length, 7);
-  assert.match(tour, /Start with Home/);
-  assert.match(tour, /⌘ 6 · Calendar/);
+  const residence = read('client/src/pages/AtlasHomePage.tsx');
+  assert.equal((tour.match(/title: '/g) || []).length, 5);
+  assert.match(tour, /Start with what matters/);
+  assert.match(tour, /⌘ 4 · Growth & Direction/);
   assert.match(tour, /Choose the life areas you want to work on/);
-  assert.match(tour, /Today’s priorities/);
-  assert.match(tour, /Upcoming commitments/);
-  assert.match(tour, /Life-area context/);
-  assert.match(tour, /UNDERSTAND WHERE YOU ARE/);
-  assert.match(tour, /Qur’an, Learning Library and faith practices/);
-  assert.match(tour, /Measurable outcomes/);
-  assert.match(tour, /Focus timer · Study sessions/);
-  assert.match(tour, /Progress evidence/);
-  assert.match(tour, /Daily and weekly schedules/);
-  assert.match(tour, /Learning/);
-  assert.match(tour, /Reviews · Progress evidence/);
+  for (const view of ['Daily Check-in', 'Faith & Practice', 'Habits & Self-Control', 'Projects & Tasks', 'Calendar', 'Focus timer', 'Goals & Milestones', 'Learning & Library', 'Reviews & Insights']) {
+    assert.ok(tour.includes(view), 'Walkthrough is missing ' + view);
+  }
   assert.match(tour, /PERSONAL BY DESIGN/);
-  assert.match(tour, /navigate\(stepRoutes\[index\]\)/);
+  assert.match(tour, /const goToStep =/);
+  assert.match(tour, /goToStep\(index \+ 1\)/);
   assert.match(tour, /onOpenCommand\?\.\(\)/);
-  assert.match(shell, /onOpenCommand=\{\(\) => \{ setCommandOpen\(true\);/);
-  assert.match(residence, /Good \$\{rhythm/);
+  assert.match(shell, /onOpenCommand=/);
+  assert.match(residence, /Good morning/);
 });
 
 test('AlQuranCloud fetches canonical quran-uthmani and Sahih editions directly for page and Surah APIs', () => {
@@ -420,9 +413,9 @@ test('Residence is a direction-led Home, Life Blueprint is data-backed, and the 
   const shell = read('client/src/components/AppShell.tsx');
   const home = read('client/src/pages/AtlasHomePage.tsx');
   const blueprint = read('client/src/pages/BlueprintPage.tsx');
-  assert.ok(app.includes('path="/residence" element={<AtlasHomePage />}'));
-  assert.ok(app.includes('path="/blueprint" element={<BlueprintPage />}'));
-  assert.ok(app.includes('path="/daily-rhythm" element={<TodayPage />}'));
+  assert.ok(app.includes('path="/residence" element={<SuspendedPage><AtlasHomePage /></SuspendedPage>}'));
+  assert.ok(app.includes('path="/blueprint" element={<SuspendedPage><BlueprintPage /></SuspendedPage>}'));
+  assert.ok(app.includes('path="/daily-rhythm" element={<SuspendedPage><TodayPage /></SuspendedPage>}'));
   assert.ok(home.includes("api<HomeTask[]>('/tasks')"));
   assert.ok(home.includes("api<HomeGoal[]>('/goals')"));
   assert.ok(home.includes("api<FocusSession[]>('/sessions')"));
