@@ -71,7 +71,8 @@ const stripRawQuranMarkup = (value: string) => value
   .replace(/<span\s+class=["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '')
   .replace(/<[^>]+>/g, '')
   .replace(/\[[a-zA-Z]+(?::\d+)?\[/g, '')
-  .replace(/\]/g, '');
+  .replace(/\]/g, '')
+  .replace(/\u25CC/g, '');
 function parseBracketTajweed(markup: string): TajweedSegment[] {
   const source = String(markup || '').replace(/<span\s+class=["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '');
   const result: TajweedSegment[] = [];
@@ -79,9 +80,18 @@ function parseBracketTajweed(markup: string): TajweedSegment[] {
   const append = (text: string, className: string) => {
     if (!text) return;
     const normalized = normalizeMadinahArabic(stripRawQuranMarkup(text));
-    const previous = result[result.length - 1];
-    if (previous && previous.className === className) previous.text += normalized;
-    else if (normalized) result.push({ text: normalized, className });
+    for (const character of Array.from(normalized)) {
+      const previous = result[result.length - 1];
+      // Keep Arabic combining marks (including dagger alif U+0670) with the
+      // preceding base glyph even when Tajweed markup changes at that boundary.
+      if (/\p{M}/u.test(character) && previous) {
+        previous.text += character;
+      } else if (previous && previous.className === className) {
+        previous.text += character;
+      } else if (character) {
+        result.push({ text: character, className });
+      }
+    }
   };
   // Accept every HTML tag as syntax so generic tag names and attributes never leak.
   if (/<[^>]+>/.test(source)) {
@@ -153,7 +163,7 @@ const sanitizeMushafPage = (payload: MushafPage): MushafPage => ({
       tajweedSegments,
       translation: stripAyahEndMarker(stripRawQuranMarkup(ayah.translation || '')),
       translations: ayah.translations?.map(translation => ({ ...translation, text: stripAyahEndMarker(stripRawQuranMarkup(translation.text || '')) })),
-      words: ayah.words?.map(word => ({ ...word, text: stripRawQuranMarkup(word.text || ''), tajweed: stripRawQuranMarkup(word.tajweed || '') }))
+      words: ayah.words?.map(word => ({ ...word, text: stripRawQuranMarkup(word.text || ''), tajweed: stripRawQuranMarkup(word.tajweed || ''), codeV2: word.codeV2 ? stripRawQuranMarkup(word.codeV2) : word.codeV2 }))
     };
   })
 });
@@ -200,7 +210,10 @@ async function loadQcfV4PageFont(page: number): Promise<QcfV4Font> {
     const fontFace = new FontFace(family, 'url(' + fontUrl + ')');
     fontFace.display = 'block';
     await fontFace.load();
+    if (fontFace.status !== 'loaded') throw new Error('QCF V4 font did not reach the loaded state for page ' + page);
     document.fonts.add(fontFace);
+    await document.fonts.load('16px "' + family + '"');
+    if (!document.fonts.check('16px "' + family + '"')) throw new Error('QCF V4 font is not available for page ' + page);
     if (format === 'ot-svg') return { family, theme };
     const palette = '--AtlasQcfV4P' + page + theme;
     let style = document.getElementById('atlas-qcf-v4-palettes') as HTMLStyleElement | null;
@@ -218,7 +231,8 @@ async function loadQcfV4PageFont(page: number): Promise<QcfV4Font> {
 }
 const escapeQcfGlyphHtml = (value: string) => String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#39;');
 const qcfV4WordStyle = (font: QcfV4Font): CSSProperties => ({
-  fontFamily: '"' + font.family + '", serif',
+  // QCF code_v2 contains font-specific glyph IDs; never permit a system-font fallback.
+  fontFamily: '"' + font.family + '"',
   ...(font.palette ? { fontPalette: font.palette } : {})
 } as CSSProperties);
 const readBookmark = (key: string) => { try { const value = JSON.parse(localStorage.getItem(key) || '{}') || {}; return { page: clampPage(Number(value.page) || 1), surah: Number(value.surah) || 1, ayah: Number(value.ayah) || 1, updatedAt: String(value.updatedAt || '') }; } catch { return { page: 1, surah: 1, ayah: 1, updatedAt: '' }; } };
