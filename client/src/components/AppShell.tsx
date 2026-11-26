@@ -32,7 +32,7 @@ const rooms = [
   },
   {
     id: 'rhythm', label: 'Daily Rhythm', mobileLabel: 'Rhythm', to: '/daily-rhythm', icon: MoonStar,
-    paths: ['/daily-rhythm', '/values', '/habits', '/quran'],
+    paths: ['/daily-rhythm', '/values', '/habits'],
     tabs: [
       { label: 'Daily Check-in', to: '/daily-rhythm', paths: ['/daily-rhythm'] },
       { label: 'Faith & Practice', to: '/values', paths: ['/values'] },
@@ -297,6 +297,7 @@ export function AppShell() {
           const active = item.paths.includes(location.pathname);
           return <NavLink key={item.id} to={item.to} className={'atlas-mobile-dock__item ' + (active ? 'is-active' : '')} onClick={() => setMobileOpen(false)}><Icon size={18}/><span>{item.mobileLabel}</span></NavLink>;
         })}
+        <NavLink to="/quran" className={'atlas-mobile-dock__item atlas-mobile-dock__quran ' + (location.pathname === '/quran' ? 'is-active' : '')} onClick={() => setMobileOpen(false)}><BookOpen size={18}/><span>Qur’an</span></NavLink>
         <button type="button" className="atlas-mobile-dock__item" onClick={() => setMobileOpen(true)} aria-expanded={mobileOpen}><SlidersHorizontal size={18}/><span>More</span></button>
       </nav>
       <footer className="app-footer"><span>AMSTREEM ATLAS</span><span>Make room for what matters.</span></footer>

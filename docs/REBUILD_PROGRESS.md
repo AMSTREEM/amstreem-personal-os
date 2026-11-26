@@ -270,3 +270,11 @@ No Render deployment or production Supabase data/schema change has been made fro
 - Added deterministic Rollup vendor chunking for React, React Query, Supabase, Motion, React Router, Lucide icons, date utilities and validation.
 - Route-level code splitting remains in place; the Qur'an route remains statically loaded and no Qur'an implementation files were modified.
 - The previous build still emitted a roughly 968 kB main chunk after route splitting. This vendor chunking pass is intended to reduce the initial application bundle and improve long-term browser caching; final chunk sizes will be measured in the next staging build before considering the performance work complete.
+
+
+## Full transformation — preserve Qur'an quick access · 2026-11-26
+
+- Kept Qur'an outside the four-room navigation model as an independent specialist destination.
+- Restored its one-tap mobile dock shortcut alongside the four rooms and More, matching the original direct-access affordance.
+- The Daily Rhythm room no longer marks Qur'an as one of its own subviews; desktop Personal Tools and the mobile dock/drawer keep direct access.
+- No Qur'an reader, data, font, Tajweed, recitation, bookmark or settings implementation was changed.

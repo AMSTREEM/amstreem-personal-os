@@ -505,3 +505,14 @@ test('Vite keeps heavyweight vendor libraries in stable cacheable chunks', () =>
     assert.ok(vite.includes(chunk), 'Missing vendor chunk ' + chunk);
   }
 });
+
+
+test('Qur’an remains a one-tap independent mobile destination outside the four room hierarchy', () => {
+  const shell = read('client/src/components/AppShell.tsx');
+  const css = read('client/src/styles/atlas-rooms.css');
+  assert.ok(shell.includes("paths: ['/daily-rhythm', '/values', '/habits']"));
+  assert.ok(shell.includes('to="/quran"'));
+  assert.ok(shell.includes('atlas-mobile-dock__quran'));
+  assert.ok(shell.includes("location.pathname === '/quran' ? 'is-active' : ''"));
+  assert.match(css, /grid-template-columns: repeat\(6, minmax\(0, 1fr\)\)/);
+});

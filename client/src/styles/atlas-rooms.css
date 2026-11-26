@@ -71,3 +71,10 @@
 
 .route-loading { min-height: 36vh; display: grid; place-items: center; color: var(--muted); font-size: 12px; }
 @media (prefers-reduced-motion: reduce) { .route-loading { transition: none; } }
+
+@media (max-width: 767px) {
+  .atlas-mobile-dock { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .atlas-mobile-dock__item { gap: 3px; font-size: 9px; }
+  .atlas-mobile-dock__item > svg { width: 16px; height: 16px; }
+  .atlas-mobile-dock__item > span { white-space: nowrap; }
+}
