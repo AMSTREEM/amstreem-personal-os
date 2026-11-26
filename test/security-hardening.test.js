@@ -148,7 +148,7 @@ test('Room 3 uses the unified FocusWorkspace route and preserves project/task bo
   const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
   assert.ok(app.includes('path="/actions" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>}'));
-  assert.match(app, /path="\/projects" element={<LegacyRedirect to="\/goals" \/>}/);
+  assert.ok(app.includes('path="/projects" element={<LegacyRedirect to="/actions" />}'));
   assert.ok(app.includes('path="/actions" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>}'));
   assert.ok(app.includes('path="/focus" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>}'));
   assert.match(shell, /to: '\/actions'/);
