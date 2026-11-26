@@ -21,14 +21,14 @@ function LegacyRedirect({ to }: { to: string }) {
 }
 
 export function App() {
-  const { session, role, loading } = useAuth();
+  const { session, role, loading, signupConfirmationPending, continueAfterSignup } = useAuth();
   const queryClient = useQueryClient();
   useEffect(() => { queryClient.clear(); }, [session?.user.id, queryClient]);
   if (loading) return <div className="app-loading app-loading--skeleton"><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><div className="atlas-skeleton-block"/><div className="atlas-skeleton-block atlas-skeleton-block--short"/><div className="atlas-skeleton-block atlas-skeleton-block--wide"/></div>;
   const hashType = new URLSearchParams(window.location.hash.slice(1)).get('type');
   const queryType = new URLSearchParams(window.location.search).get('type');
   if (hashType === 'recovery' || queryType === 'recovery') return <PasswordRecoveryPage />;
-  if (!session) return <AuthPage />;
+  if (!session) return <AuthPage />;\n  if (signupConfirmationPending) return <SignupThankYouPage onContinue={continueAfterSignup} />;
   return <Routes>
     <Route element={<AppShell />}>
       <Route index element={<Navigate to="/residence" replace />} />
