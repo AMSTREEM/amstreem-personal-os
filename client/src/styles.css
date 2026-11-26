@@ -6982,3 +6982,20 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .mobile-more-life-areas > div > span { padding: 6px 8px; border: 1px solid var(--line-soft); border-radius: 999px; color: var(--muted); font-size: 10px; }
   .mobile-more-life-areas > a { min-height: 28px !important; padding: 0 !important; color: var(--accent-strong) !important; font-size: 10px !important; }
 }
+
+/* iOS installed-PWA Mushaf: keep the reader chrome below the translucent status bar. */
+@media (max-width: 767px) {
+  .quran-mobile-shell {
+    box-sizing: border-box;
+    height: 100vh;
+    height: 100dvh;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .quran-mobile-shell .quran-mobile-header {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 30;
+    flex: 0 0 auto;
+  }
+}
