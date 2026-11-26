@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Download, Upload } from 'lucide-react';
+import { Check, Download, Upload } from 'lucide-react';
 import { primeAtlasAudio } from '../lib/microFeedback';
 import { api, json } from '../lib/api';
 import { Button, Card, Field, PageHeader, TextInput } from '../components/ui';
@@ -23,6 +23,17 @@ function applyTheme(themeId: string) {
   const meta = document.querySelector('meta[name="theme-color"]');
   meta?.setAttribute('content', themeBackgrounds[themeId]);
 }
+const lifeAreaOptions = [
+  { id: 'health', name: 'Health & Fitness', desc: 'Training, nutrition and wellbeing', icon: '◈' },
+  { id: 'education', name: 'Education & Learning', desc: 'Studying, reading and new skills', icon: '⌁' },
+  { id: 'career', name: 'Career & Business', desc: 'Work, business and professional growth', icon: '↗' },
+  { id: 'finance', name: 'Financial Growth', desc: 'Budgeting, saving and financial goals', icon: '◇' },
+  { id: 'faith', name: 'Faith & Spirituality', desc: 'Faith, worship and spiritual development', icon: '✧' },
+  { id: 'personal', name: 'Personal Development', desc: 'Discipline, mindset and self-improvement', icon: '◎' },
+  { id: 'relationships', name: 'Relationships', desc: 'Family, friends and social connections', icon: '♡' },
+  { id: 'lifestyle', name: 'Lifestyle & Organisation', desc: 'Routines, time and daily life', icon: '⌂' }
+];
+const defaultLifeAreas = lifeAreaOptions.map(area => area.id);
 const themes = [
   { group: 'Dark', items: [
     { id: 'shadowed-alchemist', name: 'Shadowed Alchemist', note: 'Mysterious balanced', colors: ['#07080A','#0E1014','#CA8A04','#E4E4E7'] },
@@ -47,6 +58,7 @@ export function SettingsPage() {
   const [target, setTarget] = useState('80');
   const [theme, setTheme] = useState('shadowed-alchemist');
   const [features, setFeatures] = useState<string[]>(['calendar','focus','rituals','selfcontrol','learning','library','deen']);
+  const [selectedLifeAreas, setSelectedLifeAreas] = useState<string[]>(defaultLifeAreas);
   const [soundFeedback, setSoundFeedback] = useState(() => { try { return localStorage.getItem('atlas-sound-feedback') === 'on'; } catch { return false; } });
   const [message, setMessage] = useState('');
   useEffect(() => {
@@ -57,10 +69,11 @@ export function SettingsPage() {
       setTheme(settings.data.theme || 'shadowed-alchemist');
       applyTheme(settings.data.theme || 'shadowed-alchemist');
       try { setFeatures(settings.data.features ? JSON.parse(settings.data.features).map((feature: string) => feature === 'values' ? 'deen' : feature) : ['calendar','focus','rituals','selfcontrol','learning','library','deen']); } catch { setFeatures(['calendar','focus','rituals','selfcontrol','learning','library','deen']); }
+      try { const saved = settings.data.life_areas ? JSON.parse(settings.data.life_areas) : defaultLifeAreas; setSelectedLifeAreas(Array.isArray(saved) ? saved.filter((id: string) => lifeAreaOptions.some(area => area.id === id)) : defaultLifeAreas); } catch { setSelectedLifeAreas(defaultLifeAreas); }
     }
   }, [settings.data]);
   const save = useMutation({
-    mutationFn: () => { applyTheme(theme); return api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), theme, features })); },
+    mutationFn: () => { applyTheme(theme); return api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), theme, features, life_areas: selectedLifeAreas })); },
     onSuccess: () => { setMessage('Your preferences have been saved.'); void client.invalidateQueries({ queryKey: ['settings'] }); }
   });
   async function exportData() {
@@ -89,6 +102,7 @@ export function SettingsPage() {
       <form className="form-stack" onSubmit={event => { event.preventDefault(); save.mutate(); }}>
         <Field label="Display name"><TextInput value={name} onChange={event => setName(event.target.value)} placeholder="How Atlas should address you" /></Field>
         <Field label="North star"><TextInput value={northStar} onChange={event => setNorthStar(event.target.value)} placeholder="What are you orienting your effort around?" /></Field>
+        <Field label="Your life areas"><p className="field__hint">Choose the parts of life you want Atlas to help you improve. Your selection can change whenever your priorities do.</p><div className="settings-module-grid">{lifeAreaOptions.map(area => <label className="settings-module-choice" key={area.id}><input type="checkbox" checked={selectedLifeAreas.includes(area.id)} onChange={event => setSelectedLifeAreas(current => event.target.checked ? [...current, area.id] : current.filter(id => id !== area.id))} /><span><b>{area.name}</b><small>{area.desc}</small></span></label>)}</div><p className="field__hint">{selectedLifeAreas.length} of {lifeAreaOptions.length} areas selected. Select at least one area.</p></Field>
         <Field label="Daily focus intention (minutes)"><TextInput type="number" min="10" max="600" value={target} onChange={event => setTarget(event.target.value)} /></Field>
         <Field label="Optional workspace views"><p className="field__hint">Your six core pillars always stay available. Turn secondary views on or off as your workspace needs change.</p><div className="settings-module-grid">{[{id:'calendar',name:'Calendar',desc:'A calendar view inside Projects & Tasks.'},{id:'library',name:'Personal Library',desc:'A library tab inside Learning Studio.'}].map(module => <label className="settings-module-choice" key={module.id}><input type="checkbox" checked={features.includes(module.id)} onChange={event => setFeatures(current => event.target.checked ? [...current,module.id] : current.filter(id => id !== module.id))} /><span><b>{module.name}</b><small>{module.desc}</small></span></label>)}</div></Field>
         <Field label="Micro-feedback"><label className="settings-module-choice"><input type="checkbox" checked={soundFeedback} onChange={event => { const enabled = event.target.checked; setSoundFeedback(enabled); try { localStorage.setItem('atlas-sound-feedback', enabled ? 'on' : 'off'); } catch { /* Optional audio. */ } if (enabled) primeAtlasAudio(); }} /><span><b>Subtle sound cues</b><small>Quiet 15ms ticks for task and prayer check-offs, plus a soft Focus completion chime. Off by default.</small></span></label></Field>
@@ -100,13 +114,13 @@ export function SettingsPage() {
                 {group.items.map(item => <button key={item.id} type="button" className="theme-preset" aria-pressed={theme === item.id} onClick={() => { setTheme(item.id); applyTheme(item.id); }}>
                   <span className="theme-preset__swatches" aria-hidden="true">{item.colors.map((color, index) => <i key={index} style={{ background: color }} />)}</span>
                   <span className="theme-preset__copy"><b>{item.name}</b><small>{item.note}</small></span>
-                  <span className="theme-preset__check">{theme === item.id ? '✓' : ''}</span>
+                  <span className="theme-preset__check">{theme === item.id ? <Check size={14} strokeWidth={2.4}/> : null}</span>
                 </button>)}
               </div>
             </section>)}
           </div>
         </Field>
-        <div><Button type="submit" disabled={save.isPending}>Save preferences</Button></div>
+        <div><Button type="submit" disabled={save.isPending || selectedLifeAreas.length === 0}>Save preferences</Button></div>
       </form>
       {message && <p className="form-message" role="status">{message}</p>}
     </Card>

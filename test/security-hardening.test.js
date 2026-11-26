@@ -43,6 +43,7 @@ test('production installs dependencies, builds the frontend, and CI audits all d
 
 
 test('Residence pins saved priorities, completes them inline, and links focus to the selected task', () => {
+  const quran = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'QuranPage.tsx'), 'utf8');
   const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
   const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
   assert.match(residence, /YOUR PINNED TOP 3/);
@@ -73,13 +74,14 @@ test('Daily Rhythm records persist per workspace and remain compatible with olde
 
 test('Daily Rhythm separates planned from completed records and updates Residence Activity Pulse', () => {
   const rhythm = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ValuesPage.tsx'), 'utf8');
+  const quran = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'QuranPage.tsx'), 'utf8');
   const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
   const focus = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
   assert.match(rhythm, /status: 'planned'\|'completed'\|'active'\|'answered'/);
   assert.match(rhythm, /value:'qada'/);
   assert.match(rhythm, /Jumu’ah checklist/);
   assert.match(rhythm, /P-R-A-Y Reflection|P-R-A-Y REFLECTION/);
-  assert.match(rhythm, /<QuranMushafReader (?:autoOpen=\{[^}]+\} )?settings=/);
+  assert.match(quran, /<QuranMushafReader[\s\S]*settings=/);
   assert.match(rhythm, /Start Devotional Focus/);
   assert.match(rhythm, /Clarity & Reflection/);
   assert.match(rhythm, /invalidateQueries\(\{ queryKey: \['rhythm-summary'\] \}\)/);
@@ -109,8 +111,8 @@ test('Self-Control consistency uses dated records and positive habit check-ins, 
   assert.match(server, /return \{\.\.\.habit,streak\}/);
   assert.match(selfControl, /verified clean check-ins/);
   assert.match(rituals, /invalidateQueries\(\{ queryKey: \['self-control'\] \}\)/);
-  assert.match(shell, /Deen & Qur’an/);
-  assert.match(shell, /Faith & Reflection/);
+  assert.match(shell, /label: 'Faith & Spirituality'/);
+  assert.match(shell, /Faith & Spirituality/);
   assert.match(shell, /Daily Reflection/);
 });
 
@@ -127,7 +129,7 @@ test('Room 3 records focus completion once and derives linked work metrics from 
   assert.match(server, /progress_pct:\s*p\.task_count\s*\?/);
   assert.match(server, /parent_task_id INTEGER REFERENCES tasks\(id\) ON DELETE CASCADE/);
   assert.match(server, /goal_id INTEGER REFERENCES goals\(id\) ON DELETE SET NULL, created_at TEXT DEFAULT CURRENT_TIMESTAMP\);/);
-  assert.match(execution, /ROOM 03 \/ EXECUTION & FOCUS/);
+  assert.match(execution, /ACTIONS \/ DAILY EXECUTION/);
   assert.match(execution, /\['25','25m'\],\['50','50m'\],\['80','80m'\]/);
   assert.match(execution, /session_key:timer\.sessionKey/);
   assert.match(execution, /savedKeys\.current\.has\(timer\.sessionKey\)/);
@@ -145,12 +147,12 @@ test('Room 3 uses the unified FocusWorkspace route and preserves project/task bo
   const app = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'App.tsx'), 'utf8');
   const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
-  assert.match(app, /path="\/execution" element={<FocusWorkspace \/>}/);
+  assert.match(app, /path="\/actions" element={<FocusWorkspace \/>}/);
   assert.match(app, /path="\/projects" element={<LegacyRedirect to="\/goals" \/>}/);
-  assert.match(app, /path="\/tasks" element={<LegacyRedirect to="\/execution" \/>}/);
+  assert.match(app, /path="\/tasks" element={<LegacyRedirect to="\/actions" \/>}/);
   assert.match(app, /path="\/focus" element={<FocusWorkspace \/>}/);
-  assert.match(shell, /to: '\/execution'/);
-  assert.match(shell, /label: 'Tasks', to: '\/execution'/);
+  assert.match(shell, /to: '\/actions'/);
+  assert.match(shell, /label: 'Actions', to: '\/actions'/);
   assert.match(css, /\.execution-heading/);
   assert.match(fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8'), /project/i);
 });
@@ -266,9 +268,9 @@ test('Room 3 has a dedicated Focus Room with safe context handoffs and a persist
   const learning = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LearningPage.tsx'), 'utf8');
   const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
-  assert.match(app, /path="\/execution" element={<FocusWorkspace \/>}/);
+  assert.match(app, /path="\/actions" element={<FocusWorkspace \/>}/);
   assert.match(app, /path="\/focus" element={<FocusWorkspace \/>}/);
-  assert.match(shell, /paths: \['\/focus', '\/execution'\]/);
+  assert.match(shell, /paths: \['\/focus'\]/);
   assert.match(shell, /label: 'Focus', to: '\/focus'/);
   assert.match(shell, /navigate\('\/focus'\)/);
   assert.match(shell, /className="atlas-command-dock"/);
@@ -299,7 +301,8 @@ test('Atlas rooms use distinct spatial layouts, an actionable task inspector and
   assert.ok(css.includes('.execution-split.has-task-inspector'));
   assert.match(css, /execution-timer-ring__progress/);
   assert.match(css, /growth-horizon-layout/);
-  assert.match(residence, /--pulse-score/);
+  assert.match(residence, /residence-pulse__score/);
+  assert.match(residence, /Progress is personal/);
   assert.match(rhythm, /daily-rhythm-sanctuary/);
   assert.match(goals, /growth-horizon-layout/);
   assert.match(goals, /goals-horizon/);

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Cascade } from '../components/Cascade';
 import { playAtlasFeedback } from '../lib/microFeedback';
@@ -12,7 +12,7 @@ import { CelestialHorizon } from '../components/fx/FlagshipInstruments';
 import { RitualDeck } from '../components/fx/RitualDeck';
 import { DailyArtifact } from '../components/fx/DailyArtifact';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, BookOpen, Flame, MoonStar, Plus, Target, Timer, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, CalendarDays, Flame, FolderKanban, Heart, MoonStar, Plus, ShieldCheck, Sparkles, Sun, Target, Timer, Zap } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { Card, EmptyState, PageHeader } from '../components/ui';
@@ -26,7 +26,7 @@ type Prayer = { prayer: string; completed: number; on_time: number };
 type Deen = { date: string; prayers: Prayer[]; quran: { activity: string; pages: number; entries: number }[]; tahajjud: { woke_up: number; prayed: number } };
 type Faith = { activity: string; completed: number };
 type RhythmSummary = { date: string; tradition: string; completed: number; planned: number; total: number; records: { id: number; record_type: string; title: string; status: string }[] };
-type Goal = { id: number; title: string; target_date: string | null; status: string };
+type Goal = { id: number; title: string; target_date: string | null; status: string; category?: string };
 type Announcement = { id: number; title: string; body: string; kind: string; created_at: string; published_at: string | null };
 type DailyReview = { id: number; period_type: 'daily' | 'weekly'; period_start: string; period_end: string; wins: string; challenges: string; lessons: string; next_focus: string; intention: string; priority_task_ids: number[]; alignment_complete: number; shutdown_complete: number; updated_at: string };
 type AnnouncementFeed = { items: Announcement[]; readIds: number[] };
@@ -36,6 +36,16 @@ type StoredTimer = { remaining: number; deadline: number | null; taskId?: string
 type FocusSession = { session_date: string; minutes: number; focus: string };
 const TIMER_KEY = 'atlas-focus-timer-v1';
 const faithPractices = ['bible', 'prayer', 'reflection', 'worship', 'service'];
+const lifeAreaCards = [
+  { id: 'health', title: 'Health & Fitness', detail: 'Training, nutrition and wellbeing', categories: ['health'], to: '/habits', icon: ShieldCheck, tone: 'self' },
+  { id: 'education', title: 'Education & Learning', detail: 'Study, reading and new skills', categories: ['learning', 'education'], to: '/learning-library', icon: BookOpen, tone: 'learning' },
+  { id: 'career', title: 'Career & Business', detail: 'Work, business and professional growth', categories: ['career', 'business'], to: '/goals', icon: FolderKanban, tone: 'projects' },
+  { id: 'finance', title: 'Financial Growth', detail: 'Saving and financial outcomes', categories: ['finance'], to: '/goals', icon: Target, tone: 'goals' },
+  { id: 'faith', title: 'Faith & Spirituality', detail: 'Worship and spiritual development', categories: ['faith'], to: '/values', icon: MoonStar, tone: 'deen' },
+  { id: 'personal', title: 'Personal Development', detail: 'Discipline and self-improvement', categories: ['personal'], to: '/habits', icon: Heart, tone: 'self' },
+  { id: 'relationships', title: 'Relationships', detail: 'Family, friends and connection', categories: ['relationships'], to: '/goals', icon: Heart, tone: 'projects' },
+  { id: 'lifestyle', title: 'Lifestyle & Organisation', detail: 'Routines, time and daily life', categories: ['lifestyle'], to: '/calendar', icon: CalendarDays, tone: 'focus' }
+];
 
 function todayKey() {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
@@ -92,6 +102,11 @@ export function TodayPage() {
   useEffect(() => { const tick = window.setInterval(() => setWallClock(Date.now()), 30000); return () => window.clearInterval(tick); }, []);
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Settings>('/settings') });
   const religion = settings.data?.faith_tradition || settings.data?.religion || 'none';
+  let selectedLifeAreas: string[] = lifeAreaCards.map(area => area.id);
+  try {
+    const savedAreas = settings.data?.life_areas ? JSON.parse(settings.data.life_areas) : null;
+    if (Array.isArray(savedAreas)) selectedLifeAreas = savedAreas.filter((id: string) => lifeAreaCards.some(area => area.id === id));
+  } catch { /* Existing workspaces retain the full default set. */ }
   let showCalendar = true;
   if (settings.data?.features) { try { showCalendar = JSON.parse(settings.data.features).includes('calendar'); } catch { showCalendar = true; } }
   const dailyReviews = useQuery({ queryKey: ['reviews', 'daily'], queryFn: () => api<DailyReview[]>('/reviews?period=daily') });
@@ -255,10 +270,10 @@ export function TodayPage() {
   const finishRitual=(values:{first:string;second:string;third:string;fourth:string})=>{if(ritualMode==='morning'){setDailyIntention(values.first);saveDaily.mutate({intention:values.first,priority_task_ids:priorityTaskIds,alignment_complete:1},{onSuccess:()=>{playAtlasFeedback('complete');triggerSparkBurst(window.innerWidth/2,window.innerHeight*.42);setRitualMode(null);navigate('/focus');}});}else{setShutdownWins(values.first);setShutdownLessons(values.second);setShutdownChallenges(values.third);setShutdownNextFocus(values.fourth);saveDaily.mutate({wins:values.first,lessons:values.second,challenges:values.third,next_focus:values.fourth,shutdown_complete:[values.first,values.third,values.second,values.fourth].every(v=>v.trim())?1:0},{onSuccess:()=>{playAtlasFeedback('complete');triggerSparkBurst(window.innerWidth/2,window.innerHeight*.42);setRitualMode(null);}});}};
   return <Cascade className="stack today-dashboard">
     <section className="residence-band residence-band--orientation" aria-label="Today's orientation">
-      <PageHeader eyebrow={new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()).toUpperCase()} title={`Good ${rhythm === 'day' ? 'afternoon' : rhythm}, ${settings.data?.display_name?.trim() || user?.name || user?.username || 'there'}`} description="Your Residence: a clear view of today’s priorities, routines, focus and progress." action={showCalendar ? <Link className="button button--secondary" to="/calendar">View calendar <ArrowRight size={14} /></Link> : undefined} />
-      {religion === 'islam' && <Link className="residence-quran-resume" to="/values?openMushaf=1"><BookOpen size={15}/> Open Qur’an · Hifz P.{hifzPage} <ArrowRight size={13}/></Link>}
+      <PageHeader eyebrow={new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Lagos', weekday: 'long', day: 'numeric', month: 'long' }).format(new Date()).toUpperCase()} title={`Good ${rhythm === 'day' ? 'afternoon' : rhythm}, ${settings.data?.display_name?.trim() || user?.name || user?.username || 'there'}`} description="Your Home: a clear view of today’s priorities, commitments, focus and progress across the areas that matter to you." action={showCalendar ? <Link className="button button--secondary" to="/calendar">View calendar <ArrowRight size={14} /></Link> : undefined} />
+      {religion === 'islam' && <Link className="residence-quran-resume" to="/quran"><BookOpen size={15}/> Open Qur’an · Hifz P.{hifzPage} <ArrowRight size={13}/></Link>}
       <CelestialHorizon/>
-      <div className="atlas-ritual-launchers"><button type="button" className="button button--secondary" onClick={()=>setRitualMode('morning')}>✧ Start Morning Kickoff</button><button type="button" className="button button--ghost" onClick={()=>setRitualMode('evening')}>☾ Evening Shutdown</button>{(prioritiesCompleted||completedFocusBlocks>0)&&<button type="button" className="button button--artifact" onClick={()=>setArtifactOpen(true)}>✦ Daily Artifact</button>}</div>
+      <div className="atlas-ritual-launchers"><button type="button" className="button button--secondary" onClick={()=>setRitualMode('morning')}><Sun size={14}/> Start Morning Kickoff</button><button type="button" className="button button--ghost" onClick={()=>setRitualMode('evening')}><MoonStar size={14}/> Evening Shutdown</button>{(prioritiesCompleted||completedFocusBlocks>0)&&<button type="button" className="button button--artifact" onClick={()=>setArtifactOpen(true)}><Sparkles size={14}/> Daily Artifact</button>}</div>
       <section className="residence-rhythm"><div><span className="eyebrow">{rhythmCopy.eyebrow}</span><span className="residence-rhythm-title-mask"><motion.h2 initial={reduceMotion ? false : { y: "105%", opacity: 0 }} animate={{ y: "0%", opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.28, delay: 0.07, ease: [0.16, 1, 0.3, 1] }}>{rhythmCopy.title}</motion.h2></span><p>{rhythmCopy.detail}</p></div><span className="residence-rhythm-time">{new Intl.DateTimeFormat('en-GB',{timeZone:'Africa/Lagos',hour:'2-digit',minute:'2-digit'}).format(new Date())} WAT</span></section>
       {yesterdayReview?.shutdown_complete && yesterdayReview.next_focus?.trim() && <div className="residence-carryforward"><span className="eyebrow">YOUR FIRST MEANINGFUL STEP</span><p>{yesterdayReview.next_focus}</p><small>Carried forward from yesterday’s shutdown</small></div>}
     <section className="residence-rhythm-action" aria-live="polite">
@@ -302,23 +317,26 @@ export function TodayPage() {
 
     <section className="residence-band residence-band--overview" aria-label="Life at a glance"><MagneticDotField/>
       <div className="residence-band-heading"><span className="eyebrow">02 / YOUR LIFE AT A GLANCE</span><p>Connected areas of your life, with activity drawn from your existing records.</p></div>
-      <section className="residence-pillar-grid" aria-label="Six life pillars">
-      {[
-        {title:religion === 'islam' ? 'Deen & Reflection' : religion === 'christianity' ? 'Faith & Reflection' : 'Daily Clarity',detail:religion === 'islam' ? prayerCount + '/5 salah · ' + (rhythmSummary.data?.completed || 0) + ' practices completed' : religion === 'christianity' ? (rhythmSummary.data?.completed || 0) + ' faith activities completed' : (rhythmSummary.data?.completed || 0) + ' clarity activities completed',to:'/values',symbol:'☾',tone:'deen'},
-        {title:'Self-Control & Streaks',detail:'Habits and commitments',to:'/self-control',symbol:'◇',tone:'self'},
-        {title:'Projects & Tasks',detail:'Turn plans into progress',to:'/projects',symbol:'↗',tone:'projects'},
-        {title:'Focus Room',detail:'Protect your attention',to:'/focus',symbol:'◷',tone:'focus'},
-        {title:'Learning Studio',detail:'Build knowledge deliberately',to:'/learning',symbol:'▤',tone:'learning'},
-        {title:'Goals',detail:'Keep long-term direction visible',to:'/goals',symbol:'◎',tone:'goals'}
-      ].map(pillar=><Link className={'residence-pillar atlas-spotlight residence-pillar--'+pillar.tone} to={pillar.to} key={pillar.to}><span>{pillar.symbol}</span><div><b>{pillar.title}</b><small>{pillar.detail}</small></div><ArrowRight size={14}/></Link>)}
+      <section className="residence-pillar-grid" aria-label="Your selected life areas">
+      {lifeAreaCards.filter(area => selectedLifeAreas.includes(area.id)).map(area => {
+        const Icon = area.icon;
+        const linkedGoals = (goals.data || []).filter(goal => goal.status === 'active' && area.categories.includes((goal.category || '').toLowerCase()));
+        const detail = area.id === 'faith'
+          ? religion === 'islam' ? prayerCount + '/5 salah · ' + (rhythmSummary.data?.completed || 0) + ' practices today' : (rhythmSummary.data?.completed || 0) + ' faith activities today'
+          : linkedGoals.length ? linkedGoals.length + ' active outcome' + (linkedGoals.length === 1 ? '' : 's') + ' connected' : area.detail + ' · Add an outcome when ready';
+        return <Link className={'residence-pillar atlas-spotlight residence-pillar--' + area.tone} to={area.to} key={area.id}>
+          <span className="residence-pillar__icon"><Icon size={19} strokeWidth={1.8}/></span>
+          <div><b>{area.title}</b><small>{detail}</small></div><ArrowRight size={14}/>
+        </Link>;
+      })}
     </section>
     <Card className="residence-pulse-card">
       <section className="residence-pulse" aria-label="Your daily activity pulse">
         <div className="residence-pulse__top">
           <div className="residence-pulse__main">
             <div className="residence-pulse__heading"><span className="eyebrow">TODAY'S ACTIVITY PULSE</span><span className="residence-pulse__date">{today}</span></div>
-            <div className="residence-pulse__score" style={{ "--pulse-score": activityPulse + "%" } as CSSProperties & { "--pulse-score": string }}><OdometerNumber value={activityPulse} suffix="%"/><span>across 3 active areas</span></div>
-            <p>A clear snapshot of today's Deen, habits and focused work — based only on activity you choose to track.</p>
+            <div className="residence-pulse__score"><span>Progress is personal.</span></div>
+            <p>These are separate activity signals, not a combined life score. Use them to understand your day without reducing every area of life to one number.</p>
           </div>
           <div className="residence-pulse__core" aria-hidden="true"><FerrofluidCore active={focusRunning || prioritiesCompleted}/></div>
         </div>
@@ -346,7 +364,7 @@ export function TodayPage() {
       <section className="residence-main-column">
         <Card className={"residence-pinned-priorities"+(prioritiesCompleted?" is-harmonically-locked":"")}>
           <div className="residence-section-heading"><div><span className="eyebrow">YOUR PINNED TOP 3</span><h2>Today’s execution</h2><p>{pinnedPriorityTasks.filter(task => !!task.done).length}/3 Harmonic Lock-In · {pinnedPriorityTasks.filter(task => !!task.done).length} priorities complete</p>{prioritiesCompleted && <span className="residence-day-secured">Day Secured · Come back tomorrow for Evening Shutdown</span>}</div><button type="button" className="text-link" onClick={() => setEditingAlignment(true)}>Edit plan <ArrowRight size={13}/></button></div>
-          {prioritiesCompleted&&<button type="button" className="atlas-artifact-trigger" onClick={()=>setArtifactOpen(true)}>✦ View today’s proof-of-work artifact <ArrowRight size={13}/></button>}
+          {prioritiesCompleted&&<button type="button" className="atlas-artifact-trigger" onClick={()=>setArtifactOpen(true)}><Sparkles size={14}/> View today’s proof-of-work artifact <ArrowRight size={13}/></button>}
           {pinnedPriorityTasks.length ? <div className="residence-pinned-list atlas-keyboard-list" tabIndex={0} aria-label="Today priorities. Use arrow keys or J and K to select, Space to complete, F to focus." onKeyDown={handlePriorityKeys}><AnimatePresence initial={false}>{pinnedPriorityTasks.map((task,index) => <motion.div layout initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0, scale: task.done ? 1.008 : 1 }} exit={{ opacity: 0, y: -5 }} transition={{ layout: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 }, opacity: { duration: 0.14 }, scale: { type: 'spring', stiffness: 420, damping: 35, bounce: 0 } }} whileTap={{ scale: 0.985 }} onClick={() => setSelectedPriorityId(task.id)} className={'residence-pinned-row ' + (task.done ? 'is-complete' : '') + (selectedPriorityId === task.id ? ' is-keyboard-selected' : '')} key={task.id}>
             <span className="residence-pinned-rank">#{index+1}</span>
             <motion.span whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }}><input type="checkbox" checked={!!task.done} disabled={toggleTask.isPending} onChange={() => toggleTask.mutate(task)} aria-label={(task.done ? 'Reopen ' : 'Complete ') + task.title} /></motion.span>
@@ -367,11 +385,24 @@ export function TodayPage() {
           <Link className="text-link" to="/values">Open Clarity & Reflection <ArrowRight size={13}/></Link>
         </Card>}
 
+        {religion === 'islam' && <Card className="residence-quran-feature">
+          <div className="residence-quran-feature__ornament" aria-hidden="true"><span/><span/><span/></div>
+          <div className="residence-quran-feature__content">
+            <span className="eyebrow">YOUR QUR’AN JOURNEY</span>
+            <div className="residence-quran-feature__heading"><span className="residence-quran-feature__icon"><BookOpen size={20}/></span><div><h2>Qur’an</h2><p>Continue from your saved Hifz or Muraja’ah position.</p></div></div>
+            <div className="residence-quran-feature__actions">
+              <Link className="residence-quran-feature__primary" to="/quran">Open Qur’an <ArrowRight size={15}/></Link>
+              <Link className="residence-quran-feature__secondary" to="/quran">Resume Muraja’ah <BookOpen size={14}/></Link>
+            </div>
+          </div>
+          <div className="residence-quran-feature__page"><span>LAST SAVED</span><strong>{hifzPage}</strong><small>Hifz page</small></div>
+        </Card>}
+
         <Card className="today-habits-card">
           <div className="today-section-heading"><div><span className="eyebrow">SELF-CONTROL & STREAKS</span><h2>Your daily habits</h2><p>{completedHabits} of {habitList.length} completed</p></div><Link className="text-link" to="/rituals">Manage habits <ArrowRight size={13}/></Link></div>
           {habitList.length ? <div className="today-habit-list">{habitList.map(habit => <label className={'today-habit-row ' + (habit.done ? 'is-done' : '')} key={habit.id}>
             <input className="today-habit-check" type="checkbox" checked={!!habit.done} onChange={() => toggleHabit.mutate(habit)} />
-            <span className="today-habit-emoji">{habit.emoji || '•'}</span><span className="today-habit-copy"><span className="today-habit-title">{habit.title}</span>{habit.goal_title && <small>Goal · {habit.goal_title}</small>}</span><span className="today-habit-state">{habit.done ? 'Done' : 'Mark done'}</span>
+            <span className="today-habit-emoji">{habit.emoji || <Sparkles size={14} strokeWidth={1.8}/>}</span><span className="today-habit-copy"><span className="today-habit-title">{habit.title}</span>{habit.goal_title && <small>Goal · {habit.goal_title}</small>}</span><span className="today-habit-state">{habit.done ? 'Done' : 'Mark done'}</span>
           </label>)}</div> : <EmptyState title="Start with a few daily habits." detail="Add the repeatable actions you want to become consistent with." />}
           <div className="today-card-footer"><span>{completedHabits === habitList.length && habitList.length ? 'All habits completed for today' : (habitList.length - completedHabits) + ' remaining today'}</span><Link to="/self-control" className="text-link">Open Self-Control <ArrowRight size={13}/></Link></div>
         </Card>

@@ -4,7 +4,7 @@ import type { FormEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, json } from '../lib/api';
-import { ArrowRight, BookOpen, Check, Compass, GraduationCap, Heart, House, LogOut, MoonStar, Pause, Play, Plus, Search, Settings, SlidersHorizontal, Target, Timer, X, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, CalendarDays, Check, Compass, GraduationCap, Heart, House, ListChecks, LogOut, MoonStar, Pause, Play, Plus, Search, Settings, SlidersHorizontal, Target, Timer, TrendingUp, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
 import { MobileInstallPrompt } from './MobileInstallPrompt';
@@ -22,20 +22,20 @@ import { useSpotlightGrid } from './fx/useSpotlightGrid';
 const MotionNavLink = motion.create(NavLink);
 
 const rooms = [
-  { id: 'residence', label: 'Today', to: '/residence', icon: House, paths: ['/residence'] },
-  { id: 'rhythm', label: 'Deen & Qur’an', to: '/values', icon: MoonStar, paths: ['/values'] },
-  { id: 'execution', label: 'Focus', to: '/focus', icon: Compass, paths: ['/focus', '/execution'] },
-  { id: 'growth', label: 'Goals', to: '/goals', icon: GraduationCap, paths: ['/goals'] }
+  { id: 'home', label: 'Home', to: '/residence', icon: House, paths: ['/residence'] },
+  { id: 'actions', label: 'Actions', to: '/actions', icon: ListChecks, paths: ['/actions'] },
+  { id: 'goals', label: 'Goals', to: '/goals', icon: Target, paths: ['/goals'] },
+  { id: 'focus', label: 'Focus', to: '/focus', icon: Timer, paths: ['/focus'] },
+  { id: 'growth', label: 'Growth', to: '/growth', icon: TrendingUp, paths: ['/growth'] },
+  { id: 'calendar', label: 'Calendar', to: '/calendar', icon: CalendarDays, paths: ['/calendar'] }
 ];
 
 const commandDestinations = [
-  { label: 'Faith / Deen', detail: 'Open your tradition-specific daily practice', to: '/values', icon: MoonStar },
-  { label: 'Habits & Self-Control', detail: 'Manage routines, commitments and recovery', to: '/habits', icon: Heart },
-  { label: 'Tasks', detail: 'Choose and complete your next actions', to: '/execution', icon: Compass },
-  { label: 'Calendar', detail: 'Review scheduled commitments and activity', to: '/calendar', icon: Compass },
-  { label: 'Goals · Projects · Learning', detail: 'Shape direction, build projects and develop skills', to: '/goals', icon: Target },
-  { label: 'Private Library', detail: 'Keep saved reading and reference material', to: '/learning-library', icon: BookOpen },
-  { label: 'Reviews & Insights', detail: 'Reflect on activity and evidence', to: '/reviews-insights', icon: Heart }
+  { label: 'Faith & Spirituality', detail: 'Qur’an, daily practice and spiritual reflection', to: '/values', icon: MoonStar },
+  { label: 'Habits & Self-Control', detail: 'Build routines and personal commitments', to: '/habits', icon: Heart },
+  { label: 'Education & Learning', detail: 'Learning paths, lessons and private library', to: '/learning-library', icon: GraduationCap },
+  { label: 'Projects & Milestones', detail: 'Connect meaningful work to your goals', to: '/goals', icon: Target },
+  { label: 'Reviews & Insights', detail: 'Reflect on evidence and patterns over time', to: '/growth', icon: TrendingUp }
 ];
 
 type QuickPrayer = { prayer: string; completed: number; on_time: number };
@@ -92,13 +92,13 @@ export function AppShell() {
     return () => window.clearInterval(tick);
   }, []);
   useEffect(() => {
-    const paths = ['/residence','/values','/focus','/goals'];
+    const paths = ['/residence','/actions','/goals','/focus','/growth','/calendar'];
     const onKey = (event: KeyboardEvent) => {
       const el = event.target as HTMLElement | null;
       const typing = !!el && (el.isContentEditable || ['INPUT','TEXTAREA','SELECT'].includes(el.tagName));
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setCommandOpen(v => !v); setCommandQuery(''); return; }
       if (event.key === 'Escape') { setCommandOpen(false); return; }
-      if (!typing && (event.metaKey || event.ctrlKey) && !event.altKey && /^[1-4]$/.test(event.key)) { event.preventDefault(); setPortalOrigin(window.innerWidth/2,window.innerHeight/2); navigate(paths[Number(event.key)-1]); }
+      if (!typing && (event.metaKey || event.ctrlKey) && !event.altKey && /^[1-6]$/.test(event.key)) { event.preventDefault(); setPortalOrigin(window.innerWidth/2,window.innerHeight/2); navigate(paths[Number(event.key)-1]); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -164,6 +164,9 @@ export function AppShell() {
   const storedFeatures = settings.data?.features;
   let enabledFeatures: string[] | null = null;
   if (storedFeatures) { try { enabledFeatures = JSON.parse(storedFeatures).map((feature: string) => feature === 'values' ? 'deen' : feature); } catch { enabledFeatures = null; } }
+  const lifeAreaNames: Record<string, string> = { health: 'Health & Fitness', education: 'Education & Learning', career: 'Career & Business', finance: 'Financial Growth', faith: 'Faith & Spirituality', personal: 'Personal Development', relationships: 'Relationships', lifestyle: 'Lifestyle & Organisation' };
+  let selectedLifeAreas: string[] = [];
+  try { selectedLifeAreas = settings.data?.life_areas ? JSON.parse(settings.data.life_areas).filter((id: string) => !!lifeAreaNames[id]) : Object.keys(lifeAreaNames); } catch { selectedLifeAreas = Object.keys(lifeAreaNames); }
   // The six core pillars are always available; preferences only control secondary views.
   const current = rooms.find(item => item.paths.includes(location.pathname));
   useEffect(() => {
@@ -173,14 +176,8 @@ export function AppShell() {
     } else document.title = 'Amstreem Atlas';
     return () => { document.title = 'Amstreem Atlas'; };
   }, [focusActive, focusTimer.kind, focusClock, focusContext, current?.label]);
-  const faithTabLabel = quickReligion === 'islam' ? 'Deen & Qur’an' : quickReligion === 'christianity' ? 'Faith & Reflection' : 'Daily Reflection';
-  const tabsByRoom = {
-    residence: [],
-    rhythm: [{ label: 'Habits & Self-Control', to: '/habits' }],
-    execution: [{ label: 'Tasks', to: '/execution' }, { label: 'Calendar', to: '/calendar', feature: 'calendar' }],
-    growth: [{ label: 'Projects & Learning', to: '/learning-library' }, { label: 'Reviews & Insights', to: '/reviews-insights' }]
-  };
-  const activeTabs = current ? tabsByRoom[current.id as keyof typeof tabsByRoom].filter(tab => role === 'admin' || !('feature' in tab) || enabledFeatures === null || enabledFeatures.includes(tab.feature as string)) : [];
+  const faithTabLabel = quickReligion === 'islam' ? 'Deen' : quickReligion === 'christianity' ? 'Faith & Reflection' : 'Daily Reflection';
+  const activeTabs: { label: string; to: string; feature?: string }[] = [];
   return <div className={"app-frame" + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
     <CursorAura/><SparkBurst/><EnergyVortex/>
     <MobileInstallPrompt />
@@ -190,14 +187,20 @@ export function AppShell() {
       <div className="sidebar-caption">YOUR PRIVATE WORKSPACE</div>
       <nav className="primary-nav" aria-label="Primary navigation">
         <div className="nav-group">
-          <div className="nav-group__label">YOUR WORKSPACE</div>
+          <div className="nav-group__label">YOUR LIFE</div>
           {rooms.map((item,index) => {
             const Icon = item.icon;
-            const active = item.paths.includes(location.pathname) || (item.id === 'execution' && location.pathname === '/execution');
-            return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={'nav-link room-nav-link ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.id === 'rhythm' ? faithTabLabel : item.label}</span><kbd>⌘ {index+1}</kbd></MotionNavLink>;
+            const active = item.paths.includes(location.pathname);
+            return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={'nav-link room-nav-link ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>⌘ {index+1}</kbd></MotionNavLink>;
           })}
-          <NavLink to="/values?openMushaf=1" className="nav-link room-nav-link nav-link--quran" onClick={() => setMobileOpen(false)}><BookOpen size={17} strokeWidth={1.8}/><span>Qur’an</span><kbd>↗</kbd></NavLink>
-          <button type="button" className="nav-link room-nav-link" onClick={() => setMobileOpen(true)}><SlidersHorizontal size={17}/><span>More</span><kbd>···</kbd></button>
+        </div>
+        <div className="nav-group nav-group--specialist">
+          <div className="nav-group__label">PERSONAL TOOLS</div>
+          <MotionNavLink to="/quran" end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={'nav-link room-nav-link ' + (location.pathname === '/quran' ? 'nav-link--active' : '')}>
+            {location.pathname === '/quran' && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}
+            <BookOpen size={17} strokeWidth={1.8}/><span>Qur’an</span>
+          </MotionNavLink>
+          <button type="button" className="nav-link room-nav-link" onClick={() => setMobileOpen(true)}><SlidersHorizontal size={17}/><span>More personal tools</span></button>
         </div>
       </nav>
       <div className="sidebar-bottom">
@@ -209,13 +212,13 @@ export function AppShell() {
         </div>
       </div>
     </motion.aside>
-    {mobileOpen && <><button className="mobile-more-scrim" type="button" aria-label="Close More menu" onClick={() => setMobileOpen(false)} /><motion.aside className="mobile-more-drawer" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 18 }} aria-label="More navigation"><div className="mobile-more-drawer__head"><b>More</b><button type="button" aria-label="Close menu" onClick={() => setMobileOpen(false)}><X size={17}/></button></div><nav>{commandDestinations.map(item => { const Icon=item.icon; return <NavLink key={item.to} to={item.to} onClick={() => setMobileOpen(false)}><Icon size={17}/><span>{item.label}</span><ArrowRight size={14}/></NavLink>; })}<NavLink to="/settings" onClick={() => setMobileOpen(false)}><SlidersHorizontal size={17}/><span>Settings</span><ArrowRight size={14}/></NavLink>{role === 'admin' && <NavLink to="/admin" onClick={() => setMobileOpen(false)}><Settings size={17}/><span>Administration</span><ArrowRight size={14}/></NavLink>}<button type="button" onClick={() => { setMobileOpen(false); void signOut(); }}><LogOut size={17}/><span>Sign out</span></button></nav></motion.aside></>}
+    {mobileOpen && <><button className="mobile-more-scrim" type="button" aria-label="Close More menu" onClick={() => setMobileOpen(false)} /><motion.aside className="mobile-more-drawer" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 18 }} aria-label="More navigation"><div className="mobile-more-drawer__head"><b>More</b><button type="button" aria-label="Close menu" onClick={() => setMobileOpen(false)}><X size={17}/></button></div><nav>{commandDestinations.map(item => { const Icon=item.icon; return <NavLink key={item.to} to={item.to} onClick={() => setMobileOpen(false)}><Icon size={17}/><span>{item.label}</span><ArrowRight size={14}/></NavLink>; })}<div className="mobile-more-life-areas"><span className="eyebrow">YOUR LIFE AREAS</span><div>{selectedLifeAreas.map(id => <span key={id}>{lifeAreaNames[id]}</span>)}</div><NavLink to="/settings" onClick={() => setMobileOpen(false)}>Edit your areas <ArrowRight size={13}/></NavLink></div><NavLink to="/settings" onClick={() => setMobileOpen(false)}><SlidersHorizontal size={17}/><span>Settings</span><ArrowRight size={14}/></NavLink>{role === 'admin' && <NavLink to="/admin" onClick={() => setMobileOpen(false)}><Settings size={17}/><span>Administration</span><ArrowRight size={14}/></NavLink>}<button type="button" onClick={() => { setMobileOpen(false); void signOut(); }}><LogOut size={17}/><span>Sign out</span></button></nav></motion.aside></>}
     
     <main className="main-area">
       <motion.div ref={bootContentRef} className="atlas-workspace-boot" initial={reduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.24, ease: [0.16, 1, 0.3, 1] }}>
       <motion.header className="topbar" initial={reduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.18, delay: 0.04 }}>
         
-        <div className="topbar-context"><b>{(current?.id === 'rhythm' ? faithTabLabel : current?.label) || (location.pathname === '/habits' ? 'Habits & Self-Control' : location.pathname === '/learning-library' ? 'Learning & Library' : location.pathname === '/reviews-insights' ? 'Reviews & Insights' : location.pathname === '/admin' ? 'Administration' : 'Settings')}</b></div>
+        <div className="topbar-context"><b>{(current?.label) || (location.pathname === '/values' ? faithTabLabel : location.pathname === '/quran' ? 'Qur’an' : location.pathname === '/habits' ? 'Habits & Self-Control' : location.pathname === '/learning-library' ? 'Education & Learning' : location.pathname === '/reviews-insights' ? 'Growth' : location.pathname === '/admin' ? 'Administration' : location.pathname === '/settings' ? 'Settings' : 'Personal tools')}</b></div>
         <button className="mobile-more-trigger" type="button" aria-label="More and settings" aria-expanded={mobileOpen} onClick={() => setMobileOpen(v => !v)}><SlidersHorizontal size={17}/><span>More</span></button>
         <div className="topbar-right"><button className="global-capture-trigger" type="button" onClick={() => {setCommandOpen(true);setCommandQuery('');}}><Search size={14}/><span>Quick capture</span><kbd>⌘ K</kbd></button><button className="tour-launcher" type="button" onClick={() => setTourOpen(true)}><Compass size={14} /> Guided tour</button><span className="privacy-indicator"><span /> PRIVATE BY DESIGN</span><span className="topbar-date">{new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric'}).format(new Date())}</span></div>
       </motion.header>
@@ -245,7 +248,7 @@ export function AppShell() {
         {quickReligion === 'islam' && <div className="command-checkins"><span className="eyebrow">TODAY · SALAH</span><div className="command-checkin-list">{(quickDeen.data?.prayers || []).map(item => <button type="button" key={item.prayer} className={item.completed ? 'is-complete' : ''} disabled={quickPrayerMutation.isPending} onClick={event => { if (!item.completed) sparkAtElement(event.currentTarget); quickPrayerMutation.mutate(item); }}><span>{item.completed ? '✓' : '○'}</span>{item.prayer}<small>{item.completed ? 'Recorded' : 'Mark done'}</small></button>)}</div></div>}
         {!!quickHabits.data?.length && <div className="command-checkins"><span className="eyebrow">TODAY · HABITS</span><div className="command-checkin-list">{quickHabits.data.map(item => <button type="button" key={item.id} className={item.done ? 'is-complete' : ''} disabled={quickHabitMutation.isPending} onClick={event => { if (!item.done) sparkAtElement(event.currentTarget); quickHabitMutation.mutate(item.id); }}><span>{item.done ? '✓' : '○'}</span>{item.title}<small>{item.done ? 'Done' : 'Mark done'}</small></button>)}</div></div>}
         <div className="command-results"><span className="eyebrow">JUMP TO OR CHECK IN</span>{commandItems.map(item=>{const Icon=item.icon;return <button key={item.label} type="button" onClick={()=>{setCommandOpen(false);navigate(item.to);}}><Icon size={16}/><span><b>{item.label}</b><small>{item.detail}</small></span><kbd>{item.shortcut}</kbd></button>;})}{!commandItems.length&&<p>No matching destination.</p>}</div>
-        <div className="command-footer"><span>Navigate between rooms</span><span>⌘ 1 — 4</span></div>
+        <div className="command-footer"><span>Navigate between rooms</span><span>⌘ 1 — 6</span></div>
       </motion.section></motion.div>}</AnimatePresence>
       <motion.nav className="atlas-command-dock" layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }} aria-label="Atlas command dock">
         <MagneticButton className="atlas-dock-action" aria-label="Open command search" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={15}/><span>Command</span><kbd>⌘ K</kbd></MagneticButton>
@@ -258,7 +261,7 @@ export function AppShell() {
       </motion.nav>
       <nav className="atlas-mobile-dock" aria-label="Primary navigation">
         <NavLink to="/residence" end className={({isActive}) => 'atlas-mobile-dock__item ' + (isActive ? 'is-active' : '')}><House size={18}/><span>Today</span></NavLink>
-        <NavLink to="/values?openMushaf=1" className={({isActive}) => 'atlas-mobile-dock__item atlas-mobile-dock__quran ' + (isActive ? 'is-active' : '')} onClick={() => setMobileOpen(false)}><BookOpen size={18}/><span>Qur’an</span></NavLink>
+        <NavLink to="/quran" className={({isActive}) => 'atlas-mobile-dock__item atlas-mobile-dock__quran ' + (isActive ? 'is-active' : '')} onClick={() => setMobileOpen(false)}><BookOpen size={18}/><span>Qur’an</span></NavLink>
         <NavLink to="/focus" className={({isActive}) => 'atlas-mobile-dock__item ' + (isActive || location.pathname === '/execution' ? 'is-active' : '')}><Compass size={18}/><span>Focus</span></NavLink>
         <NavLink to="/goals" className={({isActive}) => 'atlas-mobile-dock__item ' + (isActive ? 'is-active' : '')}><Target size={18}/><span>Goals</span></NavLink>
         <button type="button" className="atlas-mobile-dock__item" onClick={() => setMobileOpen(true)} aria-expanded={mobileOpen}><SlidersHorizontal size={18}/><span>More</span></button>

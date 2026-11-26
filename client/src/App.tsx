@@ -9,6 +9,7 @@ import { GoalsPage } from './pages/GoalsPage';
 import { FocusWorkspace } from './components/FocusWorkspace';
 import { CalendarPage } from './pages/CalendarPage';
 import { ValuesPage } from './pages/ValuesPage';
+import { QuranPage } from './pages/QuranPage';
 import { HabitsSelfControlView, LearningLibraryView, ReviewsInsightsView } from './pages/ConsolidatedViews';
 import { SettingsPage } from './pages/SettingsPage';
 import { AdminPage } from './pages/AdminPage';
@@ -30,25 +31,29 @@ export function App() {
   if (!session) return <AuthPage />;
   return <Routes>
     <Route element={<AppShell />}>
-      <Route index element={<Navigate to="/today" replace />} />
+      <Route index element={<Navigate to="/residence" replace />} />
       {/* Canonical eight-view destinations */}
       <Route path="/residence" element={<TodayPage />} />
+      <Route path="/home" element={<LegacyRedirect to="/residence" />} />
       <Route path="/today" element={<LegacyRedirect to="/residence" />} />
       <Route path="/values" element={<ValuesPage />} />
+      <Route path="/quran" element={<QuranPage />} />
       <Route path="/habits" element={<HabitsSelfControlView />} />
-      <Route path="/execution" element={<FocusWorkspace />} />
+      <Route path="/actions" element={<FocusWorkspace />} />
+      <Route path="/execution" element={<LegacyRedirect to="/actions" />} />
       <Route path="/focus" element={<FocusWorkspace />} />
       <Route path="/calendar" element={<CalendarPage />} />
       <Route path="/goals" element={<GoalsPage />} />
       <Route path="/learning-library" element={<LearningLibraryView />} />
-      <Route path="/reviews-insights" element={<ReviewsInsightsView />} />
+      <Route path="/growth" element={<ReviewsInsightsView />} />
+      <Route path="/reviews-insights" element={<LegacyRedirect to="/growth" />} />
       {/* Legacy bookmarks and deep links remain valid and preserve query/hash context. */}
-      <Route path="/insights" element={<LegacyRedirect to="/reviews-insights" />} />
-      <Route path="/reviews" element={<LegacyRedirect to="/reviews-insights" />} />
+      <Route path="/insights" element={<LegacyRedirect to="/growth" />} />
+      <Route path="/reviews" element={<LegacyRedirect to="/growth" />} />
       <Route path="/rituals" element={<LegacyRedirect to="/habits" />} />
       <Route path="/self-control" element={<LegacyRedirect to="/habits" />} />
       <Route path="/projects" element={<LegacyRedirect to="/goals" />} />
-      <Route path="/tasks" element={<LegacyRedirect to="/execution" />} />
+      <Route path="/tasks" element={<LegacyRedirect to="/actions" />} />
       <Route path="/learning" element={<LegacyRedirect to="/goals" />} />
       <Route path="/library" element={<LegacyRedirect to="/learning-library" />} />
       <Route path="/settings" element={<SettingsPage />} />

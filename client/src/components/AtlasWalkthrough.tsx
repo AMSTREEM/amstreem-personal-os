@@ -5,43 +5,57 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 type Props = { onClose: () => void; onOpenCommand?: () => void };
 
-const stepRoutes = ['/residence', '/values', '/execution', '/goals'];
+const stepRoutes = ['/residence', '/actions', '/goals', '/focus', '/growth', '/calendar'];
 
 const steps = [
   {
-    eyebrow: 'ROOM 01 · YOUR DAILY COMMAND CENTER',
-    title: 'Welcome to Residence.',
-    description: 'Set your Morning Intention, lock in your Top 3 Priorities, and watch your Activity Pulse and Ferrofluid Core respond as you move forward.',
-    rows: ['⌘ 1 · Residence', 'Morning Intention · Top 3 Priorities', 'Activity Pulse · Ferrofluid Core'],
-    label: 'START WITH WHAT MATTERS'
+    eyebrow: '01 · YOUR PERSONAL COMMAND CENTRE',
+    title: 'Start with Home.',
+    description: 'See what matters today: priorities, upcoming commitments, progress across your chosen life areas, and useful next actions.',
+    rows: ['⌘ 1 · Home', 'Today’s priorities · Upcoming commitments', 'Life-area context · Suggested next actions'],
+    label: 'UNDERSTAND WHERE YOU ARE'
   },
   {
-    eyebrow: 'ROOM 02 · YOUR DAILY RHYTHM',
-    title: 'Build a rhythm that reflects your values.',
-    description: 'Maintain your personal standards across Faith / Deen—adapted for Islam, Christianity, or general reflection—and Habits & Self-Control.',
-    rows: ['⌘ 2 · Daily Rhythm', 'Faith / Deen · Habits & Self-Control', '30-Day Rhythm Constellation'],
-    label: 'CONSISTENCY, YOUR WAY'
+    eyebrow: '02 · TURN INTENTION INTO ACTION',
+    title: 'Make meaningful progress.',
+    description: 'Bring tasks, projects, habits, routines and personal commitments into one execution space. Spend less time administering your life and more time living it.',
+    rows: ['⌘ 2 · Actions', 'Tasks · Projects · Milestones', 'Habits · Routines · Commitments'],
+    label: 'BUILD THE SYSTEM'
   },
   {
-    eyebrow: 'ROOM 03 · YOUR DAILY EXECUTION',
-    title: 'Turn priorities into focused action.',
-    description: 'Manage Tasks with project or goal filters, launch the Focus Chronograph for 25m, 50m, 80m, or a custom session, or check your Calendar.',
-    rows: ['⌘ 3 · Execution & Focus', 'Tasks · Project and goal filters', 'Focus Chronograph · Calendar'],
-    label: 'PROTECT YOUR ATTENTION'
+    eyebrow: '03 · CHOOSE YOUR DIRECTION',
+    title: 'Work towards outcomes that matter.',
+    description: 'Define long-term goals, break them into milestones, and connect the work that moves each outcome forward.',
+    rows: ['⌘ 3 · Goals', 'Life goals · Measurable outcomes', 'Milestones · Long-term plans'],
+    label: 'KNOW WHERE YOU ARE GOING'
   },
   {
-    eyebrow: 'ROOM 04 · YOUR LONG-TERM DIRECTION',
-    title: 'Explore your Life Constellation.',
-    description: 'Connect Goals, Projects, and Learning Paths on an interactive star map—tap or drag a star to inspect it, or use the pill switcher below to focus on one area.',
-    rows: ['⌘ 4 · Growth & Direction', 'Goals · Projects · Learning Paths', 'Private Library · Reviews & Insights'],
-    label: 'SEE HOW YOUR WORK CONNECTS'
+    eyebrow: '04 · PROTECT YOUR ATTENTION',
+    title: 'Give important work your focus.',
+    description: 'Run deep-work and study sessions, link them to the work they support, and keep a reliable history of your effort.',
+    rows: ['⌘ 4 · Focus', 'Focus timer · Study sessions', 'Session history · Task-linked work'],
+    label: 'TURN PLANS INTO ACTION'
   },
   {
-    eyebrow: 'ALWAYS WITHIN REACH',
-    title: 'Capture quickly. Move freely.',
-    description: 'Use the floating command dock to capture a task in seconds, jump between rooms, and choose from 10 curated themes in Settings.',
-    rows: ['⌘ K · Command Dock', 'Quick Capture · Room navigation', 'Settings · 10 curated themes'],
-    label: 'YOUR EVERYDAY SHORTCUTS'
+    eyebrow: '05 · SEE WHAT IS CHANGING',
+    title: 'Measure growth, not busyness.',
+    description: 'Review real evidence against your starting point. Notice what improved, what did not, and what you may want to adjust next.',
+    rows: ['⌘ 5 · Growth', 'Reviews · Progress evidence', 'Patterns · Useful next steps'],
+    label: 'UNDERSTAND YOUR PROGRESS'
+  },
+  {
+    eyebrow: '06 · MAKE TIME VISIBLE',
+    title: 'Organise your commitments.',
+    description: 'Bring events, routines, deadlines and planned focus blocks into one view so your time reflects your priorities.',
+    rows: ['⌘ 6 · Calendar', 'Daily and weekly schedules', 'Events · Deadlines · Planned focus'],
+    label: 'MAKE ROOM FOR WHAT MATTERS'
+  },
+  {
+    eyebrow: 'PERSONAL BY DESIGN',
+    title: 'Make Atlas yours.',
+    description: 'Choose the life areas you want to work on. Keep specialist tools such as Qur’an, Learning Library and faith practices available when they matter to you. Change your priorities whenever life changes.',
+    rows: ['Your life areas · Your priorities', 'Qur’an · Learning · Personal tools', 'Settings · Private by design'],
+    label: 'YOUR LIFE. YOUR DIRECTION. YOUR GROWTH'
   }
 ];
 
@@ -99,7 +113,7 @@ export function AtlasWalkthrough({ onClose, onOpenCommand }: Props) {
         <aside className="atlas-tour__intro">
           <span className="atlas-tour__eyebrow">A GUIDED INTRODUCTION</span>
           <h2>Make room for what matters.</h2>
-          <p>Five quick stops to see how Atlas supports your day, your rhythm, and your direction.</p>
+          <p>Seven quick stops to see how Atlas helps you choose direction, take action and make meaningful progress.</p>
           <div className="atlas-tour__progress" aria-label={`Step ${index + 1} of ${steps.length}`}><i style={{ width: `${((index + 1) / steps.length) * 100}%` }} /></div>
           <nav className="atlas-tour__nav" aria-label="Walkthrough steps">
             {steps.map((item, i) => <button key={item.label} type="button" aria-label={`Go to step ${i + 1}: ${item.title}`} aria-current={i === index ? 'step' : undefined} onClick={() => setIndex(i)}>{String(i + 1).padStart(2, '0')}</button>)}

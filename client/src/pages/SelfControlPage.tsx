@@ -18,7 +18,7 @@ export function SelfControlPage({ embedded = false, afterHeatmap, showTrackerCon
   const today = dateKey();
   const [name, setName] = useState('');
   const [showCreate, setShowCreate] = useState(false);
-  const [symbol, setSymbol] = useState('◇');
+  const [symbol, setSymbol] = useState('🛡️');
   const [startDate, setStartDate] = useState(today);
   const [activeTracker, setActiveTracker] = useState<Tracker | null>(null);
   const [outcome, setOutcome] = useState<'clean' | 'slip'>('clean');
@@ -29,7 +29,7 @@ export function SelfControlPage({ embedded = false, afterHeatmap, showTrackerCon
   const data = useQuery({ queryKey: ['self-control', today], queryFn: () => api<Data>('/self-control?date=' + today) });
   const create = useMutation({
     mutationFn: () => api('/self-control', json('POST', { name, symbol, start_date: startDate })),
-    onSuccess: () => { setName(''); setSymbol('◇'); setShowCreate(false); void client.invalidateQueries({ queryKey: ['self-control'] }); }
+    onSuccess: () => { setName(''); setSymbol('🛡️'); setShowCreate(false); void client.invalidateQueries({ queryKey: ['self-control'] }); }
   });
   const checkin = useMutation({
     onMutate: entry => { if(entry.outcome==='clean'){playAtlasFeedback('tick');triggerSparkBurst(window.innerWidth/2,window.innerHeight*.44);} },
