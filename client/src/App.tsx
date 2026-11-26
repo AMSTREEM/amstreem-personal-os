@@ -14,6 +14,7 @@ import { HabitsSelfControlView, LearningLibraryView, ReviewsInsightsView } from 
 import { SettingsPage } from './pages/SettingsPage';
 import { AdminPage } from './pages/AdminPage';
 import { PasswordRecoveryPage } from './pages/PasswordRecoveryPage';
+import { SignupThankYouPage } from './components/SignupThankYouPage';
 
 function LegacyRedirect({ to }: { to: string }) {
   const location = useLocation();
