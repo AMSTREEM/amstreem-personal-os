@@ -207,3 +207,15 @@ No Render deployment or production Supabase data/schema change has been made fro
 - [ ] Existing-account authentication, persistence and account-isolation checks on staging.
 - [ ] Confirm the protected Qur'an files are unchanged in the final Git diff.
 - [ ] Do not merge or deploy to production as part of this staging pass.
+
+
+## Full transformation — Home and Life Blueprint integration · 2026-11-26
+
+- Ported the earlier Home and Life Blueprint feature selectively from the divergent foundation branch. No branch merge was performed.
+- Residence now opens a direction-led Home with time-aware greeting, active goals, open actions, weekly focus records, next actions, quick capture, current direction, and calendar entry point.
+- Life Blueprint groups real goals by the life-area categories users already selected. Linked-action progress is shown only when linked records exist; no synthetic progress is displayed.
+- Preserved the previous daily dashboard at `/daily-rhythm` rather than deleting its routines or workflows. It is available as a contextual Daily Rhythm view.
+- Residence now has Home and Life Blueprint subviews. Daily Rhythm has Daily Check-in, Faith & Practice, and Habits & Self-Control subviews.
+- Both new pages reuse existing `/tasks`, `/goals`, and `/sessions` APIs. No new database schema, Supabase migration, or server route was introduced.
+- Added route and data-source tests for Residence, Blueprint, and the preserved daily dashboard.
+- The feature branch used as a source was intentionally not merged: it diverges substantially from `atlas-next` and contains unrelated Qur'an and environment configuration changes. Only the four page/style files and the product principles document were ported.

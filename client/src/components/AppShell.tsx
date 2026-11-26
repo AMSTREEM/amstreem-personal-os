@@ -22,11 +22,19 @@ import { useSpotlightGrid } from './fx/useSpotlightGrid';
 const MotionNavLink = motion.create(NavLink);
 
 const rooms = [
-  { id: 'residence', label: 'Residence', mobileLabel: 'Home', to: '/residence', icon: House, paths: ['/residence'], tabs: [] },
+  {
+    id: 'residence', label: 'Residence', mobileLabel: 'Home', to: '/residence', icon: House,
+    paths: ['/residence', '/blueprint'],
+    tabs: [
+      { label: 'Home', to: '/residence', paths: ['/residence'] },
+      { label: 'Life Blueprint', to: '/blueprint', paths: ['/blueprint'] }
+    ]
+  },
   {
     id: 'rhythm', label: 'Daily Rhythm', mobileLabel: 'Rhythm', to: '/values', icon: MoonStar,
-    paths: ['/values', '/habits', '/quran'],
+    paths: ['/daily-rhythm', '/values', '/habits', '/quran'],
     tabs: [
+      { label: 'Daily Check-in', to: '/daily-rhythm', paths: ['/daily-rhythm'] },
       { label: 'Faith & Practice', to: '/values', paths: ['/values'] },
       { label: 'Habits & Self-Control', to: '/habits', paths: ['/habits'] }
     ]
@@ -51,7 +59,9 @@ const rooms = [
 ];
 
 const commandDestinations = [
-  { label: 'Faith & Spirituality', detail: 'Qur’an, daily practice and spiritual reflection', to: '/values', icon: MoonStar },
+  { label: 'Life Blueprint', detail: 'See the outcomes and life areas you are building towards', to: '/blueprint', icon: Compass },
+  { label: 'Daily Check-in', detail: 'Return to today’s practices, habits and priorities', to: '/daily-rhythm', icon: Check },
+  { label: 'Faith & Spirituality', detail: 'Daily practice and spiritual reflection', to: '/values', icon: MoonStar },
   { label: 'Habits & Self-Control', detail: 'Build routines and personal commitments', to: '/habits', icon: Heart },
   { label: 'Education & Learning', detail: 'Learning paths, lessons and private library', to: '/learning-library', icon: GraduationCap },
   { label: 'Projects & Milestones', detail: 'Connect meaningful work to your goals', to: '/goals', icon: Target },
@@ -240,7 +250,7 @@ export function AppShell() {
       <motion.div ref={bootContentRef} className="atlas-workspace-boot" initial={reduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.24, ease: [0.16, 1, 0.3, 1] }}>
       <motion.header className="topbar" initial={reduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.18, delay: 0.04 }}>
         
-        <div className="topbar-context"><b>{location.pathname === '/quran' ? 'Qur’an' : location.pathname === '/values' ? faithTabLabel : activeView?.label || current?.label || (location.pathname === '/admin' ? 'Administration' : location.pathname === '/settings' ? 'Settings' : 'Personal tools')}</b></div>
+        <div className="topbar-context"><b>{location.pathname === '/quran' ? 'Qur’an' : location.pathname === '/values' ? faithTabLabel : activeView?.label === 'Home' ? current?.label : activeView?.label || current?.label || (location.pathname === '/admin' ? 'Administration' : location.pathname === '/settings' ? 'Settings' : 'Personal tools')}</b></div>
         <button className="mobile-more-trigger" type="button" aria-label="More and settings" aria-expanded={mobileOpen} onClick={() => setMobileOpen(v => !v)}><SlidersHorizontal size={17}/><span>More</span></button>
         <div className="topbar-right"><button className="global-capture-trigger" type="button" onClick={() => {setCommandOpen(true);setCommandQuery('');}}><Search size={14}/><span>Quick capture</span><kbd>⌘ K</kbd></button><button className="tour-launcher" type="button" onClick={() => setTourOpen(true)}><Compass size={14} /> Guided tour</button><span className="privacy-indicator"><span /> PRIVATE BY DESIGN</span><span className="topbar-date">{new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric'}).format(new Date())}</span></div>
       </motion.header>

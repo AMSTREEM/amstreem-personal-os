@@ -75,7 +75,7 @@ test('six primary destinations and personal life areas shape the Atlas workspace
 
 
 test('canonical eight-view routes and legacy compatibility redirects cover the personal operating system', () => {
-  for (const route of ['/residence', '/home', '/today', '/values', '/quran', '/habits', '/actions', '/execution', '/calendar', '/goals', '/learning-library', '/growth', '/reviews-insights', '/projects', '/tasks', '/focus', '/rituals', '/self-control', '/learning', '/library', '/reviews', '/insights', '/settings', '/admin']) {
+  for (const route of ['/residence', '/blueprint', '/daily-rhythm', '/home', '/today', '/values', '/quran', '/habits', '/actions', '/execution', '/calendar', '/goals', '/learning-library', '/growth', '/reviews-insights', '/projects', '/tasks', '/focus', '/rituals', '/self-control', '/learning', '/library', '/reviews', '/insights', '/settings', '/admin']) {
     assert.ok(app.includes('path="' + route + '"'), 'Missing route ' + route);
   }
 });
@@ -412,4 +412,27 @@ test('Atlas four-room navigation exposes the eight core views and keeps Qur’an
   assert.match(app, /path="\/quran" element={<QuranPage \/>}/);
   assert.match(quranPage, /<QuranMushafReader/);
   assert.match(reader, /UthmanicHafs|tajweed|Tajweed/);
+});
+
+
+test('Residence is a direction-led Home, Life Blueprint is data-backed, and the previous daily dashboard remains available', () => {
+  const app = read('client/src/App.tsx');
+  const shell = read('client/src/components/AppShell.tsx');
+  const home = read('client/src/pages/AtlasHomePage.tsx');
+  const blueprint = read('client/src/pages/BlueprintPage.tsx');
+  assert.match(app, /path="\\/residence" element={<AtlasHomePage \\/>}/);
+  assert.match(app, /path="\\/blueprint" element={<BlueprintPage \\/>}/);
+  assert.match(app, /path="\\/daily-rhythm" element={<TodayPage \\/>}/);
+  assert.ok(home.includes("api<HomeTask[]>('/tasks')"));
+  assert.ok(home.includes("api<HomeGoal[]>('/goals')"));
+  assert.ok(home.includes("api<FocusSession[]>('/sessions')"));
+  assert.match(home, /Your next actions/);
+  assert.match(home, /Your current direction/);
+  assert.match(home, /Nothing demanding your attention/);
+  assert.ok(blueprint.includes("api<BlueprintGoal[]>('/goals')"));
+  assert.match(blueprint, /linked_tasks/);
+  assert.match(blueprint, /completed_tasks/);
+  assert.match(blueprint, /Ready for its first connected action/);
+  assert.match(shell, /label: 'Life Blueprint'/);
+  assert.match(shell, /label: 'Daily Check-in'/);
 });
