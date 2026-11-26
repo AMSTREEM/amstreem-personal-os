@@ -256,6 +256,27 @@ const qcfV4WordStyle = (font: QcfV4Font): CSSProperties => ({
 } as CSSProperties);
 const readBookmark = (key: string) => { try { const value = JSON.parse(localStorage.getItem(key) || '{}') || {}; return { page: clampPage(Number(value.page) || 1), surah: Number(value.surah) || 1, ayah: Number(value.ayah) || 1, updatedAt: String(value.updatedAt || '') }; } catch { return { page: 1, surah: 1, ayah: 1, updatedAt: '' }; } };
 function lagosDate() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+function TajweedColourGuide() {
+  const items = [
+    { tone: 'deep-red', colour: 'Deep red', rule: 'Madd', cue: 'Prolong for 6 counts' },
+    { tone: 'red', colour: 'Red', rule: 'Madd', cue: 'Prolong for 4–5 counts' },
+    { tone: 'orange-red', colour: 'Orange-red', rule: 'Madd', cue: 'Prolong for 2, 4 or 6 counts' },
+    { tone: 'green', colour: 'Green', rule: 'Ghunnah', cue: 'Nasal sound for 2 counts' },
+    { tone: 'dark-blue', colour: 'Dark blue', rule: 'Tafkheem', cue: 'Pronounce heavily, with a full sound' },
+    { tone: 'light-blue', colour: 'Light blue', rule: 'Qalqalah', cue: 'Give the letter a slight bouncing sound' },
+    { tone: 'grey', colour: 'Grey', rule: 'Silent / merged letters (Idgham)', cue: 'Skip letters that are not pronounced' }
+  ];
+  return <div className="quran-tajweed-guide">
+    <p>Each colour signals a recitation rule. Use the cue as you read.</p>
+    <div className="quran-tajweed-guide-grid">
+      {items.map(item => <div className="quran-tajweed-guide-item" key={item.tone}>
+        <span className={'quran-tajweed-guide-swatch quran-tajweed-guide-swatch--' + item.tone} aria-hidden="true" />
+        <span className="quran-tajweed-guide-copy"><b>{item.colour} · {item.rule}</b><small>{item.cue}</small></span>
+      </div>)}
+    </div>
+  </div>;
+}
+
 export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen = false }: Props) {
   const navigate = useNavigate();
   const [mode, setMode] = useState<'hifz' | 'murajaah'>('hifz');
@@ -1109,7 +1130,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         {sidebarTab === 'page' && <form className="mushaf-desktop-page-jump" onSubmit={quickJump}><label htmlFor="mushaf-desktop-page-input">Go to Mushaf page</label><input id="mushaf-desktop-page-input" type="number" min="1" max="604" value={pageInput} onChange={event => setPageInput(event.target.value)} /><button type="submit">Go to page</button><p>Pages 1–604 · Madinah Mushaf</p></form>}
       </div>
     </aside>}
-    {tajweedLegendVisible && <aside className="mushaf-desktop-tajweed-key"><b>Tajweed Color Key</b><span className="tj-madd">Madd</span><span className="tj-ghunnah">Ghunnah / Ikhfa</span><span className="tj-qalqalah">Qalqalah</span><span className="tj-idgham">Idgham</span><button onClick={() => setTajweedLegendVisible(false)}>Close</button></aside>}
+    {tajweedLegendVisible && <aside className="mushaf-desktop-tajweed-key"><b>Tajweed colour guide</b><TajweedColourGuide /><button onClick={() => setTajweedLegendVisible(false)}>Close</button></aside>}
     <main className={'mushaf-desktop-content ' + (readingMode === 'reading' ? 'is-page-mode' : 'is-verse-mode')}>
       {loading && <div className="quran-mobile-loading">Loading Qur’an…</div>}
       {pageError && <div className="quran-mobile-error">{pageError}<button onClick={() => changePage(page)}>Retry</button></div>}
@@ -1163,7 +1184,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         <div className="quran-mobile-header-actions"><button aria-label="Settings" onClick={() => setSettingsOpen(true)}><Settings size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button><button className="quran-mobile-leave-button" aria-label="Leave Qur’an" onClick={() => { if (autoOpen) navigate('/residence'); else setFullScreen(false); }}><X size={isMobileViewport ? 17 : 16} strokeWidth={2} /><span>Leave</span></button></div>
       </div>
     </header>
-    <AnimatePresence initial={false}>{tajweedLegendVisible && <motion.aside className="quran-mobile-tajweed-legend" initial={{ opacity: 0, height: 0, y: -8 }} animate={{ opacity: 1, height: 'auto', y: 0 }} exit={{ opacity: 0, height: 0, y: -8 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }}><b>Tajweed colour key · Quran.com</b><div><span className="tj-silent">Silent letters</span><span className="tj-madd-normal">Normal madd</span><span className="tj-madd-permissible">Separated madd</span><span className="tj-madd-obligatory-connected">Connected madd</span><span className="tj-madd-obligatory-separated">Separated obligatory madd</span><span className="tj-madd-necessary">Necessary madd</span><span className="tj-ghunnah">Ghunna · Ikhfa · Idgham</span><span className="tj-qalqalah">Qalqalah</span><span className="tj-tafkhim">Tafkhim</span></div></motion.aside>}</AnimatePresence>
+    <AnimatePresence initial={false}>{tajweedLegendVisible && <motion.aside className="quran-mobile-tajweed-legend" initial={{ opacity: 0, height: 0, y: -8 }} animate={{ opacity: 1, height: 'auto', y: 0 }} exit={{ opacity: 0, height: 0, y: -8 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }}><b>Tajweed colour guide</b><TajweedColourGuide /></motion.aside>}</AnimatePresence>
     <main className="quran-mobile-content">
       {loading && <div className="quran-mobile-loading">Loading Qur’an…</div>}
       {pageError && <div className="quran-mobile-error">{pageError}<button onClick={() => changePage(page)}>Retry</button></div>}
