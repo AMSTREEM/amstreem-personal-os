@@ -257,18 +257,31 @@ const stripQuranMarkup = value => String(value || '')
   .replace(/<[^>]+>/g, '')
   .replace(/[<>]/g, '')
   .replace(/\[[a-zA-Z]+(?::\d+)?\[/g, '')
-  .replace(/\]/g, '');
+  .replace(/\]/g, '')
+  .replace(/(?:\\u25CC|\\u{25CC}|&#(?:x0*25cc|0*9676);|&#x0*25cc;)/gi, '')
+  .replace(/\u25CC/g, '');
 function parseAlQuranTajweed(markup) {
   // End-marker spans are presentation metadata; the reader renders its own medallion.
   const source = String(markup || '').replace(/<span\s+class=["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '');
   const segments = [];
   const stack = [];
+  let leadingMarks = '';
   const append = (value, className) => {
     const text = normalizeMadinahArabic(stripQuranMarkup(value));
     if (!text) return;
-    const previous = segments[segments.length - 1];
-    if (previous && previous.className === className) previous.text += text;
-    else segments.push({ text, className });
+    for (const character of Array.from(text)) {
+      const previous = segments[segments.length - 1];
+      if (/\p{M}/u.test(character)) {
+        const lastCharacter = previous ? Array.from(previous.text).slice(-1)[0] || '' : '';
+        if (previous) previous.text += character;
+        else leadingMarks += character;
+      } else {
+        const clustered = character + leadingMarks;
+        leadingMarks = '';
+        if (previous && previous.className === className) previous.text += clustered;
+        else segments.push({ text: clustered, className });
+      }
+    }
   };
   // Tokenize every HTML tag. Unknown tags are ignored, their text children survive.
   if (/<[^>]+>/.test(source)) {
@@ -324,10 +337,25 @@ function sanitizeQuranAyah(ayah) {
   const rawTajweed = hasMarkup(tajweedSource) ? tajweedSource : (hasMarkup(plainSource) ? plainSource : tajweedSource);
   const parsed = hasMarkup(rawTajweed) ? parseAlQuranTajweed(rawTajweed) : [];
   const sourceSegments = parsed.length ? parsed : (Array.isArray(ayah?.tajweedSegments) ? ayah.tajweedSegments : []);
-  const tajweedSegments = sourceSegments.map(segment => ({
-    text: stripQuranMarkup(segment?.text || ''),
-    className: /^tj-[a-z-]+$/.test(String(segment?.className || '')) ? String(segment.className) : ''
-  })).filter(segment => segment.text);
+  const tajweedSegments = [];
+  let leadingMarks = '';
+  for (const segment of sourceSegments) {
+    const className = /^tj-[a-z-]+$/.test(String(segment?.className || '')) ? String(segment.className) : '';
+    for (const character of Array.from(stripQuranMarkup(segment?.text || ''))) {
+      if (/\p{M}/u.test(character)) {
+        const previous = tajweedSegments[tajweedSegments.length - 1];
+        const lastCharacter = previous ? Array.from(previous.text).slice(-1)[0] || '' : '';
+        if (previous) previous.text += character;
+        else leadingMarks += character;
+      } else {
+        const clustered = character + leadingMarks;
+        leadingMarks = '';
+        const previous = tajweedSegments[tajweedSegments.length - 1];
+        if (previous && previous.className === className) previous.text += clustered;
+        else tajweedSegments.push({ text: clustered, className });
+      }
+    }
+  }
   const cleanText = stripQuranMarkup(ayah?.text || '');
   const cleanTajweedText = tajweedSegments.map(segment => segment.text).join('') || stripQuranMarkup(rawTajweed);
   return {

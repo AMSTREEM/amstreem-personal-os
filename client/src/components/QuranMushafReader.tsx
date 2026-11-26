@@ -1,5 +1,6 @@
 import { Fragment, type CSSProperties, type FormEvent, type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { AlignJustify, ArrowDown, ArrowUp, Bookmark, BookOpen, ChevronsUpDown, ChevronLeft, ChevronRight, Copy, Info, Palette, Search, Settings, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
@@ -11,7 +12,7 @@ type MushafWord = { text: string; tajweed?: string; codeV2?: string; lineNumber?
 type MushafAyah = { textSource?: string; pageNumber?: number; number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; tajweedText?: string; tajweedSegments?: TajweedSegment[]; translation: string; transliteration?: string; translations?: Array<{ id: number; name: string; text: string }>; words?: MushafWord[] };
 type MushafPage = { textSource?: string; page: number; juz: number; hizb?: number; tajweedComplete?: boolean; tajweedCoverage?: { totalAyahs: number; sourcedAyahs: number; coloredAyahs: number; uncoloredAyahs: string[]; missingAyahs: string[]; mismatchedAyahs: string[] }; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void; autoOpen?: boolean };
-const CACHE_PREFIX = 'atlas_mushaf_page_v17_';
+const CACHE_PREFIX = 'atlas_mushaf_page_v18_';
 const pageMemoryCache = new Map<number, MushafPage>();
 const HIFZ_KEY = 'atlas_hifz_bookmark_v2';
 const MURAJAAH_KEY = 'atlas_murajaah_bookmark_v2';
@@ -70,17 +71,31 @@ const stripRawQuranMarkup = (value: string) => value
   .replace(/<span\s+class=["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '')
   .replace(/<[^>]+>/g, '')
   .replace(/\[[a-zA-Z]+(?::\d+)?\[/g, '')
-  .replace(/\]/g, '');
+  .replace(/\]/g, '')
+  .replace(/(?:\\u25CC|\\u{25CC}|&#(?:x0*25cc|0*9676);|&#x0*25cc;)/gi, '')
+  .replace(/\u25CC/g, '');
 function parseBracketTajweed(markup: string): TajweedSegment[] {
   const source = String(markup || '').replace(/<span\s+class=["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '');
   const result: TajweedSegment[] = [];
   const stack: string[] = [];
+  let leadingMarks = '';
   const append = (text: string, className: string) => {
     if (!text) return;
     const normalized = normalizeMadinahArabic(stripRawQuranMarkup(text));
-    const previous = result[result.length - 1];
-    if (previous && previous.className === className) previous.text += normalized;
-    else if (normalized) result.push({ text: normalized, className });
+    for (const character of Array.from(normalized)) {
+      const previous = result[result.length - 1];
+      if (/\p{M}/u.test(character)) {
+        // A mark with no preceding Arabic base must wait for the next base.
+        // Rendering it alone makes some fonts draw a dotted-circle placeholder.
+        if (previous) previous.text += character;
+        else leadingMarks += character;
+      } else {
+        const clustered = character + leadingMarks;
+        leadingMarks = '';
+        if (previous && previous.className === className) previous.text += clustered;
+        else result.push({ text: clustered, className });
+      }
+    }
   };
   // Accept every HTML tag as syntax so generic tag names and attributes never leak.
   if (/<[^>]+>/.test(source)) {
@@ -140,10 +155,25 @@ const sanitizeMushafPage = (payload: MushafPage): MushafPage => ({
     const hasRawMarkup = hasMarkup(rawTajweed);
     const parsed = hasRawMarkup ? parseBracketTajweed(rawTajweed) : [];
     const sourceSegments = parsed.length ? parsed : (ayah.tajweedSegments || []);
-    const tajweedSegments = sourceSegments.map(segment => ({
-      text: stripRawQuranMarkup(String(segment.text || '')),
-      className: TAJWEED_CLASSES.has(segment.className) ? segment.className : ''
-    })).filter(segment => segment.text);
+    const tajweedSegments: TajweedSegment[] = [];
+    let leadingMarks = '';
+    sourceSegments.forEach(segment => {
+      const className = TAJWEED_CLASSES.has(segment.className) ? segment.className : '';
+      for (const character of Array.from(stripRawQuranMarkup(String(segment.text || '')))) {
+        if (/\p{M}/u.test(character)) {
+          const previous = tajweedSegments[tajweedSegments.length - 1];
+          const lastCharacter = previous ? Array.from(previous.text).slice(-1)[0] || '' : '';
+          if (previous) previous.text += character;
+          else leadingMarks += character;
+        } else {
+          const clustered = character + leadingMarks;
+          leadingMarks = '';
+          const previous = tajweedSegments[tajweedSegments.length - 1];
+          if (previous && previous.className === className) previous.text += clustered;
+          else tajweedSegments.push({ text: clustered, className });
+        }
+      }
+    });
     const tajweedText = tajweedSegments.map(segment => segment.text).join('') || stripRawQuranMarkup(rawTajweed);
     return {
       ...ayah,
@@ -152,7 +182,7 @@ const sanitizeMushafPage = (payload: MushafPage): MushafPage => ({
       tajweedSegments,
       translation: stripAyahEndMarker(stripRawQuranMarkup(ayah.translation || '')),
       translations: ayah.translations?.map(translation => ({ ...translation, text: stripAyahEndMarker(stripRawQuranMarkup(translation.text || '')) })),
-      words: ayah.words?.map(word => ({ ...word, text: stripRawQuranMarkup(word.text || ''), tajweed: stripRawQuranMarkup(word.tajweed || '') }))
+      words: ayah.words?.map(word => ({ ...word, text: stripRawQuranMarkup(word.text || ''), tajweed: stripRawQuranMarkup(word.tajweed || ''), codeV2: word.codeV2 ? stripRawQuranMarkup(word.codeV2) : word.codeV2 }))
     };
   })
 });
@@ -186,21 +216,22 @@ const qcfV4FontCache = new Map<string, Promise<QcfV4Font>>();
 async function loadQcfV4PageFont(page: number): Promise<QcfV4Font> {
   const themeId = document.documentElement.getAttribute('data-theme') || 'shadowed-alchemist';
   const theme: 'light' | 'dark' | 'sepia' = themeId.startsWith('light-') ? 'light' : themeId.includes('sepia') ? 'sepia' : 'dark';
-  const firefox = /firefox/i.test(navigator.userAgent);
-  const format = firefox ? 'ot-svg' : 'colrv1';
-  const key = page + ':' + format + ':' + theme;
+  // Use COLRv1 so Atlas can override the embedded CPAL Tajweed colours.
+  // Firefox falls back to the annotated Unicode renderer below: Quran Foundation's
+  // OT-SVG theme files have baked-in colours and cannot take Atlas's custom palette.
+  const key = page + ':colrv1:' + theme;
   const cached = qcfV4FontCache.get(key);
   if (cached) return cached;
   const task: Promise<QcfV4Font> = (async (): Promise<QcfV4Font> => {
-    const family = 'AtlasQcfV4P' + page + theme + (firefox ? '' : 'Color');
-    const fontUrl = format === 'ot-svg'
-      ? 'https://verses.quran.foundation/fonts/quran/hafs/v4/ot-svg/' + theme + '/woff2/p' + page + '.woff2'
-      : 'https://verses.quran.foundation/fonts/quran/hafs/v4/colrv1/woff2/p' + page + '.woff2';
+    const family = 'AtlasQcfV4P' + page + theme + 'Color';
+    const fontUrl = 'https://verses.quran.foundation/fonts/quran/hafs/v4/colrv1/woff2/p' + page + '.woff2';
     const fontFace = new FontFace(family, 'url(' + fontUrl + ')');
     fontFace.display = 'block';
     await fontFace.load();
+    if (fontFace.status !== 'loaded') throw new Error('QCF V4 font did not reach the loaded state for page ' + page);
     document.fonts.add(fontFace);
-    if (format === 'ot-svg') return { family, theme };
+    await document.fonts.load('16px "' + family + '"');
+    if (!document.fonts.check('16px "' + family + '"')) throw new Error('QCF V4 font is not available for page ' + page);
     const palette = '--AtlasQcfV4P' + page + theme;
     let style = document.getElementById('atlas-qcf-v4-palettes') as HTMLStyleElement | null;
     if (!style) {
@@ -209,7 +240,16 @@ async function loadQcfV4PageFont(page: number): Promise<QcfV4Font> {
       document.head.appendChild(style);
     }
     const basePalette = theme === 'dark' ? 1 : theme === 'sepia' ? 2 : 0;
-    style.textContent += '\n@font-palette-values ' + palette + ' { font-family: "' + family + '"; base-palette: ' + basePalette + '; }';
+    // Verified QCF V4 CPAL slots: 1/2/15 silent, 3 necessary madd,
+    // 4 permissible madd, 5 normal madd, 6 ghunnah, 7 tafkhim,
+    // 8 qalqalah, 9 obligatory madd. Keep non-rule ink/medallion slots
+    // from the selected built-in light/dark/sepia base palette.
+    const atlasTajweedOverrides = [
+      '1 #9ca3af', '2 #9ca3af', '3 #b91c1c', '4 #f05a24',
+      '5 #f05a24', '6 #16a34a', '7 #1d4ed8', '8 #38bdf8',
+      '9 #ef4444', '15 #9ca3af'
+    ].join(', ');
+    style.textContent += '\n@font-palette-values ' + palette + ' { font-family: "' + family + '"; base-palette: ' + basePalette + '; override-colors: ' + atlasTajweedOverrides + '; }';
     return { family, palette, theme };
   })();
   qcfV4FontCache.set(key, task);
@@ -217,12 +257,35 @@ async function loadQcfV4PageFont(page: number): Promise<QcfV4Font> {
 }
 const escapeQcfGlyphHtml = (value: string) => String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;').replace(/'/g, '&#39;');
 const qcfV4WordStyle = (font: QcfV4Font): CSSProperties => ({
-  fontFamily: '"' + font.family + '", serif',
+  // QCF code_v2 contains font-specific glyph IDs; never permit a system-font fallback.
+  fontFamily: '"' + font.family + '"',
   ...(font.palette ? { fontPalette: font.palette } : {})
 } as CSSProperties);
 const readBookmark = (key: string) => { try { const value = JSON.parse(localStorage.getItem(key) || '{}') || {}; return { page: clampPage(Number(value.page) || 1), surah: Number(value.surah) || 1, ayah: Number(value.ayah) || 1, updatedAt: String(value.updatedAt || '') }; } catch { return { page: 1, surah: 1, ayah: 1, updatedAt: '' }; } };
 function lagosDate() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+function TajweedColourGuide() {
+  const items = [
+    { tone: 'deep-red', colour: 'Deep red', rule: 'Madd', cue: 'Prolong for 6 counts' },
+    { tone: 'red', colour: 'Red', rule: 'Madd', cue: 'Prolong for 4–5 counts' },
+    { tone: 'orange-red', colour: 'Orange-red', rule: 'Madd', cue: 'Prolong for 2, 4 or 6 counts' },
+    { tone: 'green', colour: 'Green', rule: 'Ghunnah', cue: 'Nasal sound for 2 counts' },
+    { tone: 'dark-blue', colour: 'Dark blue', rule: 'Tafkheem', cue: 'Pronounce heavily, with a full sound' },
+    { tone: 'light-blue', colour: 'Light blue', rule: 'Qalqalah', cue: 'Give the letter a slight bouncing sound' },
+    { tone: 'grey', colour: 'Grey', rule: 'Silent / merged letters (Idgham)', cue: 'Skip letters that are not pronounced' }
+  ];
+  return <div className="quran-tajweed-guide">
+    <p>Each colour signals a recitation rule. Use the cue as you read.</p>
+    <div className="quran-tajweed-guide-grid">
+      {items.map(item => <div className="quran-tajweed-guide-item" key={item.tone}>
+        <span className={'quran-tajweed-guide-swatch quran-tajweed-guide-swatch--' + item.tone} aria-hidden="true" />
+        <span className="quran-tajweed-guide-copy"><b>{item.colour} · {item.rule}</b><small>{item.cue}</small></span>
+      </div>)}
+    </div>
+  </div>;
+}
+
 export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen = false }: Props) {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<'hifz' | 'murajaah'>('hifz');
   const [hifzMark, setHifzMark] = useState(() => readBookmark(HIFZ_KEY));
   const [murajaahMark, setMurajaahMark] = useState(() => readBookmark(MURAJAAH_KEY));
@@ -289,6 +352,9 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
 
   useEffect(() => {
     if (!fullScreen || !tajweedEnabled || readingMode !== 'reading') return;
+    // QCF's Firefox OT-SVG files ship fixed colours; use Atlas's annotated
+    // Unicode Tajweed spans there rather than showing a mismatched font palette.
+    if (/firefox/i.test(navigator.userAgent)) return;
     const visiblePages = [...new Set([pageData?.page, ...desktopPageWindow.map(item => item.page)].filter((value): value is number => Number.isInteger(value)))];
     let cancelled = false;
     visiblePages.forEach(number => {
@@ -394,46 +460,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     if (!fullScreen) return;
     readerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [page, fullScreen]);
-
-  // Mobile verse mode uses native proximity snapping only. Avoid programmatic
-  // corrections: a delayed correction can select the Ayah still crossing the
-  // sensor and pull a forward swipe backwards. Long Ayahs remain unsnapped.
-  useEffect(() => {
-    if (!isMobileViewport || !fullScreen || readingMode === 'reading' || loading || !surahAyahs.length) return;
-    const root = readerRef.current;
-    if (!root) return;
-    const header = root.querySelector<HTMLElement>('.quran-mobile-header');
-    const updateSnapGeometry = () => {
-      const headerHeight = header?.getBoundingClientRect().height || 0;
-      root.style.setProperty('--quran-mobile-snap-offset', `${Math.ceil(headerHeight + 8)}px`);
-      const usableHeight = Math.max(0, root.clientHeight - headerHeight - 32);
-      root.querySelectorAll<HTMLElement>('.quran-mobile-verse-row[data-mushaf-verse="true"]').forEach(row => {
-        row.classList.toggle('is-long-ayah', row.getBoundingClientRect().height > usableHeight);
-      });
-    };
-    updateSnapGeometry();
-    const observers: ResizeObserver[] = [];
-    if (typeof ResizeObserver !== 'undefined') {
-      if (header) {
-        const observer = new ResizeObserver(updateSnapGeometry);
-        observer.observe(header);
-        observers.push(observer);
-      }
-      const rootObserver = new ResizeObserver(updateSnapGeometry);
-      rootObserver.observe(root);
-      observers.push(rootObserver);
-      const rowsObserver = new ResizeObserver(updateSnapGeometry);
-      root.querySelectorAll<HTMLElement>('.quran-mobile-verse-row[data-mushaf-verse="true"]').forEach(row => rowsObserver.observe(row));
-      observers.push(rowsObserver);
-    }
-    window.addEventListener('resize', updateSnapGeometry, { passive: true });
-    return () => {
-      observers.forEach(observer => observer.disconnect());
-      root.querySelectorAll('.quran-mobile-verse-row.is-long-ayah').forEach(row => row.classList.remove('is-long-ayah'));
-      root.style.removeProperty('--quran-mobile-snap-offset');
-      window.removeEventListener('resize', updateSnapGeometry);
-    };
-  }, [isMobileViewport, fullScreen, readingMode, loading, surahAyahs]);
 
   useEffect(() => {
     if (!fullScreen || readingMode === 'reading' || !selected || !restoreTargetRef.current || loading || surahLoading || !surahAyahs.length) return;
@@ -611,7 +637,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
 
   const activeSurah = QURAN_SURAHS[activeSurahNumber - 1];
 
-  const mobileActiveSurahNumber = selected?.surah || pageData?.ayahs?.[0]?.surahNumber || getPageSurah(page)?.number || activeSurahNumber;
+  const mobileActiveSurahNumber = (readingMode === 'reading' ? pageData?.ayahs?.[0]?.surahNumber : selected?.surah)
+    || pageData?.ayahs?.[0]?.surahNumber || getPageSurah(page)?.number || activeSurahNumber;
   const mobileActiveSurahName = QURAN_SURAHS[mobileActiveSurahNumber - 1]?.transliteration || activeSurah?.transliteration || 'Al-Fatihah';
   const currentPageSurahLabel = useMemo(() => {
     const pageSurahs = new Map<number, string>();
@@ -801,8 +828,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     targets.forEach(target => observer.observe(target));
     return () => { observer.disconnect(); visible.clear(); };
   }, [fullScreen, readingMode, surahAyahs, pageData, page, pageReadingSurah, updateBookmark]);
-  // Verse-by-Verse alignment is handled by native CSS proximity snapping.
-  // This avoids competing with iOS momentum scrolling and keeps long Ayahs readable.
 
   // In Page by Page mode, let natural scrolling finish, then lock the ayah
   // closest to the reader's focus line and persist that exact location.
@@ -850,12 +875,9 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
 
   const changePage = (next: number, location?: { surahNumber: number; numberInSurah: number }) => {
     userScrolledRef.current = false;
-    const requestedPage = clampPage(next);
-    const readingSurahStart = activeSurah?.pageStart || 1;
-    const readingSurahEnd = getAyahLocation(activeSurahNumber, activeSurah?.ayahs || 1)?.page || 604;
-    const value = !location && readingMode === 'reading'
-      ? Math.max(readingSurahStart, Math.min(requestedPage, readingSurahEnd))
-      : requestedPage;
+    // Mushaf page navigation is global: a printed page may end one Surah and
+    // continue into the next. Never clamp page turns to the currently active Surah.
+    const value = clampPage(next);
     if (value !== page) {
       setPageDirection(value > page ? 1 : -1);
       const cachedPage = readCachedMushafPage(value);
@@ -938,7 +960,27 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   );
   const renderArabic = (ayah: MushafAyah) => {
     const segments = tajweedEnabled && ayah.tajweedSegments?.length ? ayah.tajweedSegments : [{ text: ayah.text, className: '' }];
-    return <>{segments.map((segment, index) => <span key={index} className={tajweedEnabled ? segment.className : ''}>{segment.text}</span>)}{renderMedallion(ayah.numberInSurah)}</>;
+    // U+0672 is a real Arabic letter. Keep it intact and render only that glyph
+    // with a fallback font when the selected Madinah font lacks its glyph.
+    // The surrounding Tajweed segment retains its original colour class.
+    return <>{segments.map((segment, index) => {
+      const characters = Array.from(segment.text);
+      const rendered: ReactNode[] = [];
+      for (let characterIndex = 0; characterIndex < characters.length; characterIndex += 1) {
+        const character = characters[characterIndex];
+        // U+06DF is a combining Qur'anic annotation. Keep it joined to its
+        // alef and use a fallback font for the complete cluster, never alone.
+        if (character === 'ا' && characters[characterIndex + 1] === '۟') {
+          rendered.push(<span key={characterIndex} style={{ fontFamily: '"Noto Naskh Arabic", "Scheherazade New", serif', color: 'inherit' }}>ا۟</span>);
+          characterIndex += 1;
+        } else if (character === 'ٲ') {
+          rendered.push(<span key={characterIndex} style={{ fontFamily: '"Noto Naskh Arabic", "Scheherazade New", serif', color: 'inherit' }}>{character}</span>);
+        } else {
+          rendered.push(character);
+        }
+      }
+      return <span key={index} className={tajweedEnabled ? segment.className : ''}>{rendered}</span>;
+    })}{renderMedallion(ayah.numberInSurah)}</>;
   };
   const bismillah = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
   const mobileArabicStyle = { fontFamily: `"${arabicFontFamily}", "Amiri Quran", serif`, fontSize: `${arabicFontSize}px` } as CSSProperties;
@@ -975,8 +1017,9 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   };
   const renderPageBlock = (data: MushafPage, firstBlock: boolean) => {
     const runs: Array<{ surahNumber: number; surahName: string; arabicName: string; startsSurah: boolean; ayahs: MushafAyah[] }> = [];
-    const readingSurahNumber = pageReadingSurah;
-    data.ayahs.filter(ayah => ayah.surahNumber === readingSurahNumber).forEach(ayah => {
+    // Render every Ayah on the printed Mushaf page, including pages that cross
+    // a Surah boundary. pageReadingSurah is only relevant to verse-by-verse mode.
+    data.ayahs.forEach(ayah => {
       const last = runs[runs.length - 1];
       if (last && last.surahNumber === ayah.surahNumber) last.ayahs.push(ayah);
       else runs.push({ surahNumber: ayah.surahNumber, surahName: ayah.surahName, arabicName: ayah.arabicName, startsSurah: ayah.numberInSurah === 1, ayahs: [ayah] });
@@ -1115,7 +1158,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         {sidebarTab === 'page' && <form className="mushaf-desktop-page-jump" onSubmit={quickJump}><label htmlFor="mushaf-desktop-page-input">Go to Mushaf page</label><input id="mushaf-desktop-page-input" type="number" min="1" max="604" value={pageInput} onChange={event => setPageInput(event.target.value)} /><button type="submit">Go to page</button><p>Pages 1–604 · Madinah Mushaf</p></form>}
       </div>
     </aside>}
-    {tajweedLegendVisible && <aside className="mushaf-desktop-tajweed-key"><b>Tajweed Color Key</b><span className="tj-madd">Madd</span><span className="tj-ghunnah">Ghunnah / Ikhfa</span><span className="tj-qalqalah">Qalqalah</span><span className="tj-idgham">Idgham</span><button onClick={() => setTajweedLegendVisible(false)}>Close</button></aside>}
+    {tajweedLegendVisible && <aside className="mushaf-desktop-tajweed-key"><b>Tajweed colour guide</b><TajweedColourGuide /><button onClick={() => setTajweedLegendVisible(false)}>Close</button></aside>}
     <main className={'mushaf-desktop-content ' + (readingMode === 'reading' ? 'is-page-mode' : 'is-verse-mode')}>
       {loading && <div className="quran-mobile-loading">Loading Qur’an…</div>}
       {pageError && <div className="quran-mobile-error">{pageError}<button onClick={() => changePage(page)}>Retry</button></div>}
@@ -1166,10 +1209,13 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
             <Palette size={15} strokeWidth={2} /><span>Tajweed</span>
           </button>
         </div>
-        <div className="quran-mobile-header-actions"><button aria-label="Settings" onClick={() => setSettingsOpen(true)}><Settings size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button><button aria-label="Exit reader" onClick={() => setFullScreen(false)}><X size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button></div>
+        <div className="quran-mobile-header-actions"><button aria-label="Settings" onClick={() => setSettingsOpen(true)}><Settings size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button><button className="quran-mobile-leave-button" aria-label="Leave Qur’an" onClick={() => { if (autoOpen) navigate('/residence'); else setFullScreen(false); }}><X size={isMobileViewport ? 17 : 16} strokeWidth={2} /><span>Leave</span></button></div>
       </div>
     </header>
-    <AnimatePresence initial={false}>{tajweedLegendVisible && <motion.aside className="quran-mobile-tajweed-legend" initial={{ opacity: 0, height: 0, y: -8 }} animate={{ opacity: 1, height: 'auto', y: 0 }} exit={{ opacity: 0, height: 0, y: -8 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }}><b>Tajweed colour key · Quran.com</b><div><span className="tj-silent">Silent letters</span><span className="tj-madd-normal">Normal madd</span><span className="tj-madd-permissible">Separated madd</span><span className="tj-madd-obligatory-connected">Connected madd</span><span className="tj-madd-obligatory-separated">Separated obligatory madd</span><span className="tj-madd-necessary">Necessary madd</span><span className="tj-ghunnah">Ghunna · Ikhfa · Idgham</span><span className="tj-qalqalah">Qalqalah</span><span className="tj-tafkhim">Tafkhim</span></div></motion.aside>}</AnimatePresence>
+    {tajweedLegendVisible && <aside className="quran-mobile-tajweed-legend" id="quran-tajweed-colour-guide" role="region" aria-label="Tajweed colour guide">
+      <div className="quran-mobile-tajweed-legend-heading"><b>Tajweed colour guide</b><button type="button" aria-label="Close Tajweed colour guide" onClick={() => setTajweedLegendVisible(false)}><X size={15} /></button></div>
+      <TajweedColourGuide />
+    </aside>}
     <main className="quran-mobile-content">
       {loading && <div className="quran-mobile-loading">Loading Qur’an…</div>}
       {pageError && <div className="quran-mobile-error">{pageError}<button onClick={() => changePage(page)}>Retry</button></div>}

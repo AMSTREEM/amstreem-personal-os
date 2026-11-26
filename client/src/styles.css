@@ -6142,9 +6142,8 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .quran-mobile-page-quick button:disabled,.quran-mobile-bottom-nav button:disabled { opacity:.35; }
   .quran-mobile-tajweed-center button { display:inline-flex; align-items:center; justify-content:center; gap:7px; }
   .quran-mobile-tajweed-center button.is-active { color:var(--accent,#d9ae59); border-color:var(--accent,#d9ae59); background:color-mix(in srgb,var(--accent,#d9ae59) 10%,var(--bg-surface)); }
-  .quran-mobile-verse-row { width:min(100%, 820px); box-sizing:border-box; margin:0 auto; padding:22px clamp(18px, 3vw, 28px); border:1px solid var(--border-hairline); border-bottom:0; background:var(--bg-surface); }
-  .quran-mobile-verse-row:first-child { border-radius:16px 16px 0 0; }
-  .quran-mobile-verse-row:last-child { border-bottom:1px solid var(--border-hairline); border-radius:0 0 16px 16px; }
+  .quran-mobile-verse-row { width:min(100%, 820px); box-sizing:border-box; margin:0 auto 18px; padding:12px clamp(18px, 3vw, 28px) 18px; border:0; border-bottom:1px solid color-mix(in srgb,var(--accent-strong,var(--accent)) 65%,transparent) !important; border-radius:0; background:transparent; box-shadow:none; }
+  .quran-mobile-verse-row:last-child { border-bottom:0; }
   .quran-mobile-verse-toolbar { display:flex; align-items:center; gap:12px; color:var(--text-secondary); font-size:12px; }
   .quran-mobile-verse-toolbar span { margin-right:auto; color:var(--text-secondary); font-weight:600; }
   .quran-mobile-verse-toolbar button { width:32px; height:32px; display:grid; place-items:center; border:0; border-radius:50%; color:var(--text-secondary); background:transparent; }
@@ -6371,7 +6370,8 @@ html, body, #root, .app-frame, .main-area, .page-container {
   }
   .quran-mobile-page-quick button:disabled,.quran-mobile-bottom-nav button:disabled { opacity:.35; }
   .quran-mobile-bottom-nav.quran-mobile-reader-actions button.is-active { color:var(--accent,#d9ae59); border-color:var(--accent,#d9ae59); background:color-mix(in srgb,var(--accent,#d9ae59) 10%,var(--bg-surface)); }
-  .quran-mobile-verse-row { padding:20px 18px; border-bottom:1px solid var(--border-hairline); }
+  .quran-mobile-verse-row { margin:0 auto 12px; padding:14px 18px 20px; border:0; border-bottom:1px solid color-mix(in srgb,var(--accent-strong,var(--accent)) 65%,transparent) !important; border-radius:0; background:transparent; box-shadow:none; }
+  .quran-mobile-verse-row:last-child { border-bottom:0; }
   .quran-mobile-verse-toolbar { display:flex; align-items:center; gap:12px; color:var(--text-secondary); font-size:12px; }
   .quran-mobile-verse-toolbar span { margin-right:auto; color:var(--text-secondary); font-weight:600; }
   .quran-mobile-verse-toolbar button { width:32px; height:32px; display:grid; place-items:center; border:0; border-radius:50%; color:var(--text-secondary); background:transparent; }
@@ -6714,23 +6714,6 @@ html, body, #root, .app-frame, .main-area, .page-container {
 }
 
 
-/* Mobile verse-by-verse alignment: native proximity snap plus header-aware settling. */
-@media (max-width: 767px) {
-  .quran-mobile-shell.is-verse-mode {
-    overflow-y: auto;
-    scroll-snap-type: y proximity;
-    scroll-behavior: smooth;
-  }
-  .quran-mobile-shell.is-verse-mode .quran-mobile-verse-row[data-mushaf-verse="true"] {
-    scroll-snap-align: start;
-    scroll-margin-top: var(--quran-mobile-snap-offset, 112px);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .quran-mobile-shell.is-verse-mode { scroll-behavior: auto; }
-  }
-}
-
-
 /* Compact mobile Mushaf chrome: reclaim reading space without hiding controls. */
 @media (max-width: 767px) {
   .quran-mobile-shell .quran-mobile-header {
@@ -6893,7 +6876,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .quran-mobile-shell .quran-mobile-header-actions > button {
     width:29px; height:29px;
   }
-  .quran-mobile-shell .quran-mobile-header-actions > button[aria-label="Exit reader"] { display:none; }
+  
   .quran-mobile-shell .quran-mobile-tajweed-center {
     position:absolute; left:50%; bottom:-13px; transform:translateX(-50%);
     z-index:4; width:auto; margin:0; padding:0;
@@ -6959,7 +6942,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .quran-mobile-shell .quran-mobile-tajweed-center button { min-height:30px; padding:4px 7px !important; font-size:10px; gap:3px; }
   .quran-mobile-shell .quran-mobile-tajweed-center button svg { width:13px; height:13px; }
   .quran-mobile-shell .quran-mobile-header-actions > button { width:30px; height:30px; flex-basis:30px; }
-  .quran-mobile-shell .quran-mobile-header-actions > button[aria-label="Exit reader"] { display:none; }
+  
 }
 @media (min-width:768px) {
   .quran-desktop-shell .quran-mobile-top-row { min-height:58px !important; padding:8px 24px !important; }
@@ -6968,30 +6951,6 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .quran-desktop-shell .quran-mobile-tajweed-center button { min-height:34px; }
 }
 
-
-/* Keep the mobile Mushaf toolbar pinned while the reader shell scrolls. */
-@media (max-width:767px) {
-  .quran-mobile-shell {
-    scroll-behavior:auto;
-    scroll-padding-top:var(--quran-mobile-snap-offset, 0px);
-  }
-  .quran-mobile-shell .quran-mobile-header {
-    position:sticky !important;
-    top:0 !important;
-    z-index:10001 !important;
-    align-self:stretch;
-    flex:0 0 auto;
-    transform:none;
-  }
-}
-
-/* Long Ayahs exceed the visible reading area: never snap or auto-correct them. */
-@media (max-width:767px) {
-  .quran-mobile-shell.is-verse-mode .quran-mobile-verse-row.is-long-ayah {
-    scroll-snap-align:none !important;
-    scroll-snap-stop:normal !important;
-  }
-}
 
 /* Residence-only Qur’an feature card. Kept separate from the Mushaf reader styles. */
 .residence-quran-feature{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:190px;overflow:hidden;padding:clamp(20px,3vw,30px);border:1px solid color-mix(in srgb,#b99a62 34%,var(--line));background:radial-gradient(ellipse at 92% 8%,color-mix(in srgb,#b99a62 15%,transparent),transparent 46%),linear-gradient(125deg,color-mix(in srgb,#b99a62 7%,var(--surface)),var(--surface) 62%);}
@@ -7022,4 +6981,246 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .mobile-more-life-areas > div { display: flex; flex-wrap: wrap; gap: 6px; }
   .mobile-more-life-areas > div > span { padding: 6px 8px; border: 1px solid var(--line-soft); border-radius: 999px; color: var(--muted); font-size: 10px; }
   .mobile-more-life-areas > a { min-height: 28px !important; padding: 0 !important; color: var(--accent-strong) !important; font-size: 10px !important; }
+}
+
+/* iOS installed-PWA Mushaf: blend the status-bar safe area into the existing header. */
+@media (max-width: 767px) {
+  .quran-mobile-shell {
+    box-sizing: border-box;
+    height: 100vh;
+    height: 100dvh;
+    padding-top: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .quran-mobile-shell .quran-mobile-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    flex: 0 0 auto;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+    box-sizing: border-box;
+    background: var(--bg-canvas);
+  }
+}
+
+
+/* Keep a clear, tappable way out of the Mushaf on mobile and desktop. */
+.quran-mobile-shell .quran-mobile-header-actions > .quran-mobile-leave-button {
+  display:inline-flex !important; align-items:center; justify-content:center; gap:5px;
+  width:auto !important; min-width:64px; height:34px; flex:0 0 auto !important;
+  padding:0 9px !important; border:1px solid var(--border-hairline) !important;
+  border-radius:999px !important; color:var(--text-primary); background:var(--bg-surface);
+  font-size:12px; font-weight:650; white-space:nowrap; touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+.quran-mobile-shell .quran-mobile-header-actions > .quran-mobile-leave-button svg { flex:0 0 auto; }
+.quran-mobile-shell .quran-mobile-header-actions > .quran-mobile-leave-button:active { background:var(--bg-surface); transform:scale(.97); }
+@media (max-width:767px) {
+  .quran-mobile-shell .quran-mobile-header-actions { gap:4px !important; }
+  .quran-mobile-shell .quran-mobile-header-actions > .quran-mobile-leave-button { min-width:58px; height:32px; padding:0 7px !important; font-size:11px; }
+}
+
+
+/* Preserve Arabic shaping and mark attachment in every Quran rendering path. */
+.quran-mobile-shell .quran-mobile-verse-arabic,
+.quran-mobile-shell .quran-mobile-page-arabic,
+.quran-mobile-shell .quran-mobile-bismillah > div,
+.quran-mobile-shell .quran-mobile-hero-arabic,
+.quran-mobile-shell .mushaf-desktop-page-text {
+  direction:rtl;
+  font-feature-settings:"kern" 1,"liga" 1,"calt" 1,"mark" 1,"mkmk" 1;
+  font-kerning:normal;
+  font-synthesis:none;
+}
+.quran-mobile-shell .quran-mobile-verse-arabic,
+.quran-mobile-shell .quran-mobile-page-arabic,
+.quran-mobile-shell .mushaf-desktop-page-text {
+  unicode-bidi:plaintext;
+}
+.quran-mobile-shell .quran-qcf-v4-word {
+  font-synthesis:none;
+  font-feature-settings:"kern" 1,"liga" 1,"calt" 1,"mark" 1,"mkmk" 1;
+}
+
+
+/* Signup confirmation: a calm, full-screen interstitial before entering Atlas. */
+.signup-confirmation-screen { min-height:100vh; min-height:100svh; }
+.signup-confirmation-screen .auth-message-block h1 { max-width:560px; }
+.signup-confirmation-panel .auth-panel__inner { width:min(100%,440px); }
+.signup-confirmation-panel .auth-panel__top { margin-bottom:22px; }
+.signup-confirmation-panel .auth-panel h2 { margin-top:0; }
+.signup-confirmation-panel .button { width:100%; min-height:50px; margin-top:10px; }
+.signup-confirmation-panel .text-action { margin-top:17px; }
+.signup-confirmation-status { display:flex; align-items:center; gap:10px; margin-top:28px; padding:13px 15px; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--muted); font-size:12px; line-height:1.6; }
+.signup-confirmation-status svg { flex:none; color:var(--success); }
+@media(max-width:760px) {
+  .signup-confirmation-screen { display:flex; flex-direction:column; }
+  .signup-confirmation-screen .auth-visual { min-height:42vh; min-height:42svh; padding:26px 24px; }
+  .signup-confirmation-screen .auth-message-block { margin:44px 0 24px; }
+  .signup-confirmation-screen .auth-message-block h1 { margin:16px 0 12px; font-size:clamp(42px,10vw,60px); }
+  .signup-confirmation-screen .auth-message-block p { font-size:14px; }
+  .signup-confirmation-screen .auth-footnote { display:none; }
+  .signup-confirmation-screen .auth-panel { flex:1; padding:34px 24px 48px; }
+  .signup-confirmation-screen .auth-panel__inner { max-width:520px; }
+}
+
+
+/* Tajweed guide swatches explain the supplied colour standard without changing Quran glyph colours. */
+.quran-tajweed-guide > p { margin:5px 0 12px; color:var(--text-secondary, var(--muted)); font-size:12px; line-height:1.55; }
+.quran-tajweed-guide-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px 16px; }
+.quran-tajweed-guide-item { display:flex; align-items:center; gap:9px; min-width:0; }
+.quran-tajweed-guide-swatch { width:12px; height:12px; flex:none; border-radius:50%; box-shadow:0 0 0 3px color-mix(in srgb,currentColor 13%,transparent); }
+.quran-tajweed-guide-swatch--deep-red { background:#b91c1c; color:#b91c1c; }
+.quran-tajweed-guide-swatch--red { background:#ef4444; color:#ef4444; }
+.quran-tajweed-guide-swatch--orange-red { background:#f05a24; color:#f05a24; }
+.quran-tajweed-guide-swatch--green { background:#16a34a; color:#16a34a; }
+.quran-tajweed-guide-swatch--dark-blue { background:#1d4ed8; color:#1d4ed8; }
+.quran-tajweed-guide-swatch--light-blue { background:#38bdf8; color:#38bdf8; }
+.quran-tajweed-guide-swatch--grey { background:#9ca3af; color:#9ca3af; }
+.quran-tajweed-guide-copy { display:grid; gap:2px; min-width:0; }
+.quran-tajweed-guide-copy b { color:var(--text-primary,var(--text)); font-size:11px; font-weight:650; }
+.quran-tajweed-guide-copy small { color:var(--text-secondary,var(--muted)); font-size:10px; line-height:1.4; }
+.quran-mobile-shell .quran-mobile-tajweed-legend .quran-tajweed-guide-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 14px; margin-top:10px; }
+.quran-mobile-shell .quran-mobile-tajweed-legend .quran-tajweed-guide-item { white-space:normal; }
+@media(max-width:520px) { .quran-tajweed-guide-grid { grid-template-columns:1fr; } }
+
+/* Atlas Tajweed guide palette — final authority for text-based Mushaf rendering.
+   Preserve every rule class; group them by the seven recitation colours in the guide. */
+.quran-mobile-shell .tj-madd-necessary,
+.quran-desktop-shell .tj-madd-necessary { color:#b91c1c !important; } /* deep red: 6 counts */
+.quran-mobile-shell .tj-madd-obligatory,
+.quran-mobile-shell .tj-madd-obligatory-connected,
+.quran-mobile-shell .tj-madd-obligatory-separated,
+.quran-mobile-shell .tj-madd-wajib,
+.quran-desktop-shell .tj-madd-obligatory,
+.quran-desktop-shell .tj-madd-obligatory-connected,
+.quran-desktop-shell .tj-madd-obligatory-separated,
+.quran-desktop-shell .tj-madd-wajib { color:#ef4444 !important; } /* red: 4–5 counts */
+.quran-mobile-shell .tj-madd,
+.quran-mobile-shell .tj-madd-normal,
+.quran-mobile-shell .tj-madd-permissible,
+.quran-desktop-shell .tj-madd,
+.quran-desktop-shell .tj-madd-normal,
+.quran-desktop-shell .tj-madd-permissible { color:#f05a24 !important; } /* orange-red: 2, 4 or 6 counts */
+
+.quran-mobile-shell .tj-ghunnah,
+.quran-mobile-shell .tj-ikhfa,
+.quran-mobile-shell .tj-ikhfa-shafawi,
+.quran-mobile-shell .tj-iqlab,
+.quran-desktop-shell .tj-ghunnah,
+.quran-desktop-shell .tj-ikhfa,
+.quran-desktop-shell .tj-ikhfa-shafawi,
+.quran-desktop-shell .tj-iqlab { color:#16a34a !important; } /* green: nasalisation */
+.quran-mobile-shell .tj-tafkhim,
+.quran-desktop-shell .tj-tafkhim { color:#1d4ed8 !important; } /* dark blue: heavy pronunciation */
+.quran-mobile-shell .tj-qalqalah,
+.quran-desktop-shell .tj-qalqalah { color:#38bdf8 !important; } /* light blue: echo */
+.quran-mobile-shell .tj-silent,
+.quran-mobile-shell .tj-idgham,
+.quran-mobile-shell .tj-idgham-shafawi,
+.quran-mobile-shell .tj-idgham-ghunnah,
+.quran-mobile-shell .tj-idgham-no-ghunnah,
+.quran-mobile-shell .tj-idgham-mutajanisayn,
+.quran-mobile-shell .tj-idgham-mutaqaribayn,
+.quran-desktop-shell .tj-silent,
+.quran-desktop-shell .tj-idgham,
+.quran-desktop-shell .tj-idgham-shafawi,
+.quran-desktop-shell .tj-idgham-ghunnah,
+.quran-desktop-shell .tj-idgham-no-ghunnah,
+.quran-desktop-shell .tj-idgham-mutajanisayn,
+.quran-desktop-shell .tj-idgham-mutaqaribayn { color:#9ca3af !important; } /* grey: silent / merged */
+
+/* FINAL ATLAS TAJWEED PALETTE — every canonical Quran Foundation rule class */
+.quran-mobile-shell .tj-madd-normal,.quran-mobile-shell .tj-madd-permissible,.quran-mobile-shell .tj-madd,.quran-mobile-shell .madda_normal,.quran-mobile-shell .madda_permissible,.quran-desktop-shell .tj-madd-normal,.quran-desktop-shell .tj-madd-permissible,.quran-desktop-shell .tj-madd,.quran-desktop-shell .madda_normal,.quran-desktop-shell .madda_permissible { color:#f05a24 !important; }
+.quran-mobile-shell .tj-madd-necessary,.quran-mobile-shell .madda_necessary,.quran-desktop-shell .tj-madd-necessary,.quran-desktop-shell .madda_necessary { color:#b91c1c !important; }
+.quran-mobile-shell .tj-madd-obligatory,.quran-mobile-shell .tj-madd-obligatory-connected,.quran-mobile-shell .tj-madd-obligatory-separated,.quran-mobile-shell .tj-madd-wajib,.quran-mobile-shell .madda_obligatory,.quran-mobile-shell .madda_obligatory_mottasel,.quran-mobile-shell .madda_obligatory_monfasel,.quran-desktop-shell .tj-madd-obligatory,.quran-desktop-shell .tj-madd-obligatory-connected,.quran-desktop-shell .tj-madd-obligatory-separated,.quran-desktop-shell .tj-madd-wajib,.quran-desktop-shell .madda_obligatory,.quran-desktop-shell .madda_obligatory_mottasel,.quran-desktop-shell .madda_obligatory_monfasel { color:#ef4444 !important; }
+.quran-mobile-shell .tj-ghunnah,.quran-mobile-shell .tj-ikhfa,.quran-mobile-shell .tj-ikhfa-shafawi,.quran-mobile-shell .tj-iqlab,.quran-mobile-shell .tj-idgham-shafawi,.quran-mobile-shell .tj-idgham-ghunnah,.quran-mobile-shell .tj-idgham,.quran-mobile-shell .ghunnah,.quran-mobile-shell .ikhafa,.quran-mobile-shell .ikhafa_shafawi,.quran-mobile-shell .iqlab,.quran-mobile-shell .idgham_shafawi,.quran-mobile-shell .idgham_ghunnah,.quran-desktop-shell .tj-ghunnah,.quran-desktop-shell .tj-ikhfa,.quran-desktop-shell .tj-ikhfa-shafawi,.quran-desktop-shell .tj-iqlab,.quran-desktop-shell .tj-idgham-shafawi,.quran-desktop-shell .tj-idgham-ghunnah,.quran-desktop-shell .tj-idgham,.quran-desktop-shell .ghunnah,.quran-desktop-shell .ikhafa,.quran-desktop-shell .ikhafa_shafawi,.quran-desktop-shell .iqlab,.quran-desktop-shell .idgham_shafawi,.quran-desktop-shell .idgham_ghunnah { color:#16a34a !important; }
+.quran-mobile-shell .tj-tafkhim,.quran-mobile-shell .tj-heavy,.quran-mobile-shell .tafkhim,.quran-desktop-shell .tj-tafkhim,.quran-desktop-shell .tj-heavy,.quran-desktop-shell .tafkhim { color:#1d4ed8 !important; }
+.quran-mobile-shell .tj-qalqalah,.quran-mobile-shell .qalaqah,.quran-mobile-shell .qalqalah,.quran-mobile-shell .qalqala,.quran-desktop-shell .tj-qalqalah,.quran-desktop-shell .qalaqah,.quran-desktop-shell .qalqalah,.quran-desktop-shell .qalqala { color:#38bdf8 !important; }
+.quran-mobile-shell .tj-silent,.quran-mobile-shell .tj-idgham-no-ghunnah,.quran-mobile-shell .tj-idgham-mutajanisayn,.quran-mobile-shell .tj-idgham-mutaqaribayn,.quran-mobile-shell .tj-hamza,.quran-mobile-shell .ham_wasl,.quran-mobile-shell .hamzat_wasl,.quran-mobile-shell .hamzat_al_wasl,.quran-mobile-shell .slnt,.quran-mobile-shell .silent,.quran-mobile-shell .laam_shamsiyah,.quran-mobile-shell .laam_shamsiyyah,.quran-mobile-shell .lam_shamsiyah,.quran-mobile-shell .lam_shamsiyyah,.quran-mobile-shell .idgham_wo_ghunnah,.quran-mobile-shell .idgham_mutajanisayn,.quran-mobile-shell .idgham_mutaqaribayn,.quran-desktop-shell .tj-silent,.quran-desktop-shell .tj-idgham-no-ghunnah,.quran-desktop-shell .tj-idgham-mutajanisayn,.quran-desktop-shell .tj-idgham-mutaqaribayn,.quran-desktop-shell .tj-hamza,.quran-desktop-shell .ham_wasl,.quran-desktop-shell .hamzat_wasl,.quran-desktop-shell .hamzat_al_wasl,.quran-desktop-shell .slnt,.quran-desktop-shell .silent,.quran-desktop-shell .laam_shamsiyah,.quran-desktop-shell .laam_shamsiyyah,.quran-desktop-shell .lam_shamsiyah,.quran-desktop-shell .lam_shamsiyyah,.quran-desktop-shell .idgham_wo_ghunnah,.quran-desktop-shell .idgham_mutajanisayn,.quran-desktop-shell .idgham_mutaqaribayn { color:#9ca3af !important; }
+
+
+/* Reliable, immediately visible Tajweed legend after tapping the toolbar control.
+   Keep it in normal document flow: sticky offsets and height animations could
+   place the guide outside the visible reading area on compact iOS viewports. */
+.quran-mobile-shell .quran-mobile-tajweed-legend {
+  position:relative !important;
+  inset:auto !important;
+  z-index:40 !important;
+  display:block !important;
+  flex:0 0 auto !important;
+  width:100%;
+  max-height:none !important;
+  margin:0 !important;
+  padding:12px 16px 14px !important;
+  box-sizing:border-box;
+  overflow:visible !important;
+  transform:none !important;
+  color:var(--text-primary);
+  background:var(--bg-surface);
+  border:0;
+  border-bottom:1px solid var(--border-hairline);
+  border-radius:0;
+  box-shadow:0 5px 14px rgba(0,0,0,.08);
+}
+.quran-mobile-shell .quran-mobile-tajweed-legend-heading {
+  display:flex !important;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin:0 0 8px !important;
+}
+.quran-mobile-shell .quran-mobile-tajweed-legend-heading > b {
+  color:var(--text-primary);
+  font-size:13px;
+  font-weight:700;
+}
+.quran-mobile-shell .quran-mobile-tajweed-legend-heading > button {
+  display:grid;
+  place-items:center;
+  flex:0 0 30px;
+  width:30px;
+  height:30px;
+  padding:0;
+  border:1px solid var(--border-hairline);
+  border-radius:50%;
+  color:var(--text-primary);
+  background:var(--bg-canvas);
+}
+.quran-mobile-shell .quran-mobile-tajweed-legend .quran-tajweed-guide > p {
+  margin:0 0 10px;
+}
+.quran-mobile-shell .quran-mobile-tajweed-legend .quran-tajweed-guide-grid {
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  gap:10px 14px !important;
+  margin:0 !important;
+}
+.quran-mobile-shell .quran-mobile-tajweed-legend .quran-tajweed-guide-item {
+  display:flex !important;
+  align-items:center;
+  min-width:0;
+  white-space:normal;
+}
+@media(max-width:520px) {
+  .quran-mobile-shell .quran-mobile-tajweed-legend .quran-tajweed-guide-grid {
+    grid-template-columns:minmax(0,1fr) !important;
+    gap:9px !important;
+  }
+}
+
+
+/* Keep the mobile Mushaf toolbar pinned while the reader shell scrolls. */
+@media (max-width:767px) {
+  .quran-mobile-shell {
+    scroll-behavior:auto;
+  }
+  .quran-mobile-shell .quran-mobile-header {
+    position:sticky !important;
+    top:0 !important;
+    z-index:10001 !important;
+    align-self:stretch;
+    flex:0 0 auto;
+    transform:none;
+  }
 }
