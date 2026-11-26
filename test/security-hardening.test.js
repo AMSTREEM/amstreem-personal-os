@@ -270,8 +270,8 @@ test('Room 3 has a dedicated Focus Room with safe context handoffs and a persist
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
   assert.match(app, /path="\/actions" element={<FocusWorkspace \/>}/);
   assert.match(app, /path="\/focus" element={<FocusWorkspace \/>}/);
-  assert.match(shell, /paths: \['\\/actions', '\\/focus', '\\/calendar'\]/);
-  assert.match(shell, /label: 'Projects & Tasks', to: '\\/actions'/);
+  assert.ok(shell.includes("paths: ['/actions', '/focus', '/calendar']"));
+  assert.ok(shell.includes("label: 'Projects & Tasks', to: '/actions'"));
   assert.match(shell, /navigate\('\/focus'\)/);
   assert.match(shell, /className="atlas-command-dock"/);
   assert.match(workspace, /!isFocusRoute && <section className="execution-projects-panel">/);
