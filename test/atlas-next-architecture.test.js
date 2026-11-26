@@ -421,9 +421,11 @@ test('Residence is a direction-led Home, Life Blueprint is data-backed, and the 
   assert.ok(home.includes("api<HomeTask[]>('/tasks')"));
   assert.ok(home.includes("api<HomeGoal[]>('/goals')"));
   assert.ok(home.includes("api<FocusSession[]>('/sessions')"));
-  assert.match(home, /Your next actions/);
-  assert.match(home, /Your current direction/);
-  assert.match(home, /Nothing demanding your attention/);
+  assert.match(home, /Your open loops/);
+  assert.match(home, /What you're building/);
+  assert.match(home, /All clear for now/);
+  assert.match(home, /atlas-dashboard__hero/);
+  assert.match(home, /atlas-dashboard__signals/);
   assert.ok(blueprint.includes("api<BlueprintGoal[]>('/goals')"));
   assert.match(blueprint, /linked_tasks/);
   assert.match(blueprint, /completed_tasks/);
