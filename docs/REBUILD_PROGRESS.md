@@ -236,3 +236,11 @@ No Render deployment or production Supabase data/schema change has been made fro
 - Kept the Qur'an page statically imported and its route untouched by the code-splitting pass. This avoids changing the reader's loading boundary while reducing the initial cost of unrelated destinations.
 - Added a lightweight, accessible page-loading fallback inside the persistent application shell so room navigation remains mounted while a destination chunk loads.
 - No dependency changes or server/data changes were required.
+
+
+## Full transformation — first-run walkthrough · 2026-11-26
+
+- Rewrote the first-run walkthrough around the four actual rooms and the new Residence/Home + Life Blueprint experience.
+- The walkthrough now introduces Daily Check-in, Faith & Practice, Habits & Self-Control, Projects & Tasks, Calendar, Focus, Goals, Learning/Library and Reviews/Insights in their correct room context.
+- Corrected step navigation so Back, Next, arrow keys and step indicators keep the displayed explanation and the active route in sync.
+- Kept the Qur'an reader as an independent specialist tool; the walkthrough only describes its place in the overall product.

@@ -5,56 +5,42 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 type Props = { onClose: () => void; onOpenCommand?: () => void };
 
-const stepRoutes = ['/residence', '/actions', '/goals', '/focus', '/growth', '/calendar'];
+const stepRoutes = ['/residence', '/daily-rhythm', '/actions', '/goals'];
 
 const steps = [
   {
-    eyebrow: '01 · YOUR PERSONAL COMMAND CENTRE',
-    title: 'Start with Home.',
-    description: 'See what matters today: priorities, upcoming commitments, progress across your chosen life areas, and useful next actions.',
-    rows: ['⌘ 1 · Home', 'Today’s priorities · Upcoming commitments', 'Life-area context · Suggested next actions'],
-    label: 'UNDERSTAND WHERE YOU ARE'
+    eyebrow: '01 · RESIDENCE',
+    title: 'Start with what matters.',
+    description: 'Your Home gives you a clear view of your current direction, the next actions that matter, and the progress you have actually recorded. Your Life Blueprint connects those actions to the outcomes you care about.',
+    rows: ['⌘ 1 · Residence', 'Your current direction · Next actions', 'Focus time · Life Blueprint'],
+    label: 'SEE THE BIG PICTURE'
   },
   {
-    eyebrow: '02 · TURN INTENTION INTO ACTION',
-    title: 'Make meaningful progress.',
-    description: 'Bring tasks, projects, habits, routines and personal commitments into one execution space. Spend less time administering your life and more time living it.',
-    rows: ['⌘ 2 · Actions', 'Tasks · Projects · Milestones', 'Habits · Routines · Commitments'],
-    label: 'BUILD THE SYSTEM'
+    eyebrow: '02 · DAILY RHYTHM',
+    title: 'Give your days a rhythm.',
+    description: 'Use your daily check-in to stay aware of the day. Keep Faith & Practice and Habits & Self-Control in one calm room, while specialist tools such as Qur’an remain independently accessible.',
+    rows: ['⌘ 2 · Daily Rhythm', 'Daily Check-in · Faith & Practice', 'Habits & Self-Control · Qur’an'],
+    label: 'BUILD A RHYTHM THAT LASTS'
   },
   {
-    eyebrow: '03 · CHOOSE YOUR DIRECTION',
-    title: 'Work towards outcomes that matter.',
-    description: 'Define long-term goals, break them into milestones, and connect the work that moves each outcome forward.',
-    rows: ['⌘ 3 · Goals', 'Life goals · Measurable outcomes', 'Milestones · Long-term plans'],
-    label: 'KNOW WHERE YOU ARE GOING'
+    eyebrow: '03 · EXECUTION & FOCUS',
+    title: 'Turn intention into action.',
+    description: 'Bring projects, tasks, calendar commitments and focused work together. Start with one clear action, protect time for it, and keep the session connected to the work it supports.',
+    rows: ['⌘ 3 · Execution & Focus', 'Projects & Tasks · Calendar', 'Focus timer · Linked sessions'],
+    label: 'MAKE PROGRESS VISIBLE'
   },
   {
-    eyebrow: '04 · PROTECT YOUR ATTENTION',
-    title: 'Give important work your focus.',
-    description: 'Run deep-work and study sessions, link them to the work they support, and keep a reliable history of your effort.',
-    rows: ['⌘ 4 · Focus', 'Focus timer · Study sessions', 'Session history · Task-linked work'],
-    label: 'TURN PLANS INTO ACTION'
-  },
-  {
-    eyebrow: '05 · SEE WHAT IS CHANGING',
-    title: 'Measure growth, not busyness.',
-    description: 'Review real evidence against your starting point. Notice what improved, what did not, and what you may want to adjust next.',
-    rows: ['⌘ 5 · Growth', 'Reviews · Progress evidence', 'Patterns · Useful next steps'],
-    label: 'UNDERSTAND YOUR PROGRESS'
-  },
-  {
-    eyebrow: '06 · MAKE TIME VISIBLE',
-    title: 'Organise your commitments.',
-    description: 'Bring events, routines, deadlines and planned focus blocks into one view so your time reflects your priorities.',
-    rows: ['⌘ 6 · Calendar', 'Daily and weekly schedules', 'Events · Deadlines · Planned focus'],
-    label: 'MAKE ROOM FOR WHAT MATTERS'
+    eyebrow: '04 · GROWTH & DIRECTION',
+    title: 'Build towards outcomes that matter.',
+    description: 'Give your goals a direction, connect them to learning and milestones, and review the evidence of how your work is changing over time.',
+    rows: ['⌘ 4 · Growth & Direction', 'Goals & Milestones · Learning & Library', 'Reviews & Insights · Useful next steps'],
+    label: 'GROW WITH INTENTION'
   },
   {
     eyebrow: 'PERSONAL BY DESIGN',
     title: 'Make Atlas yours.',
-    description: 'Choose the life areas you want to work on. Keep specialist tools such as Qur’an, Learning Library and faith practices available when they matter to you. Change your priorities whenever life changes.',
-    rows: ['Your life areas · Your priorities', 'Qur’an · Learning · Personal tools', 'Settings · Private by design'],
+    description: 'Choose the life areas you want to work on. Keep optional spaces optional, protect your private records, and change your priorities whenever life changes. Atlas should support your life, not become another obligation.',
+    rows: ['Your life areas · Your priorities', 'Specialist tools · Private by design', 'A fresh start is always available'],
     label: 'YOUR LIFE. YOUR DIRECTION. YOUR GROWTH'
   }
 ];
@@ -66,10 +52,15 @@ export function AtlasWalkthrough({ onClose, onOpenCommand }: Props) {
   const step = steps[index];
 
   const finish = () => onClose();
+  const goToStep = (nextIndex: number) => {
+    const target = Math.max(0, Math.min(steps.length - 1, nextIndex));
+    setIndex(target);
+    const route = stepRoutes[target];
+    if (route) navigate(route);
+  };
   const advance = () => {
-    if (index < stepRoutes.length) {
-      navigate(stepRoutes[index]);
-      setIndex(value => Math.min(steps.length - 1, value + 1));
+    if (index < steps.length - 1) {
+      goToStep(index + 1);
       return;
     }
     finish();
@@ -84,8 +75,8 @@ export function AtlasWalkthrough({ onClose, onOpenCommand }: Props) {
     focusable()[0]?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') finish();
-      if (event.key === 'ArrowRight') setIndex(value => Math.min(steps.length - 1, value + 1));
-      if (event.key === 'ArrowLeft') setIndex(value => Math.max(0, value - 1));
+      if (event.key === 'ArrowRight') goToStep(index + 1);
+      if (event.key === 'ArrowLeft') goToStep(index - 1);
       if (event.key === 'Tab') {
         const items = focusable();
         const first = items[0], last = items[items.length - 1];
@@ -116,7 +107,7 @@ export function AtlasWalkthrough({ onClose, onOpenCommand }: Props) {
           <p>Seven quick stops to see how Atlas helps you choose direction, take action and make meaningful progress.</p>
           <div className="atlas-tour__progress" aria-label={`Step ${index + 1} of ${steps.length}`}><i style={{ width: `${((index + 1) / steps.length) * 100}%` }} /></div>
           <nav className="atlas-tour__nav" aria-label="Walkthrough steps">
-            {steps.map((item, i) => <button key={item.label} type="button" aria-label={`Go to step ${i + 1}: ${item.title}`} aria-current={i === index ? 'step' : undefined} onClick={() => setIndex(i)}>{String(i + 1).padStart(2, '0')}</button>)}
+            {steps.map((item, i) => <button key={item.label} type="button" aria-label={`Go to step ${i + 1}: ${item.title}`} aria-current={i === index ? 'step' : undefined} onClick={() => goToStep(i)}>{String(i + 1).padStart(2, '0')}</button>)}
           </nav>
         </aside>
         <main className="atlas-tour__content">
@@ -132,7 +123,7 @@ export function AtlasWalkthrough({ onClose, onOpenCommand }: Props) {
       <footer className="atlas-tour__actions">
         <button className="button button--ghost" type="button" onClick={finish}>Close tour</button>
         <div>
-          <button className="button button--secondary" type="button" disabled={index === 0} onClick={() => setIndex(value => Math.max(0, value - 1))}><ChevronLeft size={15} /> Back</button>
+          <button className="button button--secondary" type="button" disabled={index === 0} onClick={() => goToStep(index - 1)}><ChevronLeft size={15} /> Back</button>
           <button className="button button--primary" type="button" onClick={advance}>{index < steps.length - 1 ? <>Next <ChevronRight size={15} /></> : <>Open command dock <ChevronRight size={15} /></>}</button>
         </div>
       </footer>

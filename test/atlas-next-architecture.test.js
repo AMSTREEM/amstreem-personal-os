@@ -465,3 +465,13 @@ test('route-level code splitting keeps the specialist Qur’an route statically 
   assert.ok(app.includes('path="/quran" element={<QuranPage />}'));
   assert.ok(!app.includes('lazy(() => import(\'./pages/QuranPage\')'));
 });
+
+
+test('first-run walkthrough teaches the four-room structure and keeps its route in sync with each step', () => {
+  const tour = read('client/src/components/AtlasWalkthrough.tsx');
+  assert.ok(tour.includes("const stepRoutes = ['/residence', '/daily-rhythm', '/actions', '/goals']"));
+  for (const room of ['RESIDENCE', 'DAILY RHYTHM', 'EXECUTION & FOCUS', 'GROWTH & DIRECTION']) assert.ok(tour.includes(room));
+  assert.match(tour, /function goToStep/);
+  assert.match(tour, /onClick=\{\(\) => goToStep\(i\)\}/);
+  assert.doesNotMatch(tour, /⌘ 5|⌘ 6/);
+});
