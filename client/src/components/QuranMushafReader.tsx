@@ -573,7 +573,8 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
 
   const activeSurah = QURAN_SURAHS[activeSurahNumber - 1];
 
-  const mobileActiveSurahNumber = selected?.surah || pageData?.ayahs?.[0]?.surahNumber || getPageSurah(page)?.number || activeSurahNumber;
+  const mobileActiveSurahNumber = (readingMode === 'reading' ? pageData?.ayahs?.[0]?.surahNumber : selected?.surah)
+    || pageData?.ayahs?.[0]?.surahNumber || getPageSurah(page)?.number || activeSurahNumber;
   const mobileActiveSurahName = QURAN_SURAHS[mobileActiveSurahNumber - 1]?.transliteration || activeSurah?.transliteration || 'Al-Fatihah';
   const currentPageSurahLabel = useMemo(() => {
     const pageSurahs = new Map<number, string>();
@@ -810,12 +811,9 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
 
   const changePage = (next: number, location?: { surahNumber: number; numberInSurah: number }) => {
     userScrolledRef.current = false;
-    const requestedPage = clampPage(next);
-    const readingSurahStart = activeSurah?.pageStart || 1;
-    const readingSurahEnd = getAyahLocation(activeSurahNumber, activeSurah?.ayahs || 1)?.page || 604;
-    const value = !location && readingMode === 'reading'
-      ? Math.max(readingSurahStart, Math.min(requestedPage, readingSurahEnd))
-      : requestedPage;
+    // Mushaf page navigation is global: a printed page may end one Surah and
+    // continue into the next. Never clamp page turns to the currently active Surah.
+    const value = clampPage(next);
     if (value !== page) {
       setPageDirection(value > page ? 1 : -1);
       const cachedPage = readCachedMushafPage(value);
@@ -935,8 +933,9 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   };
   const renderPageBlock = (data: MushafPage, firstBlock: boolean) => {
     const runs: Array<{ surahNumber: number; surahName: string; arabicName: string; startsSurah: boolean; ayahs: MushafAyah[] }> = [];
-    const readingSurahNumber = pageReadingSurah;
-    data.ayahs.filter(ayah => ayah.surahNumber === readingSurahNumber).forEach(ayah => {
+    // Render every Ayah on the printed Mushaf page, including pages that cross
+    // a Surah boundary. pageReadingSurah is only relevant to verse-by-verse mode.
+    data.ayahs.forEach(ayah => {
       const last = runs[runs.length - 1];
       if (last && last.surahNumber === ayah.surahNumber) last.ayahs.push(ayah);
       else runs.push({ surahNumber: ayah.surahNumber, surahName: ayah.surahName, arabicName: ayah.arabicName, startsSurah: ayah.numberInSurah === 1, ayahs: [ayah] });
