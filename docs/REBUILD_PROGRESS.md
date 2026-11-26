@@ -263,3 +263,10 @@ No Render deployment or production Supabase data/schema change has been made fro
 - Preserved the existing LearningPage and LibraryPage data flows; the change is composition and navigation, not a replacement of learning records.
 - Corrected the legacy `/learning` bookmark to redirect to Learning & Library instead of incorrectly sending users to Goals.
 - Fixed a stale keyboard-navigation closure in the first-run walkthrough with a current-step ref, so repeated left/right arrow presses move through the tour correctly.
+
+
+## Full transformation — vendor bundle optimization · 2026-11-26
+
+- Added deterministic Rollup vendor chunking for React, React Query, Supabase, Motion, React Router, Lucide icons, date utilities and validation.
+- Route-level code splitting remains in place; the Qur'an route remains statically loaded and no Qur'an implementation files were modified.
+- The previous build still emitted a roughly 968 kB main chunk after route splitting. This vendor chunking pass is intended to reduce the initial application bundle and improve long-term browser caching; final chunk sizes will be measured in the next staging build before considering the performance work complete.

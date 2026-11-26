@@ -496,3 +496,12 @@ test('Learning & Library combines real learning paths with the private library a
   assert.match(view, /Private Library/);
   assert.ok(app.includes('path="/learning" element={<LegacyRedirect to="/learning-library" />}'));
 });
+
+
+test('Vite keeps heavyweight vendor libraries in stable cacheable chunks', () => {
+  const vite = read('client/vite.config.ts');
+  assert.match(vite, /manualChunks/);
+  for (const chunk of ['vendor-react', 'vendor-query', 'vendor-supabase', 'vendor-motion', 'vendor-router', 'vendor-icons']) {
+    assert.ok(vite.includes(chunk), 'Missing vendor chunk ' + chunk);
+  }
+});

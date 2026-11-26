@@ -14,5 +14,24 @@ export default defineConfig({
     port: 5173,
     proxy: { '/api': 'http://localhost:3000' }
   },
-  build: { outDir: output, emptyOutDir: true, sourcemap: false }
+  build: {
+    outDir: output,
+    emptyOutDir: true,
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('/node_modules/')) return;
+          if (id.includes('/node_modules/react/') || id.includes('/node_modules/react-dom/') || id.includes('/node_modules/scheduler/')) return 'vendor-react';
+          if (id.includes('/node_modules/@tanstack/')) return 'vendor-query';
+          if (id.includes('/node_modules/@supabase/')) return 'vendor-supabase';
+          if (id.includes('/node_modules/motion/') || id.includes('/node_modules/motion-dom/') || id.includes('/node_modules/motion-utils/')) return 'vendor-motion';
+          if (id.includes('/node_modules/lucide-react/')) return 'vendor-icons';
+          if (id.includes('/node_modules/react-router') || id.includes('/node_modules/@remix-run/router/')) return 'vendor-router';
+          if (id.includes('/node_modules/date-fns/')) return 'vendor-dates';
+          if (id.includes('/node_modules/zod/')) return 'vendor-validation';
+        }
+      }
+    }
+  }
 });
