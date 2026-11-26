@@ -950,9 +950,12 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   );
   const renderArabic = (ayah: MushafAyah) => {
     const segments = tajweedEnabled && ayah.tajweedSegments?.length ? ayah.tajweedSegments : [{ text: ayah.text, className: '' }];
-    // This source uses U+0672 where the Uthmani text requires superscript alef U+0670.
-    // Correct only that character; keep each original Tajweed segment and its colour class intact.
-    return <>{segments.map((segment, index) => <span key={index} className={tajweedEnabled ? segment.className : ''}>{segment.text.replace(/ٲ/g, 'ٰ')}</span>)}{renderMedallion(ayah.numberInSurah)}</>;
+    // U+0672 is a real Arabic letter. Keep it intact and render only that glyph
+    // with a fallback font when the selected Madinah font lacks its glyph.
+    // The surrounding Tajweed segment retains its original colour class.
+    return <>{segments.map((segment, index) => <span key={index} className={tajweedEnabled ? segment.className : ''}>{Array.from(segment.text).map((character, characterIndex) => character === 'ٲ'
+      ? <span key={characterIndex} style={{ fontFamily: '"Noto Naskh Arabic", "Scheherazade New", serif', color: 'inherit' }}>{character}</span>
+      : character)}</span>)}{renderMedallion(ayah.numberInSurah)}</>;
   };
   const bismillah = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
   const mobileArabicStyle = { fontFamily: `"${arabicFontFamily}", "Amiri Quran", serif`, fontSize: `${arabicFontSize}px` } as CSSProperties;
@@ -982,7 +985,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
   const renderPageAyah = (ayah: MushafAyah, data: MushafPage) => {
     const font = qcfV4Fonts[data.page];
     const words = (ayah.words || []).filter(word => word.charTypeName !== 'end' && word.charTypeName !== 'pause' && word.text);
-    if (tajweedEnabled && font && words.length && words.every(word => Boolean(word.codeV2)) && !ayah.text.includes('ٲ')) {
+    if (tajweedEnabled && font && words.length && words.every(word => Boolean(word.codeV2))) {
       return <>{words.map((word, index) => <Fragment key={ayah.number + ':qcf:' + index}><span className="quran-qcf-v4-word" style={qcfV4WordStyle(font)} dangerouslySetInnerHTML={{ __html: escapeQcfGlyphHtml(word.codeV2 || '') }} />{' '}</Fragment>)}{renderMedallion(ayah.numberInSurah)}</>;
     }
     return renderArabic(ayah);
