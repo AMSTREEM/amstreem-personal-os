@@ -475,3 +475,17 @@ test('first-run walkthrough teaches the four-room structure and keeps its route 
   assert.match(tour, /onClick=\{\(\) => goToStep\(i\)\}/);
   assert.doesNotMatch(tour, /⌘ 5|⌘ 6/);
 });
+
+
+test('staging branch configuration cannot silently fall back to production Supabase', () => {
+  const config = JSON.parse(read('supabase-config.json'));
+  const browserConfig = read('public/supabase-config.js');
+  const server = read('server.js');
+  assert.match(config.url, /^https:\/\/[a-z0-9]+\.supabase\.co$/);
+  assert.doesNotMatch(config.url, /skjxwzmpajdcrfacwoap/);
+  assert.equal(config.ownerUserId, null);
+  assert.match(browserConfig, /yllzeblecyqnncgktnjw/);
+  assert.doesNotMatch(browserConfig, /skjxwzmpajdcrfacwoap/);
+  assert.match(server, /process\.env\.ATLAS_STAGING === 'true'/);
+  assert.match(server, /Staging must never connect to the production Supabase project/);
+});

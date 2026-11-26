@@ -244,3 +244,14 @@ No Render deployment or production Supabase data/schema change has been made fro
 - The walkthrough now introduces Daily Check-in, Faith & Practice, Habits & Self-Control, Projects & Tasks, Calendar, Focus, Goals, Learning/Library and Reviews/Insights in their correct room context.
 - Corrected step navigation so Back, Next, arrow keys and step indicators keep the displayed explanation and the active route in sync.
 - Kept the Qur'an reader as an independent specialist tool; the walkthrough only describes its place in the overall product.
+
+
+## Full transformation — staging isolation correction · 2026-11-26
+
+- Deeper inspection found the `atlas-next` repository's static Supabase configuration still pointed at the production project, despite a separate staging Supabase project existing.
+- Confirmed the dedicated staging project is `amstreem-atlas-staging` and active/healthy.
+- Updated the staging Render service environment to force `ATLAS_STAGING=true`, use the staging Supabase URL and publishable key, disable production admin ownership, clear privileged service/secret keys in staging, and disable outbound Resend email.
+- The existing server startup guard now becomes active in the staging service and refuses to start if the staging URL or publishable key is missing or points to production.
+- Staging workspace reads/writes continue to use the signed-in user's JWT and the publishable key; no service-role key is needed for ordinary user workspace access. Admin directory, username lookup, leaderboard and bulk-email features remain intentionally unavailable in staging until staging-specific admin credentials are configured.
+- No production service, production Supabase project, production data, or production environment variables were changed.
+- Static config files are being aligned to the staging project as a second line of defence; an automated regression test now rejects the production Supabase project in staging config.
