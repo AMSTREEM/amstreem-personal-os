@@ -263,6 +263,8 @@ test('first-run walkthrough introduces the four Atlas rooms and personal life ar
   }
   assert.match(tour, /PERSONAL BY DESIGN/);
   assert.match(tour, /const goToStep =/);
+  assert.match(tour, /indexRef\.current = target/);
+  assert.match(tour, /goToStep\(indexRef\.current \+ 1\)/);
   assert.match(tour, /goToStep\(index \+ 1\)/);
   assert.match(tour, /onOpenCommand\?\.\(\)/);
   assert.match(shell, /onOpenCommand=/);
@@ -481,4 +483,16 @@ test('staging branch configuration cannot silently fall back to production Supab
   assert.doesNotMatch(browserConfig, /skjxwzmpajdcrfacwoap/);
   assert.match(server, /process\.env\.ATLAS_STAGING === 'true'/);
   assert.match(server, /Staging must never connect to the production Supabase project/);
+});
+
+
+test('Learning & Library combines real learning paths with the private library and preserves old learning links', () => {
+  const view = read('client/src/pages/ConsolidatedViews.tsx');
+  const app = read('client/src/App.tsx');
+  assert.match(view, /import \{ LearningPage \} from '\.\/LearningPage'/);
+  assert.match(view, /LearningPage embedded/);
+  assert.match(view, /LibraryPage embedded/);
+  assert.match(view, /Learning paths/);
+  assert.match(view, /Private Library/);
+  assert.ok(app.includes('path="/learning" element={<LegacyRedirect to="/learning-library" />}'));
 });

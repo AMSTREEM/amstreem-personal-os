@@ -68,7 +68,7 @@ export function App() {
       <Route path="/self-control" element={<LegacyRedirect to="/habits" />} />
       <Route path="/projects" element={<LegacyRedirect to="/goals" />} />
       <Route path="/tasks" element={<LegacyRedirect to="/actions" />} />
-      <Route path="/learning" element={<LegacyRedirect to="/goals" />} />
+      <Route path="/learning" element={<LegacyRedirect to="/learning-library" />} />
       <Route path="/library" element={<LegacyRedirect to="/learning-library" />} />
       <Route path="/settings" element={<SuspendedPage><SettingsPage /></SuspendedPage>} />
       <Route path="/admin" element={role === "admin" ? <SuspendedPage><AdminPage /></SuspendedPage> : <Navigate to="/today" replace />} />

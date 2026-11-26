@@ -255,3 +255,11 @@ No Render deployment or production Supabase data/schema change has been made fro
 - Staging workspace reads/writes continue to use the signed-in user's JWT and the publishable key; no service-role key is needed for ordinary user workspace access. Admin directory, username lookup, leaderboard and bulk-email features remain intentionally unavailable in staging until staging-specific admin credentials are configured.
 - No production service, production Supabase project, production data, or production environment variables were changed.
 - Static config files are being aligned to the staging project as a second line of defence; an automated regression test now rejects the production Supabase project in staging config.
+
+
+## Full transformation — learning workspace and onboarding navigation · 2026-11-26
+
+- Reconnected the existing Learning Paths experience to the canonical Learning & Library room alongside the Private Library. The room now has Learning Paths, Private Library and Show All views.
+- Preserved the existing LearningPage and LibraryPage data flows; the change is composition and navigation, not a replacement of learning records.
+- Corrected the legacy `/learning` bookmark to redirect to Learning & Library instead of incorrectly sending users to Goals.
+- Fixed a stale keyboard-navigation closure in the first-run walkthrough with a current-step ref, so repeated left/right arrow presses move through the tour correctly.

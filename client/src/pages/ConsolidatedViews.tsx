@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { LibraryPage } from './LibraryPage';
+import { LearningPage } from './LearningPage';
 import { ReviewsPage } from './ReviewsPage';
 import { InsightsPage } from './InsightsPage';
 import { RitualsPage } from './RitualsPage';
@@ -22,11 +23,20 @@ export function HabitsSelfControlView() {
 }
  
 export function LearningLibraryView() {
+  const [workspace,setWorkspace]=useState<'learning'|'library'|'all'>('learning');
   return <div className="stack growth-combined-view">
-    <section className="growth-view-section" aria-labelledby="growth-library-heading">
+    <PageHeader eyebrow="ROOM 04 / GROWTH & DIRECTION" title="Learning & Library" description="Turn curiosity into a path, keep useful knowledge close, and connect what you learn to the work you are doing." />
+    <nav className="growth-workspace-switcher atlas-segmented-switcher" aria-label="Choose learning workspace">
+      {([{id:'learning',label:'Learning Paths'},{id:'library',label:'Private Library'},{id:'all',label:'Show All'}] as const).map(tab=><button key={tab.id} type="button" className={workspace===tab.id?'is-active':''} aria-pressed={workspace===tab.id} onClick={()=>setWorkspace(tab.id)}>{tab.label}</button>)}
+    </nav>
+    {(workspace==='learning'||workspace==='all') && <section className="growth-view-section" aria-labelledby="growth-learning-heading">
+      <div className="growth-section-heading"><span className="eyebrow">LEARN / PATHS & LESSONS</span><h2 id="growth-learning-heading">Learning paths</h2><p>Build a sequence of lessons, give them focused time, and keep each path connected to a meaningful goal.</p></div>
+      <LearningPage embedded />
+    </section>}
+    {(workspace==='library'||workspace==='all') && <section className="growth-view-section" aria-labelledby="growth-library-heading">
       <div className="growth-section-heading"><span className="eyebrow">KNOWLEDGE / PRIVATE LIBRARY</span><h2 id="growth-library-heading">Private Library</h2><p>Keep books, articles, references and private notes close to the work that matters.</p></div>
       <LibraryPage embedded />
-    </section>
+    </section>}
   </div>;
 }
 

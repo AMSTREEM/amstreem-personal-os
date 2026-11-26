@@ -47,6 +47,7 @@ const steps = [
 
 export function AtlasWalkthrough({ onClose, onOpenCommand }: Props) {
   const [index, setIndex] = useState(0);
+  const indexRef = useRef(0);
   const navigate = useNavigate();
   const dialogRef = useRef<HTMLElement>(null);
   const step = steps[index];
@@ -54,6 +55,7 @@ export function AtlasWalkthrough({ onClose, onOpenCommand }: Props) {
   const finish = () => onClose();
   const goToStep = (nextIndex: number) => {
     const target = Math.max(0, Math.min(steps.length - 1, nextIndex));
+    indexRef.current = target;
     setIndex(target);
     const route = stepRoutes[target];
     if (route) navigate(route);
@@ -75,8 +77,8 @@ export function AtlasWalkthrough({ onClose, onOpenCommand }: Props) {
     focusable()[0]?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') finish();
-      if (event.key === 'ArrowRight') goToStep(index + 1);
-      if (event.key === 'ArrowLeft') goToStep(index - 1);
+      if (event.key === 'ArrowRight') goToStep(indexRef.current + 1);
+      if (event.key === 'ArrowLeft') goToStep(indexRef.current - 1);
       if (event.key === 'Tab') {
         const items = focusable();
         const first = items[0], last = items[items.length - 1];
