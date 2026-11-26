@@ -18,6 +18,7 @@ import { EnergyVortex } from './fx/AtlasEngines';
 import { CursorAura } from './fx/CursorAura';
 import { MagneticButton } from './fx/MagneticButton';
 import { useSpotlightGrid } from './fx/useSpotlightGrid';
+import '../styles/atlas-renaissance.css';
 
 const MotionNavLink = motion.create(NavLink);
 
@@ -210,7 +211,7 @@ export function AppShell() {
   }, [focusActive, focusTimer.kind, focusClock, focusContext, current?.label]);
   const faithTabLabel = quickReligion === 'islam' ? 'Deen' : quickReligion === 'christianity' ? 'Faith & Reflection' : 'Daily Reflection';
 
-  return <div className={"app-frame" + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
+  return <div className={"app-frame " + (location.pathname === "/quran" ? "atlas-quran-mode" : "atlas-renaissance") + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
     <CursorAura/><SparkBurst/><EnergyVortex/>
     <MobileInstallPrompt />
     <AnimatePresence initial={false}>{tourOpen && <AtlasWalkthrough onClose={closeTour} onOpenCommand={() => { setCommandOpen(true); setCommandQuery(''); }} />}</AnimatePresence>
