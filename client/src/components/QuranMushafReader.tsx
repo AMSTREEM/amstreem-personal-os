@@ -87,7 +87,7 @@ function parseBracketTajweed(markup: string): TajweedSegment[] {
       if (/\p{M}/u.test(character)) {
         // A mark with no preceding Arabic base must wait for the next base.
         // Rendering it alone makes some fonts draw a dotted-circle placeholder.
-        if (previous && /\p{Script=Arabic}/u.test(Array.from(previous.text).slice(-1)[0] || '') && !/\p{M}/u.test(Array.from(previous.text).slice(-1)[0] || '')) previous.text += character;
+        if (previous) previous.text += character;
         else leadingMarks += character;
       } else {
         const clustered = character + leadingMarks;
@@ -163,7 +163,7 @@ const sanitizeMushafPage = (payload: MushafPage): MushafPage => ({
         if (/\p{M}/u.test(character)) {
           const previous = tajweedSegments[tajweedSegments.length - 1];
           const lastCharacter = previous ? Array.from(previous.text).slice(-1)[0] || '' : '';
-          if (previous && /\p{Script=Arabic}/u.test(lastCharacter) && !/\p{M}/u.test(lastCharacter)) previous.text += character;
+          if (previous) previous.text += character;
           else leadingMarks += character;
         } else {
           const clustered = character + leadingMarks;
