@@ -17,6 +17,7 @@
   --danger: #b96b5b;
   --radius: 20px;
   min-height: 100vh;
+  color-scheme: light;
   background:
     radial-gradient(ellipse at 78% 0%, rgba(191, 207, 155, .18), transparent 34rem),
     #f3f1e9;
@@ -536,3 +537,5 @@
 .app-frame.atlas-renaissance .room-view-transition { min-width:0; }
 .app-frame.atlas-renaissance .stack { min-width:0; }
 .app-frame.atlas-renaissance .stack > * { min-width:0; }
+
+body:has(.app-frame.atlas-renaissance) { background:#f3f1e9; }
