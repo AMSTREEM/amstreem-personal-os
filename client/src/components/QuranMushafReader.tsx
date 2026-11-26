@@ -395,89 +395,43 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     readerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [page, fullScreen]);
 
-  // Guarantee Verse-by-Verse alignment even when the user stops halfway through an Ayah.
-  // CSS proximity snapping remains the first layer; this settles the Ayah crossing
-  // the reading line after momentum ends, then gently aligns that whole card.
+  // Mobile verse mode uses native proximity snapping only. Avoid programmatic
+  // corrections: a delayed correction can select the Ayah still crossing the
+  // sensor and pull a forward swipe backwards. Long Ayahs remain unsnapped.
   useEffect(() => {
-    if (isMobileViewport === false || !fullScreen || readingMode === 'reading' || loading || !surahAyahs.length) return;
+    if (!isMobileViewport || !fullScreen || readingMode === 'reading' || loading || !surahAyahs.length) return;
     const root = readerRef.current;
     if (!root) return;
-    let settleTimer = 0;
-    let correctionFallback = 0;
-    let correcting = false;
     const header = root.querySelector<HTMLElement>('.quran-mobile-header');
-    const updateSnapOffset = () => {
+    const updateSnapGeometry = () => {
       const headerHeight = header?.getBoundingClientRect().height || 0;
       root.style.setProperty('--quran-mobile-snap-offset', `${Math.ceil(headerHeight + 8)}px`);
-      // Oversized Ayahs must remain freely scrollable; only short cards participate in snapping.
       const usableHeight = Math.max(0, root.clientHeight - headerHeight - 32);
       root.querySelectorAll<HTMLElement>('.quran-mobile-verse-row[data-mushaf-verse="true"]').forEach(row => {
         row.classList.toggle('is-long-ayah', row.getBoundingClientRect().height > usableHeight);
       });
     };
-    updateSnapOffset();
-    const headerObserver = typeof ResizeObserver !== 'undefined' && header
-      ? new ResizeObserver(updateSnapOffset)
-      : null;
-    if (header) headerObserver?.observe(header);
-    const rootSizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateSnapOffset) : null;
-    rootSizeObserver?.observe(root);
-    const rowSizeObserver = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateSnapOffset) : null;
-    root.querySelectorAll<HTMLElement>('.quran-mobile-verse-row[data-mushaf-verse="true"]').forEach(row => rowSizeObserver?.observe(row));
-    const alignStoppedAyah = () => {
-      if (correcting) return;
-      const rootRect = root.getBoundingClientRect();
-      const headerBottom = header?.getBoundingClientRect().bottom ?? rootRect.top;
-      const sensorY = Math.min(rootRect.bottom - 24, headerBottom + 28);
-      const rows = Array.from(root.querySelectorAll<HTMLElement>('.quran-mobile-verse-row[data-mushaf-verse="true"]'));
-      if (!rows.length) return;
-      const target = rows.find(row => {
-        const rect = row.getBoundingClientRect();
-        return rect.top <= sensorY && rect.bottom > sensorY;
-      }) || rows.reduce((best, row) => {
-        const rect = row.getBoundingClientRect();
-        const bestRect = best.getBoundingClientRect();
-        return Math.abs(rect.top - sensorY) < Math.abs(bestRect.top - sensorY) ? row : best;
-      }, rows[0]);
-      const targetRect = target.getBoundingClientRect();
-      const usableHeight = Math.max(0, root.clientHeight - (header?.getBoundingClientRect().height || 0) - 32);
-      if (targetRect.height > usableHeight || target.classList.contains('is-long-ayah')) return;
-      const desiredTop = root.scrollTop + targetRect.top - rootRect.top - (headerBottom - rootRect.top) - 8;
-      const delta = desiredTop - root.scrollTop;
-      if (Math.abs(delta) < 12) return;
-      correcting = true;
-      window.clearTimeout(correctionFallback);
-      correctionFallback = window.setTimeout(() => { correcting = false; }, 700);
-      root.scrollTo({ top: Math.max(0, desiredTop), behavior: 'smooth' });
-    };
-    const onScroll = () => {
-      if (correcting) return;
-      window.clearTimeout(settleTimer);
-      // A short quiet window catches the start of momentum deceleration, not just
-      // the browser's final scrollend event.
-      settleTimer = window.setTimeout(alignStoppedAyah, 90);
-    };
-    const onScrollEnd = () => {
-      window.clearTimeout(settleTimer);
-      if (correcting) {
-        correcting = false;
-        window.clearTimeout(correctionFallback);
-        return;
+    updateSnapGeometry();
+    const observers: ResizeObserver[] = [];
+    if (typeof ResizeObserver !== 'undefined') {
+      if (header) {
+        const observer = new ResizeObserver(updateSnapGeometry);
+        observer.observe(header);
+        observers.push(observer);
       }
-      alignStoppedAyah();
-    };
-    root.addEventListener('scroll', onScroll, { passive: true });
-    root.addEventListener('scrollend', onScrollEnd);
+      const rootObserver = new ResizeObserver(updateSnapGeometry);
+      rootObserver.observe(root);
+      observers.push(rootObserver);
+      const rowsObserver = new ResizeObserver(updateSnapGeometry);
+      root.querySelectorAll<HTMLElement>('.quran-mobile-verse-row[data-mushaf-verse="true"]').forEach(row => rowsObserver.observe(row));
+      observers.push(rowsObserver);
+    }
+    window.addEventListener('resize', updateSnapGeometry, { passive: true });
     return () => {
-      window.clearTimeout(settleTimer);
-      window.clearTimeout(correctionFallback);
-      headerObserver?.disconnect();
-      rootSizeObserver?.disconnect();
-      rowSizeObserver?.disconnect();
+      observers.forEach(observer => observer.disconnect());
       root.querySelectorAll('.quran-mobile-verse-row.is-long-ayah').forEach(row => row.classList.remove('is-long-ayah'));
       root.style.removeProperty('--quran-mobile-snap-offset');
-      root.removeEventListener('scroll', onScroll);
-      root.removeEventListener('scrollend', onScrollEnd);
+      window.removeEventListener('resize', updateSnapGeometry);
     };
   }, [isMobileViewport, fullScreen, readingMode, loading, surahAyahs]);
 
