@@ -5411,7 +5411,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .topbar {
     height: auto;
     min-height: calc(52px + env(safe-area-inset-top, 0px));
-    padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+    padding-top: env(safe-area-inset-top, 0px);
     background: color-mix(in srgb, var(--bg) 97%, transparent);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -6997,7 +6997,7 @@ html, body, #root, .app-frame, .main-area, .page-container {
     top: 0;
     z-index: 30;
     flex: 0 0 auto;
-    padding-top: env(safe-area-inset-top, 0px);
+    padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
     box-sizing: border-box;
     background: var(--bg-canvas);
   }
