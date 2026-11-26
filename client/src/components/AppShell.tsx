@@ -31,7 +31,7 @@ const rooms = [
     ]
   },
   {
-    id: 'rhythm', label: 'Daily Rhythm', mobileLabel: 'Rhythm', to: '/values', icon: MoonStar,
+    id: 'rhythm', label: 'Daily Rhythm', mobileLabel: 'Rhythm', to: '/daily-rhythm', icon: MoonStar,
     paths: ['/daily-rhythm', '/values', '/habits', '/quran'],
     tabs: [
       { label: 'Daily Check-in', to: '/daily-rhythm', paths: ['/daily-rhythm'] },

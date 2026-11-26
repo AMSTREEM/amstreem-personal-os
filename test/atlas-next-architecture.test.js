@@ -420,9 +420,9 @@ test('Residence is a direction-led Home, Life Blueprint is data-backed, and the 
   const shell = read('client/src/components/AppShell.tsx');
   const home = read('client/src/pages/AtlasHomePage.tsx');
   const blueprint = read('client/src/pages/BlueprintPage.tsx');
-  assert.match(app, /path="\\/residence" element={<AtlasHomePage \\/>}/);
-  assert.match(app, /path="\\/blueprint" element={<BlueprintPage \\/>}/);
-  assert.match(app, /path="\\/daily-rhythm" element={<TodayPage \\/>}/);
+  assert.ok(app.includes('path="/residence" element={<AtlasHomePage />}'));
+  assert.ok(app.includes('path="/blueprint" element={<BlueprintPage />}'));
+  assert.ok(app.includes('path="/daily-rhythm" element={<TodayPage />}'));
   assert.ok(home.includes("api<HomeTask[]>('/tasks')"));
   assert.ok(home.includes("api<HomeGoal[]>('/goals')"));
   assert.ok(home.includes("api<FocusSession[]>('/sessions')"));
