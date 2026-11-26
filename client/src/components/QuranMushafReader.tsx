@@ -1,5 +1,6 @@
 import { Fragment, type CSSProperties, type FormEvent, type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { AlignJustify, ArrowDown, ArrowUp, Bookmark, BookOpen, ChevronsUpDown, ChevronLeft, ChevronRight, Copy, Info, Palette, Search, Settings, WifiOff, X } from 'lucide-react';
 import { api, json } from '../lib/api';
@@ -223,6 +224,7 @@ const qcfV4WordStyle = (font: QcfV4Font): CSSProperties => ({
 const readBookmark = (key: string) => { try { const value = JSON.parse(localStorage.getItem(key) || '{}') || {}; return { page: clampPage(Number(value.page) || 1), surah: Number(value.surah) || 1, ayah: Number(value.ayah) || 1, updatedAt: String(value.updatedAt || '') }; } catch { return { page: 1, surah: 1, ayah: 1, updatedAt: '' }; } };
 function lagosDate() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
 export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen = false }: Props) {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<'hifz' | 'murajaah'>('hifz');
   const [hifzMark, setHifzMark] = useState(() => readBookmark(HIFZ_KEY));
   const [murajaahMark, setMurajaahMark] = useState(() => readBookmark(MURAJAAH_KEY));
@@ -1124,7 +1126,7 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
             <Palette size={15} strokeWidth={2} /><span>Tajweed</span>
           </button>
         </div>
-        <div className="quran-mobile-header-actions"><button aria-label="Settings" onClick={() => setSettingsOpen(true)}><Settings size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button><button aria-label="Exit reader" onClick={() => setFullScreen(false)}><X size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button></div>
+        <div className="quran-mobile-header-actions"><button aria-label="Settings" onClick={() => setSettingsOpen(true)}><Settings size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button><button className="quran-mobile-leave-button" aria-label="Leave Qur’an" onClick={() => { if (autoOpen) navigate('/residence'); else setFullScreen(false); }}><X size={isMobileViewport ? 17 : 16} strokeWidth={2} /><span>Leave</span></button></div>
       </div>
     </header>
     <AnimatePresence initial={false}>{tajweedLegendVisible && <motion.aside className="quran-mobile-tajweed-legend" initial={{ opacity: 0, height: 0, y: -8 }} animate={{ opacity: 1, height: 'auto', y: 0 }} exit={{ opacity: 0, height: 0, y: -8 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }}><b>Tajweed colour key · Quran.com</b><div><span className="tj-silent">Silent letters</span><span className="tj-madd-normal">Normal madd</span><span className="tj-madd-permissible">Separated madd</span><span className="tj-madd-obligatory-connected">Connected madd</span><span className="tj-madd-obligatory-separated">Separated obligatory madd</span><span className="tj-madd-necessary">Necessary madd</span><span className="tj-ghunnah">Ghunna · Ikhfa · Idgham</span><span className="tj-qalqalah">Qalqalah</span><span className="tj-tafkhim">Tafkhim</span></div></motion.aside>}</AnimatePresence>
