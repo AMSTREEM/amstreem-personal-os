@@ -273,7 +273,7 @@ function parseAlQuranTajweed(markup) {
       const previous = segments[segments.length - 1];
       if (/\p{M}/u.test(character)) {
         const lastCharacter = previous ? Array.from(previous.text).slice(-1)[0] || '' : '';
-        if (previous && /\p{Script=Arabic}/u.test(lastCharacter) && !/\p{M}/u.test(lastCharacter)) previous.text += character;
+        if (previous) previous.text += character;
         else leadingMarks += character;
       } else {
         const clustered = character + leadingMarks;
@@ -345,7 +345,7 @@ function sanitizeQuranAyah(ayah) {
       if (/\p{M}/u.test(character)) {
         const previous = tajweedSegments[tajweedSegments.length - 1];
         const lastCharacter = previous ? Array.from(previous.text).slice(-1)[0] || '' : '';
-        if (previous && /\p{Script=Arabic}/u.test(lastCharacter) && !/\p{M}/u.test(lastCharacter)) previous.text += character;
+        if (previous) previous.text += character;
         else leadingMarks += character;
       } else {
         const clustered = character + leadingMarks;
