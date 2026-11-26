@@ -229,3 +229,18 @@ test('every Quran Foundation HTML rule and quran-tajweed shortcode maps to its c
   assert.deepEqual(Array.from(parseAlQuranTajweed(shortcode.replace(/\]\]\[/g, ']] [')).filter(token => token.className), token => token.className), expected);
   assert.equal(parsed.map(token => token.text).join('').replace(/\s/g, ''), 'ٱاـٰيااووقنمنمنلتقن');
 });
+
+
+test('QCF V4 embedded CPAL slots use the complete Atlas seven-colour Tajweed palette', () => {
+  const reader = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'QuranMushafReader.tsx'), 'utf8');
+  const match = reader.match(/const atlasTajweedOverrides = \[([\s\S]*?)\]\.join\(', '\);/);
+  assert.ok(match, 'QCF V4 must register an explicit override-colors palette');
+  const actual = Array.from(match[1].matchAll(/'(\d+) (#[0-9a-f]{6})'/gi), item => [Number(item[1]), item[2].toLowerCase()]);
+  assert.deepEqual(actual, [
+    [1, '#9ca3af'], [2, '#9ca3af'], [3, '#b91c1c'], [4, '#f05a24'],
+    [5, '#f05a24'], [6, '#16a34a'], [7, '#1d4ed8'], [8, '#38bdf8'],
+    [9, '#ef4444'], [15, '#9ca3af']
+  ], 'Every QCF V4 Tajweed CPAL slot must map to the Atlas guide');
+  assert.match(reader, /override-colors: ' \+ atlasTajweedOverrides/, 'The palette overrides must be applied to the loaded font');
+  assert.match(reader, /if \(\/firefox\/i\.test\(navigator\.userAgent\)\) return;/, 'Firefox must use annotated Unicode spans rather than fixed-colour OT-SVG glyphs');
+});
