@@ -257,7 +257,8 @@ const stripQuranMarkup = value => String(value || '')
   .replace(/<[^>]+>/g, '')
   .replace(/[<>]/g, '')
   .replace(/\[[a-zA-Z]+(?::\d+)?\[/g, '')
-  .replace(/\]/g, '');
+  .replace(/\]/g, '')
+  .replace(/\u25CC/g, '');
 function parseAlQuranTajweed(markup) {
   // End-marker spans are presentation metadata; the reader renders its own medallion.
   const source = String(markup || '').replace(/<span\s+class=["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '');
@@ -266,9 +267,14 @@ function parseAlQuranTajweed(markup) {
   const append = (value, className) => {
     const text = normalizeMadinahArabic(stripQuranMarkup(value));
     if (!text) return;
-    const previous = segments[segments.length - 1];
-    if (previous && previous.className === className) previous.text += text;
-    else segments.push({ text, className });
+    for (const character of Array.from(text)) {
+      const previous = segments[segments.length - 1];
+      // Combining marks, including dagger alif, stay attached to their base
+      // even when provider Tajweed markup changes class at that boundary.
+      if (/\p{M}/u.test(character) && previous) previous.text += character;
+      else if (previous && previous.className === className) previous.text += character;
+      else if (character) segments.push({ text: character, className });
+    }
   };
   // Tokenize every HTML tag. Unknown tags are ignored, their text children survive.
   if (/<[^>]+>/.test(source)) {
