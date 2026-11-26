@@ -244,3 +244,16 @@ test('QCF V4 embedded CPAL slots use the complete Atlas seven-colour Tajweed pal
   assert.match(reader, /override-colors: ' \+ atlasTajweedOverrides/, 'The palette overrides must be applied to the loaded font');
   assert.match(reader, /if \(\/firefox\/i\.test\(navigator\.userAgent\)\) return;/, 'Firefox must use annotated Unicode spans rather than fixed-colour OT-SVG glyphs');
 });
+
+
+test('Tajweed colour guide lists all seven colours and opens as a visible in-flow panel', () => {
+  const reader = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'QuranMushafReader.tsx'), 'utf8');
+  const styles = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
+  const guide = reader.slice(reader.indexOf('function TajweedColourGuide()'), reader.indexOf('export function QuranMushafReader'));
+  const tones = Array.from(guide.matchAll(/tone: '([^']+)'/g), match => match[1]);
+  assert.deepEqual(tones, ['deep-red','red','orange-red','green','dark-blue','light-blue','grey']);
+  assert.match(reader, /id="quran-tajweed-colour-guide" role="region"/);
+  assert.match(reader, /Close Tajweed colour guide/);
+  assert.doesNotMatch(reader, /<AnimatePresence initial=\{false\}>\{tajweedLegendVisible/);
+  assert.match(styles, /\.quran-mobile-shell \.quran-mobile-tajweed-legend \{[\s\S]*?position:relative !important;[\s\S]*?z-index:40 !important;[\s\S]*?overflow:visible !important;/);
+});

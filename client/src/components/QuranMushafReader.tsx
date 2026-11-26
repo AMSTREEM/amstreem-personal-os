@@ -1212,7 +1212,10 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
         <div className="quran-mobile-header-actions"><button aria-label="Settings" onClick={() => setSettingsOpen(true)}><Settings size={isMobileViewport ? 23 : 20} strokeWidth={1.8} /></button><button className="quran-mobile-leave-button" aria-label="Leave Qur’an" onClick={() => { if (autoOpen) navigate('/residence'); else setFullScreen(false); }}><X size={isMobileViewport ? 17 : 16} strokeWidth={2} /><span>Leave</span></button></div>
       </div>
     </header>
-    <AnimatePresence initial={false}>{tajweedLegendVisible && <motion.aside className="quran-mobile-tajweed-legend" initial={{ opacity: 0, height: 0, y: -8 }} animate={{ opacity: 1, height: 'auto', y: 0 }} exit={{ opacity: 0, height: 0, y: -8 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.28, ease: [0.22, 1, 0.36, 1] }}><b>Tajweed colour guide</b><TajweedColourGuide /></motion.aside>}</AnimatePresence>
+    {tajweedLegendVisible && <aside className="quran-mobile-tajweed-legend" id="quran-tajweed-colour-guide" role="region" aria-label="Tajweed colour guide">
+      <div className="quran-mobile-tajweed-legend-heading"><b>Tajweed colour guide</b><button type="button" aria-label="Close Tajweed colour guide" onClick={() => setTajweedLegendVisible(false)}><X size={15} /></button></div>
+      <TajweedColourGuide />
+    </aside>}
     <main className="quran-mobile-content">
       {loading && <div className="quran-mobile-loading">Loading Qur’an…</div>}
       {pageError && <div className="quran-mobile-error">{pageError}<button onClick={() => changePage(page)}>Retry</button></div>}
