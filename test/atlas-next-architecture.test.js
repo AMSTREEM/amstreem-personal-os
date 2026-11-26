@@ -257,7 +257,7 @@ test('first-run walkthrough introduces the four Atlas rooms and personal life ar
   assert.equal((tour.match(/title: '/g) || []).length, 5);
   assert.match(tour, /Start with what matters/);
   assert.match(tour, /⌘ 4 · Growth & Direction/);
-  assert.match(tour, /Choose the life areas you want to work on/);
+  assert.match(tour, /Choose the areas that matter right now/);
   for (const view of ['Daily Check-in', 'Faith & Practice', 'Habits & Self-Control', 'Projects & Tasks', 'Calendar', 'Focus timer', 'Goals & Milestones', 'Learning & Library', 'Reviews & Insights']) {
     assert.ok(tour.includes(view), 'Walkthrough is missing ' + view);
   }
