@@ -953,9 +953,24 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     // U+0672 is a real Arabic letter. Keep it intact and render only that glyph
     // with a fallback font when the selected Madinah font lacks its glyph.
     // The surrounding Tajweed segment retains its original colour class.
-    return <>{segments.map((segment, index) => <span key={index} className={tajweedEnabled ? segment.className : ''}>{Array.from(segment.text).map((character, characterIndex) => character === 'ٲ'
-      ? <span key={characterIndex} style={{ fontFamily: '"Noto Naskh Arabic", "Scheherazade New", serif', color: 'inherit' }}>{character}</span>
-      : character)}</span>)}{renderMedallion(ayah.numberInSurah)}</>;
+    return <>{segments.map((segment, index) => {
+      const characters = Array.from(segment.text);
+      const rendered: ReactNode[] = [];
+      for (let characterIndex = 0; characterIndex < characters.length; characterIndex += 1) {
+        const character = characters[characterIndex];
+        // U+06DF is a combining Qur'anic annotation. Keep it joined to its
+        // alef and use a fallback font for the complete cluster, never alone.
+        if (character === 'ا' && characters[characterIndex + 1] === '۟') {
+          rendered.push(<span key={characterIndex} style={{ fontFamily: '"Noto Naskh Arabic", "Scheherazade New", serif', color: 'inherit' }}>ا۟</span>);
+          characterIndex += 1;
+        } else if (character === 'ٲ') {
+          rendered.push(<span key={characterIndex} style={{ fontFamily: '"Noto Naskh Arabic", "Scheherazade New", serif', color: 'inherit' }}>{character}</span>);
+        } else {
+          rendered.push(character);
+        }
+      }
+      return <span key={index} className={tajweedEnabled ? segment.className : ''}>{rendered}</span>;
+    })}{renderMedallion(ayah.numberInSurah)}</>;
   };
   const bismillah = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ';
   const mobileArabicStyle = { fontFamily: `"${arabicFontFamily}", "Amiri Quran", serif`, fontSize: `${arabicFontSize}px` } as CSSProperties;
