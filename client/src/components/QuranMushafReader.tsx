@@ -12,7 +12,7 @@ type MushafWord = { text: string; tajweed?: string; codeV2?: string; lineNumber?
 type MushafAyah = { textSource?: string; pageNumber?: number; number: number; numberInSurah: number; surahNumber: number; surahName: string; arabicName: string; text: string; tajweedText?: string; tajweedSegments?: TajweedSegment[]; translation: string; transliteration?: string; translations?: Array<{ id: number; name: string; text: string }>; words?: MushafWord[] };
 type MushafPage = { textSource?: string; page: number; juz: number; hizb?: number; tajweedComplete?: boolean; tajweedCoverage?: { totalAyahs: number; sourcedAyahs: number; coloredAyahs: number; uncoloredAyahs: string[]; missingAyahs: string[]; mismatchedAyahs: string[] }; qcfAvailable?: boolean; translationSource?: string; ayahs: MushafAyah[]; offlineFallback?: boolean };
 type Props = { settings: Settings; settingsReady: boolean; onLogged: () => void; autoOpen?: boolean };
-const CACHE_PREFIX = 'atlas_mushaf_page_v17_';
+const CACHE_PREFIX = 'atlas_mushaf_page_v18_';
 const pageMemoryCache = new Map<number, MushafPage>();
 const HIFZ_KEY = 'atlas_hifz_bookmark_v2';
 const MURAJAAH_KEY = 'atlas_murajaah_bookmark_v2';
@@ -72,24 +72,28 @@ const stripRawQuranMarkup = (value: string) => value
   .replace(/<[^>]+>/g, '')
   .replace(/\[[a-zA-Z]+(?::\d+)?\[/g, '')
   .replace(/\]/g, '')
+  .replace(/(?:\\u25CC|\\u{25CC}|&#(?:x0*25cc|0*9676);|&#x0*25cc;)/gi, '')
   .replace(/\u25CC/g, '');
 function parseBracketTajweed(markup: string): TajweedSegment[] {
   const source = String(markup || '').replace(/<span\s+class=["']?end["']?[^>]*>[\s\S]*?<\/span>/gi, '');
   const result: TajweedSegment[] = [];
   const stack: string[] = [];
+  let leadingMarks = '';
   const append = (text: string, className: string) => {
     if (!text) return;
     const normalized = normalizeMadinahArabic(stripRawQuranMarkup(text));
     for (const character of Array.from(normalized)) {
       const previous = result[result.length - 1];
-      // Keep Arabic combining marks (including dagger alif U+0670) with the
-      // preceding base glyph even when Tajweed markup changes at that boundary.
-      if (/\p{M}/u.test(character) && previous) {
-        previous.text += character;
-      } else if (previous && previous.className === className) {
-        previous.text += character;
-      } else if (character) {
-        result.push({ text: character, className });
+      if (/\p{M}/u.test(character)) {
+        // A mark with no preceding Arabic base must wait for the next base.
+        // Rendering it alone makes some fonts draw a dotted-circle placeholder.
+        if (previous && /\p{Script=Arabic}/u.test(Array.from(previous.text).slice(-1)[0] || '') && !/\p{M}/u.test(Array.from(previous.text).slice(-1)[0] || '')) previous.text += character;
+        else leadingMarks += character;
+      } else {
+        const clustered = character + leadingMarks;
+        leadingMarks = '';
+        if (previous && previous.className === className) previous.text += clustered;
+        else result.push({ text: clustered, className });
       }
     }
   };
@@ -151,10 +155,25 @@ const sanitizeMushafPage = (payload: MushafPage): MushafPage => ({
     const hasRawMarkup = hasMarkup(rawTajweed);
     const parsed = hasRawMarkup ? parseBracketTajweed(rawTajweed) : [];
     const sourceSegments = parsed.length ? parsed : (ayah.tajweedSegments || []);
-    const tajweedSegments = sourceSegments.map(segment => ({
-      text: stripRawQuranMarkup(String(segment.text || '')),
-      className: TAJWEED_CLASSES.has(segment.className) ? segment.className : ''
-    })).filter(segment => segment.text);
+    const tajweedSegments: TajweedSegment[] = [];
+    let leadingMarks = '';
+    sourceSegments.forEach(segment => {
+      const className = TAJWEED_CLASSES.has(segment.className) ? segment.className : '';
+      for (const character of Array.from(stripRawQuranMarkup(String(segment.text || '')))) {
+        if (/\p{M}/u.test(character)) {
+          const previous = tajweedSegments[tajweedSegments.length - 1];
+          const lastCharacter = previous ? Array.from(previous.text).slice(-1)[0] || '' : '';
+          if (previous && /\p{Script=Arabic}/u.test(lastCharacter) && !/\p{M}/u.test(lastCharacter)) previous.text += character;
+          else leadingMarks += character;
+        } else {
+          const clustered = character + leadingMarks;
+          leadingMarks = '';
+          const previous = tajweedSegments[tajweedSegments.length - 1];
+          if (previous && previous.className === className) previous.text += clustered;
+          else tajweedSegments.push({ text: clustered, className });
+        }
+      }
+    });
     const tajweedText = tajweedSegments.map(segment => segment.text).join('') || stripRawQuranMarkup(rawTajweed);
     return {
       ...ayah,
