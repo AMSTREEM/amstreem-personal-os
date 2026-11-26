@@ -7019,3 +7019,25 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .quran-mobile-shell .quran-mobile-header-actions { gap:4px !important; }
   .quran-mobile-shell .quran-mobile-header-actions > .quran-mobile-leave-button { min-width:58px; height:32px; padding:0 7px !important; font-size:11px; }
 }
+
+
+/* Preserve Arabic shaping and mark attachment in every Quran rendering path. */
+.quran-mobile-shell .quran-mobile-verse-arabic,
+.quran-mobile-shell .quran-mobile-page-arabic,
+.quran-mobile-shell .quran-mobile-bismillah > div,
+.quran-mobile-shell .quran-mobile-hero-arabic,
+.quran-mobile-shell .mushaf-desktop-page-text {
+  direction:rtl;
+  font-feature-settings:"kern" 1,"liga" 1,"calt" 1,"mark" 1,"mkmk" 1;
+  font-kerning:normal;
+  font-synthesis:none;
+}
+.quran-mobile-shell .quran-mobile-verse-arabic,
+.quran-mobile-shell .quran-mobile-page-arabic,
+.quran-mobile-shell .mushaf-desktop-page-text {
+  unicode-bidi:plaintext;
+}
+.quran-mobile-shell .quran-qcf-v4-word {
+  font-synthesis:none;
+  font-feature-settings:"kern" 1,"liga" 1,"calt" 1,"mark" 1,"mkmk" 1;
+}
