@@ -404,3 +404,124 @@
   .auth-screen .auth-panel { min-height:100vh; padding:32px 22px; }
   .auth-screen .auth-mobile-brand { display:flex; color:#344331; font-size:10px; letter-spacing:.14em; }
 }
+
+
+/* Bespoke room surfaces — keep each room recognisable without fragmenting the system. */
+.app-frame.atlas-renaissance .atlas-blueprint__header h1 { color:#20271f; font:600 clamp(36px,4.2vw,54px)/1.03 Manrope,sans-serif; letter-spacing:-.07em; }
+.app-frame.atlas-renaissance .atlas-blueprint__header h1 em { color:#71885a; }
+.app-frame.atlas-renaissance .atlas-blueprint__header p { max-width:560px; color:#778173; font-size:11px; line-height:1.85; }
+.app-frame.atlas-renaissance .atlas-blueprint__eyebrow { color:#789052; font-size:8px; letter-spacing:.19em; }
+.app-frame.atlas-renaissance .atlas-blueprint__create { min-height:42px; padding:0 15px; border-radius:11px; background:#29432f; color:#f7f8ef; font-size:10px; font-weight:700; }
+.app-frame.atlas-renaissance .atlas-blueprint__overview article,
+.app-frame.atlas-renaissance .atlas-blueprint__area-grid article,
+.app-frame.atlas-renaissance .atlas-blueprint__goal-card {
+  border:1px solid #e2e1d7;
+  border-radius:18px;
+  background:rgba(255,254,250,.82);
+  box-shadow:0 10px 28px rgba(45,51,39,.025);
+}
+.app-frame.atlas-renaissance .atlas-blueprint__overview article strong { color:#293529; font:600 27px Manrope,sans-serif; }
+.app-frame.atlas-renaissance .atlas-blueprint__overview article small,
+.app-frame.atlas-renaissance .atlas-blueprint__section-head p { color:#879082; }
+.app-frame.atlas-renaissance .atlas-blueprint__area-icon { border-color:#e0e8d7; background:#eff3e8; color:#69864f; }
+.app-frame.atlas-renaissance .atlas-blueprint__goal-card h3 { color:#2b352a; }
+.app-frame.atlas-renaissance .atlas-blueprint__progress { background:#e8ecdf; }
+.app-frame.atlas-renaissance .atlas-blueprint__progress span { background:#91ad69; }
+.app-frame.atlas-renaissance .atlas-blueprint__manage { color:#587747; }
+
+.app-frame.atlas-renaissance .execution-heading h1 { color:#20271f; font:600 clamp(36px,4.2vw,54px)/1.03 Manrope,sans-serif; letter-spacing:-.07em; }
+.app-frame.atlas-renaissance .execution-heading p { color:#778173; font-size:11px; line-height:1.85; }
+.app-frame.atlas-renaissance .execution-heading-stat,
+.app-frame.atlas-renaissance .execution-panel-card,
+.app-frame.atlas-renaissance .execution-projects-panel {
+  border-color:#e2e1d7;
+  border-radius:18px;
+  background:rgba(255,254,250,.82);
+  box-shadow:0 10px 28px rgba(45,51,39,.025);
+}
+.app-frame.atlas-renaissance .execution-panel-heading h2 { color:#2b352a; }
+.app-frame.atlas-renaissance .execution-project-choice__select,
+.app-frame.atlas-renaissance .execution-filter-tabs button { border-radius:10px; }
+.app-frame.atlas-renaissance .execution-filter-tabs button.is-active { border-color:#dce5cf; background:#e9efdf; color:#45623b; }
+.app-frame.atlas-renaissance .execution-task,
+.app-frame.atlas-renaissance .execution-task-row { border-color:#ecebe3; }
+.app-frame.atlas-renaissance .execution-task-title,
+.app-frame.atlas-renaissance .execution-task-main strong { color:#2c362b; }
+.app-frame.atlas-renaissance .execution-task-meta,
+.app-frame.atlas-renaissance .execution-task-main small { color:#8a9385; }
+.app-frame.atlas-renaissance .execution-task:hover { background:#f5f6ef; }
+.app-frame.atlas-renaissance .execution-task-inspector,
+.app-frame.atlas-renaissance .execution-inspector { border-color:#e2e1d7; border-radius:18px; background:#fbfaf5; }
+
+.app-frame.atlas-renaissance .calendar-month-card,
+.app-frame.atlas-renaissance .calendar-day-agenda,
+.app-frame.atlas-renaissance .calendar-schedule-form {
+  border:1px solid #e2e1d7;
+  border-radius:18px;
+  background:rgba(255,254,250,.82);
+  box-shadow:0 10px 28px rgba(45,51,39,.025);
+}
+.app-frame.atlas-renaissance .calendar-head { color:#2b352a; }
+.app-frame.atlas-renaissance .calendar-weekday { color:#92998d; font-size:8px; letter-spacing:.12em; }
+.app-frame.atlas-renaissance .calendar-cell { border-radius:10px; color:#566251; }
+.app-frame.atlas-renaissance .calendar-cell:hover { background:#edf2e6; }
+.app-frame.atlas-renaissance .calendar-cell.is-selected,
+.app-frame.atlas-renaissance .calendar-cell--selected { background:#2e4933; color:#f7f8ef; }
+.app-frame.atlas-renaissance .calendar-dots .dot { background:#88a765; }
+.app-frame.atlas-renaissance .calendar-legend,
+.app-frame.atlas-renaissance .calendar-agenda-list { color:#7d8778; }
+
+.app-frame.atlas-renaissance .residence-band,
+.app-frame.atlas-renaissance .residence-rhythm,
+.app-frame.atlas-renaissance .residence-intention-card,
+.app-frame.atlas-renaissance .residence-carryforward,
+.app-frame.atlas-renaissance .residence-pinned-list {
+  border-color:#e2e1d7;
+  border-radius:19px;
+  background:rgba(255,254,250,.82);
+  box-shadow:0 10px 28px rgba(45,51,39,.025);
+}
+.app-frame.atlas-renaissance .residence-rhythm-title-mask,
+.app-frame.atlas-renaissance .residence-intention-mask { color:#2b352a; }
+.app-frame.atlas-renaissance .residence-rhythm-time,
+.app-frame.atlas-renaissance .residence-carryforward { color:#7b8677; }
+.app-frame.atlas-renaissance .residence-day-ribbon__track { background:#e7ebdf; }
+.app-frame.atlas-renaissance .residence-day-ribbon__elapsed { background:#91ad69; }
+.app-frame.atlas-renaissance .residence-rhythm-action { border-color:#dfe5d7; border-radius:11px; background:#f4f6ee; color:#526b45; }
+.app-frame.atlas-renaissance .residence-rhythm-action:hover { background:#eaf0e2; }
+.app-frame.atlas-renaissance .rhythm-page .surface-card,
+.app-frame.atlas-renaissance .rhythm-grid > *,
+.app-frame.atlas-renaissance .faith-section-primary {
+  border-color:#e2e1d7;
+  border-radius:18px;
+  background:rgba(255,254,250,.82);
+}
+.app-frame.atlas-renaissance .module-panel-head h2,
+.app-frame.atlas-renaissance .module-intro h2 { color:#293228; }
+.app-frame.atlas-renaissance .module-kicker { color:#82936c; font-size:8px; letter-spacing:.17em; }
+.app-frame.atlas-renaissance .rhythm-prayer-progress { background:#e8ecdf; }
+.app-frame.atlas-renaissance .rhythm-prayer-progress span { background:#8eaa68; }
+.app-frame.atlas-renaissance .rhythm-prayer-row,
+.app-frame.atlas-renaissance .rhythm-record-row { border-color:#ecebe3; }
+.app-frame.atlas-renaissance .rhythm-record-label { color:#303a2e; }
+.app-frame.atlas-renaissance .rhythm-quick-actions button { border-color:#e0e3d8; background:#f6f6ef; color:#607552; }
+
+.app-frame.atlas-renaissance .room4-card,
+.app-frame.atlas-renaissance .note-card,
+.app-frame.atlas-renaissance .goal-card {
+  border:1px solid #e2e1d7;
+  border-radius:18px;
+  background:rgba(255,254,250,.84);
+  box-shadow:0 10px 28px rgba(45,51,39,.025);
+}
+.app-frame.atlas-renaissance .goal-card h2,
+.app-frame.atlas-renaissance .note-card h2 { color:#293228; }
+.app-frame.atlas-renaissance .goal-card__top,
+.app-frame.atlas-renaissance .goal-card__bottom { color:#849080; }
+.app-frame.atlas-renaissance .room4-progress { background:#e8ecdf; }
+.app-frame.atlas-renaissance .room4-progress > span { background:#8eaa68; }
+.app-frame.atlas-renaissance .room4-evidence-bar { background:#e8ecdf; }
+.app-frame.atlas-renaissance .room4-evidence-bar > span { background:#8eaa68; }
+.app-frame.atlas-renaissance .room4-resource-list .list-row { border-color:#ecebe3; }
+.app-frame.atlas-renaissance .insight-feedback button { border-color:#dfe3d7; background:#f5f6ef; color:#687a5d; }
+.app-frame.atlas-renaissance .insight-feedback button:hover { background:#eaf0e2; }
