@@ -51,11 +51,16 @@ test('six primary destinations and personal life areas shape the Atlas workspace
   const shell = read('client/src/components/AppShell.tsx');
   const settings = read('client/src/pages/SettingsPage.tsx');
   const server = read('server.js');
-  for (const destination of ['Home', 'Actions', 'Goals', 'Focus', 'Growth', 'Calendar']) {
-    assert.ok(shell.includes("label: '" + destination + "'"), 'Missing destination ' + destination);
+  for (const destination of ['Residence', 'Daily Rhythm', 'Execution & Focus', 'Growth & Direction']) {
+    assert.ok(shell.includes("label: '" + destination + "'"), 'Missing room ' + destination);
   }
   assert.match(shell, /const rooms = \[/);
-  assert.match(shell, /\^\[1-6\]\$/);
+  assert.match(shell, /\^\[1-4\]\$/);
+  for (const view of ['Faith & Practice', 'Habits & Self-Control', 'Projects & Tasks', 'Calendar', 'Goals & Milestones', 'Learning & Library', 'Reviews & Insights']) {
+    assert.ok(shell.includes("label: '" + view + "'"), 'Missing room view ' + view);
+  }
+  assert.match(shell, /const activeTabs = location\.pathname === '\/quran' \? \[\] : \(current\?\.tabs \|\| \[\]\)/);
+  assert.match(shell, /rooms\.map\(item =>/);
   assert.match(shell, /atlas-mobile-dock/);
   assert.match(shell, /to="\/quran"/);
   assert.match(shell, /PERSONAL TOOLS/);
@@ -384,4 +389,27 @@ test('standalone Qur’an route initializes the reader open without an effect-ti
   assert.match(reader, /const \[fullScreen, setFullScreen\] = useState\(\(\) => autoOpen\)/);
   assert.doesNotMatch(reader, /autoOpenHandled/);
   assert.match(read('client/src/pages/QuranPage.tsx'), /autoOpen/);
+});
+
+
+test('Atlas four-room navigation exposes the eight core views and keeps Qur’an as a protected specialist route', () => {
+  const shell = read('client/src/components/AppShell.tsx');
+  const app = read('client/src/App.tsx');
+  const quranPage = read('client/src/pages/QuranPage.tsx');
+  const reader = read('client/src/components/QuranMushafReader.tsx');
+  assert.match(shell, /label: 'Residence'/);
+  assert.match(shell, /label: 'Daily Rhythm'/);
+  assert.match(shell, /label: 'Execution & Focus'/);
+  assert.match(shell, /label: 'Growth & Direction'/);
+  assert.match(shell, /label: 'Faith & Practice'/);
+  assert.match(shell, /label: 'Habits & Self-Control'/);
+  assert.match(shell, /label: 'Projects & Tasks'/);
+  assert.match(shell, /label: 'Goals & Milestones'/);
+  assert.match(shell, /label: 'Learning & Library'/);
+  assert.match(shell, /label: 'Reviews & Insights'/);
+  assert.match(shell, /location\.pathname === '\/quran' \? \[\] :/);
+  assert.match(shell, /to="\/quran"/);
+  assert.match(app, /path="\/quran" element={<QuranPage \/>}/);
+  assert.match(quranPage, /<QuranMushafReader/);
+  assert.match(reader, /UthmanicHafs|tajweed|Tajweed/);
 });

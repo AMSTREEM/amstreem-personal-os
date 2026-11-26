@@ -174,3 +174,36 @@ No Render deployment or production Supabase data/schema change has been made fro
 - Browser-level visual QA, existing-account staging login, snapshot restore against staging, and isolated Render staging deployment remain outstanding.
 - Browser-level visual QA, existing-account staging login, snapshot restore against staging, and isolated Render staging deployment remain outstanding.
 - Keep PR #3 in draft and do not merge or deploy to production until those checks are complete.
+
+## Full transformation — staging implementation update · 2026-11-26
+
+### Repository audit findings
+- The current React 19 + TypeScript + Vite application, Express API, Supabase Auth, per-user JSONB workspace snapshot, request-scoped SQLite compatibility layer, backup/restore, and Render deployment are retained.
+- The existing frontend already contains the four-room product capabilities in separate pages and shared components, but its primary navigation still exposed six destinations (Home, Actions, Goals, Focus, Growth, Calendar). The architecture documentation and actual navigation were inconsistent.
+- The staging Supabase project is `amstreem-atlas-staging` (`yllzeblecyqnncgktnjw`); the separate production project remains `personal-os`. The staging database has the existing RLS-protected workspace and owner/admin support tables. No schema or user data was changed in this pass.
+- The dedicated Render staging service tracks `atlas-next`; production remains on `audit-and-hardening`. Staging service auto-deploy is disabled, so a deliberate manual deploy is required after changes.
+- The app's existing four-room/8-view architecture document is treated as the source of truth. Qur'an remains a specialist route, not a replacement for a room or a page to be reimplemented.
+
+### Implemented on `atlas-next`
+- Replaced six top-level navigation destinations with four rooms: Residence, Daily Rhythm, Execution & Focus, and Growth & Direction.
+- Added contextual room navigation for Faith & Practice, Habits & Self-Control, Projects & Tasks, Calendar, Goals & Milestones, Learning & Library, and Reviews & Insights.
+- Kept the Focus route and timer workflow available as part of Execution & Focus; task-to-focus and learning-to-focus deep links remain supported.
+- Updated keyboard shortcuts from six destinations to four rooms.
+- Updated mobile navigation to the same four-room model; Qur'an remains directly accessible from desktop Personal Tools and the mobile More drawer.
+- Kept the Qur'an route out of room sub-navigation so the reader page retains its existing reading composition.
+- Added a dedicated room-navigation stylesheet instead of modifying the large shared stylesheet that also contains specialist Qur'an presentation rules.
+- Added architecture tests for the four rooms, eight views, legacy routes and protected Qur'an route.
+
+### Explicitly unchanged
+- `QuranPage.tsx`, `QuranMushafReader.tsx`, `quranSurahs.ts`, Qur'an fallback data, Uthmanic fonts, Tajweed rendering and Qur'an-specific settings/records.
+- Supabase schemas, RLS policies, user workspace snapshots, auth configuration and production data.
+- Production Render service and `audit-and-hardening` branch.
+
+### Verification still required
+- [ ] GitHub Actions type-check, build, dependency audit and complete test suite.
+- [ ] Deploy the updated `atlas-next` commit to the dedicated staging Render service.
+- [ ] Verify staging health and runtime logs.
+- [ ] Browser QA for desktop/mobile room navigation, active sub-navigation, keyboard shortcuts, mobile More drawer, and direct Qur'an route.
+- [ ] Existing-account authentication, persistence and account-isolation checks on staging.
+- [ ] Confirm the protected Qur'an files are unchanged in the final Git diff.
+- [ ] Do not merge or deploy to production as part of this staging pass.
