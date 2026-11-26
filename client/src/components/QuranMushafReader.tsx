@@ -395,46 +395,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     readerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [page, fullScreen]);
 
-  // Mobile verse mode uses native proximity snapping only. Avoid programmatic
-  // corrections: a delayed correction can select the Ayah still crossing the
-  // sensor and pull a forward swipe backwards. Long Ayahs remain unsnapped.
-  useEffect(() => {
-    if (!isMobileViewport || !fullScreen || readingMode === 'reading' || loading || !surahAyahs.length) return;
-    const root = readerRef.current;
-    if (!root) return;
-    const header = root.querySelector<HTMLElement>('.quran-mobile-header');
-    const updateSnapGeometry = () => {
-      const headerHeight = header?.getBoundingClientRect().height || 0;
-      root.style.setProperty('--quran-mobile-snap-offset', `${Math.ceil(headerHeight + 8)}px`);
-      const usableHeight = Math.max(0, root.clientHeight - headerHeight - 32);
-      root.querySelectorAll<HTMLElement>('.quran-mobile-verse-row[data-mushaf-verse="true"]').forEach(row => {
-        row.classList.toggle('is-long-ayah', row.getBoundingClientRect().height > usableHeight);
-      });
-    };
-    updateSnapGeometry();
-    const observers: ResizeObserver[] = [];
-    if (typeof ResizeObserver !== 'undefined') {
-      if (header) {
-        const observer = new ResizeObserver(updateSnapGeometry);
-        observer.observe(header);
-        observers.push(observer);
-      }
-      const rootObserver = new ResizeObserver(updateSnapGeometry);
-      rootObserver.observe(root);
-      observers.push(rootObserver);
-      const rowsObserver = new ResizeObserver(updateSnapGeometry);
-      root.querySelectorAll<HTMLElement>('.quran-mobile-verse-row[data-mushaf-verse="true"]').forEach(row => rowsObserver.observe(row));
-      observers.push(rowsObserver);
-    }
-    window.addEventListener('resize', updateSnapGeometry, { passive: true });
-    return () => {
-      observers.forEach(observer => observer.disconnect());
-      root.querySelectorAll('.quran-mobile-verse-row.is-long-ayah').forEach(row => row.classList.remove('is-long-ayah'));
-      root.style.removeProperty('--quran-mobile-snap-offset');
-      window.removeEventListener('resize', updateSnapGeometry);
-    };
-  }, [isMobileViewport, fullScreen, readingMode, loading, surahAyahs]);
-
   useEffect(() => {
     if (!fullScreen || readingMode === 'reading' || !selected || !restoreTargetRef.current || loading || surahLoading || !surahAyahs.length) return;
     const key = selected.surah + ':' + selected.ayah;
@@ -801,8 +761,6 @@ export function QuranMushafReader({ settings, settingsReady, onLogged, autoOpen 
     targets.forEach(target => observer.observe(target));
     return () => { observer.disconnect(); visible.clear(); };
   }, [fullScreen, readingMode, surahAyahs, pageData, page, pageReadingSurah, updateBookmark]);
-  // Verse-by-Verse alignment is handled by native CSS proximity snapping.
-  // This avoids competing with iOS momentum scrolling and keeps long Ayahs readable.
 
   // In Page by Page mode, let natural scrolling finish, then lock the ayah
   // closest to the reader's focus line and persist that exact location.
