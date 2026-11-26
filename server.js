@@ -1346,7 +1346,7 @@ app.get('/api/intelligence',(req,res)=>{
  const overdue=one("SELECT id,title,due_date FROM tasks WHERE done=0 AND due_date<? ORDER BY due_date,id LIMIT 1",today);
  const dueToday=one("SELECT id,title,due_date FROM tasks WHERE done=0 AND due_date=? ORDER BY id LIMIT 1",today);
  const habit=one("SELECT h.id,h.title FROM habits h LEFT JOIN habit_logs l ON l.habit_id=h.id AND l.log_date=? WHERE h.active=1 AND l.id IS NULL ORDER BY h.sort_order,h.id LIMIT 1",today);
- const focus=one("SELECT COALESCE(SUM(minutes),0) n FROM sessions WHERE session_date=?",today).n;
+ const focus=one("SELECT COALESCE(SUM(minutes),0) n FROM sessions WHERE session_date=? AND session_kind='focus'",today).n;
  const lesson=one("SELECT l.id,l.title,p.title path_title FROM learning_lessons l JOIN learning_paths p ON p.id=l.path_id WHERE l.status!='Completed' AND p.status='active' ORDER BY CASE l.status WHEN 'In progress' THEN 0 ELSE 1 END,l.sort_order,l.id LIMIT 1");
  const goal=one("SELECT id,title,target_date FROM goals WHERE status='active' AND target_date IS NOT NULL AND target_date>=? AND target_date<=date(?,'+14 days') ORDER BY target_date,id LIMIT 1",today,today);
  if(overdue)add('overdue-task','Clear the oldest overdue priority.',overdue.title,'This commitment is already past its due date. A clear next step can reduce the load.','Open this task','tasks','high',{taskId:overdue.id});
@@ -1362,9 +1362,9 @@ app.get('/api/intelligence',(req,res)=>{
   return score(b)-score(a);
  });
  const recommendation=candidates[0],recommendationStats=stats[recommendation.id]||{helpful:0,notUseful:0,opened:0};
- const recentFocus=one("SELECT COALESCE(SUM(minutes),0) n,COUNT(*) sessions FROM sessions WHERE session_date>=date(?,'-6 days') AND session_date<=?",today,today);
- const priorFocus=one("SELECT COALESCE(SUM(minutes),0) n FROM sessions WHERE session_date>=date(?,'-13 days') AND session_date<date(?,'-6 days')",today,today).n;
- const dayPattern=all("SELECT strftime('%w',session_date) weekday,COALESCE(SUM(minutes),0) minutes FROM sessions WHERE session_date>=date(?,'-27 days') AND session_date<=? GROUP BY weekday ORDER BY minutes DESC LIMIT 1",today,today)[0];
+ const recentFocus=one("SELECT COALESCE(SUM(minutes),0) n,COUNT(*) sessions FROM sessions WHERE session_date>=date(?,'-6 days') AND session_date<=? AND session_kind='focus'",today,today);
+ const priorFocus=one("SELECT COALESCE(SUM(minutes),0) n FROM sessions WHERE session_date>=date(?,'-13 days') AND session_date<date(?,'-6 days') AND session_kind='focus'",today,today).n;
+ const dayPattern=all("SELECT strftime('%w',session_date) weekday,COALESCE(SUM(minutes),0) minutes FROM sessions WHERE session_date>=date(?,'-27 days') AND session_date<=? AND session_kind='focus' GROUP BY weekday ORDER BY minutes DESC LIMIT 1",today,today)[0];
  let pattern;
  if(priorFocus>0){const delta=recentFocus.n-priorFocus,pct=Math.round(Math.abs(delta)/priorFocus*100);pattern=delta>0?'Your focus time is up '+pct+'% compared with the previous seven days.':delta<0?'Your focus time is down '+pct+'% compared with the previous seven days. No need to catch up all at once.':'Your focus time is holding steady across both weeks.';}
  else if(recentFocus.sessions)pattern='You logged '+recentFocus.sessions+' focus session'+(recentFocus.sessions===1?'':'s')+' in the last seven days.';

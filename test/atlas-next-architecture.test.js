@@ -436,3 +436,21 @@ test('Residence is a direction-led Home, Life Blueprint is data-backed, and the 
   assert.match(shell, /label: 'Life Blueprint'/);
   assert.match(shell, /label: 'Daily Check-in'/);
 });
+
+
+test('personal intelligence suggestions are actionable, feedback-aware, and count focus sessions without breaks', () => {
+  const start = server.indexOf("app.get('/api/intelligence'");
+  const end = server.indexOf("app.post('/api/intelligence/feedback'", start);
+  const intelligence = server.slice(start, end);
+  const insights = read('client/src/pages/InsightsPage.tsx');
+  assert.match(intelligence, /session_date=\? AND session_kind='focus'/);
+  assert.match(intelligence, /session_kind='focus' GROUP BY weekday/);
+  assert.match(intelligence, /recommendationStats/);
+  assert.match(insights, /function recommendationHref/);
+  assert.match(insights, /\/actions\?task=/);
+  assert.match(insights, /\/focus\?lesson=/);
+  assert.match(insights, /\/intelligence\/feedback/);
+  assert.match(insights, /feedback\.mutate\('helpful'\)/);
+  assert.match(insights, /feedback\.mutate\('not_useful'\)/);
+  assert.match(insights, /feedback\.mutate\('opened'\)/);
+});

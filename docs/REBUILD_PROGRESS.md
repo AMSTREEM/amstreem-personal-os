@@ -219,3 +219,12 @@ No Render deployment or production Supabase data/schema change has been made fro
 - Both new pages reuse existing `/tasks`, `/goals`, and `/sessions` APIs. No new database schema, Supabase migration, or server route was introduced.
 - Added route and data-source tests for Residence, Blueprint, and the preserved daily dashboard.
 - The feature branch used as a source was intentionally not merged: it diverges substantially from `atlas-next` and contains unrelated Qur'an and environment configuration changes. Only the four page/style files and the product principles document were ported.
+
+
+## Full transformation — actionable personal intelligence · 2026-11-26
+
+- Connected the existing evidence-based recommendation engine to real destination actions: tasks open the relevant task context, learning suggestions open the linked lesson in Focus, and habit/focus/goal suggestions open their matching workspaces.
+- Added in-context helpful/not-useful feedback and opened signals using the existing user-scoped `/api/intelligence/feedback` endpoint.
+- Added loading and error states so a temporary API failure is not presented as an empty or misleading insight.
+- Corrected the intelligence engine's focus comparisons to count only `session_kind='focus'` records; break sessions no longer inflate daily, weekly, or weekday focus patterns.
+- No new tables, external AI calls, or schema changes were introduced. Recommendations remain deterministic, explainable and derived from the current user's workspace records.
