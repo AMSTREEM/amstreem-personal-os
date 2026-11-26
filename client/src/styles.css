@@ -7083,3 +7083,50 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .quran-mobile-shell .quran-mobile-tajweed-legend .quran-tajweed-guide-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 14px; margin-top:10px; }
 .quran-mobile-shell .quran-mobile-tajweed-legend .quran-tajweed-guide-item { white-space:normal; }
 @media(max-width:520px) { .quran-tajweed-guide-grid { grid-template-columns:1fr; } }
+
+/* Atlas Tajweed guide palette — final authority for text-based Mushaf rendering.
+   Preserve every rule class; group them by the seven recitation colours in the guide. */
+.quran-mobile-shell .tj-madd-necessary,
+.quran-desktop-shell .tj-madd-necessary { color:#b91c1c !important; } /* deep red: 6 counts */
+.quran-mobile-shell .tj-madd-obligatory,
+.quran-mobile-shell .tj-madd-obligatory-connected,
+.quran-mobile-shell .tj-madd-obligatory-separated,
+.quran-mobile-shell .tj-madd-wajib,
+.quran-desktop-shell .tj-madd-obligatory,
+.quran-desktop-shell .tj-madd-obligatory-connected,
+.quran-desktop-shell .tj-madd-obligatory-separated,
+.quran-desktop-shell .tj-madd-wajib { color:#ef4444 !important; } /* red: 4–5 counts */
+.quran-mobile-shell .tj-madd,
+.quran-mobile-shell .tj-madd-normal,
+.quran-mobile-shell .tj-madd-permissible,
+.quran-desktop-shell .tj-madd,
+.quran-desktop-shell .tj-madd-normal,
+.quran-desktop-shell .tj-madd-permissible { color:#f05a24 !important; } /* orange-red: 2, 4 or 6 counts */
+
+.quran-mobile-shell .tj-ghunnah,
+.quran-mobile-shell .tj-ikhfa,
+.quran-mobile-shell .tj-ikhfa-shafawi,
+.quran-mobile-shell .tj-iqlab,
+.quran-desktop-shell .tj-ghunnah,
+.quran-desktop-shell .tj-ikhfa,
+.quran-desktop-shell .tj-ikhfa-shafawi,
+.quran-desktop-shell .tj-iqlab { color:#16a34a !important; } /* green: nasalisation */
+.quran-mobile-shell .tj-tafkhim,
+.quran-desktop-shell .tj-tafkhim { color:#1d4ed8 !important; } /* dark blue: heavy pronunciation */
+.quran-mobile-shell .tj-qalqalah,
+.quran-desktop-shell .tj-qalqalah { color:#38bdf8 !important; } /* light blue: echo */
+.quran-mobile-shell .tj-silent,
+.quran-mobile-shell .tj-idgham,
+.quran-mobile-shell .tj-idgham-shafawi,
+.quran-mobile-shell .tj-idgham-ghunnah,
+.quran-mobile-shell .tj-idgham-no-ghunnah,
+.quran-mobile-shell .tj-idgham-mutajanisayn,
+.quran-mobile-shell .tj-idgham-mutaqaribayn,
+.quran-desktop-shell .tj-silent,
+.quran-desktop-shell .tj-idgham,
+.quran-desktop-shell .tj-idgham-shafawi,
+.quran-desktop-shell .tj-idgham-ghunnah,
+.quran-desktop-shell .tj-idgham-no-ghunnah,
+.quran-desktop-shell .tj-idgham-mutajanisayn,
+.quran-desktop-shell .tj-idgham-mutaqaribayn { color:#9ca3af !important; } /* grey: silent / merged */
+
