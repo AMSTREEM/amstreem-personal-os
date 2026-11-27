@@ -66,6 +66,7 @@ export function AppShell() {
   useSpotlightGrid(workspaceRef);
 
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, role, signOut, session, completeOnboarding } = useAuth();
   const queryClient = useQueryClient();
   const reduceMotion = useReducedMotion();
@@ -169,8 +170,7 @@ export function AppShell() {
     } catch (error) { setQuickTaskError(error instanceof Error ? error.message : 'Could not save this item.'); }
     finally { setQuickTaskSaving(false); }
   }
-  const commandItems = useMemo(() => commandDestinations.map((item,index) => ({...item,detail:('detail' in item && item.detail) ? item.detail : 'Open module',shortcut:index < 9 ? 'g '+(index+1) : ''})).filter(item => (item.label+' '+item.detail).toLowerCase().includes(commandQuery.toLowerCase())),[commandQuery]);
-  const location = useLocation();
+  const commandItems = useMemo(() => commandDestinations.map((item,index) => ({ label: item.label, detail: ('detail' in item && item.detail) ? item.detail : 'Open module', to: item.to, icon: item.icon, shortcut: index < 9 ? 'g '+(index+1) : '' })).filter(item => (item.label+' '+item.detail).toLowerCase().includes(commandQuery.toLowerCase())),[commandQuery]);
   const entrancePreset = useEntrancePreset(location.pathname);
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Record<string, string>>('/settings') });
   const quickDate = atlasDate();
