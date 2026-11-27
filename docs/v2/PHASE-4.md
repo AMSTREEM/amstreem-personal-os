@@ -1,6 +1,6 @@
 # Atlas v2 — Phase 4: route-by-route redesign
 
-Status: **in progress — Residence and Daily Rhythm redesigned; automated gates passed**.
+Status: **in progress — Residence, Daily Rhythm and Execution redesigned; automated gates passed pending the latest run**.
 
 ## Residence redesign
 
@@ -44,3 +44,15 @@ The `/quran` route remains mounted through the original `AppShell` and `QuranPag
 Daily Rhythm, Execution, Growth, Calendar, Goals, Settings and other non-Qur'an destinations still require individual review and redesign. Residence is the first route, not the completion of Phase 4.
 
 No staging or production deployment has occurred. The Render staging service still needs a controlled branch switch/deploy plan; production remains untouched.
+
+## Execution redesign
+
+- Added `client/src/pages/ExecutionV2Page.tsx` and namespaced `execution-v2.css` for a clean-slate Actions workspace.
+- Replaced the old task-queue presentation with a direction-led action queue: quick capture, open/all/completed filters, project filters, search, priority context, completion controls and one-click focus entry.
+- Added `client/src/pages/CalendarV2Page.tsx` using the existing month, event, project and streak APIs. The calendar now has a responsive month view, selected-day agenda, commitment creation and deletion.
+- The Focus route retains the existing timer/session engine, timer persistence and session-saving behavior. It is now placed in the Atlas v2 visual shell and receives scoped styling; the timing and session implementation was not rewritten.
+- Added `test/atlas-v2-execution.test.js` for route wiring, API contracts, focus-engine preservation, namespaced styles and Qur'an isolation.
+
+## Execution verification
+
+Latest code is committed to `atlas-v2`. CI verification for these new routes is pending; do not treat this route group as closed until the checks pass. Authenticated visual review remains outstanding.
