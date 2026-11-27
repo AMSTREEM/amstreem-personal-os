@@ -437,3 +437,24 @@ test('Atlas system theme and high-contrast preferences are applied before and af
   assert.match(bootstrap, /preference === 'system'/);
   assert.match(bootstrap, /atlas-high-contrast/);
 });
+
+
+test('first-run onboarding validates and atomically creates timezone, one goal and one habit', () => {
+  const { onboardingSchema } = require('../server/api-contracts');
+  const { routeOwner } = require('../server/module-manifests');
+  const valid = onboardingSchema.safeParse({ timezone: 'Africa/Lagos', goal_title: 'Build a durable business', habit_title: 'Study for 30 minutes' });
+  assert.equal(valid.success, true);
+  assert.equal(onboardingSchema.safeParse({ timezone: '', goal_title: '', habit_title: '' }).success, false);
+  const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
+  const routeStart = server.indexOf("app.post('/api/onboarding'");
+  const routeEnd = server.indexOf("app.patch('/api/settings'", routeStart);
+  const route = server.slice(routeStart, routeEnd);
+  assert.ok(routeStart > 0 && routeEnd > routeStart);
+  assert.match(route, /validateRequest\(onboardingSchema\)/);
+  assert.match(route, /db\.transaction\(/);
+  assert.match(route, /INSERT INTO goals/);
+  assert.match(route, /INSERT INTO habits/);
+  assert.match(route, /settings\(key,value\)/);
+  assert.equal(routeOwner('/api/onboarding')?.id, 'platform');
+  assert.match(server, /SELECT value FROM settings WHERE key=\?/);
+});
