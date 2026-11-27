@@ -297,3 +297,32 @@ test('module manifests assign every API route once and enforce the protected Qur
   assert.equal(quran.versioning, 'legacy-only');
   assert.deepEqual(quran.dependsOn, []);
 });
+
+
+test('universal API envelope validation covers every API route and excludes the protected Qur’an API', () => {
+  const { validateApiEnvelope } = require('../server/api-contracts');
+  const middleware = validateApiEnvelope();
+  let nextCalled = false;
+  const validReq = { path: '/api/tasks', method: 'POST', params: { id: '2' }, query: {}, body: { title: 'Task' } };
+  middleware(validReq, {}, () => { nextCalled = true; });
+  assert.equal(nextCalled, true);
+  assert.deepEqual(validReq.validated.body, { title: 'Task' });
+
+  let response;
+  const invalidReq = { path: '/api/tasks', method: 'POST', params: {}, query: {}, body: ['not', 'an object'] };
+  const res = {
+    status(value) { response = { status: value }; return this; },
+    type(value) { response.contentType = value; return this; },
+    json(value) { response.body = value; return this; }
+  };
+  middleware(invalidReq, res, () => assert.fail('invalid body must not reach a route'));
+  assert.equal(response.status, 400);
+  assert.equal(response.contentType, 'application/problem+json');
+
+  let quranNext = false;
+  middleware({ path: '/api/quran/page/1', method: 'GET', params: {}, query: {} }, {}, () => { quranNext = true; });
+  assert.equal(quranNext, true);
+
+  const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
+  assert.ok(server.indexOf('app.use(validateApiEnvelope())') < server.indexOf("app.use('/api', async (req, res, next) =>"));
+});
