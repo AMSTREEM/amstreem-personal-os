@@ -16,7 +16,6 @@ import './design/themes.css';
 import './design/containment.css';
 import './design/shadcn-map.css';
 import './design/fx.css';
-import './design/shell.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
