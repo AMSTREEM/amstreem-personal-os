@@ -412,28 +412,28 @@ test('Atlas four-room navigation exposes the eight core views and keeps Qur’an
 });
 
 
-test('Residence is a direction-led Home, Life Blueprint is data-backed, and the previous daily dashboard remains available', () => {
+test('Residence is a clean-slate direction-led Home, Life Blueprint is data-backed, and Daily Rhythm remains its own workspace', () => {
   const app = read('client/src/App.tsx');
-  const shell = read('client/src/components/AppShell.tsx');
-  const home = read('client/src/pages/AtlasHomePage.tsx');
+  const shell = read('client/src/components/AtlasV2Shell.tsx');
+  const home = read('client/src/pages/ResidenceV2Page.tsx');
   const blueprint = read('client/src/pages/BlueprintPage.tsx');
-  assert.ok(app.includes('path="/residence" element={<SuspendedPage><AtlasHomePage /></SuspendedPage>}'));
+  assert.ok(app.includes('path="/residence" element={<SuspendedPage><ResidenceV2Page /></SuspendedPage>}'));
   assert.ok(app.includes('path="/blueprint" element={<SuspendedPage><BlueprintPage /></SuspendedPage>}'));
   assert.ok(app.includes('path="/daily-rhythm" element={<SuspendedPage><TodayPage /></SuspendedPage>}'));
-  assert.ok(home.includes("api<HomeTask[]>('/tasks')"));
-  assert.ok(home.includes("api<HomeGoal[]>('/goals')"));
-  assert.ok(home.includes("api<FocusSession[]>('/sessions')"));
-  assert.match(home, /Your open loops/);
+  assert.ok(home.includes("api<Task[]>('/tasks')"));
+  assert.ok(home.includes("api<Goal[]>('/goals')"));
+  assert.ok(home.includes("api<Session[]>('/sessions')"));
+  assert.match(home, /Make room for what matters/);
   assert.match(home, /What you're building/);
-  assert.match(home, /All clear for now/);
-  assert.match(home, /atlas-dashboard__hero/);
-  assert.match(home, /atlas-dashboard__signals/);
+  assert.match(home, /What deserves your attention/);
+  assert.match(home, /a-residence__focus/);
+  assert.match(home, /a-residence__signals/);
   assert.ok(blueprint.includes("api<BlueprintGoal[]>('/goals')"));
   assert.match(blueprint, /linked_tasks/);
   assert.match(blueprint, /completed_tasks/);
   assert.match(blueprint, /Ready for its first connected action/);
-  assert.match(shell, /label: 'Life Blueprint'/);
-  assert.match(shell, /label: 'Daily Check-in'/);
+  assert.match(shell, /label: 'Life blueprint'/);
+  assert.match(shell, /label: 'Today'/);
 });
 
 
