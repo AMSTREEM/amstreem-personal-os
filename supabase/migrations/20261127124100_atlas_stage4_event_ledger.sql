@@ -519,7 +519,7 @@ begin
   if v_user_id is null then
     raise exception 'authentication_required' using errcode = '42501';
   end if;
-  if p_events is null or jsonb_typeof(p_events) <> 'array' then
+  if p_events is null or jsonb_typeof(p_events) <> 'array' or jsonb_array_length(p_events) > 5000 then
     raise exception 'invalid_event_batch' using errcode = '22023';
   end if;
 
@@ -540,6 +540,36 @@ begin
       key text,type text,module text,entity_id text,occurred_at timestamptz,
       local_date date,payload jsonb,source text
     )
+    on conflict (user_id,event_key) do nothing;
+  end if;
+
+  -- Imports carry historical facts but never create new XP. Existing XP awards
+  -- inside the imported workspace snapshot are restored as legacy ledger rows.
+  if p_force_history then
+    insert into public.xp_ledger(
+      user_id,event_key,source_event_key,category,points,local_date,awarded_at,is_legacy
+    )
+    select
+      v_user_id,
+      'legacy:' || (x.value->>'event_key'),
+      x.value->>'event_key',
+      left(lower(coalesce(x.value->>'category','legacy')),40),
+      (x.value->>'points')::integer,
+      coalesce(
+        ((nullif(x.value->>'awarded_at','')::timestamptz at time zone 'Africa/Lagos')::date),
+        (now() at time zone 'Africa/Lagos')::date
+      ),
+      coalesce(nullif(x.value->>'awarded_at','')::timestamptz,now()),
+      true
+    from jsonb_array_elements(
+      case
+        when jsonb_typeof(p_data #> '{tables,xp_events}') = 'array'
+          then p_data #> '{tables,xp_events}'
+        else '[]'::jsonb
+      end
+    ) as x(value)
+    where coalesce(x.value->>'event_key','') <> ''
+      and coalesce((x.value->>'points')::integer,0) > 0
     on conflict (user_id,event_key) do nothing;
   end if;
 
