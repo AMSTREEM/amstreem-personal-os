@@ -1430,7 +1430,6 @@ app.get('/api/leaderboard',async(q,s)=>{
    const stat=byUser.get(event.user_id)||{total:0,monthly:0,events:[]};
    const points=Number(event.points)||0,period=String(event.local_date||'').slice(0,7);
    stat.total+=points;if(period===month)stat.monthly+=points;
-   if(/^\d{4}-\d{2}$/.test(period)){const item=history[period]||(history[period]=new Map());const prior=item.get(event.user_id);item.set(event.user_id,{display:'',xp:(prior?.xp||0)+points});}
    stat.events.push({period,points});byUser.set(event.user_id,stat);
   }
   for(const row of rows){
