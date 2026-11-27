@@ -12,6 +12,7 @@ import { SignupThankYouPage } from './components/SignupThankYouPage';
 
 const TodayPage = lazy(() => import('./pages/TodayPage').then(module => ({ default: module.TodayPage })));
 const ResidenceV2Page = lazy(() => import('./pages/ResidenceV2Page').then(module => ({ default: module.ResidenceV2Page })));
+const DailyRhythmV2Page = lazy(() => import('./pages/DailyRhythmV2Page').then(module => ({ default: module.DailyRhythmV2Page })));
 const BlueprintPage = lazy(() => import('./pages/BlueprintPage').then(module => ({ default: module.BlueprintPage })));
 const GoalsPage = lazy(() => import('./pages/GoalsPage').then(module => ({ default: module.GoalsPage })));
 const FocusWorkspace = lazy(() => import('./components/FocusWorkspace').then(module => ({ default: module.FocusWorkspace })));
@@ -53,7 +54,7 @@ export function App() {
       <Route index element={<Navigate to="/residence" replace />} />
       <Route path="/residence" element={<SuspendedPage><ResidenceV2Page /></SuspendedPage>} />
       <Route path="/blueprint" element={<SuspendedPage><BlueprintPage /></SuspendedPage>} />
-      <Route path="/daily-rhythm" element={<SuspendedPage><TodayPage /></SuspendedPage>} />
+      <Route path="/daily-rhythm" element={<SuspendedPage><DailyRhythmV2Page /></SuspendedPage>} />
       <Route path="/home" element={<LegacyRedirect to="/residence" />} />
       <Route path="/today" element={<LegacyRedirect to="/daily-rhythm" />} />
       <Route path="/values" element={<SuspendedPage><ValuesPage /></SuspendedPage>} />
