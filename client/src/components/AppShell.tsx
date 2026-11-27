@@ -109,17 +109,43 @@ export function AppShell() {
     return () => window.clearInterval(tick);
   }, []);
   useEffect(() => {
-    const paths = ['/residence','/actions','/goals','/focus','/growth','/calendar'];
+    const destinations = [...rooms, quranDestination];
+    let waitingForDestination = false;
+    let prefixTimer: number | undefined;
     const onKey = (event: KeyboardEvent) => {
       const el = event.target as HTMLElement | null;
       const typing = !!el && (el.isContentEditable || ['INPUT','TEXTAREA','SELECT'].includes(el.tagName));
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setCommandOpen(v => !v); setCommandQuery(''); return; }
-      if (event.key === 'Escape') { setCommandOpen(false); return; }
-      if (!typing && (event.metaKey || event.ctrlKey) && !event.altKey && /^[1-6]$/.test(event.key)) { event.preventDefault(); setPortalOrigin(window.innerWidth/2,window.innerHeight/2); navigate(paths[Number(event.key)-1]); }
+      const commandKey = event.metaKey || event.ctrlKey;
+      if (commandKey && event.key.toLowerCase() === 'k') { event.preventDefault(); setCommandOpen(value => !value); setCommandQuery(''); return; }
+      if (event.key === 'Escape') { setCommandOpen(false); waitingForDestination = false; return; }
+      if (typing || (location.pathname === '/quran' && !commandKey)) return;
+      if (!commandKey && event.key.toLowerCase() === 'g') {
+        waitingForDestination = true;
+        window.clearTimeout(prefixTimer);
+        prefixTimer = window.setTimeout(() => { waitingForDestination = false; }, 900);
+        return;
+      }
+      if (waitingForDestination && /^[1-9]$/.test(event.key)) {
+        event.preventDefault();
+        waitingForDestination = false;
+        window.clearTimeout(prefixTimer);
+        setPortalOrigin(window.innerWidth / 2, window.innerHeight / 2);
+        navigate(destinations[Number(event.key) - 1].to);
+        return;
+      }
+      if (!commandKey && event.key.toLowerCase() === 'c') {
+        event.preventDefault(); setCommandOpen(true); setCommandQuery(''); return;
+      }
+      if (!commandKey && event.key === '/') {
+        event.preventDefault(); setCommandOpen(true); setCommandQuery(''); return;
+      }
+      if (!commandKey && event.key === '?') {
+        event.preventDefault(); setCommandOpen(true); setCommandQuery('shortcuts'); return;
+      }
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [navigate]);
+    return () => { window.removeEventListener('keydown', onKey); window.clearTimeout(prefixTimer); };
+  }, [navigate, location.pathname]);
   const focusRemaining = focusTimer.deadline ? Math.max(0, Math.ceil((focusTimer.deadline - clockNow) / 1000)) : focusTimer.remaining;
   const focusActive = !!focusTimer.deadline && focusRemaining > 0;
   const focusClock = String(Math.floor(focusRemaining / 60)).padStart(2,'0') + ':' + String(focusRemaining % 60).padStart(2,'0');
@@ -262,6 +288,7 @@ export function AppShell() {
         {quickTaskError && <p className="command-error">{quickTaskError}</p>}
         {quickReligion === 'islam' && <div className="command-checkins"><span className="eyebrow">TODAY · SALAH</span><div className="command-checkin-list">{(quickDeen.data?.prayers || []).map(item => <button type="button" key={item.prayer} className={item.completed ? 'is-complete' : ''} disabled={quickPrayerMutation.isPending} onClick={event => { if (!item.completed) sparkAtElement(event.currentTarget); quickPrayerMutation.mutate(item); }}><span>{item.completed ? '✓' : '○'}</span>{item.prayer}<small>{item.completed ? 'Recorded' : 'Mark done'}</small></button>)}</div></div>}
         {!!quickHabits.data?.length && <div className="command-checkins"><span className="eyebrow">TODAY · HABITS</span><div className="command-checkin-list">{quickHabits.data.map(item => <button type="button" key={item.id} className={item.done ? 'is-complete' : ''} disabled={quickHabitMutation.isPending} onClick={event => { if (!item.done) sparkAtElement(event.currentTarget); quickHabitMutation.mutate(item.id); }}><span>{item.done ? '✓' : '○'}</span>{item.title}<small>{item.done ? 'Done' : 'Mark done'}</small></button>)}</div></div>}
+        {commandQuery.toLowerCase() === 'shortcuts' && <div className="command-shortcuts"><span className="eyebrow">KEYBOARD SHORTCUTS</span><div><kbd>g</kbd> then <kbd>1–9</kbd><span>Jump to a module</span></div><div><kbd>c</kbd><span>Quick capture</span></div><div><kbd>/</kbd> or <kbd>⌘ K</kbd><span>Open command palette</span></div><div><kbd>?</kbd><span>Show shortcuts</span></div><div><kbd>Esc</kbd><span>Close overlays</span></div></div>}
         <div className="command-results"><span className="eyebrow">JUMP TO OR CHECK IN</span>{commandItems.map(item=>{const Icon=item.icon;return <button key={item.label} type="button" onClick={()=>{setCommandOpen(false);navigate(item.to);}}><Icon size={16}/><span><b>{item.label}</b><small>{item.detail}</small></span><kbd>{item.shortcut}</kbd></button>;})}{!commandItems.length&&<p>No matching destination.</p>}</div>
         <div className="command-footer"><span>Navigate between rooms</span><span>⌘ 1 — 6</span></div>
       </motion.section></motion.div>}</AnimatePresence>
