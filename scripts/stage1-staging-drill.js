@@ -3,7 +3,8 @@ const crypto = require('node:crypto');
 const required = ['ATLAS_STAGE1_CONFIRM_DRILL','ATLAS_STAGE1_STAGING_URL','SUPABASE_URL','SUPABASE_PUBLISHABLE_KEY','ATLAS_STAGE1_TEST_TOKEN','ATLAS_STAGE1_TEST_USER_ID'];
 for (const key of required) if (!process.env[key]) throw new Error(`Missing ${key}. This drill must use a dedicated staging test account.`);
 if (process.env.ATLAS_STAGE1_CONFIRM_DRILL !== 'true') throw new Error('Set ATLAS_STAGE1_CONFIRM_DRILL=true only after confirming the account is disposable staging test data.');
-if (!process.env.ATLAS_STAGE1_STAGING_URL.includes('onrender.com')) throw new Error('The drill only supports the Render staging URL.');
+if (new URL(process.env.ATLAS_STAGE1_STAGING_URL).hostname !== 'amstreem-atlas-staging.onrender.com') throw new Error('The drill only supports the Atlas staging service.');
+if (new URL(process.env.SUPABASE_URL).hostname !== 'yllzeblecyqnncgktnjw.supabase.co') throw new Error('The drill only supports the isolated Atlas staging Supabase project.');
 
 const base = process.env.SUPABASE_URL.replace(/\/$/, '');
 const api = process.env.ATLAS_STAGE1_STAGING_URL.replace(/\/$/, '');
@@ -39,16 +40,13 @@ async function commit(expected, data, label, forceHistory = false, reason = 'sch
   };
   return request(`${base}/rest/v1/rpc/commit_workspace`, { method: 'POST', body: JSON.stringify(body) });
 }
-async function appRequest(path, body) {
-  return request(`${api}${path}`, { method: 'PATCH', body: JSON.stringify(body) });
+async function appRequest(path, body, method = 'PATCH') {
+  return request(`${api}${path}`, { method, ...(method === 'GET' ? {} : { body: JSON.stringify(body) }) });
 }
 
 (async () => {
   // Exercise the deployed HTTP middleware with two simultaneous, independent settings edits.
-  const beforeSettings = await appRequest('/api/settings', {}).catch(async error => {
-    // PATCH empty payload is still a safe read of the current settings response in this app.
-    throw error;
-  });
+  const beforeSettings = await appRequest('/api/settings', null, 'GET');
   const originalTheme = beforeSettings.theme || 'shadowed-alchemist';
   const originalTarget = String(beforeSettings.daily_target || '80');
   const testTheme = originalTheme === 'light-porcelain' ? 'shadowed-alchemist' : 'light-porcelain';
@@ -58,7 +56,7 @@ async function appRequest(path, body) {
     appRequest('/api/settings', { daily_target: testTarget })
   ]);
   if (parallel.some(result => !result || typeof result !== 'object')) throw new Error('Parallel settings requests returned unexpected results.');
-  const afterParallel = await appRequest('/api/settings', {});
+  const afterParallel = await appRequest('/api/settings', null, 'GET');
   if (afterParallel.theme !== testTheme || String(afterParallel.daily_target) !== testTarget) {
     throw new Error('Parallel-write check failed: one independent settings change was lost.');
   }
