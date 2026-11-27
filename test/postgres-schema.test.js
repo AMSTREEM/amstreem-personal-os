@@ -382,3 +382,23 @@ test('Atlas module accent colours meet WCAG AA text contrast in dark and light c
   for (const colour of dark) assert.ok(ratio(colour, '#0A0E13') >= 4.5, `Dark accent ${colour} fails WCAG AA`);
   for (const colour of light) assert.ok(ratio(colour, '#F6F4EF') >= 4.5, `Light accent ${colour} fails WCAG AA`);
 });
+
+
+test('unified Atlas shell exposes nine module destinations, responsive navigation and quick capture', () => {
+  const shell = fs.readFileSync(path.join(__dirname, '..', 'client/src/components/AppShell.tsx'), 'utf8');
+  const styles = fs.readFileSync(path.join(__dirname, '..', 'client/src/styles.css'), 'utf8');
+  assert.match(shell, /navigationGroups/);
+  assert.match(shell, /quranDestination/);
+  assert.match(shell, /data-module="quran"/);
+  assert.match(shell, /aria-label={sidebarCollapsed \? 'Expand navigation' : 'Collapse navigation'}/);
+  assert.match(shell, /destinations = \[\.\.\.rooms, quranDestination\]/);
+  assert.match(shell, /waitingForDestination/);
+  assert.match(shell, /event\.key\.toLowerCase\(\) === 'c'/);
+  assert.match(shell, /event\.key === '\?' /);
+  assert.match(shell, /quickCaptureType === 'note' \? '\/notes' : '\/habits'/);
+  assert.match(shell, /atlas-mobile-dock__capture/);
+  assert.match(shell, /atlas-skip-link/);
+  assert.match(styles, /@media \(min-width: 768px\) and \(max-width: 1023px\)/);
+  assert.match(styles, /--atlas-nav-width-expanded/);
+  assert.match(styles, /\.quick-capture-types/);
+});
