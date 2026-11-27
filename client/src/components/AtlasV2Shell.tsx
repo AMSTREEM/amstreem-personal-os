@@ -64,6 +64,19 @@ export function AtlasV2Shell() {
   ].filter(item => (item.label + ' ' + item.section).toLowerCase().includes(commandQuery.toLowerCase())), [commandQuery]);
 
   useEffect(() => {
+    const legacyTheme = settings.data?.theme;
+    if (!legacyTheme) return;
+    const themeByLegacy: Record<string, AtlasTheme> = {
+      'shadowed-alchemist': 'obsidian', 'abyssal-trench': 'obsidian', 'whispering-woods': 'obsidian',
+      'nocturnal-amethyst': 'dusk', 'crimson-velvet': 'dusk',
+      'light-porcelain': 'ivory', 'light-sage': 'ivory', 'light-lavender': 'ivory',
+      'light-sky': 'ivory', 'light-sandstone': 'sahara'
+    };
+    applyAtlasTheme(themeByLegacy[legacyTheme] || (legacyTheme.startsWith('light-') ? 'ivory' : 'obsidian'));
+    localStorage.setItem('atlas_theme', legacyTheme);
+  }, [settings.data?.theme]);
+
+  useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       const editing = !!target && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
