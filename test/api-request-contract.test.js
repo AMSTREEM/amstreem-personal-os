@@ -71,3 +71,23 @@ test('backup envelopes are accepted for the dedicated import endpoints', () => {
   });
   assert.equal(result.continued, true);
 });
+
+test('known request fields still enforce their declared scalar types', () => {
+  const result = invoke({
+    path: '/api/tasks',
+    body: { title: 'Study', priority: 'urgent' }
+  });
+  assert.equal(result.status, 400);
+  assert.equal(result.continued, false);
+  assert.ok(result.payload.errors.some(issue => issue.field === 'priority'));
+});
+
+test('route-specific query fields accept valid calendar month values', () => {
+  const result = invoke({
+    path: '/api/calendar',
+    method: 'GET',
+    body: undefined,
+    query: { month: '2026-11' }
+  });
+  assert.equal(result.continued, true);
+});
