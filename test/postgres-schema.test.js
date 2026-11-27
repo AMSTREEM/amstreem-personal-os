@@ -29,7 +29,13 @@ test('API persists request-scoped in-memory workspaces through Supabase', () => 
   assert.match(server, /new Database\(':memory:'\)/);
   assert.match(server, /personal_os_workspaces/);
   assert.match(server, /Saved workspace is missing its/);
-  assert.match(server, /writeWorkspaceSnapshot\(user\.id, token, workspaceDb\)/);
+  assert.match(server, /select=data,version,schema_version/);
+  assert.match(server, /commitWorkspaceSnapshot\(/);
+  assert.match(server, /writeWorkspaceSnapshot\(user\.id, token, workspaceDb, workspaceState, req\)/);
+  assert.match(server, /Idempotency-Key/);
+  assert.match(server, /X-Workspace-Version/);
+  assert.match(server, /version_conflict/);
+  assert.doesNotMatch(server, /resolution=merge-duplicates/);
   assert.match(server, /acquireUserLock\(user\.id\)/);
   assert.doesNotMatch(server, /DATA_DIR|owner\.db|amstreem\.db/);
 });
