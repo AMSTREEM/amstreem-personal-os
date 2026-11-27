@@ -202,6 +202,13 @@ export function AppShell() {
   // The six core pillars are always available; preferences only control secondary views.
   const current = commandDestinations.find(item => item.paths?.includes(location.pathname));
   useEffect(() => {
+    if (location.pathname === '/quran') return;
+    const heading = document.querySelector<HTMLElement>('#atlas-main-content .page-container h1, #atlas-main-content .page-container h2');
+    if (!heading) return;
+    heading.tabIndex = -1;
+    heading.focus({ preventScroll: true });
+  }, [location.pathname]);
+  useEffect(() => {
     if (focusActive && focusTimer.kind !== 'break') {
       const activeLabel = focusContext !== 'Focus session' ? focusContext : current?.label || 'Focus Room';
       document.title = focusClock + ' · ' + activeLabel + ' — Amstreem Atlas';
@@ -248,6 +255,7 @@ export function AppShell() {
     {mobileOpen && <><button className="mobile-more-scrim" type="button" aria-label="Close More menu" onClick={() => setMobileOpen(false)} /><motion.aside className="mobile-more-drawer" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 18 }} aria-label="More navigation"><div className="mobile-more-drawer__head"><b>More</b><button type="button" aria-label="Close menu" onClick={() => setMobileOpen(false)}><X size={17}/></button></div><nav>{commandDestinations.map(item => { const Icon=item.icon; return <NavLink key={item.to} to={item.to} onClick={() => setMobileOpen(false)}><Icon size={17}/><span>{item.label}</span><ArrowRight size={14}/></NavLink>; })}<div className="mobile-more-life-areas"><span className="eyebrow">YOUR LIFE AREAS</span><div>{selectedLifeAreas.map(id => <span key={id}>{lifeAreaNames[id]}</span>)}</div><NavLink to="/settings" onClick={() => setMobileOpen(false)}>Edit your areas <ArrowRight size={13}/></NavLink></div><NavLink to="/settings" onClick={() => setMobileOpen(false)}><SlidersHorizontal size={17}/><span>Settings</span><ArrowRight size={14}/></NavLink>{role === 'admin' && <NavLink to="/admin" onClick={() => setMobileOpen(false)}><Settings size={17}/><span>Administration</span><ArrowRight size={14}/></NavLink>}<button type="button" onClick={() => { setMobileOpen(false); void signOut(); }}><LogOut size={17}/><span>Sign out</span></button></nav></motion.aside></>}
     
     <a className="atlas-skip-link" href="#atlas-main-content">Skip to content</a>
+    <div className="atlas-live-region" aria-live="polite" aria-atomic="true">{current?.label || "Atlas workspace"}</div>
     <main className="main-area" id="atlas-main-content" tabIndex={-1}>
       <motion.div ref={bootContentRef} className="atlas-workspace-boot" initial={reduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.24, ease: [0.16, 1, 0.3, 1] }}>
       <motion.header className="topbar" initial={reduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.18, delay: 0.04 }}>
