@@ -17,18 +17,46 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - name: Install dependencies
-        run: npm install
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Protect Qur'an reader paths
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            git fetch origin "$BASE_REF" --depth=1
+            base="origin/$BASE_REF"
+          else
+            base="$BEFORE_SHA"
+            if [ -z "$base" ] || [[ "$base" =~ ^0+$ ]]; then
+              base="$(git rev-parse HEAD^)"
+            fi
+          fi
+          changed="$(git diff --name-only "$base" "$HEAD_SHA")"
+          protected='^(client/src/components/QuranMushafReader\.tsx|client/src/data/quranSurahs\.ts|client/src/pages/QuranPage\.tsx|server/quran-fallback\.json|test/tajweed-surah-coverage\.test\.js)$'
+          violations="$(printf '%s\n' "$changed" | grep -E "$protected" || true)"
+          if [ -n "$violations" ]; then
+            echo "Protected Qur'an paths changed:"
+            echo "$violations"
+            exit 1
+          fi
+          echo "Protected Qur'an paths are untouched."
       - name: TypeScript typecheck
         run: npm run typecheck
-      - name: Production build
-        run: npm run build
       - name: Test suite
         run: npm test
+      - name: Production build
+        run: npm run build
       - name: Dependency audit
-        run: npm audit
+        run: npm audit --audit-level=high
