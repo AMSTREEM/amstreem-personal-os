@@ -91,3 +91,9 @@ test('route-specific query fields accept valid calendar month values', () => {
   });
   assert.equal(result.continued, true);
 });
+
+test('unregistered non-Qur’an routes fail closed instead of running without a contract', () => {
+  const result = invoke({ path: '/api/unregistered', method: 'GET' });
+  assert.equal(result.status, 500);
+  assert.equal(result.continued, false);
+});
