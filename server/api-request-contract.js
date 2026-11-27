@@ -75,11 +75,20 @@ const ParamsSchema = z.object({
 const IdempotencyKeySchema = z.string().trim().min(8).max(200);
 
 function issueList(error) {
-  return error.issues.map(issue => ({
-    field: issue.path.length ? issue.path.join('.') : 'request',
-    message: issue.message,
-    code: issue.code
-  }));
+  return error.issues.flatMap(issue => {
+    if (issue.code === 'unrecognized_keys' && Array.isArray(issue.keys)) {
+      return issue.keys.map(key => ({
+        field: [...issue.path, key].join('.'),
+        message: 'Unrecognized field.',
+        code: issue.code
+      }));
+    }
+    return [{
+      field: issue.path.length ? issue.path.join('.') : 'request',
+      message: issue.message,
+      code: issue.code
+    }];
+  });
 }
 
 function schemaForFields(baseSchema, fields) {
