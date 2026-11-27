@@ -87,7 +87,7 @@ test("workspace commits use the signed-in user's token and enforce ownership in 
   assert.match(commit, /Authorization: `Bearer \$\{token\}`/);
   assert.doesNotMatch(commit, /supabaseAdminHeaders/);
   assert.match(migration, /security definer/i);
-  assert.match(migration, /auth\.uid\(\) is distinct from p_user_id/i);
+  assert.match(migration, /v_user_id is distinct from p_user_id/i);
   assert.match(migration, /revoke all on function[\s\S]*from public, anon, service_role/i);
   assert.match(migration, /to authenticated/i);
 });
