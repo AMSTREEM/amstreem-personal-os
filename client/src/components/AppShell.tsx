@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, json } from '../lib/api';
 import { applyAtlasTheme, watchAtlasSystemTheme } from '../design/theme';
+import { atlasModules as rooms, quranShellEntry as quranDestination, atlasNavigationGroups as navigationGroups, atlasCommandDestinations as commandDestinations } from '../design/module-registry';
 import { ArrowRight, BookOpen, CalendarDays, Check, Compass, GraduationCap, Heart, History as HistoryIcon, House, ListChecks, LogOut, MoonStar, Pause, Play, Plus, Search, Settings, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Target, Timer, TrendingUp, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
@@ -23,29 +24,7 @@ import { useSpotlightGrid } from './fx/useSpotlightGrid';
 
 const MotionNavLink = motion.create(NavLink);
 
-const rooms = [
-  { id: 'residence', label: 'Residence', to: '/residence', icon: House, paths: ['/residence'] },
-  { id: 'actions', label: 'Actions', to: '/actions', icon: ListChecks, paths: ['/actions'] },
-  { id: 'goals', label: 'Goals', to: '/goals', icon: Target, paths: ['/goals'] },
-  { id: 'calendar', label: 'Calendar', to: '/calendar', icon: CalendarDays, paths: ['/calendar'] },
-  { id: 'habits', label: 'Habits', to: '/habits', icon: Heart, paths: ['/habits'] },
-  { id: 'learning', label: 'Learning Library', to: '/learning-library', icon: GraduationCap, paths: ['/learning-library'] },
-  { id: 'growth', label: 'Growth', to: '/growth', icon: TrendingUp, paths: ['/growth'] },
-  { id: 'values', label: 'Values', to: '/values', icon: MoonStar, paths: ['/values'] }
-];
-const quranDestination = { id: 'quran', label: 'Qur’an', to: '/quran', icon: BookOpen, paths: ['/quran'] };
-const navigationGroups = [
-  { label: 'HOME', items: [rooms[0]] },
-  { label: 'PLAN', items: [rooms[1], rooms[2], rooms[3]] },
-  { label: 'PRACTICE', items: [rooms[4], rooms[5]] },
-  { label: 'REFLECT', items: [rooms[6], rooms[7]] }
-];
-const commandDestinations = [
-  ...rooms,
-  quranDestination,
-  { id: 'focus', label: 'Focus', detail: 'Start or resume a focus session', to: '/focus', icon: Timer, paths: ['/focus'] },
-  { id: 'history', label: 'Workspace history', detail: 'Recovery points, backups and restore', to: '/history', icon: HistoryIcon, paths: ['/history'] }
-];
+
 
 type QuickPrayer = { prayer: string; completed: number; on_time: number };
 type QuickDeen = { prayers: QuickPrayer[] };
