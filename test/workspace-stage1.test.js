@@ -8,7 +8,7 @@ test('Atlas backup envelopes carry a verifiable checksum and schema version', ()
   const data = { goals: [{ id: 1, title: 'Keep' }], quran_logs: [{ id: 2, surah: 'Al-Baqarah' }] };
   const backup = createBackupEnvelope(data);
   assert.equal(backup.format, 'atlas-backup');
-  assert.equal(backup.schemaVersion, 3);
+  assert.equal(backup.schemaVersion, 4);
   assert.equal(unwrapBackup(backup).quran_logs[0].surah, 'Al-Baqarah');
 });
 
@@ -26,6 +26,12 @@ test('legacy backup exports remain importable and summaries count records withou
   assert.deepEqual(summary, { goals: 2, quran_logs: 1 });
 });
 
+test('version 4 backups include external activity history without restoring it as a workspace table', () => {
+  const backup = createBackupEnvelope({ goals: [], activity_events: [{ key: 'event-key-001' }] });
+  assert.equal(backup.schemaVersion, 4);
+  assert.deepEqual(summarizeBackup(backup, ['goals']), { goals: 0, activity_events: 1 });
+});
+
 test('oversized backup payloads are rejected', () => {
   assert.throws(() => unwrapBackup({ notes: 'x'.repeat(10 * 1024 * 1024 + 1) }), /10 MB/);
 });
@@ -33,7 +39,7 @@ test('oversized backup payloads are rejected', () => {
 test('Stage 1 uses atomic versioned RPC commits and protects failed mutations', () => {
   const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
   assert.match(server, /personal_os_workspaces\?select=data,version,schema_version/);
-  assert.match(server, /\/rest\/v1\/rpc\/commit_workspace/);
+  assert.match(server, /\/rest\/v1\/rpc\/commit_workspace_with_events/);
   assert.match(server, /p_expected_version: expectedVersion/);
   assert.match(server, /res\.statusCode >= 400/);
   assert.match(server, /\/api\/import\/preview/);
