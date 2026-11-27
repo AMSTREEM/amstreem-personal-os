@@ -126,7 +126,7 @@ test('Room 3 records focus completion once and derives linked work metrics from 
   const goals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'GoalsPage.tsx'), 'utf8');
   assert.match(server, /session_key TEXT UNIQUE/);
   assert.match(server, /INSERT OR IGNORE INTO sessions/);
-  assert.match(server, /if\(insert\.changes\)awardXp\('session:'/);
+  assert.match(server, /if\(insert\.changes&&session_kind==='focus'\)publishAtlasEvent\(\{type:'focus\.ended'/);
   assert.doesNotMatch(server, /Link a focus session to either a task or a learning lesson, not both/);
   assert.match(server, /AS focus_minutes/);
   assert.match(server, /progress_pct:\s*p\.task_count\s*\?/);
