@@ -11,7 +11,8 @@
     "build": "vite build --config client/vite.config.ts",
     "typecheck": "tsc --project client/tsconfig.json --noEmit",
     "test": "node --test",
-    "prebuild": "npm run typecheck && npm test && npm audit"
+    "prebuild": "npm run typecheck && npm test && npm audit",
+    "postbuild": "node scripts/check-bundle-budget.js"
   },
   "engines": {
     "node": ">=20"
