@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "baseline": {
+    "branch": "atlas-v2",
+    "commit": "0c41e0f797c472a23af6c982ed992133330ec28f"
+  },
+  "files": {
+    "client/src/components/QuranMushafReader.tsx": "717098a89dc67bf920e9b9966846a24a2041eb981c459d7c4fc4962cf11d6428",
+    "client/src/pages/QuranPage.tsx": "3944fdba0d5a7c4099d23b0ffa9c269b8d0ac77cc1e81e9d7a7b1453b2edc2b2",
+    "client/src/data/quranSurahs.ts": "2aabbd76a2a4177b5c5ae112359a0371e04b838dc0490f0ca02c4839652eb60d",
+    "client/src/styles.css": "1d723b67926262650b6438c65369abbc061c1938f5f254139edb01c48ef69c1c",
+    "client/src/lib/api.ts": "16709e53d643c123fa4cb6daf4b1e31a2a8b67b9a7ddd1843247bd268d3255eb",
+    "server/quran-fallback.json": "170c9cb1a9abc936107d064f093ab419793c27c03d381926e3aa71a53615f88a",
+    "test/tajweed-surah-coverage.test.js": "6858761b4972845a0468593179615aa4f930724a1014fbc0a95aa1ff3b736b08",
+    "client/public/fonts/UthmanicHafs1Ver18.woff2": "8c00e7a7d5f773bcfb1642fdcfba505dbd81975fef39f14718827a32d075020c",
+    "client/public/fonts/UthmanicHafs.woff2": "c35fccbb7c969e5475b260afa99c0bbc839ef67eb14ce279f0ac223646085ba8"
+  },
+  "serverRegion": {
+    "name": "Quran provider, font delivery, page/surah APIs and caches",
+    "file": "server.js",
+    "startMarker": "const QURAN_FONT_FILENAME = 'UthmanicHafs1Ver18.woff2';",
+    "endMarker": "const ownerUserId = process.env.ADMIN_USER_ID || (process.env.ATLAS_STAGING === 'true' ? null : supabaseConfig.ownerUserId);",
+    "sha256": "2873ecb1defe081d0b56d0a8912514e866f491ff3961fd605797528a39b43d10"
+  },
+  "serverRegions": [
+    {
+      "name": "Quran log table DDL",
+      "file": "server.js",
+      "startMarker": "CREATE TABLE IF NOT EXISTS quran_logs (",
+      "endMarker": "CREATE TABLE IF NOT EXISTS tahajjud_logs (",
+      "sha256": "049fbe02e981e3cf432f9049b0419651e5e1336ce55533bcebdc375f4013707e"
+    },
+    {
+      "name": "Quran log API",
+      "file": "server.js",
+      "startMarker": "app.get('/api/deen/quran'",
+      "endMarker": "app.get('/api/reviews/evidence'",
+      "sha256": "18b3ef025b6b58ef0b17d1fd237a4b830adc6a79a314ce738364aba06bbde56e"
+    },
+    {
+      "name": "CSP source allowlist required by the reader",
+      "file": "server.js",
+      "startMarker": "  res.setHeader('Content-Security-Policy',[",
+      "endMarker": "  ].join('; '));",
+      "sha256": "521c18058177e2468b499fcfb86606338b5782ef4c9f5b8550a2da18c9a13716"
+    }
+  ]
+}

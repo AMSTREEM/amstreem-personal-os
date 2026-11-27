@@ -11,7 +11,8 @@
     "build": "vite build --config client/vite.config.ts",
     "typecheck": "tsc --project client/tsconfig.json --noEmit",
     "test": "node --test",
-    "prebuild": "npm run typecheck && npm test && npm audit"
+    "prebuild": "npm run typecheck && npm test && npm audit",
+    "check:frozen": "node scripts/check-frozen.mjs"
   },
   "engines": {
     "node": ">=20"
