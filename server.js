@@ -7,6 +7,7 @@ const Database = require('better-sqlite3');
 const { restoreBackup, createBackupEnvelope, summarizeBackup } = require('./workspace-backup');
 const { AsyncLocalStorage } = require('node:async_hooks');
 const { problemDetails, BootstrapResponseSchema, ApiJsonResponseSchema } = require('./packages/contracts');
+const { appendAtlasEvent, validateAtlasEventBatch } = require('./server/atlas-events');
 const app = express();
 const { apiRequestContract } = require('./server/api-request-contract');
 for (const method of ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']) {
@@ -1014,6 +1015,7 @@ function getPageJuzFallback(page) {
 const ownerUserId = process.env.ADMIN_USER_ID || (process.env.ATLAS_STAGING === 'true' ? null : supabaseConfig.ownerUserId);
 const tenantContext = new AsyncLocalStorage();
 const userLocks = new Map();
+function publishAtlasEvent(event) { return appendAtlasEvent(tenantContext.getStore(), event); }
 const workspaceTables = [
   'goals','projects','project_milestones','tasks','modules','learning_paths','learning_lessons','learning_resources',
   'learning_study_logs','sessions','calendar_events','notes','reviews','settings','habits','habit_logs',
@@ -1160,7 +1162,7 @@ function serializeWorkspaceDatabase(workspaceDb) {
   for (const table of workspaceTables) tables[table] = workspaceDb.prepare(`SELECT * FROM ${table}`).all();
   return { format: 'personal-os-sqlite-snapshot-v3', schemaVersion: 3, tables };
 }
-async function commitWorkspaceSnapshot(token, expectedVersion, snapshot, requestMeta = {}) {
+async function commitWorkspaceSnapshot(token, expectedVersion, snapshot, requestMeta = {}, events = []) {
   const payload = {
     p_expected_version: expectedVersion,
     p_data: snapshot,
@@ -1168,9 +1170,10 @@ async function commitWorkspaceSnapshot(token, expectedVersion, snapshot, request
     p_idempotency_key: requestMeta.idempotencyKey || null,
     p_request_hash: requestMeta.requestHash || null,
     p_force_history: Boolean(requestMeta.forceHistory),
-    p_history_reason: requestMeta.historyReason || 'scheduled'
+    p_history_reason: requestMeta.historyReason || 'scheduled',
+    p_events: validateAtlasEventBatch(events)
   };
-  const response = await fetch(`${supabaseConfig.url}/rest/v1/rpc/commit_workspace`, {
+  const response = await fetch(`${supabaseConfig.url}/rest/v1/rpc/commit_workspace_with_events`, {
     method: 'POST',
     headers: {
       apikey: supabaseConfig.publishableKey,
@@ -1191,13 +1194,13 @@ async function commitWorkspaceSnapshot(token, expectedVersion, snapshot, request
   }
   return typeof detail === 'string' ? JSON.parse(detail) : detail;
 }
-async function writeWorkspaceSnapshot(userId, token, workspaceDb, expectedVersion, baseSnapshot, requestMeta = {}) {
+async function writeWorkspaceSnapshot(userId, token, workspaceDb, expectedVersion, baseSnapshot, requestMeta = {}, events = []) {
   let snapshot = serializeWorkspaceDatabase(workspaceDb);
   let version = expectedVersion;
   let replayed = false;
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
-      const result = await commitWorkspaceSnapshot(token, version, snapshot, requestMeta);
+      const result = await commitWorkspaceSnapshot(token, version, snapshot, requestMeta, events);
       return { ...result, replayed: replayed || Boolean(result?.replayed) };
     } catch (error) {
       if (error.code !== 'VERSION_CONFLICT' || attempt === 2) throw error;
@@ -1280,7 +1283,7 @@ app.use('/api', async (req, res, next) => {
     const requestHash = idempotencyKey
       ? crypto.createHash('sha256').update(JSON.stringify({ method: req.method, path: req.originalUrl, body: req.body ?? null })).digest('hex')
       : null;
-    const context = { userId: user.id, db: workspaceDb, version: workspaceState.version };
+    const context = { userId: user.id, db: workspaceDb, version: workspaceState.version, pendingEvents: [], idempotencyKey: idempotencyKey || null };
     tenantContext.run(context, () => {
       const originalEnd = res.end.bind(res);
       let ending = false;
@@ -1298,7 +1301,7 @@ app.use('/api', async (req, res, next) => {
           forceHistory: req.path === '/import',
           historyReason: req.path === '/import' ? 'pre_import' : 'scheduled'
         };
-        writeWorkspaceSnapshot(user.id, token, workspaceDb, workspaceState.version, baseSnapshot, requestMeta)
+        writeWorkspaceSnapshot(user.id, token, workspaceDb, workspaceState.version, baseSnapshot, requestMeta, context.pendingEvents)
           .then(result => {
             if (result?.version) res.setHeader('X-Workspace-Version', String(result.version));
             if (result?.replayed) res.setHeader('Idempotency-Replayed', 'true');
