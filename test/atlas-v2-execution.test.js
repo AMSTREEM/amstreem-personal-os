@@ -7,7 +7,7 @@ test('Execution actions use the Atlas v2 clean-slate workspace and preserve task
  const app=read('client/src/App.tsx'),page=read('client/src/pages/ExecutionV2Page.tsx'),css=read('client/src/pages/execution-v2.css');
  assert.match(app,/path="\/actions" element={<SuspendedPage><ExecutionV2Page \/><\/SuspendedPage>}/);
  for(const token of ["api<Task[]>('/tasks')","api<Project[]>('/projects')","json('POST'","json('PATCH'","/focus?task=",'queryKeys.tasks'])assert.ok(page.includes(token),token);
- assert.match(page,/Complete '\+task\.title|Complete \+task\.title/);
+ assert.match(page,/aria-label=\{task\.done \? \"Reopen \"\+task\.title : \"Complete \"\+task\.title\}/);
  assert.match(css,/\.atlas-v2 \.a-execution/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
 });
