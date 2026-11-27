@@ -33,16 +33,13 @@
     var config = themes[theme];
     var root = document.documentElement;
     root.setAttribute('data-a-theme', theme);
-    if (validStored) {
-      root.setAttribute('data-theme', config.legacy);
-      root.style.colorScheme = config.scheme;
-      root.style.backgroundColor = config.color;
-    } else if (legacyConfig) {
-      root.setAttribute('data-theme', legacyStored);
-      root.style.colorScheme = legacyConfig.scheme;
-      root.style.backgroundColor = legacyConfig.color;
-    }
+    var legacyTheme = legacyConfig ? legacyStored : config.legacy;
+    var legacyScheme = legacyConfig ? legacyConfig.scheme : config.scheme;
+    var legacyColor = legacyConfig ? legacyConfig.color : config.color;
+    root.setAttribute('data-theme', legacyTheme);
+    root.style.colorScheme = legacyScheme;
+    root.style.backgroundColor = legacyColor;
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', validStored ? config.color : (legacyConfig ? legacyConfig.color : config.color));
+    if (meta) meta.setAttribute('content', legacyColor);
   } catch (_) {}
 })();
