@@ -1,9 +1,11 @@
 # Stage 3 — Design Tokens and Unified Atlas Shell
 
-**Status:** implementation in progress  
+**Status:** merged to `atlas-next`; staging deployment live; authenticated browser QA pending  
 **Branch:** `atlas-stage3-design-system`  
 **Base:** `atlas-next`  
 **Release target:** `atlas-next` staging only
+**Merge commit:** `ac0dad3f8ef666b3d55b2a7c881bcc9b4f14273c`
+**Render deploy:** `dep-dc4nghuc6qcc73e9d95g` — live 2026-11-27
 
 ## Objective
 
@@ -34,6 +36,17 @@ Establish one maintainable design-token layer and one canonical workspace naviga
 - Existing route URLs and deep links remain unchanged.
 - Skip link is visible on keyboard focus and targets the main workspace.
 - Tokens are scoped to `.app-frame.atlas-renaissance`; they do not style the Qur’an route.
-- Typecheck, tests, boundary checks, audit and production build pass.
-- Qur’an/Tajweed protection CI passes with no protected file changes.
-- Changes are merged only to `atlas-next`, then manually deployed to staging for authenticated browser QA.
+- Typecheck, tests, boundary checks, dependency audit and production build passed in both GitHub Actions workflows.
+- Qur’an/Tajweed protection CI passed with no protected reader or Tajweed files changed.
+- Merged only to `atlas-next`; the staging build and deployment completed successfully. Production remains untouched.
+
+## Staging browser QA — pending
+
+Use the existing staging test account and verify:
+1. On a workspace route, press Tab after load; the **Skip to content** link should become visible. Activate it and confirm focus moves to the main workspace.
+2. Check all four desktop room links and their sub-navigation. Confirm the 1–4 keyboard shortcuts still navigate to the matching rooms.
+3. Open Command with Ctrl/Cmd+K and confirm room and destination search still works.
+4. At mobile width, check the room dock, Qur’an shortcut and More drawer; open and close the drawer and follow a destination.
+5. Open `/quran`. Confirm the reader remains in its specialist mode, loads normally, and its Tajweed colours and controls are unchanged.
+
+No database migration or API-specific browser drill is required for Stage 3. Stage 2's authenticated API QA remains the baseline.
