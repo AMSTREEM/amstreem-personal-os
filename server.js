@@ -1561,54 +1561,30 @@ app.post('/api/intelligence/feedback',(req,res)=>{
  db.prepare("INSERT INTO settings(key,value) VALUES('atlas_intelligence_feedback',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(JSON.stringify(history.slice(-40)));
  res.json({ok:true});
 });
-function achievementMetrics(){
- return {
-  tasks:one("SELECT COUNT(*) n FROM tasks WHERE done=1").n,
-  focusMinutes:one("SELECT COALESCE(SUM(minutes),0) n FROM sessions").n,
-  focusSessions:one("SELECT COUNT(*) n FROM sessions").n,
-  lessons:one("SELECT COUNT(*) n FROM learning_lessons WHERE status='Completed'").n,
-  goals:one("SELECT COUNT(*) n FROM goals WHERE status='completed'").n,
-  habitCheckins:one("SELECT COUNT(*) n FROM habit_logs").n
- };
-}
-function achievementDefinitions(metrics){
- return [
-  {id:'first-finish',name:'First things first',description:'Complete your first task',icon:'✓',metric:'tasks',target:1},
-  {id:'task-ten',name:'Getting things done',description:'Complete 10 tasks',icon:'↗',metric:'tasks',target:10},
-  {id:'task-fifty',name:'Reliable executor',description:'Complete 50 tasks',icon:'◆',metric:'tasks',target:50},
-  {id:'focus-hour',name:'One focused hour',description:'Invest 60 minutes in focus',icon:'◷',metric:'focusMinutes',target:60},
-  {id:'deep-work',name:'Return to deep work',description:'Complete 10 focus sessions',icon:'◎',metric:'focusSessions',target:10},
-  {id:'first-lesson',name:'Curiosity in motion',description:'Complete your first lesson',icon:'◇',metric:'lessons',target:1},
-  {id:'five-lessons',name:'A learner by practice',description:'Complete 5 lessons',icon:'✦',metric:'lessons',target:5},
-  {id:'first-goal',name:'A promise kept',description:'Complete your first goal',icon:'⌖',metric:'goals',target:1},
-  {id:'ritual-week',name:'Small promises',description:'Record 7 daily ritual check-ins',icon:'✳',metric:'habitCheckins',target:7},
-  {id:'ritual-month',name:'Consistency, compounded',description:'Record 30 daily ritual check-ins',icon:'✧',metric:'habitCheckins',target:30}
- ].map(item=>{
-  const value=Number(metrics[item.metric]||0);
-  const unlock=one('SELECT unlocked_at FROM achievement_unlocks WHERE achievement_id=?',item.id);
-  return {...item,value,unlocked:value>=item.target,progress:Math.min(100,Math.round(value/item.target*100)),remaining:Math.max(0,item.target-value),unlockedAt:unlock?.unlocked_at||null};
- });
+async function getProgressTotals(req,startDate=null,endDate=null){
+ const rows=await atlasRest(req,'rpc/get_progress_totals',{method:'POST',body:{p_start:startDate,p_end:endDate}});
+ return Object.fromEntries((rows||[]).map(row=>[row.metric,Number(row.value)||0]));
 }
 function currentWeekStart(){
  const localDay=new Date(dateKey()+'T12:00:00Z');
  localDay.setUTCDate(localDay.getUTCDate()-((localDay.getUTCDay()+6)%7));
  return localDay.toISOString().slice(0,10);
 }
-function weeklyChallengeState(challenge,weekStart){
- const metrics={
-  focus_minutes:one("SELECT COALESCE(SUM(minutes),0) n FROM sessions WHERE session_date>=? AND session_date<date(?,'+7 days')",weekStart,weekStart).n,
-  study_minutes:one("SELECT COALESCE(SUM(minutes),0) n FROM learning_study_logs WHERE log_date>=? AND log_date<date(?,'+7 days')",weekStart,weekStart).n,
-  habit_checkins:one("SELECT COUNT(*) n FROM habit_logs WHERE log_date>=? AND log_date<date(?,'+7 days')",weekStart,weekStart).n
- };
+function addAtlasDays(date,days){
+ const value=new Date(date+'T12:00:00Z');
+ value.setUTCDate(value.getUTCDate()+days);
+ return value.toISOString().slice(0,10);
+}
+function weeklyChallengeState(challenge,weekStart,metrics){
  const value=Number(metrics[challenge.metric]||0),complete=value>=challenge.target;
  return {...challenge,weekStart,value,progress:Math.min(100,Math.round(value/challenge.target*100)),remaining:Math.max(0,challenge.target-value),complete,earned:!!challenge.claimed_at,completedAt:challenge.completed_at};
 }
-function createWeeklyChallenge(weekStart){
+function createWeeklyChallenge(weekStart,recentMetrics){
  const activeHabits=one('SELECT COUNT(*) n FROM habits WHERE active=1').n;
  const activeLessons=one("SELECT COUNT(*) n FROM learning_lessons WHERE status!='Completed'").n;
- const focusRecent=one("SELECT COALESCE(SUM(minutes),0) n FROM sessions WHERE session_date>=date(?,'-14 days') AND session_date<?",weekStart,weekStart).n;
- const studyRecent=one("SELECT COALESCE(SUM(minutes),0) n FROM learning_study_logs WHERE log_date>=date(?,'-14 days') AND log_date<?",weekStart,weekStart).n;
- const habitRecent=one("SELECT COUNT(*) n FROM habit_logs WHERE log_date>=date(?,'-14 days') AND log_date<?",weekStart,weekStart).n;
+ const focusRecent=Number(recentMetrics.focus_minutes||0);
+ const studyRecent=Number(recentMetrics.study_minutes||0);
+ const habitRecent=Number(recentMetrics.habit_checkins||0);
  const options=[];
  if(activeHabits>0)options.push({id:'ritual-rhythm',title:'Keep your rituals alive',description:'Record a few check-ins for the habits you chose.',metric:'habit_checkins',target:Math.max(3,Math.min(10,activeHabits*3)),score:habitRecent+activeHabits*2});
  if(activeLessons>0)options.push({id:'learning-investment',title:'Invest in your next chapter',description:'Put focused study time into a lesson you are working through.',metric:'study_minutes',target:Math.max(45,Math.min(150,Math.round((studyRecent/2||60)/15)*15)),score:studyRecent+activeLessons*5});
@@ -1618,47 +1594,91 @@ function createWeeklyChallenge(weekStart){
  db.prepare('INSERT OR IGNORE INTO weekly_challenges(week_start,challenge_id,title,description,metric,target) VALUES(?,?,?,?,?,?)').run(weekStart,chosen.id,chosen.title,chosen.description,chosen.metric,chosen.target);
  return one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
 }
-app.post('/api/weekly-challenge/sync',(req,res)=>{
- const weekStart=currentWeekStart();
- let challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
- if(!challenge)challenge=createWeeklyChallenge(weekStart);
- let state=weeklyChallengeState(challenge,weekStart);
- if(state.complete&&!challenge.claimed_at){
-  const completedAt=new Date().toISOString();
-  db.prepare('UPDATE weekly_challenges SET completed_at=COALESCE(completed_at,?),claimed_at=? WHERE week_start=?').run(completedAt,completedAt,weekStart);
-  awardXp('weekly-challenge:'+weekStart,'Weekly challenge',50);
-  challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
-  state=weeklyChallengeState(challenge,weekStart);
-  state.justCompleted=true;
- }
- res.json(state);
+async function loadAchievementState(req){
+ const [metrics,definitions,unlockRows]=await Promise.all([
+  getProgressTotals(req),
+  atlasRest(req,'atlas_achievement_definitions?select=id,title,description,icon,metric,target,tier,secret&order=target.asc'),
+  atlasRest(req,'atlas_achievement_unlocks?select=achievement_id,unlocked_at&order=unlocked_at.desc')
+ ]);
+ const unlockedById=new Map((unlockRows||[]).map(row=>[row.achievement_id,row.unlocked_at]));
+ const achievements=(definitions||[]).map(item=>{
+  const value=Number(metrics[item.metric]||0),unlockedAt=unlockedById.get(item.id)||null;
+  return {...item,value,unlocked:!!unlockedAt,progress:Math.min(100,Math.round(value/Number(item.target)*100)),remaining:Math.max(0,Number(item.target)-value),unlockedAt};
+ });
+ return {metrics,achievements,unlocked:achievements.filter(item=>item.unlocked).length,total:achievements.length,recent:achievements.filter(item=>item.unlockedAt).sort((a,b)=>b.unlockedAt.localeCompare(a.unlockedAt)).slice(0,5)};
+}
+app.post('/api/weekly-challenge/sync',async(req,res)=>{
+ try{
+  const weekStart=currentWeekStart(),weekEnd=addAtlasDays(weekStart,7);
+  const currentMetrics=await getProgressTotals(req,weekStart,weekEnd);
+  let challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
+  if(!challenge){
+   const recentMetrics=await getProgressTotals(req,addAtlasDays(weekStart,-14),weekStart);
+   challenge=createWeeklyChallenge(weekStart,recentMetrics);
+  }
+  let state=weeklyChallengeState(challenge,weekStart,currentMetrics);
+  if(state.complete&&!challenge.claimed_at){
+   const completedAt=new Date().toISOString();
+   db.prepare('UPDATE weekly_challenges SET completed_at=COALESCE(completed_at,?),claimed_at=? WHERE week_start=?').run(completedAt,completedAt,weekStart);
+   publishAtlasEvent({type:'challenge.completed',module:'growth',entityId:weekStart,localDate:dateKey(),payload:{challengeId:challenge.challenge_id,metric:challenge.metric,value:state.value,target:challenge.target},source:'system'});
+   challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
+   state=weeklyChallengeState(challenge,weekStart,currentMetrics);
+   state.justCompleted=true;
+  }
+  res.json(state);
+ }catch(error){console.error('Weekly challenge sync:',error.message);res.status(503).json({error:'Your weekly challenge could not be updated. Please retry.'});}
 });
-app.get('/api/weekly-challenge',(req,res)=>{
- const weekStart=currentWeekStart(),challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
- if(!challenge)return res.status(404).json({error:'This week’s challenge has not been created yet.'});
- res.json(weeklyChallengeState(challenge,weekStart));
+app.get('/api/weekly-challenge',async(req,res)=>{
+ try{
+  const weekStart=currentWeekStart(),weekEnd=addAtlasDays(weekStart,7),challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
+  if(!challenge)return res.status(404).json({error:'This week’s challenge has not been created yet.'});
+  const metrics=await getProgressTotals(req,weekStart,weekEnd);
+  res.json(weeklyChallengeState(challenge,weekStart,metrics));
+ }catch(error){console.error('Weekly challenge:',error.message);res.status(503).json({error:'Your weekly challenge is temporarily unavailable.'});}
 });
-app.get('/api/achievements',(req,res)=>{
- const metrics=achievementMetrics(),achievements=achievementDefinitions(metrics);
- res.json({metrics,achievements,unlocked:achievements.filter(x=>x.unlocked).length,total:achievements.length,recent:achievements.filter(x=>x.unlockedAt).sort((a,b)=>b.unlockedAt.localeCompare(a.unlockedAt)).slice(0,5)});
+app.get('/api/achievements',async(req,res)=>{
+ try{res.json(await loadAchievementState(req));}
+ catch(error){console.error('Achievements:',error.message);res.status(503).json({error:'Achievements are temporarily unavailable.'});}
 });
-app.post('/api/achievements/sync',(req,res)=>{
- const metrics=achievementMetrics(),eligible=achievementDefinitions(metrics).filter(x=>x.unlocked&&!x.unlockedAt);
- const insert=db.prepare('INSERT OR IGNORE INTO achievement_unlocks(achievement_id) VALUES(?)');
- const sync=db.transaction(()=>eligible.forEach(x=>insert.run(x.id)));
- sync();
- const achievements=achievementDefinitions(metrics);
- res.json({newUnlocks:achievements.filter(x=>eligible.some(e=>e.id===x.id)),achievements,unlocked:achievements.filter(x=>x.unlocked).length,total:achievements.length,recent:achievements.filter(x=>x.unlockedAt).sort((a,b)=>b.unlockedAt.localeCompare(a.unlockedAt)).slice(0,5)});
+app.post('/api/achievements/sync',async(req,res)=>{
+ try{
+  const state=await loadAchievementState(req);
+  const unseen=state.achievements.filter(item=>item.unlocked&&!one('SELECT achievement_id FROM achievement_unlocks WHERE achievement_id=?',item.id));
+  const insert=db.prepare('INSERT OR IGNORE INTO achievement_unlocks(achievement_id,unlocked_at) VALUES(?,?)');
+  const mark=db.transaction(()=>unseen.forEach(item=>insert.run(item.id,item.unlockedAt||new Date().toISOString())));
+  mark();
+  res.json({...state,newUnlocks:unseen});
+ }catch(error){console.error('Achievement sync:',error.message);res.status(503).json({error:'Achievements could not be synchronized. Please retry.'});}
 });
-app.get('/api/progress',(req,res)=>{
- const totalXp=one('SELECT COALESCE(SUM(points),0) total FROM xp_events').total;
- const thresholds=[0,50,150,300,500,800,1200,1700,2300,3000,4000,5200,6600,8200,10000];
- while(totalXp>=thresholds[thresholds.length-1])thresholds.push(thresholds[thresholds.length-1]+Math.round(1000+thresholds.length*125));
- let index=0;while(index+1<thresholds.length&&totalXp>=thresholds[index+1])index++;
- const level=index+1,currentFloor=thresholds[index],nextFloor=thresholds[index+1];
- const titles=['Newcomer','Starter','Builder','Pathfinder','Maker','Strategist','Specialist','Architect','Vanguard','Atlas'];
- const lastEvent=one('SELECT category,points,awarded_at FROM xp_events ORDER BY awarded_at DESC,id DESC LIMIT 1')||null;
- res.json({totalXp,level,title:titles[index]||'Master Builder',currentFloor,nextFloor,progressPct:Math.max(0,Math.min(100,Math.round((totalXp-currentFloor)/(nextFloor-currentFloor)*100))),remaining:Math.max(0,nextFloor-totalXp),lastEvent});
+app.get('/api/progress',async(req,res)=>{
+ try{
+  const summary=await atlasRest(req,'rpc/get_xp_summary',{method:'POST',body:{}});
+  const totalXp=Number(summary?.totalXp)||0;
+  let level=1;
+  while(totalXp>=50*level*(level+1))level++;
+  const currentFloor=50*level*(level-1),nextFloor=50*level*(level+1);
+  const titles=['Newcomer','Starter','Builder','Pathfinder','Maker','Strategist','Specialist','Architect','Vanguard','Atlas'];
+  res.json({totalXp,level,title:titles[level-1]||'Master Builder',currentFloor,nextFloor,progressPct:Math.max(0,Math.min(100,Math.round((totalXp-currentFloor)/(nextFloor-currentFloor)*100))),remaining:Math.max(0,nextFloor-totalXp),lastEvent:summary?.lastEvent||null});
+ }catch(error){console.error('Progress summary:',error.message);res.status(503).json({error:'Your progress summary is temporarily unavailable.'});}
+});
+app.get('/api/residence/briefing',async(req,res)=>{
+ try{
+  const today=dateKey(),startDate=addAtlasDays(today,-6),endDate=addAtlasDays(today,1);
+  const rows=await atlasRest(req,'progress_daily?select=local_date,module,metric,value&local_date=gte.'+startDate+'&local_date=lt.'+endDate+'&order=local_date.asc');
+  const metrics={},daily=new Map();
+  for(const row of rows||[]){
+   metrics[row.metric]=(metrics[row.metric]||0)+Number(row.value||0);
+   const day=daily.get(row.local_date)||{};
+   day[row.metric]=(day[row.metric]||0)+Number(row.value||0);
+   daily.set(row.local_date,day);
+  }
+  const totals={tasksCompleted:metrics.tasks_completed||0,focusMinutes:metrics.focus_minutes||0,focusSessions:metrics.focus_sessions||0,habitCheckins:metrics.habit_checkins||0,learningCompleted:metrics.learning_items_completed||0,studyMinutes:metrics.study_minutes||0,goalsCompleted:metrics.goals_completed||0};
+  const hasEvidence=Object.values(totals).some(value=>value>0);
+  const message=hasEvidence
+   ? 'Over the last seven days: '+totals.tasksCompleted+' tasks completed, '+totals.focusMinutes+' focused minutes and '+totals.habitCheckins+' habit check-ins. Progress is evidence, not pressure.'
+   : 'Your weekly briefing will take shape as new activity is recorded.';
+  res.json({startDate,endDate:addAtlasDays(today,0),metrics:totals,daily:[...daily.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([date,values])=>({date,...values})),message});
+ }catch(error){console.error('Residence briefing:',error.message);res.status(503).json({error:'Your Residence briefing is temporarily unavailable.'});}
 });
 app.get('/api/projects',(q,s)=>{const rows=all("SELECT p.*,g.title AS goal_title,(SELECT COUNT(*) FROM tasks t WHERE t.project_id=p.id AND t.done=0) AS open_tasks,(SELECT COUNT(*) FROM project_milestones m WHERE m.project_id=p.id) AS milestone_count,(SELECT COALESCE(SUM(ss.minutes),0) FROM sessions ss WHERE ss.project_id=p.id OR ss.task_id IN (SELECT t.id FROM tasks t WHERE t.project_id=p.id)) AS focus_minutes,(SELECT COUNT(*) FROM tasks t WHERE t.project_id=p.id) AS task_count,(SELECT COUNT(*) FROM tasks t WHERE t.project_id=p.id AND t.done=1) AS completed_tasks FROM projects p LEFT JOIN goals g ON g.id=p.goal_id WHERE p.status!='archived' ORDER BY p.status='completed',COALESCE(p.target_date,'9999-12-31'),p.id DESC");s.json(rows.map(p=>({...p,progress_pct:p.task_count?Math.round(p.completed_tasks/p.task_count*100):0,milestones:all('SELECT * FROM project_milestones WHERE project_id=? ORDER BY sort_order,id',p.id)})));});
 app.post('/api/projects',(q,s)=>{const title=String(q.body.title||'').trim();const goalId=q.body.goal_id?Number(q.body.goal_id):null;if(!title)return s.status(400).json({error:'A project needs a title.'});if(goalId&&!one('SELECT id FROM goals WHERE id=?',goalId))return s.status(400).json({error:'Choose an existing goal.'});const r=db.prepare('INSERT INTO projects(title,description,goal_id,target_date) VALUES(?,?,?,?)').run(title,String(q.body.description||''),goalId,q.body.target_date||null);s.status(201).json(one('SELECT * FROM projects WHERE id=?',r.lastInsertRowid));});
