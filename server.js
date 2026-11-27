@@ -1863,7 +1863,8 @@ app.patch('/api/calendar/events/:id',(q,s)=>{const e=one('SELECT * FROM calendar
 app.delete('/api/calendar/events/:id',(q,s)=>{db.prepare('DELETE FROM calendar_events WHERE id=?').run(q.params.id);s.json({ok:true});});
 app.get('/api/export',async(q,s)=>{
  try{
-  const activityRows=await atlasRest(q,'activity_events?select=event_key,type,module,entity_id,occurred_at,local_date,payload,source&order=id.asc&limit=5000');
+  const activityRows=await atlasRest(q,'activity_events?select=event_key,type,module,entity_id,occurred_at,local_date,payload,source&order=id.asc&limit=5001');
+  if((activityRows||[]).length>5000)return s.status(413).json({error:'The activity history exceeds the current 5,000-event export limit.'});
   const activityEvents=(activityRows||[]).map(row=>({
    key:row.event_key,type:row.type,module:row.module,
    ...(row.entity_id?{entityId:row.entity_id}:{}),
@@ -1884,7 +1885,7 @@ app.post('/api/import/preview',(q,s)=>{
   const summary=summarizeBackup(q.body,workspaceTables);
   previewDb=createWorkspaceDatabase(serializeWorkspaceDatabase(db));
   const imported=restoreBackup(previewDb,q.body,workspaceTables);
-  s.json({ok:true,dryRun:true,imported,summary,activityEvents:importedEvents.length,schemaVersion:4});
+  s.json({ok:true,dryRun:true,imported,summary,activityEvents:importedEvents.length,schemaVersion:Number.isInteger(q.body?.schemaVersion)?q.body.schemaVersion:1});
  } catch(error) {
   s.status(400).json({error:error.message||'The backup could not be validated.'});
  } finally {
