@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowLeft, ArrowRight, Compass, Globe2, Target } from 'lucide-react';
 import { api } from '../lib/api';
 
@@ -17,12 +17,30 @@ export function AtlasOnboarding({ onComplete }: Props) {
   const [habit, setHabit] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const dialogRef = useRef<HTMLElement>(null);
   const current = steps[step];
   const value = step === 0 ? timezone : step === 1 ? goal : habit;
   const setValue = step === 0 ? setTimezone : step === 1 ? setGoal : setHabit;
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const focusable = () => Array.from(dialog.querySelectorAll<HTMLElement>('input:not([disabled]), button:not([disabled])'));
+    focusable()[0]?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+      const items = focusable();
+      const first = items[0], last = items[items.length - 1];
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [step]);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (saving) return;
     setError('');
     if (!value.trim()) { setError('Add an answer to continue.'); return; }
     if (step === 0) {
@@ -46,7 +64,7 @@ export function AtlasOnboarding({ onComplete }: Props) {
   }
 
   return <div className="atlas-onboarding-backdrop" role="presentation">
-    <section className="atlas-onboarding" role="dialog" aria-modal="true" aria-labelledby="atlas-onboarding-title">
+    <section ref={dialogRef} className="atlas-onboarding" role="dialog" aria-modal="true" aria-labelledby="atlas-onboarding-title">
       <header className="atlas-onboarding__head">
         <span><Compass size={17}/> AMSTREEM ATLAS</span>
         <span>SETUP · {step + 1} / 3</span>
