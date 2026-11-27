@@ -51,6 +51,7 @@ No event is emitted from Qur’an reading, Tajweed, prayer, or faith-record rout
 
 - Keep the existing workspace snapshot format and all legacy SQLite tables in place.
 - Preserve existing `xp_events`, `achievement_unlocks`, and `weekly_challenges` snapshot records for export/restore compatibility.
+- The staging migration seeds date-stamped focus sessions, habit check-ins, study logs, completed non-faith personal practices and submitted reviews as `source: 'import'` events. Legacy achievement unlocks are carried forward. Completed tasks/goals without a reliable completion timestamp are not assigned fabricated dates.
 - Version 4 backups include the append-only activity event history. Imported events retain their keys, are marked `source: 'import'`, contribute to progress, and never award XP. The existing account's XP ledger is never overwritten by an import; legacy snapshot XP remains preserved in the backup for compatibility.
 - Backfill existing XP awards into the new XP ledger without changing their point totals; mark them as legacy awards.
 - New XP awards are written only to the canonical ledger. The old snapshot records are not silently rewritten or discarded.
