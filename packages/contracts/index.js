@@ -51,7 +51,7 @@ const AtlasEventTypeSchema = z.enum([
   'habit.checked', 'habit.unchecked',
   'learning.item_completed', 'learning.item_reopened', 'learning.study_logged',
   'review.submitted', 'review.reopened',
-  'practice.logged',
+  'practice.logged', 'practice.unlogged',
   'challenge.completed'
 ]);
 
@@ -71,6 +71,7 @@ const AtlasEventPayloadSchemas = Object.freeze({
   'review.submitted': z.object({ periodType: z.enum(['daily', 'weekly']), periodStart: DateOnlySchema }).strict(),
   'review.reopened': z.object({ periodType: z.enum(['daily', 'weekly']), periodStart: DateOnlySchema }).strict(),
   'practice.logged': z.object({ practiceType: z.enum(['daily_intention', 'wisdom_note', 'evening_reflection']) }).strict(),
+  'practice.unlogged': z.object({ practiceType: z.enum(['daily_intention', 'wisdom_note', 'evening_reflection']) }).strict(),
   'challenge.completed': z.object({
     challengeId: z.string().min(1).max(80),
     metric: z.string().min(1).max(64),
@@ -95,6 +96,7 @@ const EVENT_MODULES = Object.freeze({
   'review.submitted': 'growth',
   'review.reopened': 'growth',
   'practice.logged': 'values',
+  'practice.unlogged': 'values',
   'challenge.completed': 'growth'
 });
 
