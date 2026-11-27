@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { apiRequestContract } = require('../server/api-request-contract');
 
-function invoke({ path = '/api/tasks', body, query = {}, params = {} } = {}) {
+function invoke({ path = '/api/tasks', method = 'POST', body, query = {}, params = {} } = {}) {
   const req = {
     path,
     body,
@@ -31,13 +31,13 @@ test('strict request contracts reject undeclared JSON body fields', () => {
 });
 
 test('strict request contracts reject undeclared query parameters', () => {
-  const result = invoke({ path: '/api/calendar', query: { month: '2026-11', debug: 'true' } });
+  const result = invoke({ path: '/api/calendar', method: 'GET', query: { month: '2026-11', debug: 'true' } });
   assert.equal(result.status, 400);
   assert.equal(result.payload.errors[0].field, 'query.debug');
 });
 
 test('strict request contracts reject undeclared route parameters', () => {
-  const result = invoke({ path: '/api/tasks/:id', params: { id: '4', ownerId: 'x' } });
+  const result = invoke({ path: '/api/tasks/:id', method: 'PATCH', params: { id: '4', ownerId: 'x' } });
   assert.equal(result.status, 400);
   assert.equal(result.payload.errors[0].field, 'params.ownerId');
 });
@@ -53,7 +53,7 @@ test('known route request fields pass the strict allowlist', () => {
 });
 
 test('Qur’an API requests are excluded from Stage 2 request middleware', () => {
-  const result = invoke({ path: '/api/quran/page/1', body: { unexpected: true } });
+  const result = invoke({ path: '/api/quran/page/1', method: 'GET', body: { unexpected: true } });
   assert.equal(result.continued, true);
 });
 
