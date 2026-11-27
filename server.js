@@ -1277,7 +1277,7 @@ app.post('/api/history/snapshot', async (req, res) => {
   }
 });
 
-app.post('/api/history/:id/restore', validateRequest(require('zod').z.object({ id: positiveIdSchema }), 'params'), async (req, res) => {
+app.post('/api/history/:id/restore', (req, res, next) => { req.skipWorkspaceCommit = true; next(); }, validateRequest(require('zod').z.object({ id: positiveIdSchema }), 'params'), async (req, res) => {
   req.skipWorkspaceCommit = true;
   try {
     const historyId = req.validated.params.id;
