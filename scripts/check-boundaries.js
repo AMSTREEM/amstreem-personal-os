@@ -23,6 +23,7 @@ function moduleFor(file) {
 for (const file of walk(modulesRoot)) {
   const source = fs.readFileSync(file, 'utf8');
   const owner = moduleFor(file);
+  if (!owner) continue; // The registry and shared module types sit above module boundaries.
   const importPattern = /(?:from\s*|import\s*\()['"]([^'"]+)['"]/g;
   for (const match of source.matchAll(importPattern)) {
     const specifier = match[1];
