@@ -34,6 +34,7 @@ type CalendarSummary = { streaks: Record<string, { current: number; best: number
 type SelfControlSummary = { summary: { id: number; name: string; symbol: string; streak: number; longest_days: number; last_slip: string | null }[] };
 type StoredTimer = { remaining: number; deadline: number | null; taskId?: string; lessonId?: string; projectId?: string };
 type FocusSession = { session_date: string; minutes: number; focus: string };
+type ResidenceBriefing = { startDate: string; endDate: string; metrics: { tasksCompleted: number; focusMinutes: number; focusSessions: number; habitCheckins: number; learningCompleted: number; studyMinutes: number; goalsCompleted: number }; message: string };
 const TIMER_KEY = 'atlas-focus-timer-v1';
 const faithPractices = ['bible', 'prayer', 'reflection', 'worship', 'service'];
 const lifeAreaCards = [
@@ -126,17 +127,18 @@ export function TodayPage() {
   const calendarSummary = useQuery({ queryKey: ['calendar-summary', today.slice(0, 7)], queryFn: () => api<CalendarSummary>('/calendar?month=' + today.slice(0, 7)) });
   const selfControl = useQuery({ queryKey: ['self-control', today], queryFn: () => api<SelfControlSummary>('/self-control?date=' + today) });
   const announcements = useQuery({ queryKey: ['announcements'], queryFn: () => api<AnnouncementFeed>('/announcements') });
+  const residenceBriefing = useQuery({ queryKey: ['residence-briefing', today], queryFn: () => api<ResidenceBriefing>('/residence/briefing') });
 
   const saveDaily = useMutation({
     mutationFn: (payload: Partial<DailyReview>) => api<DailyReview>('/reviews', json('POST', {
       period_type: 'daily', period_start: today, period_end: today, ...payload
     })),
-    onSuccess: (_data, variables) => { void client.invalidateQueries({ queryKey: ['reviews', 'daily'] }); if (variables.alignment_complete === 1) setEditingAlignment(false); }
+    onSuccess: (_data, variables) => { void client.invalidateQueries({ queryKey: ['reviews', 'daily'] }); void client.invalidateQueries({ queryKey: ['residence-briefing', today] }); if (variables.alignment_complete === 1) setEditingAlignment(false); }
   });
 
   const addTask = useMutation({
     mutationFn: () => api<Task>('/tasks', json('POST', { title: quickTask.trim(), category: 'Personal', due_date: today })),
-    onSuccess: () => { setQuickTask(''); void client.invalidateQueries({ queryKey: ['tasks'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
+    onSuccess: () => { setQuickTask(''); void client.invalidateQueries({ queryKey: ['tasks'] }); void client.invalidateQueries({ queryKey: ['overview'] }); void client.invalidateQueries({ queryKey: ['residence-briefing', today] }); }
   });
   const toggleTask = useMutation({
     mutationFn: (task: Task) => api<Task>('/tasks/' + task.id, json('PATCH', { done: !task.done })),
@@ -148,12 +150,12 @@ export function TodayPage() {
       return { previous };
     },
     onError: (_error, _task, context) => { if (context?.previous) client.setQueryData(['tasks'], context.previous); },
-    onSettled: () => { void client.invalidateQueries({ queryKey: ['tasks'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
+    onSettled: () => { void client.invalidateQueries({ queryKey: ['tasks'] }); void client.invalidateQueries({ queryKey: ['overview'] }); void client.invalidateQueries({ queryKey: ['residence-briefing', today] }); }
   });
   const toggleHabit = useMutation({
     onMutate: habit => { if (!habit.done) { playAtlasFeedback('tick'); triggerSparkBurst(window.innerWidth/2, window.innerHeight*.44); } },
     mutationFn: (habit: Habit) => api('/habits/' + habit.id + '/toggle', json('POST', { date: today })),
-    onSuccess: () => { void client.invalidateQueries({ queryKey: ['habits', today] }); void client.invalidateQueries({ queryKey: ['self-control'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
+    onSuccess: () => { void client.invalidateQueries({ queryKey: ['habits', today] }); void client.invalidateQueries({ queryKey: ['self-control'] }); void client.invalidateQueries({ queryKey: ['overview'] }); void client.invalidateQueries({ queryKey: ['residence-briefing', today] }); }
   });
   const togglePrayer = useMutation({
     onMutate: item => { if (!item.completed) { playAtlasFeedback('tick'); triggerSparkBurst(window.innerWidth/2, window.innerHeight*.44); } },
@@ -350,6 +352,28 @@ export function TodayPage() {
       </section>
     </Card>
 
+    {residenceBriefing.data && <Card className="residence-pulse-card">
+      <section className="residence-pulse" aria-label="Seven-day shared progress briefing">
+        <div className="residence-pulse__top">
+          <div className="residence-pulse__main">
+            <div className="residence-pulse__heading"><span className="eyebrow">SHARED ACTIVITY / LAST SEVEN DAYS</span><span className="residence-pulse__date">{residenceBriefing.data.startDate} — {residenceBriefing.data.endDate}</span></div>
+            <div className="residence-pulse__score"><span>Progress is evidence, not pressure.</span></div>
+            <p>{residenceBriefing.data.message}</p>
+          </div>
+        </div>
+        <div className="residence-pulse__dimensions">
+          {[
+            { label: 'Tasks completed', value: residenceBriefing.data.metrics.tasksCompleted },
+            { label: 'Focused minutes', value: residenceBriefing.data.metrics.focusMinutes },
+            { label: 'Habit check-ins', value: residenceBriefing.data.metrics.habitCheckins },
+            { label: 'Lessons completed', value: residenceBriefing.data.metrics.learningCompleted }
+          ].map(item => <div className="residence-dimension" key={item.label}>
+            <div className="residence-dimension__heading"><span>{item.label}</span><b>{item.value}</b></div>
+            <small>Recorded in your shared activity ledger</small>
+          </div>)}
+        </div>
+      </section>
+    </Card>}
     <div className="residence-stat-grid">
       <Card className="residence-stat atlas-spotlight"><span className="eyebrow">FOCUS TODAY</span><strong><AnimatedMetric value={overview.data?.todayMin ?? 0} format="minutes" /></strong><small>{focusPercent}% of your {target}m intention</small></Card>
       <Card className="residence-stat"><span className="eyebrow">OPEN PRIORITIES</span><strong>{openTasks.length}</strong><small>{todayTasks.filter(task => !task.done).length} due today</small></Card>

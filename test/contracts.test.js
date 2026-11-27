@@ -43,7 +43,7 @@ test('event envelope rejects unknown fields and invalid module ids', () => {
     module: 'actions',
     occurredAt: '2026-11-27T11:00:00Z',
     localDate: '2026-11-27',
-    payload: { taskId: 42 },
+    payload: { goalLinked: false },
     source: 'user'
   };
   assert.equal(AtlasEventSchema.safeParse(event).success, true);

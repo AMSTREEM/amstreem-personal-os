@@ -6,6 +6,7 @@ const routeRequestFields = Object.freeze({
   "POST /api/auth/username-login": {"body":["password","username"],"query":[],"params":[]},
   "GET /api/session": {"body":[],"query":[],"params":[]},
   "GET /api/bootstrap": {"body":[],"query":[],"params":[]},
+  "GET /api/residence/briefing": {"body":[],"query":[],"params":[]},
   "GET /api/feedback": {"body":[],"query":[],"params":[]},
   "POST /api/feedback": {"body":["message","type"],"query":[],"params":[]},
   "GET /api/admin/feedback": {"body":[],"query":[],"params":[]},

@@ -2,7 +2,7 @@ name: Personal OS checks
 
 on:
   push:
-    branches: [main, audit-and-hardening, atlas-next, atlas-v2-implementation]
+    branches: [main, audit-and-hardening, atlas-next, atlas-v2-implementation, atlas-stage4-events]
   pull_request:
     branches: [main, audit-and-hardening, atlas-next]
 
@@ -25,7 +25,7 @@ jobs:
       - run: npm run build --ignore-scripts
       - run: npm test
       - name: Protect Qur’an reader and Tajweed assets during staged implementation
-        if: github.event_name == 'pull_request' && (github.head_ref == 'atlas-v2-implementation' || github.head_ref == 'atlas-stage2-contracts' || github.head_ref == 'atlas-stage3-design-system')
+        if: github.event_name == 'pull_request' && (github.head_ref == 'atlas-v2-implementation' || github.head_ref == 'atlas-stage2-contracts' || github.head_ref == 'atlas-stage3-design-system' || github.head_ref == 'atlas-stage4-events')
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
