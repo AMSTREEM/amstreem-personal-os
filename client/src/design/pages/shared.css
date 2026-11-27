@@ -1,6 +1,6 @@
 /* Shared v2 primitives. Applied only to non-Qur'an workspace routes. */
 .atlas-v2 .page-header { margin-bottom: 30px; }
-.atlas-v2 .page-header h1 { color: var(--a-text); font: 650 clamp(32px, 4vw, 48px)/1.08 'DM Sans', sans-serif; letter-spacing: -.055em; }
+.atlas-v2 .page-header h1 { color: var(--a-text); font: 650 clamp(32px, 4vw, 48px)/1.08 'Geist', sans-serif; letter-spacing: -.055em; }
 .atlas-v2 .page-header p { max-width: 680px; color: var(--a-text-muted); font-size: 12px; line-height: 1.8; }
 .atlas-v2 .eyebrow { color: var(--a-room); font-size: 8px; letter-spacing: .18em; }
 .atlas-v2 .surface-card,
