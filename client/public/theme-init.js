@@ -1,10 +1,10 @@
 (function () {
   try {
-    var preference = localStorage.getItem('atlas_theme');
+    var preference = localStorage.getItem('atlas_theme') || 'shadowed-alchemist';
     var theme = preference === 'system' ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light-porcelain' : 'shadowed-alchemist') : preference;
     var dark = ['shadowed-alchemist', 'nocturnal-amethyst', 'abyssal-trench', 'whispering-woods', 'crimson-velvet'];
     var backgrounds = {
-      'shadowed-alchemist': '#07080A',
+      'shadowed-alchemist': '#0A0E13',
       'nocturnal-amethyst': '#050408',
       'abyssal-trench': '#03060C',
       'whispering-woods': '#030806',
@@ -20,6 +20,8 @@
       root.setAttribute('data-theme', theme);
       root.setAttribute('data-theme-preference', preference || theme);
       root.setAttribute('data-contrast', localStorage.getItem('atlas-high-contrast') === 'on' ? 'high' : 'normal');
+      var motion = localStorage.getItem('atlas-motion-preference');
+      root.setAttribute('data-motion', motion === 'reduced' || motion === 'full' ? motion : 'system');
       root.style.colorScheme = dark.indexOf(theme) >= 0 ? 'dark' : 'light';
       document.querySelectorAll('meta[name="theme-color"]').forEach(function (meta) { meta.setAttribute('content', backgrounds[theme]); });
       root.style.backgroundColor = backgrounds[theme];
