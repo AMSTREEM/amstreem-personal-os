@@ -435,7 +435,7 @@ test('Residence is a direction-led Home, Life Blueprint is data-backed, and the 
   assert.match(blueprint, /completed_tasks/);
   assert.match(blueprint, /Ready for its first connected action/);
   assert.match(navigation, /label: 'Life Blueprint'/);
-  assert.match(shell, /label: 'Daily Check-in'/);
+  assert.match(navigation, /label: 'Daily Check-in'/);
 });
 
 
@@ -515,8 +515,9 @@ test('Vite keeps heavyweight vendor libraries in stable cacheable chunks', () =>
 
 test('Qur’an remains a one-tap independent mobile destination outside the four room hierarchy', () => {
   const shell = read('client/src/components/AppShell.tsx');
+  const navigation = read('client/src/shell/navigation.ts');
   const css = read('client/src/styles/atlas-rooms.css');
-  assert.ok(shell.includes("paths: ['/daily-rhythm', '/values', '/habits']"));
+  assert.ok(navigation.includes("paths: ['/daily-rhythm', '/values', '/habits']"));
   assert.ok(shell.includes('to="/quran"'));
   assert.ok(shell.includes('atlas-mobile-dock__quran'));
   assert.ok(shell.includes("location.pathname === '/quran' ? 'is-active' : ''"));
