@@ -268,14 +268,17 @@ begin
 
   if v_metric is not null then
     v_delta := case
-      when new.type in ('task.reopened','goal.reopened','goal.milestone_unreached','habit.unchecked','learning.item_reopened','review.reopened') then -1
+      when new.type in ('task.reopened','goal.reopened','goal.milestone_unreached','habit.unchecked','learning.item_reopened','review.reopened')
+        then case when v_reverses_key is null then 0 else -1 end
       else 1
     end;
-    insert into public.progress_daily(user_id,local_date,module,metric,value)
-    values (new.user_id,v_projection_date,new.module,v_metric,greatest(0,v_delta))
-    on conflict (user_id,local_date,module,metric) do update
-      set value = greatest(0, public.progress_daily.value + v_delta),
-          updated_at = now();
+    if v_delta <> 0 then
+      insert into public.progress_daily(user_id,local_date,module,metric,value)
+      values (new.user_id,v_projection_date,new.module,v_metric,greatest(0,v_delta))
+      on conflict (user_id,local_date,module,metric) do update
+        set value = greatest(0, public.progress_daily.value + v_delta),
+            updated_at = now();
+    end if;
   end if;
 
   if new.type = 'focus.ended' then
@@ -370,6 +373,27 @@ begin
   return new;
 end;
 $$;
+
+create or replace function atlas_private.reject_activity_event_mutation()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $
+begin
+  raise exception 'activity_events_is_append_only' using errcode = '55000';
+end;
+$;
+
+create trigger activity_events_append_only
+before update or delete on public.activity_events
+for each row execute function atlas_private.reject_activity_event_mutation();
+
+revoke all on function atlas_private.prepare_activity_event_reversal() from public, anon, authenticated;
+revoke all on function atlas_private.apply_activity_event_projection() from public, anon, authenticated;
+revoke all on function atlas_private.evaluate_achievements(uuid) from public, anon, authenticated;
+revoke all on function atlas_private.rebuild_progress_daily(uuid) from public, anon, authenticated;
+revoke all on function atlas_private.reject_activity_event_mutation() from public, anon, authenticated;
 
 create trigger activity_events_prepare_reversal
 before insert on public.activity_events
