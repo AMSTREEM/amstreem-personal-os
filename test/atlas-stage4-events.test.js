@@ -7,7 +7,10 @@ const path = require('node:path');
 const { AtlasEventSchema } = require('../packages/contracts');
 const { appendAtlasEvent, appendImportedAtlasEvents, createAtlasEvent, validateImportedAtlasEvents, validateAtlasEventBatch, MAX_EVENTS_PER_REQUEST } = require('../server/atlas-events');
 
-const migration = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations', '20261127124100_atlas_stage4_event_ledger.sql'), 'utf8');
+const migration = [
+  '20261127132000_atlas_stage4_event_ledger.sql',
+  '20261127132100_atlas_stage4_commit_and_progress.sql'
+].map(file => fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations', file), 'utf8')).join('\n');
 const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
 
 function event(overrides = {}) {
