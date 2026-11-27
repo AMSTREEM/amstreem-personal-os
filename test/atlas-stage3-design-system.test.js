@@ -53,7 +53,7 @@ test('unified shell exposes keyboard skip navigation and named landmarks without
   assert.match(shell, /aria-label="Atlas workspace navigation"/);
   assert.match(shell, /data-atlas-shell=/);
   assert.match(app, /path="\/quran" element=\{<QuranPage \/>\}/);
-  assert.match(shell, /location\.pathname === '\/quran' \? "atlas-quran-mode" : "atlas-renaissance"/);
+  assert.match(shell, /location\.pathname === "\/quran" \? "atlas-quran-mode" : "atlas-renaissance"/);
   assert.match(tokens, /\.app-frame\.atlas-renaissance/);
   assert.doesNotMatch(tokens, /quran|tajweed/i);
   assert.match(styles, /\.atlas-skip-link:focus/);
