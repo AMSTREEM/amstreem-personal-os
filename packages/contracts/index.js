@@ -72,6 +72,11 @@ const CursorPageQuerySchema = z.object({
   cursor: z.string().max(512).optional()
 }).strict();
 
+const ApiJsonResponseSchema = z.union([
+  z.array(z.unknown()),
+  z.record(z.string(), z.unknown())
+]);
+
 const BootstrapResponseSchema = z.object({
   user: z.object({
     id: z.string().min(1),
@@ -114,6 +119,7 @@ module.exports = {
   AtlasEventSchema,
   ModuleManifestSchema,
   BootstrapResponseSchema,
+  ApiJsonResponseSchema,
   CursorPageQuerySchema,
   problemDetails,
   validate
