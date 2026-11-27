@@ -5,56 +5,49 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 type Props = { onClose: () => void; onOpenCommand?: () => void };
 
-const stepRoutes = ['/residence', '/actions', '/goals', '/focus', '/growth', '/calendar'];
+const stepRoutes = ['/residence', '/actions', '/habits', '/growth', '/quran'];
 
 const steps = [
   {
-    eyebrow: '01 · YOUR PERSONAL COMMAND CENTRE',
-    title: 'Start with Home.',
-    description: 'See what matters today: priorities, upcoming commitments, progress across your chosen life areas, and useful next actions.',
-    rows: ['⌘ 1 · Home', 'Today’s priorities · Upcoming commitments', 'Life-area context · Suggested next actions'],
-    label: 'UNDERSTAND WHERE YOU ARE'
+    eyebrow: '01 · HOME',
+    title: 'Start with Residence.',
+    description: 'See the day in front of you: priorities, time-sensitive commitments, habits due and the next useful action.',
+    rows: ['g 1 · Residence', 'Today’s briefing · Upcoming commitments', 'Progress across your chosen areas'],
+    label: 'ORIENT YOUR DAY'
   },
   {
-    eyebrow: '02 · TURN INTENTION INTO ACTION',
-    title: 'Make meaningful progress.',
-    description: 'Bring tasks, projects, habits, routines and personal commitments into one execution space. Spend less time administering your life and more time living it.',
-    rows: ['⌘ 2 · Actions', 'Tasks · Projects · Milestones', 'Habits · Routines · Commitments'],
-    label: 'BUILD THE SYSTEM'
+    eyebrow: '02 · PLAN',
+    title: 'Turn direction into action.',
+    description: 'Actions, Goals and Calendar work together: capture the work, connect it to outcomes, and make time for it.',
+    rows: ['g 2 · Actions · Tasks and focus', 'g 3 · Goals · Outcomes and milestones', 'g 4 · Calendar · Time and commitments'],
+    label: 'MAKE A PLAN YOU CAN ACT ON'
   },
   {
-    eyebrow: '03 · CHOOSE YOUR DIRECTION',
-    title: 'Work towards outcomes that matter.',
-    description: 'Define long-term goals, break them into milestones, and connect the work that moves each outcome forward.',
-    rows: ['⌘ 3 · Goals', 'Life goals · Measurable outcomes', 'Milestones · Long-term plans'],
-    label: 'KNOW WHERE YOU ARE GOING'
+    eyebrow: '03 · PRACTICE',
+    title: 'Build the routines that carry you.',
+    description: 'Habits and Learning Library keep your daily practice and long-term learning in one place.',
+    rows: ['g 5 · Habits · Routines and check-ins', 'g 6 · Learning Library · Lessons and notes', 'Quick capture · Save an idea in seconds'],
+    label: 'MAKE CONSISTENCY EASIER'
   },
   {
-    eyebrow: '04 · PROTECT YOUR ATTENTION',
-    title: 'Give important work your focus.',
-    description: 'Run deep-work and study sessions, link them to the work they support, and keep a reliable history of your effort.',
-    rows: ['⌘ 4 · Focus', 'Focus timer · Study sessions', 'Session history · Task-linked work'],
-    label: 'TURN PLANS INTO ACTION'
-  },
-  {
-    eyebrow: '05 · SEE WHAT IS CHANGING',
+    eyebrow: '04 · REFLECT',
     title: 'Measure growth, not busyness.',
-    description: 'Review real evidence against your starting point. Notice what improved, what did not, and what you may want to adjust next.',
-    rows: ['⌘ 5 · Growth', 'Reviews · Progress evidence', 'Patterns · Useful next steps'],
-    label: 'UNDERSTAND YOUR PROGRESS'
+    description: 'Growth and Values help you review evidence, understand patterns and keep your decisions aligned with what matters.',
+    rows: ['g 7 · Growth · Reviews and progress', 'g 8 · Values · Principles and reflection', 'Private by design · Your workspace stays yours'],
+    label: 'LEARN FROM WHAT HAPPENED'
   },
   {
-    eyebrow: '06 · MAKE TIME VISIBLE',
-    title: 'Organise your commitments.',
-    description: 'Bring events, routines, deadlines and planned focus blocks into one view so your time reflects your priorities.',
-    rows: ['⌘ 6 · Calendar', 'Daily and weekly schedules', 'Events · Deadlines · Planned focus'],
-    label: 'MAKE ROOM FOR WHAT MATTERS'
+    eyebrow: '05 · SPECIALIST READER',
+    title: 'The Qur’an has its own space.',
+    description: 'The reader keeps its specialised Mushaf layout, Tajweed colours, fonts, bookmarks and reading controls. Atlas navigation stays outside its reading surface.',
+    rows: ['g 9 · Qur’an · Standalone destination', 'Reader controls remain under your control', 'No automatic snapping or shell motion inside'],
+    label: 'A PROTECTED READING EXPERIENCE'
   },
   {
-    eyebrow: 'PERSONAL BY DESIGN',
+    eyebrow: 'YOUR WORKSPACE',
     title: 'Make Atlas yours.',
-    description: 'Choose the life areas you want to work on. Keep specialist tools such as Qur’an, Learning Library and faith practices available when they matter to you. Change your priorities whenever life changes.',
-    rows: ['Your life areas · Your priorities', 'Qur’an · Learning · Personal tools', 'Settings · Private by design'],
+    description: 'Change themes, choose your life areas, capture tasks, notes or habits, and adjust your workspace as your priorities evolve.',
+    rows: ['Ctrl/⌘ + K · Command palette', 'c · Quick capture · ? · Shortcuts', 'Settings · Appearance · Accessibility'],
     label: 'YOUR LIFE. YOUR DIRECTION. YOUR GROWTH'
   }
 ];
