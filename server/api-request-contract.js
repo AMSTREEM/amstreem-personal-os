@@ -49,7 +49,7 @@ for (const key of strings) bodyShape[key] = z.union([z.string().max(10000), z.nu
 const ids = ['goal_id','project_id','task_id','lesson_id','parent_task_id'];
 for (const key of ids) bodyShape[key] = z.union([z.string(), z.number().int(), z.null()]).optional();
 const numbers = ['minutes','priority','pages','juz','ayah_start','ayah_end','urge_level','daily_target','hifz_page','murajaah_page'];
-for (const key of numbers) bodyShape[key] = z.union([z.number().finite(), z.string().regex(/^\\d+(?:\\.\\d+)?$/)]).optional();
+for (const key of numbers) bodyShape[key] = z.union([z.number().finite(), z.string().regex(/^\d+(?:\.\d+)?$/)]).optional();
 const booleans = ['completed','done','all_day','on_time','woke_up','prayed','alignment_complete','shutdown_complete','leaderboard_public','sidebar_collapsed'];
 for (const key of booleans) bodyShape[key] = z.union([z.boolean(), z.number().int().min(0).max(1), z.enum(['0','1','true','false'])]).optional();
 bodyShape.distractions = z.array(z.unknown()).optional();
@@ -63,14 +63,14 @@ const BodySchema = z.object(bodyShape).strict();
 const QuerySchema = z.object({
   date: z.string().max(40).optional(),
   end: z.string().max(40).optional(),
-  month: z.string().regex(/^\\d{4}-\\d{2}$/).optional(),
+  month: z.string().regex(/^\d{4}-\d{2}$/).optional(),
   period: z.enum(['daily', 'weekly']).optional(),
   start: z.string().max(40).optional()
 }).strict();
 const ParamsSchema = z.object({
   id: z.string().min(1).max(128).optional(),
-  page: z.string().regex(/^\\d+$/).optional(),
-  surah: z.string().regex(/^\\d+$/).optional()
+  page: z.string().regex(/^\d+$/).optional(),
+  surah: z.string().regex(/^\d+$/).optional()
 }).strict();
 const IdempotencyKeySchema = z.string().trim().min(8).max(200);
 
