@@ -273,3 +273,27 @@ test('API errors are normalised to problem details without removing legacy error
   apiProblemResponses()({ path: '/quran/page/1' }, quranRes, () => { quranNext = true; });
   assert.equal(quranNext, true);
 });
+
+
+test('module manifests assign every API route once and enforce the protected Qur’an boundary', () => {
+  const { modules, sharedModules, routeOwner } = require('../server/module-manifests');
+  const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
+  const ids = modules.map(module => module.id);
+  assert.equal(new Set(ids).size, ids.length);
+  for (const module of modules) {
+    for (const dependency of module.dependsOn) {
+      assert.ok(ids.includes(dependency) || sharedModules.includes(dependency), `Unknown dependency ${dependency} in ${module.id}`);
+    }
+    for (const file of module.files) {
+      assert.ok(fs.existsSync(path.join(__dirname, '..', file)), `Missing manifest file ${file}`);
+    }
+  }
+  const routePattern = /app\.(?:get|post|put|patch|delete)\(\s*['"]([^'"]*\/api[^'"]*)['"]/g;
+  const paths = [...server.matchAll(routePattern)].map(match => match[1]);
+  assert.ok(paths.length > 20);
+  for (const route of paths) assert.ok(routeOwner(route), `Unowned or multiply-owned API route: ${route}`);
+  const quran = modules.find(module => module.id === 'quran');
+  assert.equal(quran.protected, true);
+  assert.equal(quran.versioning, 'legacy-only');
+  assert.deepEqual(quran.dependsOn, []);
+});
