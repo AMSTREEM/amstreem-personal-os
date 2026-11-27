@@ -410,6 +410,10 @@ test('PWA updates wait for user approval, never auto-reload, and exclude APIs an
   const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
   const prompt = fs.readFileSync(path.join(__dirname, '..', 'client/src/components/PwaUpdatePrompt.tsx'), 'utf8');
   const main = fs.readFileSync(path.join(__dirname, '..', 'client/src/main.tsx'), 'utf8');
+  const staticWorker = fs.readFileSync(path.join(__dirname, '..', 'public/service-worker.js'), 'utf8');
+  const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'public/manifest.webmanifest'), 'utf8'));
+  const html = fs.readFileSync(path.join(__dirname, '..', 'client/index.html'), 'utf8');
+  const vm = require('node:vm');
   const start = server.indexOf("// Versioned PWA worker:");
   const end = server.indexOf("app.use(express.static(frontendDist", start);
   const worker = server.slice(start, end);
@@ -424,6 +428,15 @@ test('PWA updates wait for user approval, never auto-reload, and exclude APIs an
   assert.match(prompt, /Apply next launch/);
   assert.match(prompt, /ATLAS_ACTIVATE_UPDATE/);
   assert.match(main, /PwaUpdatePrompt/);
+  const templateStart = worker.indexOf('.send(`') + 7;
+  const templateEnd = worker.indexOf('`);', templateStart);
+  const workerSource = worker.slice(templateStart, templateEnd).replace('${buildRevision}', 'test-build');
+  assert.doesNotThrow(() => new vm.Script(workerSource));
+  assert.doesNotThrow(() => new vm.Script(staticWorker));
+  assert.ok(manifest.icons.some(icon => icon.sizes === '192x192'));
+  assert.ok(manifest.icons.some(icon => icon.sizes === '512x512' && icon.purpose === 'maskable'));
+  assert.match(html, /theme-color[^>]+prefers-color-scheme: dark/);
+  assert.match(html, /theme-color[^>]+prefers-color-scheme: light/);
 });
 
 test('Atlas system theme and high-contrast preferences are applied before and after first paint', () => {
