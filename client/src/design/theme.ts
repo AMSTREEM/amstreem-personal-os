@@ -37,3 +37,10 @@ export function watchAtlasSystemTheme(themeId: string) {
   media.addEventListener?.('change', update);
   return () => media.removeEventListener?.('change', update);
 }
+
+
+export function applyAtlasContrast(enabled: boolean) {
+  const root = document.documentElement;
+  root.setAttribute('data-contrast', enabled ? 'high' : 'normal');
+  try { localStorage.setItem('atlas-high-contrast', enabled ? 'on' : 'off'); } catch {}
+}
