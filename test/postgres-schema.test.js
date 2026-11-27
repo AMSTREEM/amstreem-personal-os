@@ -349,3 +349,36 @@ test('module file imports obey declared inter-module dependencies', () => {
     }
   }
 });
+
+
+test('Atlas semantic design tokens preserve named themes and stay outside Qur’an reader styling', () => {
+  const tokens = fs.readFileSync(path.join(__dirname, '..', 'client/src/design/tokens.css'), 'utf8');
+  const main = fs.readFileSync(path.join(__dirname, '..', 'client/src/main.tsx'), 'utf8');
+  const reader = fs.readFileSync(path.join(__dirname, '..', 'client/src/components/QuranMushafReader.tsx'), 'utf8');
+  assert.match(main, /design\/tokens\.css/);
+  for (const token of ['--atlas-bg', '--atlas-surface-1', '--atlas-text-1', '--atlas-brand', '--atlas-module-residence', '--atlas-module-quran', '--atlas-duration-slow']) {
+    assert.ok(tokens.includes(token), `Missing design token ${token}`);
+  }
+  for (const theme of ['shadowed-alchemist', 'nocturnal-amethyst', 'abyssal-trench', 'whispering-woods', 'crimson-velvet', 'light-porcelain', 'light-sandstone', 'light-sage', 'light-lavender', 'light-sky']) {
+    assert.ok(fs.readFileSync(path.join(__dirname, '..', 'client/src/styles.css'), 'utf8').includes(theme), `Existing theme ${theme} must remain supported`);
+  }
+  assert.doesNotMatch(tokens, /\.quran-|\.mushaf|\.tj-/i);
+  assert.doesNotMatch(tokens, /UthmanicHafs|Tajweed|font-family\s*:/i);
+  assert.ok(reader.includes('UthmanicHafs'));
+  assert.ok(reader.includes('TAJWEED_CLASSES'));
+});
+
+test('Atlas module accent colours meet WCAG AA text contrast in dark and light contexts', () => {
+  const ratio = (foreground, background) => {
+    const luminance = hex => {
+      const channels = hex.match(/[a-f0-9]{2}/gi).map(value => parseInt(value, 16) / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+      return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+    };
+    const a = luminance(foreground), b = luminance(background);
+    return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+  };
+  const dark = ['#22D3EE','#FB923C','#A78BFA','#60A5FA','#A3E635','#E879F9','#FB7185','#FACC15','#34D399'];
+  const light = ['#0E7490','#C2410C','#6D28D9','#1D4ED8','#3F6212','#A21CAF','#BE123C','#854D0E','#047857'];
+  for (const colour of dark) assert.ok(ratio(colour, '#0A0E13') >= 4.5, `Dark accent ${colour} fails WCAG AA`);
+  for (const colour of light) assert.ok(ratio(colour, '#F6F4EF') >= 4.5, `Light accent ${colour} fails WCAG AA`);
+});
