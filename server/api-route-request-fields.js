@@ -88,7 +88,7 @@ const routeRequestFields = Object.freeze({
   "GET /api/reviews": {"body":[],"query":["period"],"params":[]},
   "POST /api/reviews": {"body":["alignment_complete","challenges","intention","lessons","next_focus","period_end","period_start","period_type","priority_task_ids","shutdown_complete","wins"],"query":[],"params":[]},
   "GET /api/settings": {"body":[],"query":[],"params":[]},
-  "PATCH /api/settings": {"body":["daily_target","display_name","faith_tradition","features","hifz_bookmark","hifz_page","leaderboard_name","leaderboard_public","life_areas","murajaah_bookmark","murajaah_page","north_star","religion","sidebar_collapsed","slice","theme","username","widgets"],"query":[],"params":[]},
+  "PATCH /api/settings": {"body":["daily_target","display_name","faith_tradition","features","hifz_bookmark","hifz_page","leaderboard_name","leaderboard_public","life_areas","murajaah_bookmark","murajaah_page","north_star","religion","sidebar_collapsed","theme","username","widgets"],"query":[],"params":[]},
   "GET /api/faith": {"body":[],"query":["date"],"params":[]},
   "PATCH /api/faith": {"body":["activity","completed","date"],"query":[],"params":[]},
   "GET /api/rhythm/records": {"body":[],"query":["date"],"params":[]},
