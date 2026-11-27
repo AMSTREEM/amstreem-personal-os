@@ -156,3 +156,24 @@ test('new achievement and weekly challenge records survive backup restore, while
   assert.equal(db.prepare('SELECT title FROM weekly_challenges').get().title, 'Focus week');
   db.close();
 });
+
+
+test('workspace history is private, visible in Atlas, and restores with a pre-restore checkpoint', () => {
+  assert.match(server, /app\.get\('\/api\/history'/);
+  assert.match(server, /app\.post\('\/api\/history\/snapshot'/);
+  assert.match(server, /app\.post\('\/api\/history\/:id\/restore'/);
+  assert.match(server, /personal_os_workspace_history\?select=id,version,schema_version,reason,created_at/);
+  assert.match(server, /historyReason: 'pre_restore'/);
+  assert.match(server, /historyReason: 'manual'/);
+  assert.match(server, /req\.skipWorkspaceCommit/);
+  assert.match(server, /workspace history owner read/i);
+  const historyPage = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'HistoryPage.tsx'), 'utf8');
+  const app = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'App.tsx'), 'utf8');
+  const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
+  assert.match(historyPage, /Create snapshot/);
+  assert.match(historyPage, /Restore/);
+  assert.match(historyPage, /window\.confirm/);
+  assert.match(historyPage, /workspace-history/);
+  assert.match(app, /path="\/history"/);
+  assert.match(shell, /Workspace history/);
+});
