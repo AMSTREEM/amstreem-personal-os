@@ -10,6 +10,11 @@ const communicationStyleSchema = z.enum(['adaptive', 'jarvis', 'companion', 'adv
 const communicationSettingsSchema = z.object({
   communication_style: communicationStyleSchema
 }).strict();
+const onboardingSchema = z.object({
+  timezone: z.string().trim().min(1).max(100),
+  goal_title: z.string().trim().min(1).max(120),
+  habit_title: z.string().trim().min(1).max(100)
+}).strict();
 
 function validationProblem(error) {
   return {
@@ -86,6 +91,7 @@ module.exports = {
   paginationQuerySchema,
   communicationStyleSchema,
   communicationSettingsSchema,
+  onboardingSchema,
   validateRequest,
   validateApiEnvelope,
   requestObjectSchema,
