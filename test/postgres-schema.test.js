@@ -326,3 +326,26 @@ test('universal API envelope validation covers every API route and excludes the 
   const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
   assert.ok(server.indexOf('app.use(validateApiEnvelope())') < server.indexOf("app.use('/api', async (req, res, next) =>"));
 });
+
+
+test('module file imports obey declared inter-module dependencies', () => {
+  const { modules } = require('../server/module-manifests');
+  const root = path.join(__dirname, '..');
+  const owners = new Map();
+  for (const module of modules) for (const file of module.files) owners.set(path.resolve(root, file), module.id);
+  for (const module of modules) {
+    for (const file of module.files) {
+      const absolute = path.resolve(root, file);
+      const source = fs.readFileSync(absolute, 'utf8');
+      const imports = [...source.matchAll(/(?:from\s*|require\()\s*['"]([^'"]+)['"]/g)].map(match => match[1]);
+      for (const specifier of imports.filter(value => value.startsWith('.'))) {
+        const base = path.resolve(path.dirname(absolute), specifier);
+        const candidates = [base, ...['.ts', '.tsx', '.js', '.jsx'].map(extension => base + extension), path.join(base, 'index.ts'), path.join(base, 'index.tsx')];
+        const target = candidates.find(candidate => owners.has(candidate));
+        if (!target) continue;
+        const owner = owners.get(target);
+        if (owner !== module.id) assert.ok(module.dependsOn.includes(owner), `${module.id} imports ${owner} without declaring the dependency (${file} -> ${specifier})`);
+      }
+    }
+  }
+});
