@@ -24,3 +24,9 @@
   background: radial-gradient(60% 40% at 80% -10%, color-mix(in oklch, var(--a-room) 10%, transparent), transparent 70%);
 }
 html[data-a-theme='ivory'] .atlas-v2 .a-atmosphere, html[data-a-theme='sahara'] .atlas-v2 .a-atmosphere { opacity: .06; }
+
+/* Legacy reset is strictly limited to routes explicitly marked v2.
+   The frozen reader and every un-migrated route remain outside this boundary. */
+.atlas-v2 .a-route-v2 :where(button, input, select, textarea, a, h1, h2, h3, h4, h5, h6, p, ul, ol, table, label, fieldset, dialog) {
+  all: revert-layer;
+}
