@@ -1863,7 +1863,7 @@ app.patch('/api/calendar/events/:id',(q,s)=>{const e=one('SELECT * FROM calendar
 app.delete('/api/calendar/events/:id',(q,s)=>{db.prepare('DELETE FROM calendar_events WHERE id=?').run(q.params.id);s.json({ok:true});});
 app.get('/api/export',async(q,s)=>{
  try{
-  const activityRows=await atlasRest(q,'activity_events?select=event_key,type,module,entity_id,occurred_at,local_date,payload,source&order=id.asc&limit=5001');
+  const activityRows=await atlasRest(q,'activity_events?select=id,event_key,type,module,entity_id,occurred_at,local_date,payload,source&order=id.asc&limit=5001');
   if((activityRows||[]).length>5000)return s.status(413).json({error:'The activity history exceeds the current 5,000-event export limit.'});
   const activityEvents=(activityRows||[]).map(row=>({
    key:row.event_key,type:row.type,module:row.module,
