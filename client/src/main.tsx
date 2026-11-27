@@ -16,6 +16,7 @@ import './design/shell.css';
 import './design/pages/home.css';
 import './design/pages/shared.css';
 import './design/pages/auth.css';
+import './design/pages/rooms.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
