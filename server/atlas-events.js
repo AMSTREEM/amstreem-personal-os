@@ -43,12 +43,19 @@ function validateImportedAtlasEvents(events) {
     throw new TypeError('The backup contains too many activity events to import.');
   }
   const keys = new Set();
-  return events.map(input => {
+  const imported = events.map(input => {
     const event = createAtlasEvent({ ...input, source: 'import' });
     if (keys.has(event.key)) throw new TypeError('The backup contains duplicate activity event keys.');
     keys.add(event.key);
     return event;
   });
+  for (const event of imported) {
+    const reversesEventKey = event.payload.reversesEventKey;
+    if (reversesEventKey && !keys.has(reversesEventKey)) {
+      throw new TypeError('The backup is missing an original activity event required by a reversal.');
+    }
+  }
+  return imported;
 }
 
 function appendImportedAtlasEvents(context, events) {
