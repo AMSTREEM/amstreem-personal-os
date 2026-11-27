@@ -8,6 +8,17 @@ const { restoreBackup, createBackupEnvelope, summarizeBackup } = require('./work
 const { AsyncLocalStorage } = require('node:async_hooks');
 const { problemDetails, BootstrapResponseSchema } = require('./packages/contracts');
 const app = express();
+const { apiRequestContract } = require('./server/api-request-contract');
+for (const method of ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']) {
+  const register = app[method].bind(app);
+  app[method] = (routePath, ...handlers) => {
+    if (typeof routePath === 'string' && routePath.startsWith('/api/') &&
+        !routePath.startsWith('/api/quran/')) {
+      return register(routePath, apiRequestContract, ...handlers);
+    }
+    return register(routePath, ...handlers);
+  };
+}
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
 app.use((req, res, next) => {
@@ -42,7 +53,7 @@ app.use((req, res, next) => {
       const detail = typeof body.error === 'string' ? body.error
         : typeof body.err === 'string' ? body.err
         : typeof body.message === 'string' ? body.message : undefined;
-      body = problemDetails({ status, code, title, detail, requestId, instance: req.originalUrl });
+      body = problemDetails({ status, code, title, detail, requestId, instance: req.originalUrl, errors: Array.isArray(body.errors) ? body.errors : undefined });
       res.type('application/problem+json');
     }
     return sendJson(body);
