@@ -13,7 +13,7 @@ const modules = [
   },
   {
     id: 'execution',
-    routes: ['/api/tasks', '/api/projects', '/api/project-milestones', '/api/modules', '/api/progress'],
+    routes: ['/api/tasks', '/api/sessions', '/api/projects', '/api/project-milestones', '/api/modules', '/api/progress'],
     files: ['client/src/pages/TasksPage.tsx', 'client/src/pages/ProjectsPage.tsx', 'client/src/pages/ExecutionFocusPage.tsx'],
     dependsOn: ['shared-contracts']
   },
