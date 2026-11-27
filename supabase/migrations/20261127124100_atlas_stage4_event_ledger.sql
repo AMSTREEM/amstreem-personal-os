@@ -89,6 +89,7 @@ create policy "xp ledger owner read" on public.xp_ledger
   for select to authenticated using ((select auth.uid()) = user_id);
 revoke all on public.xp_ledger from anon, authenticated;
 grant select on public.xp_ledger to authenticated;
+grant select on public.xp_ledger to service_role;
 
 create table if not exists public.atlas_achievement_definitions (
   id text primary key,
