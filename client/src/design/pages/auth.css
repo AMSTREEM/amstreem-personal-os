@@ -58,3 +58,6 @@
 @media (prefers-reduced-motion: reduce) {
   .atlas-auth-v2 *, .atlas-auth-v2 *::before, .atlas-auth-v2 *::after { animation: none !important; transition: none !important; }
 }
+
+.atlas-auth-v2 .auth-message-block h1,
+.atlas-auth-v2 .auth-panel h2 { font-family: 'Fraunces', Georgia, serif; font-weight: 500; }
