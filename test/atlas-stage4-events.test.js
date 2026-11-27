@@ -71,7 +71,8 @@ test('workspace version commits append events atomically and skip duplicate idem
   assert.match(server, /rpc\/commit_workspace_with_events/);
   assert.match(server, /p_events: validateAtlasEventBatch\(events\)\.map\(event => \(\{ key: event\.key, type: event\.type, module: event\.module, entity_id: event\.entityId \|\| null, occurred_at: event\.occurredAt, local_date: event\.localDate/);
   assert.match(server, /p_user_id: userId/);
-  assert.match(server, /SUPABASE_SECRET_KEY \|\| process\.env\.SUPABASE_SERVICE_ROLE_KEY/);
+  assert.match(server, /function supabaseAdminHeaders\(extra = \{\}\)/);
+  assert.match(server, /headers\.Authorization = `Bearer \$\{serviceRoleJwt\}`/);
   assert.match(server, /pendingEvents: \[\]/);
   assert.match(server, /context\.pendingEvents/);
   assert.match(migration, /public\.commit_workspace_with_events/);
