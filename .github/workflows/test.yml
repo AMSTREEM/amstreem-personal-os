@@ -24,8 +24,8 @@ jobs:
       - run: npm run check:boundaries
       - run: npm run build --ignore-scripts
       - run: npm test
-      - name: Protect Qur’an reader and Tajweed assets during Stage 0
-        if: github.event_name == 'pull_request' && github.head_ref == 'atlas-v2-implementation'
+      - name: Protect Qur’an reader and Tajweed assets during staged implementation
+        if: github.event_name == 'pull_request' && (github.head_ref == 'atlas-v2-implementation' || github.head_ref == 'atlas-stage2-contracts')
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
