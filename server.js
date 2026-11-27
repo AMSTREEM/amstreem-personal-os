@@ -89,7 +89,8 @@ app.get('/readyz', async (_req,res) => {
   const readiness = await checkEnvironmentMarker({
     appEnv: APP_ENV,
     supabaseUrl: supabaseConfig.url,
-    apiKey: process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+    apiKey: supabaseConfig.publishableKey,
+    probeToken: process.env.ATLAS_ENVIRONMENT_PROBE_TOKEN
   });
   if (!readiness.ok) {
     return res.status(503).json({ ok: false, environment: APP_ENV, checks: { database: false, environment: false } });
@@ -1694,7 +1695,8 @@ async function startServer() {
   const readiness = await checkEnvironmentMarker({
     appEnv: APP_ENV,
     supabaseUrl: supabaseConfig.url,
-    apiKey: process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+    apiKey: supabaseConfig.publishableKey,
+    probeToken: process.env.ATLAS_ENVIRONMENT_PROBE_TOKEN
   });
   if (!readiness.ok) {
     throw new Error(`Environment guard failed (${readiness.reason || 'unknown'}). Refusing to start.`);
