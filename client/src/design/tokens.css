@@ -175,3 +175,7 @@
   --atlas-duration-slow: 100ms;
   --atlas-duration-moment: 100ms;
 }
+
+.atlas-mobile-dock__item[data-module="residence"] { --module-accent: var(--atlas-module-residence); }
+.atlas-mobile-dock__item[data-module="actions"] { --module-accent: var(--atlas-module-actions); }
+.atlas-mobile-dock__item[data-module="calendar"] { --module-accent: var(--atlas-module-calendar); }
