@@ -458,3 +458,16 @@ test('first-run onboarding validates and atomically creates timezone, one goal a
   assert.equal(routeOwner('/api/onboarding')?.id, 'platform');
   assert.match(server, /SELECT value FROM settings WHERE key=\?/);
 });
+
+
+test('web shell builds all eight modules from manifests and keeps Qur’an as a protected shell-owned route', () => {
+  const { atlasModules, quranShellEntry, atlasNavigationGroups, atlasCommandDestinations } = require('../client/src/design/module-registry.ts');
+  const shell = fs.readFileSync(path.join(__dirname, '..', 'client/src/components/AppShell.tsx'), 'utf8');
+  assert.equal(atlasModules.length, 8);
+  assert.deepEqual(atlasNavigationGroups.map(group => group.label), ['HOME', 'PLAN', 'PRACTICE', 'REFLECT']);
+  assert.equal(quranShellEntry.protected, true);
+  assert.equal(quranShellEntry.accentToken, '--atlas-module-quran');
+  assert.equal(atlasCommandDestinations.filter(item => item.to === '/quran').length, 1);
+  assert.match(shell, /design\/module-registry/);
+  assert.match(shell, /navigationGroups\.map/);
+});
