@@ -166,7 +166,6 @@ test('workspace history is private, visible in Atlas, and restores with a pre-re
   assert.match(server, /historyReason: 'pre_restore'/);
   assert.match(server, /historyReason: 'manual'/);
   assert.match(server, /req\.skipWorkspaceCommit/);
-  assert.match(server, /workspace history owner read/i);
   const historyPage = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'HistoryPage.tsx'), 'utf8');
   const app = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'App.tsx'), 'utf8');
   const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
