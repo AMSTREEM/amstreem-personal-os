@@ -43,14 +43,14 @@ const BackupEnvelopeSchema = z.object({
 }).strict();
 const LegacyBackupSchema = z.object(optionalUnknownShape(legacyImportKeys)).strict();
 const bodyShape = optionalUnknownShape(bodyKeys);
-const strings = ['wins','challenges','lessons','next_focus','intention','display_name','north_star','leaderboard_name','hifz_bookmark','murajaah_bookmark','title','detail','body','description','message','name','username','password','subject','url','author','notes','note','reflection','focus','category','type','item_type','status','kind','horizon','session_kind','record_type','activity','religion','faith_tradition','admin_tradition','theme','symbol','emoji','surah','date','log_date','record_date','due_date','target_date','start_date','start_at','end_at','session_date','period_start','period_end','period_type','session_key','trigger','response','signal','recommendationId'];
+const strings = ['content','outcome','prayer','wins','challenges','lessons','next_focus','intention','display_name','north_star','leaderboard_name','hifz_bookmark','murajaah_bookmark','title','detail','body','description','message','name','username','password','subject','url','author','notes','note','reflection','focus','category','type','item_type','status','kind','horizon','session_kind','record_type','activity','religion','faith_tradition','admin_tradition','theme','symbol','emoji','surah','date','log_date','record_date','due_date','target_date','start_date','start_at','end_at','session_date','period_start','period_end','period_type','session_key','trigger','response','signal','recommendationId'];
 for (const key of strings) bodyShape[key] = z.union([z.string().max(10000), z.null()]).optional();
 const ids = ['goal_id','project_id','task_id','lesson_id','parent_task_id'];
 for (const key of ids) bodyShape[key] = z.union([z.string(), z.number().int(), z.null()]).optional();
 const numbers = ['minutes','priority','pages','juz','ayah_start','ayah_end','urge_level','daily_target','hifz_page','murajaah_page'];
 for (const key of numbers) bodyShape[key] = z.union([z.number().finite(), z.string().regex(/^\\d+(?:\\.\\d+)?$/)]).optional();
 const booleans = ['completed','done','all_day','on_time','woke_up','prayed','alignment_complete','shutdown_complete','leaderboard_public','sidebar_collapsed'];
-for (const key of booleans) bodyShape[key] = z.union([z.boolean(), z.number().int().min(0).max(1)]).optional();
+for (const key of booleans) bodyShape[key] = z.union([z.boolean(), z.number().int().min(0).max(1), z.enum(['0','1','true','false'])]).optional();
 bodyShape.distractions = z.array(z.unknown()).optional();
 bodyShape.metadata = z.record(z.string(), z.unknown()).optional();
 bodyShape.userIds = z.array(z.string()).optional();
