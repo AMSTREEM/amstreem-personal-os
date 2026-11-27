@@ -6,6 +6,7 @@ const APPLY_ON_LAUNCH_KEY = 'atlas-pwa-apply-on-next-launch';
 export function PwaUpdatePrompt() {
   const [ready, setReady] = useState(false);
   const [queued, setQueued] = useState(false);
+  const [applying, setApplying] = useState(false);
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
@@ -56,14 +57,28 @@ export function PwaUpdatePrompt() {
     setQueued(true);
   };
 
+  const applyNow = async () => {
+    const fields = Array.from(document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('input, textarea, select'));
+    const hasUnsavedEdits = fields.some(field => {
+      if (field instanceof HTMLInputElement && (field.type === 'checkbox' || field.type === 'radio')) return field.checked !== field.defaultChecked;
+      return field.value !== field.defaultValue;
+    }) || !!document.querySelector('[contenteditable="true"][data-dirty="true"]');
+    if (hasUnsavedEdits) { queueForNextLaunch(); return; }
+    try { localStorage.setItem(APPLY_ON_LAUNCH_KEY, 'true'); } catch {}
+    const registration = await navigator.serviceWorker.getRegistration('/');
+    if (!registration?.waiting) { setQueued(true); return; }
+    setApplying(true);
+    registration.waiting.postMessage({ type: 'ATLAS_ACTIVATE_UPDATE' });
+  };
+
   if (!ready) return null;
   return <aside className="atlas-update-toast" role="status" aria-live="polite">
     <span className="atlas-update-toast__icon"><RefreshCw size={17}/></span>
     <span className="atlas-update-toast__copy">
       <b>{queued ? 'Update queued' : 'Atlas update ready'}</b>
-      <small>{queued ? 'Close and reopen Atlas to apply it safely.' : 'Apply on your next launch so nothing interrupts your work.'}</small>
+      <small>{queued ? 'Close and reopen Atlas to apply it safely.' : 'Apply now if your forms are clear, or queue it for your next launch.'}</small>
     </span>
-    {!queued && <button type="button" onClick={queueForNextLaunch}>Apply next launch</button>}
+    {!queued && <><button type="button" onClick={() => void applyNow()} disabled={applying}>{applying ? 'Applying…' : 'Apply now'}</button><button className="atlas-update-toast__later" type="button" onClick={queueForNextLaunch}>Next launch</button></>}
     <button className="atlas-update-toast__close" type="button" aria-label="Dismiss update notice" onClick={() => setReady(false)}><X size={15}/></button>
   </aside>;
 }
