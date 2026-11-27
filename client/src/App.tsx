@@ -11,7 +11,7 @@ import { PasswordRecoveryPage } from './pages/PasswordRecoveryPage';
 import { SignupThankYouPage } from './components/SignupThankYouPage';
 
 const TodayPage = lazy(() => import('./pages/TodayPage').then(module => ({ default: module.TodayPage })));
-const AtlasHomePage = lazy(() => import('./pages/AtlasHomePage').then(module => ({ default: module.AtlasHomePage })));
+const ResidenceV2Page = lazy(() => import('./pages/ResidenceV2Page').then(module => ({ default: module.ResidenceV2Page })));
 const BlueprintPage = lazy(() => import('./pages/BlueprintPage').then(module => ({ default: module.BlueprintPage })));
 const GoalsPage = lazy(() => import('./pages/GoalsPage').then(module => ({ default: module.GoalsPage })));
 const FocusWorkspace = lazy(() => import('./components/FocusWorkspace').then(module => ({ default: module.FocusWorkspace })));
@@ -51,7 +51,7 @@ export function App() {
     {/* Every other authenticated destination now uses the clean-slate Atlas v2 shell. */}
     <Route element={<AtlasV2Shell />}>
       <Route index element={<Navigate to="/residence" replace />} />
-      <Route path="/residence" element={<SuspendedPage><AtlasHomePage /></SuspendedPage>} />
+      <Route path="/residence" element={<SuspendedPage><ResidenceV2Page /></SuspendedPage>} />
       <Route path="/blueprint" element={<SuspendedPage><BlueprintPage /></SuspendedPage>} />
       <Route path="/daily-rhythm" element={<SuspendedPage><TodayPage /></SuspendedPage>} />
       <Route path="/home" element={<LegacyRedirect to="/residence" />} />
