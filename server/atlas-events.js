@@ -3,7 +3,8 @@
 const crypto = require('node:crypto');
 const { AtlasEventSchema } = require('../packages/contracts');
 
-const MAX_EVENTS_PER_COMMIT = 50;
+const MAX_EVENTS_PER_REQUEST = 50;
+const MAX_IMPORTED_EVENTS = 5000;
 
 function createAtlasEvent(input) {
   const parsed = AtlasEventSchema.safeParse(input);
@@ -20,7 +21,7 @@ function appendAtlasEvent(context, input) {
   if (!context || !Array.isArray(context.pendingEvents)) {
     throw new Error('Atlas events can only be published inside an authenticated workspace request.');
   }
-  if (context.pendingEvents.length >= MAX_EVENTS_PER_COMMIT) {
+  if (context.pendingEvents.length >= MAX_EVENTS_PER_REQUEST) {
     throw new Error('This workspace mutation produced too many events.');
   }
   const sequence = context.pendingEvents.length + 1;
@@ -37,16 +38,44 @@ function appendAtlasEvent(context, input) {
   return event;
 }
 
+function validateImportedAtlasEvents(events) {
+  if (!Array.isArray(events) || events.length > MAX_IMPORTED_EVENTS) {
+    throw new TypeError('The backup contains too many activity events to import.');
+  }
+  const keys = new Set();
+  return events.map(input => {
+    const event = createAtlasEvent({ ...input, source: 'import' });
+    if (keys.has(event.key)) throw new TypeError('The backup contains duplicate activity event keys.');
+    keys.add(event.key);
+    return event;
+  });
+}
+
+function appendImportedAtlasEvents(context, events) {
+  if (!context || !Array.isArray(context.pendingEvents)) {
+    throw new Error('Imported Atlas events can only be appended inside an authenticated workspace request.');
+  }
+  const imported = validateImportedAtlasEvents(events || []);
+  if (context.pendingEvents.length + imported.length > MAX_IMPORTED_EVENTS) {
+    throw new TypeError('The combined activity event batch is too large.');
+  }
+  context.pendingEvents.push(...imported);
+  return imported.length;
+}
+
 function validateAtlasEventBatch(events) {
-  if (!Array.isArray(events) || events.length > MAX_EVENTS_PER_COMMIT) {
-    throw new TypeError('Atlas event batch must contain between 0 and ' + MAX_EVENTS_PER_COMMIT + ' events.');
+  if (!Array.isArray(events) || events.length > MAX_IMPORTED_EVENTS) {
+    throw new TypeError('Atlas event batch exceeds the allowed size.');
   }
   return events.map(event => createAtlasEvent(event));
 }
 
 module.exports = {
-  MAX_EVENTS_PER_COMMIT,
+  MAX_EVENTS_PER_REQUEST,
+  MAX_IMPORTED_EVENTS,
   createAtlasEvent,
   appendAtlasEvent,
+  appendImportedAtlasEvents,
+  validateImportedAtlasEvents,
   validateAtlasEventBatch
 };
