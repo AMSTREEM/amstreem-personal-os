@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, json } from '../lib/api';
+import { queryKeys } from '../lib/queryKeys';
 import { ArrowRight, BookOpen, CalendarDays, Check, Compass, GraduationCap, Heart, House, ListChecks, LogOut, MoonStar, Pause, Play, Plus, Search, Settings, SlidersHorizontal, Target, Timer, TrendingUp, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
@@ -106,7 +107,7 @@ export function AppShell() {
   }, [session?.user.id, session?.user.user_metadata?.onboarding_completed, user?.id]);
   const closeTour = useCallback(() => {
     setTourOpen(false);
-    void queryClient.invalidateQueries({ queryKey: ['settings'] });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.settings });
     if (!session?.user.id) return;
     localStorage.setItem(`atlas-tour-complete:${session.user.id}`, 'true');
     void completeOnboarding().catch(error => console.error('Could not save Atlas onboarding completion:', error));
@@ -151,19 +152,19 @@ export function AppShell() {
   ].filter(item => (item.label+' '+item.detail).toLowerCase().includes(commandQuery.toLowerCase())),[commandQuery]);
   const location = useLocation();
   const entrancePreset = useEntrancePreset(location.pathname);
-  const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Record<string, string>>('/settings') });
+  const settings = useQuery({ queryKey: queryKeys.settings, queryFn: () => api<Record<string, string>>('/settings') });
   const quickDate = atlasDate();
   const quickReligion = settings.data?.faith_tradition || settings.data?.religion || 'none';
-  const quickDeen = useQuery({ queryKey: ['deen', quickDate], queryFn: () => api<QuickDeen>('/deen/summary?date=' + quickDate), enabled: commandOpen && quickReligion === 'islam' });
-  const quickHabits = useQuery({ queryKey: ['habits', quickDate], queryFn: () => api<QuickHabit[]>('/habits?date=' + quickDate), enabled: commandOpen });
+  const quickDeen = useQuery({ queryKey: queryKeys.deen(quickDate), queryFn: () => api<QuickDeen>('/deen/summary?date=' + quickDate), enabled: commandOpen && quickReligion === 'islam' });
+  const quickHabits = useQuery({ queryKey: queryKeys.habits(quickDate), queryFn: () => api<QuickHabit[]>('/habits?date=' + quickDate), enabled: commandOpen });
   const quickPrayerMutation = useMutation({
     onMutate: item => { if (!item.completed) playAtlasFeedback('tick'); },
     mutationFn: (item: QuickPrayer) => api('/deen/prayer', json('PATCH', { date: quickDate, prayer: item.prayer, completed: !item.completed })),
-    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ['deen', quickDate] }); void queryClient.invalidateQueries({ queryKey: ['overview'] }); }
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.deen(quickDate) }); void queryClient.invalidateQueries({ queryKey: queryKeys.overview }); }
   });
   const quickHabitMutation = useMutation({
     mutationFn: (id: number) => api('/habits/' + id + '/toggle', json('POST', { date: quickDate })),
-    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ['habits', quickDate] }); void queryClient.invalidateQueries({ queryKey: ['overview'] }); }
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.habits(quickDate) }); void queryClient.invalidateQueries({ queryKey: queryKeys.overview }); }
   });
   useEffect(() => {
     const theme = settings.data?.theme;
