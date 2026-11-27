@@ -19,6 +19,7 @@
       var root = document.documentElement;
       root.setAttribute('data-theme', theme);
       root.setAttribute('data-theme-preference', preference || theme);
+      root.setAttribute('data-contrast', localStorage.getItem('atlas-high-contrast') === 'on' ? 'high' : 'normal');
       root.style.colorScheme = dark.indexOf(theme) >= 0 ? 'dark' : 'light';
       document.querySelectorAll('meta[name="theme-color"]').forEach(function (meta) { meta.setAttribute('content', backgrounds[theme]); });
       root.style.backgroundColor = backgrounds[theme];
