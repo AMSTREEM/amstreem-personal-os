@@ -1,9 +1,10 @@
 # Stage 4 — Events and Shared Services
 
-**Status:** implementation in progress  
+**Status:** implementation complete; staging migrations applied; CI and deployment verification pending  
 **Branch:** `atlas-stage4-events`  
 **Base:** `atlas-next`  
 **Release target:** staging only
+**Applied staging migrations:** `20261127130837_atlas_stage4_event_ledger`, `20261127130848_atlas_stage4_commit_and_progress`, `20261127131004_atlas_stage4_achievement_fk_index`
 
 ## Objective
 
@@ -22,7 +23,7 @@ The canonical event envelope follows Architecture v2:
 - `payload`: minimal, schema-validated facts (never private notes or reflections)
 - `source`: `user`, `system`, or `import`
 
-The Postgres event ledger is append-only and unique on `(user_id, event_key)`. Events are appended in the same database transaction as the versioned workspace commit. Replaying a retried commit cannot duplicate an event or a derived award.
+The Postgres event ledger is append-only and unique on `(user_id, event_key)`. Events are appended in the same database transaction as the versioned workspace commit. The commit RPC is service-role-only and called by the authenticated server after user verification; browser clients cannot insert ledger rows or directly forge XP. Replaying a retried commit cannot duplicate an event or a derived award.
 
 ## Initial publishers
 
@@ -55,7 +56,8 @@ No event is emitted from Qur’an reading, Tajweed, prayer, or faith-record rout
 - Version 4 backups include the append-only activity event history. Imported events retain their keys, are marked `source: 'import'`, contribute to progress, and never award XP. The existing account's XP ledger is never overwritten by an import; legacy snapshot XP remains preserved in the backup for compatibility.
 - Backfill existing XP awards into the new XP ledger without changing their point totals; mark them as legacy awards.
 - New XP awards are written only to the canonical ledger. The old snapshot records are not silently rewritten or discarded.
-- Imports never earn XP. Imported events, if explicitly replayed, carry `source: 'import'` and are excluded from XP.
+- The achievement foreign key has a covering index; the only remaining new-index advisor findings are expected unused-index notices before the app begins using these tables.
+- Security advisor warnings about the pre-existing admin/invite tables and leaked-password protection are outside Stage 4's scope; the new Stage 4 tables have forced RLS and no client write grants.
 - No production database, production branch, or production service changes.
 
 ## Exit criteria
