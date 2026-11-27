@@ -30,3 +30,14 @@ html[data-a-theme='ivory'] .atlas-v2 .a-atmosphere, html[data-a-theme='sahara'] 
 .atlas-v2 .a-route-v2 :where(button, input, select, textarea, a, h1, h2, h3, h4, h5, h6, p, ul, ol, table, label, fieldset, dialog) {
   all: revert-layer;
 }
+
+
+/* Atlas visual reset: the new product owns its canvas without touching the frozen reader. */
+html:has(.atlas-v2), html:has(.atlas-v2) body, html:has(.atlas-v2) #root {
+  min-height:100%;
+  background:var(--a-bg);
+}
+html:has(.atlas-v2) body { margin:0; }
+.atlas-v2 { isolation:isolate; }
+.atlas-v2 :where(h1,h2,h3,p) { text-wrap:pretty; }
+.atlas-v2 :where(a,button) { -webkit-tap-highlight-color:transparent; }
