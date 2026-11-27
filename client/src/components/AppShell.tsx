@@ -4,7 +4,8 @@ import type { FormEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, json } from '../lib/api';
-import { ArrowRight, BookOpen, CalendarDays, Check, Compass, GraduationCap, Heart, House, ListChecks, LogOut, MoonStar, Pause, Play, Plus, Search, Settings, SlidersHorizontal, Target, Timer, TrendingUp, X, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, Check, LogOut, MoonStar, Pause, Play, Plus, Search, Settings, SlidersHorizontal, Timer, X, Zap } from 'lucide-react';
+import { commandDestinations, rooms } from '../shell/navigation';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
 import { MobileInstallPrompt } from './MobileInstallPrompt';
@@ -21,53 +22,6 @@ import { useSpotlightGrid } from './fx/useSpotlightGrid';
 import '../styles/atlas-renaissance.css';
 
 const MotionNavLink = motion.create(NavLink);
-
-const rooms = [
-  {
-    id: 'residence', label: 'Residence', mobileLabel: 'Home', to: '/residence', icon: House,
-    paths: ['/residence', '/blueprint'],
-    tabs: [
-      { label: 'Home', to: '/residence', paths: ['/residence'] },
-      { label: 'Life Blueprint', to: '/blueprint', paths: ['/blueprint'] }
-    ]
-  },
-  {
-    id: 'rhythm', label: 'Daily Rhythm', mobileLabel: 'Rhythm', to: '/daily-rhythm', icon: MoonStar,
-    paths: ['/daily-rhythm', '/values', '/habits'],
-    tabs: [
-      { label: 'Daily Check-in', to: '/daily-rhythm', paths: ['/daily-rhythm'] },
-      { label: 'Faith & Practice', to: '/values', paths: ['/values'] },
-      { label: 'Habits & Self-Control', to: '/habits', paths: ['/habits'] }
-    ]
-  },
-  {
-    id: 'execution', label: 'Execution & Focus', mobileLabel: 'Focus', to: '/actions', icon: ListChecks,
-    paths: ['/actions', '/focus', '/calendar'],
-    tabs: [
-      { label: 'Projects & Tasks', to: '/actions', paths: ['/actions', '/focus'] },
-      { label: 'Calendar', to: '/calendar', paths: ['/calendar'] }
-    ]
-  },
-  {
-    id: 'growth', label: 'Growth & Direction', mobileLabel: 'Growth', to: '/goals', icon: TrendingUp,
-    paths: ['/goals', '/learning-library', '/growth'],
-    tabs: [
-      { label: 'Goals & Milestones', to: '/goals', paths: ['/goals'] },
-      { label: 'Learning & Library', to: '/learning-library', paths: ['/learning-library'] },
-      { label: 'Reviews & Insights', to: '/growth', paths: ['/growth'] }
-    ]
-  }
-];
-
-const commandDestinations = [
-  { label: 'Life Blueprint', detail: 'See the outcomes and life areas you are building towards', to: '/blueprint', icon: Compass },
-  { label: 'Daily Check-in', detail: 'Return to today’s practices, habits and priorities', to: '/daily-rhythm', icon: Check },
-  { label: 'Faith & Spirituality', detail: 'Daily practice and spiritual reflection', to: '/values', icon: MoonStar },
-  { label: 'Habits & Self-Control', detail: 'Build routines and personal commitments', to: '/habits', icon: Heart },
-  { label: 'Education & Learning', detail: 'Learning paths, lessons and private library', to: '/learning-library', icon: GraduationCap },
-  { label: 'Projects & Milestones', detail: 'Connect meaningful work to your goals', to: '/goals', icon: Target },
-  { label: 'Reviews & Insights', detail: 'Reflect on evidence and patterns over time', to: '/growth', icon: TrendingUp }
-];
 
 type QuickPrayer = { prayer: string; completed: number; on_time: number };
 type QuickDeen = { prayers: QuickPrayer[] };
@@ -211,11 +165,12 @@ export function AppShell() {
   }, [focusActive, focusTimer.kind, focusClock, focusContext, current?.label]);
   const faithTabLabel = quickReligion === 'islam' ? 'Deen' : quickReligion === 'christianity' ? 'Faith & Reflection' : 'Daily Reflection';
 
-  return <div className={"app-frame " + (location.pathname === "/quran" ? "atlas-quran-mode" : "atlas-renaissance") + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
+  return <div data-atlas-shell={location.pathname === "/quran" ? "quran" : "workspace"} className={"app-frame " + (location.pathname === "/quran" ? "atlas-quran-mode" : "atlas-renaissance") + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
+    <a className="atlas-skip-link" href="#atlas-main-content">Skip to content</a>
     <CursorAura/><SparkBurst/><EnergyVortex/>
     <MobileInstallPrompt />
     <AnimatePresence initial={false}>{tourOpen && <AtlasWalkthrough onClose={closeTour} onOpenCommand={() => { setCommandOpen(true); setCommandQuery(''); }} />}</AnimatePresence>
-    <motion.aside className={'sidebar ' + (mobileOpen ? 'sidebar--open' : '')} initial={reduceMotion ? false : { x: -12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
+    <motion.aside aria-label="Atlas workspace navigation" className={'sidebar ' + (mobileOpen ? 'sidebar--open' : '')} initial={reduceMotion ? false : { x: -12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
       <NavLink to="/residence" className="sidebar-brand" onClick={() => setMobileOpen(false)}><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><span><b>AMSTREEM</b><small>ATLAS</small></span></NavLink>
       <div className="sidebar-caption">YOUR PRIVATE WORKSPACE</div>
       <nav className="primary-nav" aria-label="Primary navigation">
@@ -247,7 +202,7 @@ export function AppShell() {
     </motion.aside>
     {mobileOpen && <><button className="mobile-more-scrim" type="button" aria-label="Close More menu" onClick={() => setMobileOpen(false)} /><motion.aside className="mobile-more-drawer" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 18 }} aria-label="More navigation"><div className="mobile-more-drawer__head"><b>More</b><button type="button" aria-label="Close menu" onClick={() => setMobileOpen(false)}><X size={17}/></button></div><nav><NavLink to="/quran" onClick={() => setMobileOpen(false)}><BookOpen size={17}/><span>Qur’an</span><ArrowRight size={14}/></NavLink>{commandDestinations.map(item => { const Icon=item.icon; return <NavLink key={item.to} to={item.to} onClick={() => setMobileOpen(false)}><Icon size={17}/><span>{item.label}</span><ArrowRight size={14}/></NavLink>; })}<div className="mobile-more-life-areas"><span className="eyebrow">YOUR LIFE AREAS</span><div>{selectedLifeAreas.map(id => <span key={id}>{lifeAreaNames[id]}</span>)}</div><NavLink to="/settings" onClick={() => setMobileOpen(false)}>Edit your areas <ArrowRight size={13}/></NavLink></div><NavLink to="/settings" onClick={() => setMobileOpen(false)}><SlidersHorizontal size={17}/><span>Settings</span><ArrowRight size={14}/></NavLink>{role === 'admin' && <NavLink to="/admin" onClick={() => setMobileOpen(false)}><Settings size={17}/><span>Administration</span><ArrowRight size={14}/></NavLink>}<button type="button" onClick={() => { setMobileOpen(false); void signOut(); }}><LogOut size={17}/><span>Sign out</span></button></nav></motion.aside></>}
     
-    <main className="main-area">
+    <main id="atlas-main-content" className="main-area" tabIndex={-1}>
       <motion.div ref={bootContentRef} className="atlas-workspace-boot" initial={reduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.24, ease: [0.16, 1, 0.3, 1] }}>
       <motion.header className="topbar" initial={reduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.18, delay: 0.04 }}>
         
