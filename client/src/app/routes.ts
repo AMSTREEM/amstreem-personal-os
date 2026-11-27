@@ -6,7 +6,7 @@ const routeMeta: Record<string, AtlasRouteMeta> = {
   '/blueprint': { v2: false, room: 'residence' },
   '/daily-rhythm': { v2: false, room: 'rhythm' },
   '/values': { v2: false, room: 'rhythm' },
-  '/quran': { v2: false, frozen: true, room: 'rhythm' },
+  '/quran': { v2: false, frozen: true, room: null },
   '/habits': { v2: false, room: 'rhythm' },
   '/actions': { v2: false, room: 'execute' },
   '/focus': { v2: false, room: 'execute' },
