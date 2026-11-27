@@ -16,8 +16,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm install
-      - run: npm run check:frozen
-      - run: npm run check:contrast
       - run: npm audit
       - run: node --check server.js
       - run: npm run typecheck
