@@ -144,5 +144,6 @@ module.exports = {
   BodySchema,
   QuerySchema,
   ParamsSchema,
-  IdempotencyKeySchema
+  IdempotencyKeySchema,
+  routeRequestFields
 };
