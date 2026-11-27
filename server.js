@@ -4,10 +4,10 @@ const fs = require('node:fs');
 const crypto = require('node:crypto');
 const { replayWorkspaceMutation } = require('./workspace-replay');
 const Database = require('better-sqlite3');
-const { restoreBackup, createBackupEnvelope, summarizeBackup } = require('./workspace-backup');
+const { restoreBackup, createBackupEnvelope, summarizeBackup, unwrapBackup } = require('./workspace-backup');
 const { AsyncLocalStorage } = require('node:async_hooks');
 const { problemDetails, BootstrapResponseSchema, ApiJsonResponseSchema } = require('./packages/contracts');
-const { appendAtlasEvent, validateAtlasEventBatch } = require('./server/atlas-events');
+const { appendAtlasEvent, appendImportedAtlasEvents, validateImportedAtlasEvents, validateAtlasEventBatch } = require('./server/atlas-events');
 const app = express();
 const { apiRequestContract } = require('./server/api-request-contract');
 for (const method of ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']) {
@@ -1861,14 +1861,30 @@ app.get('/api/calendar',(q,s)=>{const month=String(q.query.month||'');if(!/^\d{4
 app.post('/api/calendar/events',(q,s)=>{const title=String(q.body.title||'').trim(),startAt=String(q.body.start_at||'');if(!title||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(startAt))return s.status(400).json({error:'Add a title and a valid start time.'});const taskId=q.body.task_id?Number(q.body.task_id):null,projectId=q.body.project_id?Number(q.body.project_id):null;if(taskId&&!one('SELECT id FROM tasks WHERE id=?',taskId))return s.status(400).json({error:'Choose an existing task.'});if(projectId&&!one('SELECT id FROM projects WHERE id=?',projectId))return s.status(400).json({error:'Choose an existing project.'});const r=db.prepare('INSERT INTO calendar_events(title,description,start_at,end_at,all_day,task_id,project_id) VALUES(?,?,?,?,?,?,?)').run(title,String(q.body.description||''),startAt,q.body.end_at||null,q.body.all_day?1:0,taskId,projectId);s.status(201).json(one('SELECT * FROM calendar_events WHERE id=?',r.lastInsertRowid));});
 app.patch('/api/calendar/events/:id',(q,s)=>{const e=one('SELECT * FROM calendar_events WHERE id=?',q.params.id);if(!e)return s.status(404).json({error:'Calendar event not found.'});const title=String(q.body.title??e.title).trim(),startAt=String(q.body.start_at??e.start_at),taskId=q.body.task_id===undefined?e.task_id:(q.body.task_id||null),projectId=q.body.project_id===undefined?e.project_id:(q.body.project_id||null);if(!title||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(startAt))return s.status(400).json({error:'Check the event title and start time.'});if(taskId&&!one('SELECT id FROM tasks WHERE id=?',taskId))return s.status(400).json({error:'Choose an existing task.'});if(projectId&&!one('SELECT id FROM projects WHERE id=?',projectId))return s.status(400).json({error:'Choose an existing project.'});db.prepare('UPDATE calendar_events SET title=?,description=?,start_at=?,end_at=?,all_day=?,task_id=?,project_id=? WHERE id=?').run(title,q.body.description??e.description,startAt,q.body.end_at===undefined?e.end_at:(q.body.end_at||null),q.body.all_day===undefined?e.all_day:(q.body.all_day?1:0),taskId,projectId,e.id);s.json(one('SELECT * FROM calendar_events WHERE id=?',e.id));});
 app.delete('/api/calendar/events/:id',(q,s)=>{db.prepare('DELETE FROM calendar_events WHERE id=?').run(q.params.id);s.json({ok:true});});
-app.get('/api/export',(q,s)=>{s.setHeader('Content-Disposition','attachment; filename="personal-os-backup.json"');const data={exportedAt:new Date().toISOString(),goals:all('SELECT * FROM goals'),projects:all('SELECT * FROM projects'),project_milestones:all('SELECT * FROM project_milestones'),tasks:all('SELECT * FROM tasks'),modules:all('SELECT * FROM modules'),learning_paths:all('SELECT * FROM learning_paths'),learning_lessons:all('SELECT * FROM learning_lessons'),learning_resources:all('SELECT * FROM learning_resources'),learning_study_logs:all('SELECT * FROM learning_study_logs'),sessions:all('SELECT * FROM sessions'),calendar_events:all('SELECT * FROM calendar_events'),notes:all('SELECT * FROM notes'),reading_items:all('SELECT * FROM reading_items'),reviews:all('SELECT * FROM reviews'),habits:all('SELECT * FROM habits'),habit_logs:all('SELECT * FROM habit_logs'),prayer_logs:all('SELECT * FROM prayer_logs'),quran_logs:all('SELECT * FROM quran_logs'),tahajjud_logs:all('SELECT * FROM tahajjud_logs'),faith_logs:all('SELECT * FROM faith_logs'),rhythm_records:all('SELECT * FROM rhythm_records'),self_control_logs:all('SELECT * FROM self_control_logs'),self_control_trackers:all('SELECT * FROM self_control_trackers'),self_control_entries:all('SELECT * FROM self_control_entries'),settings:all('SELECT * FROM settings'),email_events:all('SELECT * FROM email_events'),login_events:all('SELECT * FROM login_events'),xp_events:all('SELECT * FROM xp_events'),achievement_unlocks:all('SELECT * FROM achievement_unlocks'),weekly_challenges:all('SELECT * FROM weekly_challenges'),feedback_logs:all('SELECT * FROM feedback_logs')};s.json(createBackupEnvelope(data));});
+app.get('/api/export',async(q,s)=>{
+ try{
+  const activityRows=await atlasRest(q,'activity_events?select=event_key,type,module,entity_id,occurred_at,local_date,payload,source&order=id.asc&limit=5000');
+  const activityEvents=(activityRows||[]).map(row=>({
+   key:row.event_key,type:row.type,module:row.module,
+   ...(row.entity_id?{entityId:row.entity_id}:{}),
+   occurredAt:row.occurred_at,localDate:row.local_date,payload:row.payload,source:row.source
+  }));
+  const data={exportedAt:new Date().toISOString(),goals:all('SELECT * FROM goals'),projects:all('SELECT * FROM projects'),project_milestones:all('SELECT * FROM project_milestones'),tasks:all('SELECT * FROM tasks'),modules:all('SELECT * FROM modules'),learning_paths:all('SELECT * FROM learning_paths'),learning_lessons:all('SELECT * FROM learning_lessons'),learning_resources:all('SELECT * FROM learning_resources'),learning_study_logs:all('SELECT * FROM learning_study_logs'),sessions:all('SELECT * FROM sessions'),calendar_events:all('SELECT * FROM calendar_events'),notes:all('SELECT * FROM notes'),reading_items:all('SELECT * FROM reading_items'),reviews:all('SELECT * FROM reviews'),habits:all('SELECT * FROM habits'),habit_logs:all('SELECT * FROM habit_logs'),prayer_logs:all('SELECT * FROM prayer_logs'),quran_logs:all('SELECT * FROM quran_logs'),tahajjud_logs:all('SELECT * FROM tahajjud_logs'),faith_logs:all('SELECT * FROM faith_logs'),rhythm_records:all('SELECT * FROM rhythm_records'),self_control_logs:all('SELECT * FROM self_control_logs'),self_control_trackers:all('SELECT * FROM self_control_trackers'),self_control_entries:all('SELECT * FROM self_control_entries'),settings:all('SELECT * FROM settings'),email_events:all('SELECT * FROM email_events'),login_events:all('SELECT * FROM login_events'),xp_events:all('SELECT * FROM xp_events'),achievement_unlocks:all('SELECT * FROM achievement_unlocks'),weekly_challenges:all('SELECT * FROM weekly_challenges'),feedback_logs:all('SELECT * FROM feedback_logs'),activity_events:activityEvents};
+  const backup=createBackupEnvelope(data);
+  if(Buffer.byteLength(JSON.stringify(backup),'utf8')>10*1024*1024)return s.status(413).json({error:'The activity history is too large for a single backup. Please contact support before exporting.'});
+  s.setHeader('Content-Disposition','attachment; filename="personal-os-backup.json"');
+  s.json(backup);
+ }catch(error){console.error('Workspace export:',error.message);s.status(503).json({error:'Your workspace backup could not be created. Please retry.'});}
+});
 app.post('/api/import/preview',(q,s)=>{
  let previewDb;
  try {
+  const backupData=unwrapBackup(q.body);
+  const importedEvents=validateImportedAtlasEvents(backupData.activity_events||[]);
   const summary=summarizeBackup(q.body,workspaceTables);
   previewDb=createWorkspaceDatabase(serializeWorkspaceDatabase(db));
   const imported=restoreBackup(previewDb,q.body,workspaceTables);
-  s.json({ok:true,dryRun:true,imported,summary,schemaVersion:3});
+  s.json({ok:true,dryRun:true,imported,summary,activityEvents:importedEvents.length,schemaVersion:4});
  } catch(error) {
   s.status(400).json({error:error.message||'The backup could not be validated.'});
  } finally {
@@ -1877,9 +1893,11 @@ app.post('/api/import/preview',(q,s)=>{
 });
 app.post('/api/import',(q,s)=>{
  try {
+  const backupData=unwrapBackup(q.body);
   const summary=summarizeBackup(q.body,workspaceTables);
   const imported=restoreBackup(db,q.body,workspaceTables);
-  s.json({ok:true,imported,summary});
+  const activityEvents=appendImportedAtlasEvents(tenantContext.getStore(),backupData.activity_events||[]);
+  s.json({ok:true,imported,summary,activityEvents});
  } catch(error) {
   s.status(400).json({error:error.message||'The backup could not be imported.'});
  }
