@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Bookmark,
   Check, ChevronDown, CircleHelp, Command, Compass, Feather, Folder,
-  Layers3, Menu, Plus, Search, Send, Sparkles, Trash2, X
+  Layers3, Menu, Plus, Search, Send, Sparkles, Trash2, X, Download, Pencil
 } from 'lucide-react';
 
 type Note = { id: number; text: string; createdAt: number };
@@ -39,6 +39,9 @@ export default function App() {
     }
   });
   const [captureOpen, setCaptureOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editDraft, setEditDraft] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [notice, setNotice] = useState('');
   useEffect(() => {
@@ -48,6 +51,21 @@ export default function App() {
       setNotice('This browser could not save your captures. Check available site storage.');
     }
   }, [notes]);
+
+  const visibleNotes = notes.filter(note => note.text.toLocaleLowerCase().includes(searchQuery.trim().toLocaleLowerCase()));
+  const startEditing = (note: Note) => { setEditingId(note.id); setEditDraft(note.text); };
+  const saveEdit = () => {
+    const value = editDraft.trim();
+    if (!value || editingId === null) return;
+    setNotes(current => current.map(note => note.id === editingId ? { ...note, text: value } : note));
+    setEditingId(null); setEditDraft(''); setNotice('Your capture was updated.');
+    window.setTimeout(() => setNotice(''), 3200);
+  };
+  const exportNotes = () => {
+    const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), captures: notes }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob); const link = document.createElement('a');
+    link.href = url; link.download = 'amstreem-captures.json'; link.click(); URL.revokeObjectURL(url);
+  };
 
   const removeNote = (id: number) => {
     setNotes(current => current.filter(note => note.id !== id));
@@ -203,8 +221,9 @@ export default function App() {
 
           {section === 'My world' && (
             <section className="collection-area">
-              <div className="collection-header"><div><span className="kicker">YOUR CHOSEN CONTEXT</span><h2>{notes.length ? 'Things you chose to keep.' : 'An open space, ready when you are.'}</h2></div><button className="outline-button" onClick={() => { setDraft(''); setCaptureOpen(true); }}><Plus size={16} /> Capture a thought</button></div>
-              {notes.length ? <div className="thought-list">{notes.map(note => <article className="thought-item" key={note.id}><div className="thought-glyph"><Feather size={17} /></div><div className="thought-body"><p>{note.text}</p><span>CAPTURED · {timeLabel(note.createdAt)}</span></div><button className="delete-capture" onClick={() => removeNote(note.id)} aria-label="Delete capture"><Trash2 size={15} /></button></article>)}</div> : <div className="empty-world"><div className="empty-glyph"><Layers3 size={23} /></div><h3>Your world begins with what matters to you.</h3><p>Save a thought, an idea, a question or a detail you want to keep in view.</p><button className="begin-button" onClick={() => { setDraft(''); setCaptureOpen(true); }}>Capture your first thought <ArrowRight size={15} /></button></div>}
+              <div className="collection-header"><div><span className="kicker">YOUR CHOSEN CONTEXT</span><h2>{notes.length ? 'Things you chose to keep.' : 'An open space, ready when you are.'}</h2></div><div className="memory-actions">{notes.length > 0 && <button className="outline-button" onClick={exportNotes}><Download size={15} /> Export</button>}<button className="outline-button" onClick={() => { setDraft(''); setCaptureOpen(true); }}><Plus size={16} /> Capture a thought</button></div></div>
+              {notes.length > 0 && <div className="memory-search"><Search size={16} /><input aria-label="Search captures" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search your captures…" /><span>{visibleNotes.length} / {notes.length}</span></div>}
+              {notes.length ? visibleNotes.length ? <div className="thought-list">{visibleNotes.map(note => <article className="thought-item" key={note.id}><div className="thought-glyph"><Feather size={17} /></div><div className="thought-body"><p>{note.text}</p><span>CAPTURED · {timeLabel(note.createdAt)}</span></div><button className="delete-capture" onClick={() => startEditing(note)} aria-label="Edit capture"><Pencil size={15} /></button><button className="delete-capture" onClick={() => removeNote(note.id)} aria-label="Delete capture"><Trash2 size={15} /></button></article>)}</div> : <div className="empty-world compact-empty"><h3>No matching captures.</h3><p>Try another word or clear your search.</p><button className="outline-button" onClick={() => setSearchQuery('')}>Clear search</button></div> : <div className="empty-world"><div className="empty-glyph"><Layers3 size={23} /></div><h3>Your world begins with what matters to you.</h3><p>Save a thought, an idea, a question or a detail you want to keep in view.</p><button className="begin-button" onClick={() => { setDraft(''); setCaptureOpen(true); }}>Capture your first thought <ArrowRight size={15} /></button></div>}
               <p className="local-note">Captures are saved in this browser on this device. They are not uploaded or synced to an account yet. Clearing this browser’s site data may remove them.</p>
             </section>
           )}
@@ -229,6 +248,7 @@ export default function App() {
         </div>
       </main>
 
+      {editingId !== null && <div className="modal-layer" onMouseDown={e => { if (e.target === e.currentTarget) setEditingId(null); }}><section className="capture-modal"><button className="modal-x" onClick={() => setEditingId(null)} aria-label="Close"><X size={18} /></button><div className="modal-symbol"><Pencil size={18} /></div><span className="kicker">EDIT YOUR CAPTURE</span><h2>Keep it <em>accurate.</em></h2><textarea autoFocus rows={5} value={editDraft} onChange={e => setEditDraft(e.target.value)} /><div className="modal-bottom"><span>Changes stay on this device.</span><button onClick={saveEdit} disabled={!editDraft.trim()}>Save changes <Check size={15} /></button></div></section></div>}
       {captureOpen && <div className="modal-layer" onMouseDown={e => { if (e.target === e.currentTarget) setCaptureOpen(false); }}>
         <section className="capture-modal">
           <button className="modal-x" onClick={() => setCaptureOpen(false)} aria-label="Close"><X size={18} /></button>
