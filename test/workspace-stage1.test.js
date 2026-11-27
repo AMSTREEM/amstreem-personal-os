@@ -37,6 +37,8 @@ test('Stage 1 uses atomic versioned RPC commits and protects failed mutations', 
   assert.match(server, /p_expected_version: expectedVersion/);
   assert.match(server, /res\.statusCode >= 400/);
   assert.match(server, /VERSION_CONFLICT/);
+  assert.match(server, /replayWorkspaceMutation\(baseSnapshot, snapshot, latest\.data\)/);
+  assert.match(server, /attempt < 3/);
   assert.match(server, /Idempotency-Key/);
 });
 
