@@ -7607,3 +7607,16 @@ html, body { background: var(--atlas-bg); color: var(--atlas-text-1); }
   .atlas-onboarding form { padding: 30px 20px 24px; }
   .atlas-onboarding h1 { font-size: 23px; line-height: 1.25; }
 }
+
+
+.atlas-mobile-dock__item { position: relative; }
+.atlas-mobile-dock__indicator {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 22px;
+  height: 3px;
+  border-radius: 99px;
+  background: var(--module-accent, var(--atlas-brand));
+  transform: translateX(-50%);
+}
