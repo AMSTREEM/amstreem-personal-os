@@ -29,3 +29,4 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </MotionConfig>
   </React.StrictMode>
 );
+import './design/shell.css';
