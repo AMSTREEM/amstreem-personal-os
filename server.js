@@ -1162,8 +1162,11 @@ function serializeWorkspaceDatabase(workspaceDb) {
   for (const table of workspaceTables) tables[table] = workspaceDb.prepare(`SELECT * FROM ${table}`).all();
   return { format: 'personal-os-sqlite-snapshot-v3', schemaVersion: 3, tables };
 }
-async function commitWorkspaceSnapshot(token, expectedVersion, snapshot, requestMeta = {}, events = []) {
+async function commitWorkspaceSnapshot(userId, expectedVersion, snapshot, requestMeta = {}, events = []) {
+  const serviceKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) throw new Error('The server database credential is not configured.');
   const payload = {
+    p_user_id: userId,
     p_expected_version: expectedVersion,
     p_data: snapshot,
     p_schema_version: 3,
@@ -1176,8 +1179,8 @@ async function commitWorkspaceSnapshot(token, expectedVersion, snapshot, request
   const response = await fetch(`${supabaseConfig.url}/rest/v1/rpc/commit_workspace_with_events`, {
     method: 'POST',
     headers: {
-      apikey: supabaseConfig.publishableKey,
-      Authorization: `Bearer ${token}`,
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
       'Content-Type': 'application/json',
       Prefer: 'return=representation'
     },
@@ -1200,7 +1203,7 @@ async function writeWorkspaceSnapshot(userId, token, workspaceDb, expectedVersio
   let replayed = false;
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
-      const result = await commitWorkspaceSnapshot(token, version, snapshot, requestMeta, events);
+      const result = await commitWorkspaceSnapshot(userId, version, snapshot, requestMeta, events);
       return { ...result, replayed: replayed || Boolean(result?.replayed) };
     } catch (error) {
       if (error.code !== 'VERSION_CONFLICT' || attempt === 2) throw error;
