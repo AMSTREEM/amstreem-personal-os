@@ -7515,3 +7515,25 @@ html, body { background: var(--atlas-bg); color: var(--atlas-text-1); }
 @media (max-width: 600px) {
   .atlas-update-toast { right: 12px; bottom: calc(92px + env(safe-area-inset-bottom)); width: calc(100vw - 24px); }
 }
+
+
+:root[data-contrast="high"] {
+  --atlas-border-strong: color-mix(in srgb, var(--atlas-text-1) 48%, var(--atlas-bg));
+  --atlas-border: var(--atlas-border-strong);
+  --atlas-text-2: var(--atlas-text-1);
+  --atlas-text-3: var(--atlas-text-1);
+}
+:root[data-contrast="high"] :focus-visible {
+  outline-width: 3px;
+  outline-offset: 3px;
+}
+.nav-link { min-height: 44px; }
+.atlas-live-region {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
