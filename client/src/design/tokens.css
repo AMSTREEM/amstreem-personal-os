@@ -17,11 +17,11 @@
   --a-room-soft: oklch(0.30 0.06 var(--a-room-h)); --a-room-ink: oklch(0.18 0.02 var(--a-room-h));
   transition: --a-room var(--a-dur-slow) var(--a-ease-standard), --a-room-soft var(--a-dur-slow) var(--a-ease-standard);
 }
-html[data-room='residence'] { --a-room-h: 80; }
-html[data-room='rhythm'] { --a-room-h: 170; }
-html[data-room='execute'] { --a-room-h: 255; }
-html[data-room='growth'] { --a-room-h: 310; }
-html[data-room='none'] { --a-room-h: 265; --a-room-c: 0.04; }
+ .atlas-v2[data-room='residence'] { --a-room-h: 80; }
+ .atlas-v2[data-room='rhythm'] { --a-room-h: 170; }
+ .atlas-v2[data-room='execute'] { --a-room-h: 255; }
+ .atlas-v2[data-room='growth'] { --a-room-h: 310; }
+ .atlas-v2[data-room='none'] { --a-room-h: 265; --a-room-c: 0.04; }
 @media (pointer: coarse) { .atlas-v2 :where(input, select, textarea) { font-size: 16px; } }
 @media (prefers-reduced-motion: reduce) {
   :root { --a-dur-fast: 1ms; --a-dur-base: 1ms; --a-dur-slow: 1ms; --a-dur-page: 1ms; transition: none; }
