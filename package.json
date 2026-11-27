@@ -12,7 +12,8 @@
     "typecheck": "tsc --project client/tsconfig.json --noEmit",
     "test": "node --test",
     "prebuild": "npm run typecheck && npm test && npm audit",
-    "db:migrate:staging": "node scripts/migrate.js"
+    "db:migrate:staging": "node scripts/migrate.js",
+    "stage1:drill": "node scripts/stage1-staging-drill.js"
   },
   "engines": {
     "node": ">=20"
