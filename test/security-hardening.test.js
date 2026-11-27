@@ -95,6 +95,7 @@ test('Self-Control consistency uses dated records and positive habit check-ins, 
   const selfControl = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'SelfControlPage.tsx'), 'utf8');
   const rituals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'RitualsPage.tsx'), 'utf8');
   const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
+  const moduleRegistry = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'design', 'module-registry.ts'), 'utf8');
   assert.match(server, /FROM self_control_entries WHERE log_date>=date\(\?,'-29 days'\)/);
   assert.match(server, /FROM habit_logs WHERE log_date>=date\(\?,'-29 days'\)/);
   assert.match(server, /let best=0,run=0,previous=null/);
@@ -111,7 +112,7 @@ test('Self-Control consistency uses dated records and positive habit check-ins, 
   assert.match(server, /return \{\.\.\.habit,streak\}/);
   assert.match(selfControl, /verified clean check-ins/);
   assert.match(rituals, /invalidateQueries\(\{ queryKey: \['self-control'\] \}\)/);
-  assert.match(shell, /label: 'Values'/);
+  assert.match(moduleRegistry, /label: 'Values'/);
   assert.match(shell, /faithTabLabel/);
   assert.match(shell, /Daily Reflection/);
 });
@@ -263,6 +264,7 @@ test('Growth & Direction unifies constellation targets while Execution remains t
 test('Room 3 has a dedicated Focus Room with safe context handoffs and a persistent global timer dock', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'App.tsx'), 'utf8');
   const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
+  const moduleRegistry = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'design', 'module-registry.ts'), 'utf8');
   const workspace = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
   const values = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ValuesPage.tsx'), 'utf8');
   const learning = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LearningPage.tsx'), 'utf8');
@@ -270,8 +272,8 @@ test('Room 3 has a dedicated Focus Room with safe context handoffs and a persist
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
   assert.match(app, /path="\/actions" element={<FocusWorkspace \/>}/);
   assert.match(app, /path="\/focus" element={<FocusWorkspace \/>}/);
-  assert.match(shell, /paths: \['\/focus'\]/);
-  assert.match(shell, /label: 'Focus', detail: 'Start or resume a focus session', to: '\/focus'/);
+  assert.match(moduleRegistry, /paths: \['\/focus'\]/);
+  assert.match(moduleRegistry, /label: 'Focus', detail: 'Start or resume a focus session', to: '\/focus'/);
   assert.match(shell, /navigate\('\/focus'\)/);
   assert.match(shell, /className="atlas-command-dock"/);
   assert.match(workspace, /!isFocusRoute && <section className="execution-projects-panel">/);
