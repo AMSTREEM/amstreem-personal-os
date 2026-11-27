@@ -16,8 +16,27 @@ Baseline commit: `0c41e0f797c472a23af6c982ed992133330ec28f`.
 
 ## Global selectors and layout-sensitive rules
 
-Locked global selectors: *, html, body, button, button:disabled, a, button:focus-visible, input, button:not(:disabled), input:not([type="checkbox"]):not([type="radio"]), select, input:not([type="checkbox"]):not([type="radio"]):focus, input::placeholder, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, *::-webkit-scrollbar, *::-webkit-scrollbar-track, *::-webkit-scrollbar-thumb, *::-webkit-scrollbar-thumb:hover. The stylesheet also contains viewport sizing, overscroll, reduced-motion, fixed/sticky positioning and safe-area-adjacent rules. These remain byte-identical. New shell ancestors must not introduce transforms, filters, perspective, containment, will-change, backdrop filters or overflow changes around the reader.
+Locked global selectors include `:root`, `*`, `html`, `body`, `button`, `input`, `textarea`, `select`, `a`, headings, paragraphs, lists, tables and labels. The stylesheet also contains viewport sizing, overscroll, reduced-motion, fixed/sticky positioning and safe-area-adjacent rules. These remain byte-identical. New shell ancestors must not introduce transforms, filters, perspective, containment, will-change, backdrop filters or overflow changes around the reader.
 
-## CSS custom properties read by the reader
+## Custom properties used by Qur'an CSS
 
+- `--accent`
+- `--accent-strong`
+- `--accent-wash`
+- `--bg-canvas`
+- `--bg-surface`
+- `--border-hairline`
+- `--border-subtle`
+- `--line`
+- `--mushaf-user-font-size`
+- `--muted`
+- `--sans`
+- `--subtle`
+- `--surface`
+- `--surface-raised`
+- `--text`
+- `--text-muted`
+- `--text-primary`
+- `--text-secondary`
 
+The full stylesheet hash is the authoritative rule-level gate; this document is the human-readable audit index.
