@@ -546,36 +546,6 @@ begin
     on conflict (user_id,event_key) do nothing;
   end if;
 
-  -- Imports carry historical facts but never create new XP. Existing XP awards
-  -- inside the imported workspace snapshot are restored as legacy ledger rows.
-  if p_force_history then
-    insert into public.xp_ledger(
-      user_id,event_key,source_event_key,category,points,local_date,awarded_at,is_legacy
-    )
-    select
-      v_user_id,
-      'legacy:' || (x.value->>'event_key'),
-      x.value->>'event_key',
-      left(lower(coalesce(x.value->>'category','legacy')),40),
-      (x.value->>'points')::integer,
-      coalesce(
-        ((nullif(x.value->>'awarded_at','')::timestamptz at time zone 'Africa/Lagos')::date),
-        (now() at time zone 'Africa/Lagos')::date
-      ),
-      coalesce(nullif(x.value->>'awarded_at','')::timestamptz,now()),
-      true
-    from jsonb_array_elements(
-      case
-        when jsonb_typeof(p_data #> '{tables,xp_events}') = 'array'
-          then p_data #> '{tables,xp_events}'
-        else '[]'::jsonb
-      end
-    ) as x(value)
-    where coalesce(x.value->>'event_key','') <> ''
-      and coalesce((x.value->>'points')::integer,0) > 0
-    on conflict (user_id,event_key) do nothing;
-  end if;
-
   return v_result;
 end;
 $$;
