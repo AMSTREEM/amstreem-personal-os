@@ -485,6 +485,11 @@ test('web shell builds all eight modules from manifests and keeps Qur’an as a 
   assert.equal((moduleBlock.match(/id: '/g) || []).length, 8);
   assert.match(registry, /\['HOME', 'PLAN', 'PRACTICE', 'REFLECT'\]/);
   assert.match(registry, /protected: true/);
+  assert.match(registry, /searchProvider: string/);
+  assert.match(registry, /quickActions: string\[\]/);
+  assert.match(registry, /residenceWidgets: string\[\]/);
+  assert.match(registry, /settingsPanel: string/);
+  assert.match(registry, /atlasQuickCaptureTypes = \['task', 'note', 'habit'\]/);
   assert.match(registry, /accentToken: '--atlas-module-quran'/);
   assert.match(registry, /atlasModules,\s*quranShellEntry/);
   assert.match(shell, /design\/module-registry/);
