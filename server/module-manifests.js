@@ -43,7 +43,7 @@ const modules = [
   },
   {
     id: 'platform',
-    routes: ['/api/feedback', '/api/admin', '/api/announcements', '/api/login-event', '/api/leaderboard', '/api/welcome', '/api/overview', '/api/intelligence', '/api/weekly-challenge', '/api/achievements', '/api/settings'],
+    routes: ['/api/feedback', '/api/admin', '/api/announcements', '/api/login-event', '/api/leaderboard', '/api/welcome', '/api/overview', '/api/onboarding', '/api/intelligence', '/api/weekly-challenge', '/api/achievements', '/api/settings'],
     files: ['client/src/pages/AdminPage.tsx', 'client/src/pages/SettingsPage.tsx', 'client/src/pages/TodayPage.tsx'],
     dependsOn: ['shared-contracts', 'workspace']
   },
