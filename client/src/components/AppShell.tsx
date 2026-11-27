@@ -8,6 +8,7 @@ import { applyAtlasTheme, watchAtlasSystemTheme } from '../design/theme';
 import { ArrowRight, BookOpen, CalendarDays, Check, Compass, GraduationCap, Heart, History as HistoryIcon, House, ListChecks, LogOut, MoonStar, Pause, Play, Plus, Search, Settings, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Target, Timer, TrendingUp, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
+import { AtlasOnboarding } from './AtlasOnboarding';
 import { MobileInstallPrompt } from './MobileInstallPrompt';
 import { EntrancePresetContext, useEntrancePreset } from './EntranceMotion';
 import { playAtlasFeedback } from '../lib/microFeedback';
@@ -86,6 +87,7 @@ export function AppShell() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState('');
   const focusTimer = useFocusTimer();
@@ -96,17 +98,18 @@ export function AppShell() {
   const [quickTaskError, setQuickTaskError] = useState('');
   useEffect(() => {
     if (!session?.user || !user) return;
-    const key = `atlas-tour-complete:${session.user.id}`;
-    const completed = session.user.user_metadata?.onboarding_completed === true || localStorage.getItem(key) === 'true';
-    if (!completed) setTourOpen(true);
+    let completed = session.user.user_metadata?.onboarding_completed === true;
+    try { completed = completed || localStorage.getItem(`atlas-onboarding-complete:${session.user.id}`) === 'true'; } catch {}
+    if (!completed) setOnboardingOpen(true);
   }, [session?.user.id, session?.user.user_metadata?.onboarding_completed, user?.id]);
-  const closeTour = useCallback(() => {
-    setTourOpen(false);
-    void queryClient.invalidateQueries({ queryKey: ['settings'] });
+  const finishOnboarding = useCallback(() => {
+    setOnboardingOpen(false);
+    void queryClient.invalidateQueries();
     if (!session?.user.id) return;
-    localStorage.setItem(`atlas-tour-complete:${session.user.id}`, 'true');
+    try { localStorage.setItem(`atlas-onboarding-complete:${session.user.id}`, 'true'); } catch {}
     void completeOnboarding().catch(error => console.error('Could not save Atlas onboarding completion:', error));
   }, [session?.user.id, completeOnboarding, queryClient]);
+  const closeTour = useCallback(() => setTourOpen(false), []);
   useEffect(() => {
     const tick = window.setInterval(() => setClockNow(Date.now()), 1000);
     return () => window.clearInterval(tick);
@@ -221,6 +224,7 @@ export function AppShell() {
     <CursorAura/><SparkBurst/><EnergyVortex/>
     <MobileInstallPrompt />
     <AnimatePresence initial={false}>{tourOpen && <AtlasWalkthrough onClose={closeTour} onOpenCommand={() => { setCommandOpen(true); setCommandQuery(''); }} />}</AnimatePresence>
+    {onboardingOpen && <AtlasOnboarding onComplete={finishOnboarding} />}
     <motion.aside className={'sidebar ' + (mobileOpen ? 'sidebar--open' : '') + (sidebarCollapsed ? ' sidebar--collapsed' : ' sidebar--expanded')} initial={reduceMotion ? false : { x: -12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
       <NavLink to="/residence" className="sidebar-brand" onClick={() => setMobileOpen(false)}><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><span><b>AMSTREEM</b><small>ATLAS</small></span></NavLink>
       <button type="button" className="sidebar-collapse-toggle" aria-label={sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'} aria-pressed={sidebarCollapsed} onClick={() => setSidebarCollapsed(value => !value)}>{sidebarCollapsed ? <PanelLeftOpen size={16}/> : <PanelLeftClose size={16}/>}<span>{sidebarCollapsed ? 'Expand' : 'Collapse'}</span></button>
