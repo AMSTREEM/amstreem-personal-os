@@ -49,15 +49,17 @@ test('project, task, calendar, focus and review records can be linked', () => {
 
 test('six primary destinations and personal life areas shape the Atlas workspace', () => {
   const shell = read('client/src/components/AppShell.tsx');
+  const navigation = read('client/src/shell/navigation.ts');
   const settings = read('client/src/pages/SettingsPage.tsx');
   const server = read('server.js');
   for (const destination of ['Residence', 'Daily Rhythm', 'Execution & Focus', 'Growth & Direction']) {
-    assert.ok(shell.includes("label: '" + destination + "'"), 'Missing room ' + destination);
+    assert.ok(navigation.includes("label: '" + destination + "'"), 'Missing room ' + destination);
   }
-  assert.match(shell, /const rooms = \[/);
+  assert.match(navigation, /const rooms: AtlasRoom\[\] = \[/);
+  assert.match(shell, /from '\.\.\/shell\/navigation'/);
   assert.match(shell, /\^\[1-4\]\$/);
   for (const view of ['Faith & Practice', 'Habits & Self-Control', 'Projects & Tasks', 'Calendar', 'Goals & Milestones', 'Learning & Library', 'Reviews & Insights']) {
-    assert.ok(shell.includes("label: '" + view + "'"), 'Missing room view ' + view);
+    assert.ok(navigation.includes("label: '" + view + "'"), 'Missing room view ' + view);
   }
   assert.match(shell, /const activeTabs = location\.pathname === '\/quran' \? \[\] : \(current\?\.tabs \|\| \[\]\)/);
   assert.match(shell, /rooms\.map\(item =>/);
@@ -389,18 +391,19 @@ test('standalone Qur’an route initializes the reader open without an effect-ti
 
 test('Atlas four-room navigation exposes the eight core views and keeps Qur’an as a protected specialist route', () => {
   const shell = read('client/src/components/AppShell.tsx');
+  const navigation = read('client/src/shell/navigation.ts');
   const app = read('client/src/App.tsx');
   const quranPage = read('client/src/pages/QuranPage.tsx');
   const reader = read('client/src/components/QuranMushafReader.tsx');
-  assert.match(shell, /label: 'Residence'/);
-  assert.match(shell, /label: 'Daily Rhythm'/);
-  assert.match(shell, /label: 'Execution & Focus'/);
-  assert.match(shell, /label: 'Growth & Direction'/);
-  assert.match(shell, /label: 'Faith & Practice'/);
-  assert.match(shell, /label: 'Habits & Self-Control'/);
-  assert.match(shell, /label: 'Projects & Tasks'/);
-  assert.match(shell, /label: 'Goals & Milestones'/);
-  assert.match(shell, /label: 'Learning & Library'/);
+  assert.match(navigation, /label: 'Residence'/);
+  assert.match(navigation, /label: 'Daily Rhythm'/);
+  assert.match(navigation, /label: 'Execution & Focus'/);
+  assert.match(navigation, /label: 'Growth & Direction'/);
+  assert.match(navigation, /label: 'Faith & Practice'/);
+  assert.match(navigation, /label: 'Habits & Self-Control'/);
+  assert.match(navigation, /label: 'Projects & Tasks'/);
+  assert.match(navigation, /label: 'Goals & Milestones'/);
+  assert.match(navigation, /label: 'Learning & Library'/);
   assert.match(shell, /label: 'Reviews & Insights'/);
   assert.match(shell, /location\.pathname === '\/quran' \? \[\] :/);
   assert.match(shell, /to="\/quran"/);
@@ -413,6 +416,7 @@ test('Atlas four-room navigation exposes the eight core views and keeps Qur’an
 test('Residence is a direction-led Home, Life Blueprint is data-backed, and the previous daily dashboard remains available', () => {
   const app = read('client/src/App.tsx');
   const shell = read('client/src/components/AppShell.tsx');
+  const navigation = read('client/src/shell/navigation.ts');
   const home = read('client/src/pages/AtlasHomePage.tsx');
   const blueprint = read('client/src/pages/BlueprintPage.tsx');
   assert.ok(app.includes('path="/residence" element={<SuspendedPage><AtlasHomePage /></SuspendedPage>}'));
@@ -430,7 +434,7 @@ test('Residence is a direction-led Home, Life Blueprint is data-backed, and the 
   assert.match(blueprint, /linked_tasks/);
   assert.match(blueprint, /completed_tasks/);
   assert.match(blueprint, /Ready for its first connected action/);
-  assert.match(shell, /label: 'Life Blueprint'/);
+  assert.match(navigation, /label: 'Life Blueprint'/);
   assert.match(shell, /label: 'Daily Check-in'/);
 });
 
