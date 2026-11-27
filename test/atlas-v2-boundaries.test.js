@@ -19,5 +19,9 @@ test('Qur\'an reader files and global legacy stylesheet remain unchanged by v2 s
   const styles = read('client/src/styles.css');
   assert.match(main, /import '\.\/styles\.css';/);
   assert.doesNotMatch(main, /import '\.\/design\/(?:shell|pages\/.*)\.css';/);
+  const shellComponent = read('client/src/components/AtlasV2Shell.tsx');
+  const shellStyles = read('client/src/design/shell.css');
+  assert.match(shellComponent, /import '..\/design\/shell\.css';/);
+  assert.match(shellStyles, /\.a-shell/);
   assert.ok(styles.includes('.quran') || styles.includes('quran'));
 });
