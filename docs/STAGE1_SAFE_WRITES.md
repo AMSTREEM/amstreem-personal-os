@@ -13,7 +13,7 @@ On a version conflict the API reloads the latest snapshot and replays the reques
 
 ## Idempotency
 
-The frontend API helper adds a unique `Idempotency-Key` to every non-GET request. A caller that retries the exact same operation must pass the original key in `init.headers`; generating a new key represents a new operation. The database stores the request hash and committed version for 30 days. Reusing a key with a different request body is rejected.
+A small transport wrapper adds a unique `Idempotency-Key` to mutating Atlas API requests while leaving the frozen shared API client and Qur’an API routes untouched. A caller that retries the exact same operation must pass the original key in its request headers; generating a new key represents a new operation. The database stores the request hash and committed version for 30 days. Reusing a key with a different request body is rejected.
 
 ## History and restore
 

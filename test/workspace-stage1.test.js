@@ -51,9 +51,12 @@ test('Stage 1 uses atomic versioned RPC commits and protects failed mutations', 
 });
 
 test('Stage 1 migration contains account-scoped CAS, history retention and idempotency', () => {
-  const api = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'lib', 'api.ts'), 'utf8');
-  assert.match(api, /Idempotency-Key/);
-  assert.match(api, /crypto\.randomUUID\(\)/);
+  const transport = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'lib', 'idempotency.ts'), 'utf8');
+  const main = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'main.tsx'), 'utf8');
+  assert.match(transport, /Idempotency-Key/);
+  assert.match(transport, /crypto\.randomUUID\(\)/);
+  assert.match(transport, /api\/quran/);
+  assert.match(main, /installApiIdempotency/);
   const migration = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations', '20261127110000_atlas_stage1_versioned_workspace_writes.sql'), 'utf8');
   assert.match(migration, /pg_advisory_xact_lock/);
   assert.match(migration, /version = p_expected_version/);

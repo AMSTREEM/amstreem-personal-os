@@ -5,6 +5,7 @@ const path = require('node:path');
 
 const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
 const workflow = fs.readFileSync(path.join(__dirname, '..', '.github', 'workflows', 'test.yml'), 'utf8');
+const atlasWorkflow = fs.readFileSync(path.join(__dirname, '..', '.github', 'workflows', 'atlas-checks.yml'), 'utf8');
 const render = fs.readFileSync(path.join(__dirname, '..', 'render.yaml'), 'utf8');
 
 test('HTTP server shuts down gracefully on SIGTERM and SIGINT', () => {
@@ -42,8 +43,11 @@ test('staging startup fails closed without its own Supabase credentials or when 
 
 test('Stage 0 CI fetches the base history and blocks protected Qur’an reader changes', () => {
   assert.match(workflow, /fetch-depth: 0/);
-  assert.match(workflow, /github\.head_ref == 'atlas-v2-implementation'/);
-  assert.match(workflow, /git diff --name-only/);
-  assert.match(workflow, /quran\|tajweed/i);
-  assert.match(workflow, /fonts\//);
+  assert.match(workflow, /check:boundaries/);
+  assert.match(atlasWorkflow, /check:frozen/);
+  assert.match(atlasWorkflow, /check-contrast/);
+  assert.match(atlasWorkflow, /npm run build/);
+  const lock = fs.readFileSync(path.join(__dirname, '..', 'FROZEN.lock.json'), 'utf8');
+  assert.match(lock, /QuranMushafReader/);
+  assert.match(lock, /quranSurahs/);
 });

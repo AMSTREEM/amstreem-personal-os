@@ -36,7 +36,7 @@ test('production installs dependencies, builds the frontend, and CI audits all d
   assert.match(workflow, /npm install/);
   assert.match(workflow, /npm audit/);
   assert.match(render, /buildCommand: npm install --include=dev && npm run build/);
-  assert.match(render, /healthCheckPath: \/healthz/);
+  assert.match(render, /healthCheckPath: \/readyz/);
   const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
   assert.ok(pkg.dependencies.vite, 'Vite must be available when Render installs production dependencies');
 });
@@ -123,7 +123,9 @@ test('Room 3 records focus completion once and derives linked work metrics from 
   const goals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'GoalsPage.tsx'), 'utf8');
   assert.match(server, /session_key TEXT UNIQUE/);
   assert.match(server, /INSERT OR IGNORE INTO sessions/);
-  assert.match(server, /if\(insert\.changes\)awardXp\('session:'/);
+  assert.match(server, /appendAtlasEvent/);
+  assert.match(server, /focus\.ended/);
+  assert.match(server, /commit_workspace_with_events/);
   assert.doesNotMatch(server, /Link a focus session to either a task or a learning lesson, not both/);
   assert.match(server, /AS focus_minutes/);
   assert.match(server, /progress_pct:\s*p\.task_count\s*\?/);

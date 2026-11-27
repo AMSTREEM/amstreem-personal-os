@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './auth/AuthProvider';
 import { MotionConfig } from 'motion/react';
 import { App } from './App';
+import { installApiIdempotency } from './lib/idempotency';
 import '@fontsource-variable/geist/wght.css';
 import '@fontsource-variable/geist-mono/wght.css';
 import '@fontsource-variable/fraunces';
@@ -17,6 +18,8 @@ import './design/containment.css';
 import './design/shadcn-map.css';
 import './design/fx.css';
 import './design/components.css';
+
+installApiIdempotency();
 
 const queryClient = new QueryClient({
   defaultOptions: {
