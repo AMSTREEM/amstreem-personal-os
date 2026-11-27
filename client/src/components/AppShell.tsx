@@ -14,7 +14,6 @@ import { playAtlasFeedback } from '../lib/microFeedback';
 import { useFocusTimer, updateFocusTimer } from '../lib/focusTimerStore';
 import { OdometerNumber } from './fx/OdometerNumber';
 import { SparkBurst } from './fx/SparkBurst';
-import '../styles/atlas-renaissance.css';
 
 const MotionNavLink = motion.create(NavLink);
 
@@ -263,7 +262,7 @@ export function AppShell() {
         <EntrancePresetContext.Provider value={entrancePreset}>
           <motion.div
             key={location.pathname}
-            className="room-view-transition"
+            className={"room-view-transition " + (location.pathname === '/residence' ? 'a-route-v2' : '')}
             initial={false}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0 }}
