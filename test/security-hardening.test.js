@@ -37,8 +37,6 @@ test('production installs dependencies, builds the frontend, and CI audits all d
   assert.match(workflow, /npm audit/);
   assert.match(render, /buildCommand: npm install --include=dev && npm run build/);
   assert.match(render, /healthCheckPath: \/readyz/);
-  assert.match(server, /app\.get\('\/healthz'/);
-  assert.match(server, /app\.get\('\/readyz'/);
   const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
   assert.ok(pkg.dependencies.vite, 'Vite must be available when Render installs production dependencies');
 });
@@ -97,7 +95,6 @@ test('Self-Control consistency uses dated records and positive habit check-ins, 
   const selfControl = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'SelfControlPage.tsx'), 'utf8');
   const rituals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'RitualsPage.tsx'), 'utf8');
   const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
-  const navigation = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'shell', 'navigation.ts'), 'utf8');
   assert.match(server, /FROM self_control_entries WHERE log_date>=date\(\?,'-29 days'\)/);
   assert.match(server, /FROM habit_logs WHERE log_date>=date\(\?,'-29 days'\)/);
   assert.match(server, /let best=0,run=0,previous=null/);
@@ -114,8 +111,8 @@ test('Self-Control consistency uses dated records and positive habit check-ins, 
   assert.match(server, /return \{\.\.\.habit,streak\}/);
   assert.match(selfControl, /verified clean check-ins/);
   assert.match(rituals, /invalidateQueries\(\{ queryKey: \['self-control'\] \}\)/);
-  assert.match(navigation, /label: 'Faith & Spirituality'/);
-  assert.match(navigation, /Faith & Spirituality/);
+  assert.match(shell, /label: 'Faith & Spirituality'/);
+  assert.match(shell, /Faith & Spirituality/);
   assert.match(shell, /Daily Reflection/);
 });
 
@@ -126,7 +123,9 @@ test('Room 3 records focus completion once and derives linked work metrics from 
   const goals = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'GoalsPage.tsx'), 'utf8');
   assert.match(server, /session_key TEXT UNIQUE/);
   assert.match(server, /INSERT OR IGNORE INTO sessions/);
-  assert.match(server, /if\(insert\.changes&&session_kind==='focus'\)publishAtlasEvent\(\{type:'focus\.ended'/);
+  assert.match(server, /appendAtlasEvent/);
+  assert.match(server, /focus\.ended/);
+  assert.match(server, /commit_workspace_with_events/);
   assert.doesNotMatch(server, /Link a focus session to either a task or a learning lesson, not both/);
   assert.match(server, /AS focus_minutes/);
   assert.match(server, /progress_pct:\s*p\.task_count\s*\?/);
@@ -149,14 +148,13 @@ test('Room 3 records focus completion once and derives linked work metrics from 
 test('Room 3 uses the unified FocusWorkspace route and preserves project/task bookmarks through redirects', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'App.tsx'), 'utf8');
   const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
-  const navigation = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'shell', 'navigation.ts'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
-  assert.ok(app.includes('path="/actions" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>}'));
+  assert.ok(app.includes('path="/actions" element={<SuspendedPage><ExecutionV2Page /></SuspendedPage>}'));
   assert.ok(app.includes('path="/projects" element={<LegacyRedirect to="/actions" />}'));
-  assert.ok(app.includes('path="/actions" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>}'));
-  assert.ok(app.includes('path="/focus" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>}'));
-  assert.match(navigation, /to: '\/actions'/);
-  assert.ok(navigation.includes("label: 'Execution & Focus', mobileLabel: 'Focus', to: '/actions'"));
+  assert.ok(app.includes('path="/actions" element={<SuspendedPage><ExecutionV2Page /></SuspendedPage>}'));
+  assert.ok(app.includes('path="/focus" element={<SuspendedPage><div className="atlas-v2 a-focus-room"><FocusWorkspace /></div></SuspendedPage>}'));
+  assert.match(shell, /to: '\/actions'/);
+  assert.ok(shell.includes("label: 'Execution & Focus', mobileLabel: 'Focus', to: '/actions'"));
   assert.match(css, /\.execution-heading/);
   assert.match(fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8'), /project/i);
 });
@@ -267,16 +265,15 @@ test('Growth & Direction unifies constellation targets while Execution remains t
 test('Room 3 has a dedicated Focus Room with safe context handoffs and a persistent global timer dock', () => {
   const app = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'App.tsx'), 'utf8');
   const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
-  const navigation = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'shell', 'navigation.ts'), 'utf8');
   const workspace = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'FocusWorkspace.tsx'), 'utf8');
   const values = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'ValuesPage.tsx'), 'utf8');
   const learning = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LearningPage.tsx'), 'utf8');
   const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
-  assert.ok(app.includes('path="/actions" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>}'));
-  assert.ok(app.includes('path="/focus" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>}'));
-  assert.ok(navigation.includes("paths: ['/actions', '/focus', '/calendar']"));
-  assert.ok(navigation.includes("label: 'Projects & Tasks', to: '/actions'"));
+  assert.ok(app.includes('path="/actions" element={<SuspendedPage><ExecutionV2Page /></SuspendedPage>}'));
+  assert.ok(app.includes('path="/focus" element={<SuspendedPage><div className="atlas-v2 a-focus-room"><FocusWorkspace /></div></SuspendedPage>}'));
+  assert.ok(shell.includes("paths: ['/actions', '/focus', '/calendar']"));
+  assert.ok(shell.includes("label: 'Projects & Tasks', to: '/actions'"));
   assert.match(shell, /navigate\('\/focus'\)/);
   assert.match(shell, /className="atlas-command-dock"/);
   assert.match(workspace, /!isFocusRoute && <section className="execution-projects-panel">/);

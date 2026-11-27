@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, ArrowUpRight, CalendarDays, Check, Circle, Clock3, Plus, Sparkles, Target, Timer, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { api, json } from '../lib/api';
+import { queryKeys } from '../lib/queryKeys';
 import './atlas-home.css';
 
 type HomeTask = {
@@ -73,23 +74,23 @@ export function AtlasHomePage() {
     return () => window.clearInterval(interval);
   }, []);
 
-  const tasksQuery = useQuery({ queryKey: ['tasks'], queryFn: () => api<HomeTask[]>('/tasks') });
-  const goalsQuery = useQuery({ queryKey: ['goals'], queryFn: () => api<HomeGoal[]>('/goals') });
-  const sessionsQuery = useQuery({ queryKey: ['sessions'], queryFn: () => api<FocusSession[]>('/sessions') });
+  const tasksQuery = useQuery({ queryKey: queryKeys.tasks, queryFn: () => api<HomeTask[]>('/tasks') });
+  const goalsQuery = useQuery({ queryKey: queryKeys.goals, queryFn: () => api<HomeGoal[]>('/goals') });
+  const sessionsQuery = useQuery({ queryKey: queryKeys.sessions, queryFn: () => api<FocusSession[]>('/sessions') });
 
   const addTask = useMutation({
     mutationFn: (title: string) => api<HomeTask>('/tasks', json('POST', { title, category: 'Personal' })),
     onSuccess: () => {
       setCaptureTitle('');
-      void queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      void queryClient.invalidateQueries({ queryKey: ['overview'] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tasks });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.overview });
     }
   });
   const toggleTask = useMutation({
     mutationFn: (task: HomeTask) => api<HomeTask>('/tasks/' + task.id, json('PATCH', { done: !task.done })),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      void queryClient.invalidateQueries({ queryKey: ['overview'] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tasks });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.overview });
     }
   });
 

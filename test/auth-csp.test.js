@@ -12,6 +12,9 @@ test('theme initialization is an external same-origin script under strict script
   assert.doesNotMatch(html, /<script>\s*\(function\s*\(\)/);
   assert.match(theme, /localStorage\.getItem\('atlas_theme'\)/);
   assert.match(theme, /document\.documentElement/);
+  for (const legacy of ['abyssal-trench', 'whispering-woods', 'crimson-velvet', 'light-sage', 'light-lavender', 'light-sky']) {
+    assert.ok(theme.includes(`'${legacy}'`), `missing v2 theme mapping for ${legacy}`);
+  }
 });
 
 test('invalid Supabase refresh tokens clear only the current browser session', () => {

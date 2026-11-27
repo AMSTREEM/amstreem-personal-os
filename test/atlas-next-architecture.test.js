@@ -49,17 +49,15 @@ test('project, task, calendar, focus and review records can be linked', () => {
 
 test('six primary destinations and personal life areas shape the Atlas workspace', () => {
   const shell = read('client/src/components/AppShell.tsx');
-  const navigation = read('client/src/shell/navigation.ts');
   const settings = read('client/src/pages/SettingsPage.tsx');
   const server = read('server.js');
   for (const destination of ['Residence', 'Daily Rhythm', 'Execution & Focus', 'Growth & Direction']) {
-    assert.ok(navigation.includes("label: '" + destination + "'"), 'Missing room ' + destination);
+    assert.ok(shell.includes("label: '" + destination + "'"), 'Missing room ' + destination);
   }
-  assert.match(navigation, /const rooms: AtlasRoom\[\] = \[/);
-  assert.match(shell, /from '\.\.\/shell\/navigation'/);
+  assert.match(shell, /const rooms = \[/);
   assert.match(shell, /\^\[1-4\]\$/);
   for (const view of ['Faith & Practice', 'Habits & Self-Control', 'Projects & Tasks', 'Calendar', 'Goals & Milestones', 'Learning & Library', 'Reviews & Insights']) {
-    assert.ok(navigation.includes("label: '" + view + "'"), 'Missing room view ' + view);
+    assert.ok(shell.includes("label: '" + view + "'"), 'Missing room view ' + view);
   }
   assert.match(shell, /const activeTabs = location\.pathname === '\/quran' \? \[\] : \(current\?\.tabs \|\| \[\]\)/);
   assert.match(shell, /rooms\.map\(item =>/);
@@ -374,7 +372,8 @@ test('Qur’an is a standalone workspace and no longer renders inside Deen', () 
   assert.doesNotMatch(values, /QuranMushafReader|openMushaf/);
   assert.match(quran, /QuranMushafReader/);
   assert.match(quran, /autoOpen/);
-  assert.ok(app.includes('path="/quran" element={<QuranPage />}'));
+  assert.ok(app.includes('path="/quran" element={<AppShell />}'));
+  assert.match(app, /<Route index element={<QuranPage \/>} \/>/);
   assert.match(shell, /to="\/quran"/);
   assert.match(shell, /PERSONAL TOOLS/);
   assert.ok(!shell.includes('/values?openMushaf=1'));
@@ -391,51 +390,50 @@ test('standalone Qur’an route initializes the reader open without an effect-ti
 
 test('Atlas four-room navigation exposes the eight core views and keeps Qur’an as a protected specialist route', () => {
   const shell = read('client/src/components/AppShell.tsx');
-  const navigation = read('client/src/shell/navigation.ts');
   const app = read('client/src/App.tsx');
   const quranPage = read('client/src/pages/QuranPage.tsx');
   const reader = read('client/src/components/QuranMushafReader.tsx');
-  assert.match(navigation, /label: 'Residence'/);
-  assert.match(navigation, /label: 'Daily Rhythm'/);
-  assert.match(navigation, /label: 'Execution & Focus'/);
-  assert.match(navigation, /label: 'Growth & Direction'/);
-  assert.match(navigation, /label: 'Faith & Practice'/);
-  assert.match(navigation, /label: 'Habits & Self-Control'/);
-  assert.match(navigation, /label: 'Projects & Tasks'/);
-  assert.match(navigation, /label: 'Goals & Milestones'/);
-  assert.match(navigation, /label: 'Learning & Library'/);
-  assert.match(navigation, /label: 'Reviews & Insights'/);
+  assert.match(shell, /label: 'Residence'/);
+  assert.match(shell, /label: 'Daily Rhythm'/);
+  assert.match(shell, /label: 'Execution & Focus'/);
+  assert.match(shell, /label: 'Growth & Direction'/);
+  assert.match(shell, /label: 'Faith & Practice'/);
+  assert.match(shell, /label: 'Habits & Self-Control'/);
+  assert.match(shell, /label: 'Projects & Tasks'/);
+  assert.match(shell, /label: 'Goals & Milestones'/);
+  assert.match(shell, /label: 'Learning & Library'/);
+  assert.match(shell, /label: 'Reviews & Insights'/);
   assert.match(shell, /location\.pathname === '\/quran' \? \[\] :/);
   assert.match(shell, /to="\/quran"/);
-  assert.match(app, /path="\/quran" element={<QuranPage \/>}/);
+  assert.match(app, /path="\/quran" element={<AppShell \/>}/);
+  assert.match(app, /<Route index element={<QuranPage \/>} \/>/);
   assert.match(quranPage, /<QuranMushafReader/);
   assert.match(reader, /UthmanicHafs|tajweed|Tajweed/);
 });
 
 
-test('Residence is a direction-led Home, Life Blueprint is data-backed, and the previous daily dashboard remains available', () => {
+test('Residence is a clean-slate direction-led Home, Life Blueprint is data-backed, and Daily Rhythm remains its own workspace', () => {
   const app = read('client/src/App.tsx');
-  const shell = read('client/src/components/AppShell.tsx');
-  const navigation = read('client/src/shell/navigation.ts');
-  const home = read('client/src/pages/AtlasHomePage.tsx');
+  const shell = read('client/src/components/AtlasV2Shell.tsx');
+  const home = read('client/src/pages/ResidenceV2Page.tsx');
   const blueprint = read('client/src/pages/BlueprintPage.tsx');
-  assert.ok(app.includes('path="/residence" element={<SuspendedPage><AtlasHomePage /></SuspendedPage>}'));
+  assert.ok(app.includes('path="/residence" element={<SuspendedPage><ResidenceV2Page /></SuspendedPage>}'));
   assert.ok(app.includes('path="/blueprint" element={<SuspendedPage><BlueprintPage /></SuspendedPage>}'));
-  assert.ok(app.includes('path="/daily-rhythm" element={<SuspendedPage><TodayPage /></SuspendedPage>}'));
-  assert.ok(home.includes("api<HomeTask[]>('/tasks')"));
-  assert.ok(home.includes("api<HomeGoal[]>('/goals')"));
-  assert.ok(home.includes("api<FocusSession[]>('/sessions')"));
-  assert.match(home, /Your open loops/);
+  assert.ok(app.includes('path="/daily-rhythm" element={<SuspendedPage><DailyRhythmV2Page /></SuspendedPage>}'));
+  assert.ok(home.includes("api<Task[]>('/tasks')"));
+  assert.ok(home.includes("api<Goal[]>('/goals')"));
+  assert.ok(home.includes("api<Session[]>('/sessions')"));
+  assert.match(home, /Make room for what matters/);
   assert.match(home, /What you're building/);
-  assert.match(home, /All clear for now/);
-  assert.match(home, /atlas-dashboard__hero/);
-  assert.match(home, /atlas-dashboard__signals/);
+  assert.match(home, /What deserves your attention/);
+  assert.match(home, /a-residence__focus/);
+  assert.match(home, /a-residence__signals/);
   assert.ok(blueprint.includes("api<BlueprintGoal[]>('/goals')"));
   assert.match(blueprint, /linked_tasks/);
   assert.match(blueprint, /completed_tasks/);
   assert.match(blueprint, /Ready for its first connected action/);
-  assert.match(navigation, /label: 'Life Blueprint'/);
-  assert.match(navigation, /label: 'Daily Check-in'/);
+  assert.match(shell, /label: 'Life blueprint'/);
+  assert.match(shell, /label: 'Today'/);
 });
 
 
@@ -459,11 +457,12 @@ test('personal intelligence suggestions are actionable, feedback-aware, and coun
 
 test('route-level code splitting keeps the specialist Qur’an route statically loaded', () => {
   const app = read('client/src/App.tsx');
-  assert.match(app, /const AtlasHomePage = lazy\(\(\) => import\('\.\/pages\/AtlasHomePage'\)/);
+  assert.match(app, /const ResidenceV2Page = lazy\(\(\) => import\('\.\/pages\/ResidenceV2Page'\)/);
   assert.match(app, /const FocusWorkspace = lazy\(\(\) => import\('\.\/components\/FocusWorkspace'\)/);
   assert.match(app, /function SuspendedPage/);
   assert.match(app, /import \{ QuranPage \} from '\.\/pages\/QuranPage'/);
-  assert.ok(app.includes('path="/quran" element={<QuranPage />}'));
+  assert.ok(app.includes('path="/quran" element={<AppShell />}'));
+  assert.match(app, /<Route index element={<QuranPage \/>} \/>/);
   assert.ok(!app.includes('lazy(() => import(\'./pages/QuranPage\')'));
 });
 
@@ -515,9 +514,8 @@ test('Vite keeps heavyweight vendor libraries in stable cacheable chunks', () =>
 
 test('Qur’an remains a one-tap independent mobile destination outside the four room hierarchy', () => {
   const shell = read('client/src/components/AppShell.tsx');
-  const navigation = read('client/src/shell/navigation.ts');
   const css = read('client/src/styles/atlas-rooms.css');
-  assert.ok(navigation.includes("paths: ['/daily-rhythm', '/values', '/habits']"));
+  assert.ok(shell.includes("paths: ['/daily-rhythm', '/values', '/habits']"));
   assert.ok(shell.includes('to="/quran"'));
   assert.ok(shell.includes('atlas-mobile-dock__quran'));
   assert.ok(shell.includes("location.pathname === '/quran' ? 'is-active' : ''"));

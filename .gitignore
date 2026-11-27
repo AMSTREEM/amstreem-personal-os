@@ -10,3 +10,8 @@ data/
 *.db-wal
 
 dist/
+
+# Local-only authenticated browser state for baseline screenshots
+e2e/.auth/
+playwright-report/
+test-results/

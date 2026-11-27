@@ -1,0 +1,39 @@
+@property --a-room { syntax: '<color>'; inherits: true; initial-value: oklch(0.80 0.15 80); }
+@property --a-room-soft { syntax: '<color>'; inherits: true; initial-value: oklch(0.30 0.06 80); }
+
+:root {
+  --a-space-1: 4px; --a-space-2: 8px; --a-space-3: 12px; --a-space-4: 16px;
+  --a-space-5: 20px; --a-space-6: 24px; --a-space-8: 32px; --a-space-10: 40px; --a-space-12: 48px;
+  --a-radius-sm: 8px; --a-radius-md: 12px; --a-radius-lg: 16px; --a-radius-xl: 24px; --a-radius-full: 999px;
+  --a-rail-w: 264px; --a-rail-w-collapsed: 72px; --a-topbar-h: 56px; --a-subnav-h: 44px; --a-bottombar-h: 64px;
+  --a-content-max: 1280px; --a-gutter: 16px;
+  --a-safe-top: env(safe-area-inset-top, 0px); --a-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --a-z-base: 0; --a-z-sticky: 20; --a-z-rail: 30; --a-z-topbar: 40; --a-z-sheet: 60; --a-z-dialog: 70; --a-z-palette: 80; --a-z-toast: 90;
+  --a-dur-instant: 90ms; --a-dur-fast: 150ms; --a-dur-base: 220ms; --a-dur-slow: 360ms; --a-dur-page: 300ms;
+  --a-ease-standard: cubic-bezier(0.2, 0, 0, 1); --a-ease-decel: cubic-bezier(0.05, 0.7, 0.1, 1); --a-ease-accel: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --a-focus: 0 0 0 2px var(--a-bg), 0 0 0 4px var(--a-room);
+  --a-room-h: 80; --a-room-l: 0.80; --a-room-c: 0.15;
+  --a-room: oklch(var(--a-room-l) var(--a-room-c) var(--a-room-h));
+  --a-room-soft: oklch(0.30 0.06 var(--a-room-h)); --a-room-ink: oklch(0.18 0.02 var(--a-room-h));
+  transition: --a-room var(--a-dur-slow) var(--a-ease-standard), --a-room-soft var(--a-dur-slow) var(--a-ease-standard);
+}
+ html[data-room='residence'] { --a-room-h: 80; }
+ html[data-room='rhythm'] { --a-room-h: 170; }
+ html[data-room='execute'] { --a-room-h: 255; }
+ html[data-room='growth'] { --a-room-h: 310; }
+ html[data-room='none'] { --a-room-h: 265; --a-room-c: 0.04; }
+@media (pointer: coarse) { .atlas-v2 :where(input, select, textarea) { font-size: 16px; } }
+@media (prefers-reduced-motion: reduce) {
+  :root { --a-dur-fast: 1ms; --a-dur-base: 1ms; --a-dur-slow: 1ms; --a-dur-page: 1ms; transition: none; }
+}
+@theme inline {
+  --color-atlas-bg: var(--a-bg); --color-atlas-surface-1: var(--a-surface-1); --color-atlas-surface-2: var(--a-surface-2); --color-atlas-surface-3: var(--a-surface-3);
+  --color-atlas-line: var(--a-line); --color-atlas-line-strong: var(--a-line-strong); --color-atlas-text: var(--a-text); --color-atlas-muted: var(--a-text-muted); --color-atlas-faint: var(--a-text-faint);
+  --color-atlas-success: var(--a-success); --color-atlas-warning: var(--a-warning); --color-atlas-danger: var(--a-danger); --color-atlas-info: var(--a-info);
+  --color-room: var(--a-room); --color-room-soft: var(--a-room-soft); --color-room-ink: var(--a-room-ink);
+  --font-atlas-sans: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-atlas-display: 'Fraunces Variable', ui-serif, Georgia, serif;
+  --font-atlas-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --radius-a-sm: 8px; --radius-a-md: 12px; --radius-a-lg: 16px; --radius-a-xl: 24px;
+  --shadow-a-1: var(--a-shadow-1); --shadow-a-2: var(--a-shadow-2); --shadow-a-3: var(--a-shadow-3);
+}

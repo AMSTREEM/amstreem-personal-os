@@ -1,0 +1,11 @@
+.atlas-v2 {
+  --background: var(--a-bg); --foreground: var(--a-text);
+  --card: var(--a-surface-1); --card-foreground: var(--a-text);
+  --popover: var(--a-surface-2); --popover-foreground: var(--a-text);
+  --primary: var(--a-room); --primary-foreground: var(--a-room-ink);
+  --secondary: var(--a-surface-2); --secondary-foreground: var(--a-text);
+  --muted: var(--a-surface-2); --muted-foreground: var(--a-text-muted);
+  --accent: var(--a-room-soft); --accent-foreground: var(--a-text);
+  --destructive: var(--a-danger); --border: var(--a-line);
+  --input: var(--a-line-strong); --ring: var(--a-room); --radius: 12px;
+}

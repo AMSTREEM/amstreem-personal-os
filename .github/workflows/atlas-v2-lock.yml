@@ -1,0 +1,37 @@
+name: Atlas v2 font lockfile sync
+
+on:
+  push:
+    branches: [atlas-v2]
+    paths:
+      - package.json
+
+permissions:
+  contents: write
+
+jobs:
+  sync-lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: atlas-v2
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Update package lock without running install scripts
+        run: npm install --package-lock-only --ignore-scripts
+      - name: Commit lockfile if it changed
+        run: |
+          if git diff --quiet -- package-lock.json; then
+            echo "package-lock.json is already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "chore(atlas-v2): sync Fontsource lockfile"
+          git fetch origin atlas-v2
+          git rebase origin/atlas-v2
+          git push origin HEAD:atlas-v2

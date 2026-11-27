@@ -4,8 +4,9 @@ import type { FormEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, json } from '../lib/api';
-import { ArrowRight, BookOpen, Check, Compass, LogOut, Pause, Play, Plus, Search, Settings, SlidersHorizontal, Timer, X, Zap } from 'lucide-react';
-import { commandDestinations, rooms } from '../shell/navigation';
+import { getAtlasRouteMeta } from '../app/routes';
+import { queryKeys } from '../lib/queryKeys';
+import { ArrowRight, BookOpen, CalendarDays, Check, Compass, GraduationCap, Heart, House, ListChecks, LogOut, MoonStar, Pause, Play, Plus, Search, Settings, SlidersHorizontal, Target, Timer, TrendingUp, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
 import { MobileInstallPrompt } from './MobileInstallPrompt';
@@ -13,15 +14,56 @@ import { EntrancePresetContext, useEntrancePreset } from './EntranceMotion';
 import { playAtlasFeedback } from '../lib/microFeedback';
 import { useFocusTimer, updateFocusTimer } from '../lib/focusTimerStore';
 import { OdometerNumber } from './fx/OdometerNumber';
-import { PortalTransition, setPortalOrigin } from './fx/PortalTransition';
 import { SparkBurst } from './fx/SparkBurst';
-import { EnergyVortex } from './fx/AtlasEngines';
-import { CursorAura } from './fx/CursorAura';
-import { MagneticButton } from './fx/MagneticButton';
-import { useSpotlightGrid } from './fx/useSpotlightGrid';
-import '../styles/atlas-renaissance.css';
 
 const MotionNavLink = motion.create(NavLink);
+
+const rooms = [
+  {
+    id: 'residence', label: 'Residence', mobileLabel: 'Home', to: '/residence', icon: House,
+    paths: ['/residence', '/blueprint'],
+    tabs: [
+      { label: 'Home', to: '/residence', paths: ['/residence'] },
+      { label: 'Life Blueprint', to: '/blueprint', paths: ['/blueprint'] }
+    ]
+  },
+  {
+    id: 'rhythm', label: 'Daily Rhythm', mobileLabel: 'Rhythm', to: '/daily-rhythm', icon: MoonStar,
+    paths: ['/daily-rhythm', '/values', '/habits'],
+    tabs: [
+      { label: 'Daily Check-in', to: '/daily-rhythm', paths: ['/daily-rhythm'] },
+      { label: 'Faith & Practice', to: '/values', paths: ['/values'] },
+      { label: 'Habits & Self-Control', to: '/habits', paths: ['/habits'] }
+    ]
+  },
+  {
+    id: 'execution', label: 'Execution & Focus', mobileLabel: 'Focus', to: '/actions', icon: ListChecks,
+    paths: ['/actions', '/focus', '/calendar'],
+    tabs: [
+      { label: 'Projects & Tasks', to: '/actions', paths: ['/actions', '/focus'] },
+      { label: 'Calendar', to: '/calendar', paths: ['/calendar'] }
+    ]
+  },
+  {
+    id: 'growth', label: 'Growth & Direction', mobileLabel: 'Growth', to: '/goals', icon: TrendingUp,
+    paths: ['/goals', '/learning-library', '/growth'],
+    tabs: [
+      { label: 'Goals & Milestones', to: '/goals', paths: ['/goals'] },
+      { label: 'Learning & Library', to: '/learning-library', paths: ['/learning-library'] },
+      { label: 'Reviews & Insights', to: '/growth', paths: ['/growth'] }
+    ]
+  }
+];
+
+const commandDestinations = [
+  { label: 'Life Blueprint', detail: 'See the outcomes and life areas you are building towards', to: '/blueprint', icon: Compass },
+  { label: 'Daily Check-in', detail: 'Return to today’s practices, habits and priorities', to: '/daily-rhythm', icon: Check },
+  { label: 'Faith & Spirituality', detail: 'Daily practice and spiritual reflection', to: '/values', icon: MoonStar },
+  { label: 'Habits & Self-Control', detail: 'Build routines and personal commitments', to: '/habits', icon: Heart },
+  { label: 'Education & Learning', detail: 'Learning paths, lessons and private library', to: '/learning-library', icon: GraduationCap },
+  { label: 'Projects & Milestones', detail: 'Connect meaningful work to your goals', to: '/goals', icon: Target },
+  { label: 'Reviews & Insights', detail: 'Reflect on evidence and patterns over time', to: '/growth', icon: TrendingUp }
+];
 
 type QuickPrayer = { prayer: string; completed: number; on_time: number };
 type QuickDeen = { prayers: QuickPrayer[] };
@@ -39,9 +81,7 @@ export function AppShell() {
     document.addEventListener('change', celebrate, true);
     return () => document.removeEventListener('change', celebrate, true);
   }, []);
-  const workspaceRef = useRef<HTMLDivElement>(null);
   const bootContentRef = useRef<HTMLDivElement>(null);
-  useSpotlightGrid(workspaceRef);
 
   const navigate = useNavigate();
   const { user, role, signOut, session, completeOnboarding } = useAuth();
@@ -67,7 +107,7 @@ export function AppShell() {
   }, [session?.user.id, session?.user.user_metadata?.onboarding_completed, user?.id]);
   const closeTour = useCallback(() => {
     setTourOpen(false);
-    void queryClient.invalidateQueries({ queryKey: ['settings'] });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.settings });
     if (!session?.user.id) return;
     localStorage.setItem(`atlas-tour-complete:${session.user.id}`, 'true');
     void completeOnboarding().catch(error => console.error('Could not save Atlas onboarding completion:', error));
@@ -83,7 +123,7 @@ export function AppShell() {
       const typing = !!el && (el.isContentEditable || ['INPUT','TEXTAREA','SELECT'].includes(el.tagName));
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setCommandOpen(v => !v); setCommandQuery(''); return; }
       if (event.key === 'Escape') { setCommandOpen(false); return; }
-      if (!typing && (event.metaKey || event.ctrlKey) && !event.altKey && /^[1-4]$/.test(event.key)) { event.preventDefault(); setPortalOrigin(window.innerWidth/2,window.innerHeight/2); navigate(paths[Number(event.key)-1]); }
+      if (!typing && (event.metaKey || event.ctrlKey) && !event.altKey && /^[1-4]$/.test(event.key)) { event.preventDefault(); navigate(paths[Number(event.key)-1], { viewTransition: !isQuranRoute }); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -102,7 +142,7 @@ export function AppShell() {
     try {
       await api('/tasks', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({title:quickTaskTitle.trim(),category:'Personal'}) });
       setQuickTaskTitle(''); setCommandOpen(false);
-      void queryClient.invalidateQueries({queryKey:['tasks']}); void queryClient.invalidateQueries({queryKey:['overview']});
+      void queryClient.invalidateQueries({queryKey: queryKeys.tasks}); void queryClient.invalidateQueries({queryKey: queryKeys.overview});
     } catch (error) { setQuickTaskError(error instanceof Error ? error.message : 'Could not save task.'); }
     finally { setQuickTaskSaving(false); }
   }
@@ -112,25 +152,33 @@ export function AppShell() {
   ].filter(item => (item.label+' '+item.detail).toLowerCase().includes(commandQuery.toLowerCase())),[commandQuery]);
   const location = useLocation();
   const entrancePreset = useEntrancePreset(location.pathname);
-  const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Record<string, string>>('/settings') });
+  const settings = useQuery({ queryKey: queryKeys.settings, queryFn: () => api<Record<string, string>>('/settings') });
   const quickDate = atlasDate();
   const quickReligion = settings.data?.faith_tradition || settings.data?.religion || 'none';
-  const quickDeen = useQuery({ queryKey: ['deen', quickDate], queryFn: () => api<QuickDeen>('/deen/summary?date=' + quickDate), enabled: commandOpen && quickReligion === 'islam' });
-  const quickHabits = useQuery({ queryKey: ['habits', quickDate], queryFn: () => api<QuickHabit[]>('/habits?date=' + quickDate), enabled: commandOpen });
+  const quickDeen = useQuery({ queryKey: queryKeys.deen(quickDate), queryFn: () => api<QuickDeen>('/deen/summary?date=' + quickDate), enabled: commandOpen && quickReligion === 'islam' });
+  const quickHabits = useQuery({ queryKey: queryKeys.habits(quickDate), queryFn: () => api<QuickHabit[]>('/habits?date=' + quickDate), enabled: commandOpen });
   const quickPrayerMutation = useMutation({
     onMutate: item => { if (!item.completed) playAtlasFeedback('tick'); },
     mutationFn: (item: QuickPrayer) => api('/deen/prayer', json('PATCH', { date: quickDate, prayer: item.prayer, completed: !item.completed })),
-    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ['deen', quickDate] }); void queryClient.invalidateQueries({ queryKey: ['overview'] }); }
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.deen(quickDate) }); void queryClient.invalidateQueries({ queryKey: queryKeys.overview }); }
   });
   const quickHabitMutation = useMutation({
     mutationFn: (id: number) => api('/habits/' + id + '/toggle', json('POST', { date: quickDate })),
-    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: ['habits', quickDate] }); void queryClient.invalidateQueries({ queryKey: ['overview'] }); }
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: queryKeys.habits(quickDate) }); void queryClient.invalidateQueries({ queryKey: queryKeys.overview }); }
   });
   useEffect(() => {
     const theme = settings.data?.theme;
     if (!theme) return;
     localStorage.setItem('atlas_theme', theme);
+    const atlasThemeByLegacy: Record<string, 'obsidian' | 'dusk' | 'ivory' | 'sahara'> = {
+      'shadowed-alchemist': 'obsidian', 'abyssal-trench': 'obsidian', 'whispering-woods': 'obsidian',
+      'nocturnal-amethyst': 'dusk', 'crimson-velvet': 'dusk',
+      'light-porcelain': 'ivory', 'light-sage': 'ivory', 'light-lavender': 'ivory', 'light-sky': 'ivory',
+      'light-sandstone': 'sahara'
+    };
     const root = document.documentElement;
+    root.setAttribute('data-a-theme', atlasThemeByLegacy[theme] || (theme.startsWith('light-') ? 'ivory' : 'obsidian'));
+    localStorage.setItem('atlas.theme', atlasThemeByLegacy[theme] || (theme.startsWith('light-') ? 'ivory' : 'obsidian'));
     root.setAttribute('data-theme', theme);
     root.style.colorScheme = theme.startsWith('light-') ? 'light' : 'dark';
     const backgrounds: Record<string, string> = {
@@ -153,8 +201,19 @@ export function AppShell() {
   let selectedLifeAreas: string[] = [];
   try { selectedLifeAreas = settings.data?.life_areas ? JSON.parse(settings.data.life_areas).filter((id: string) => !!lifeAreaNames[id]) : Object.keys(lifeAreaNames); } catch { selectedLifeAreas = Object.keys(lifeAreaNames); }
   // The six core pillars are always available; preferences only control secondary views.
+  const routeMeta = getAtlasRouteMeta(location.pathname);
+  const isQuranRoute = routeMeta.frozen === true;
   const current = rooms.find(item => item.paths.includes(location.pathname));
   const activeTabs = location.pathname === '/quran' ? [] : (current?.tabs || []);
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isQuranRoute || !routeMeta.room) {
+      root.removeAttribute('data-room');
+      return;
+    }
+    root.setAttribute('data-room', routeMeta.room);
+    return () => root.removeAttribute('data-room');
+  }, [isQuranRoute, routeMeta.room]);
   const activeView = activeTabs.find(tab => tab.paths.includes(location.pathname));
   useEffect(() => {
     if (focusActive && focusTimer.kind !== 'break') {
@@ -165,12 +224,11 @@ export function AppShell() {
   }, [focusActive, focusTimer.kind, focusClock, focusContext, current?.label]);
   const faithTabLabel = quickReligion === 'islam' ? 'Deen' : quickReligion === 'christianity' ? 'Faith & Reflection' : 'Daily Reflection';
 
-  return <div data-atlas-shell={location.pathname === "/quran" ? "quran" : "workspace"} className={"app-frame " + (location.pathname === "/quran" ? "atlas-quran-mode" : "atlas-renaissance") + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
-    {location.pathname !== '/quran' && <a className="atlas-skip-link" href="#atlas-main-content">Skip to content</a>}
-    <CursorAura/><SparkBurst/><EnergyVortex/>
+  return <div data-room={routeMeta.room || "none"} className={(isQuranRoute ? "app-frame atlas-quran-mode" : "atlas-v2 app-frame atlas-renaissance") + (booting ? " atlas-booting" : "")}>
+    {!isQuranRoute && <SparkBurst />}
     <MobileInstallPrompt />
     <AnimatePresence initial={false}>{tourOpen && <AtlasWalkthrough onClose={closeTour} onOpenCommand={() => { setCommandOpen(true); setCommandQuery(''); }} />}</AnimatePresence>
-    <motion.aside aria-label="Atlas workspace navigation" className={'sidebar ' + (mobileOpen ? 'sidebar--open' : '')} initial={reduceMotion ? false : { x: -12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
+    <motion.aside className={'sidebar ' + (mobileOpen ? 'sidebar--open' : '')} initial={reduceMotion ? false : { x: -12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
       <NavLink to="/residence" className="sidebar-brand" onClick={() => setMobileOpen(false)}><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><span><b>AMSTREEM</b><small>ATLAS</small></span></NavLink>
       <div className="sidebar-caption">YOUR PRIVATE WORKSPACE</div>
       <nav className="primary-nav" aria-label="Primary navigation">
@@ -179,7 +237,7 @@ export function AppShell() {
           {rooms.map((item,index) => {
             const Icon = item.icon;
             const active = item.paths.includes(location.pathname);
-            return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={'nav-link room-nav-link ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>⌘ {index+1}</kbd></MotionNavLink>;
+            return <MotionNavLink key={item.id} to={item.to} end viewTransition={!isQuranRoute} onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={'nav-link room-nav-link ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>⌘ {index+1}</kbd></MotionNavLink>;
           })}
         </div>
         <div className="nav-group nav-group--specialist">
@@ -192,17 +250,17 @@ export function AppShell() {
         </div>
       </nav>
       <div className="sidebar-bottom">
-        <NavLink to="/settings" className={({ isActive }) => 'nav-link nav-link--settings ' + (isActive ? 'nav-link--active' : '')} onClick={() => setMobileOpen(false)}><SlidersHorizontal size={17} /><span>Settings</span></NavLink>
-        {role === 'admin' && <NavLink to="/admin" className={({ isActive }) => 'nav-link nav-link--settings ' + (isActive ? 'nav-link--active' : '')} onClick={() => setMobileOpen(false)}><Settings size={17} /><span>Administration</span></NavLink>}
+        <NavLink to="/settings" viewTransition={!isQuranRoute} className={({ isActive }) => 'nav-link nav-link--settings ' + (isActive ? 'nav-link--active' : '')} onClick={() => setMobileOpen(false)}><SlidersHorizontal size={17} /><span>Settings</span></NavLink>
+        {role === 'admin' && <NavLink to="/admin" viewTransition={!isQuranRoute} className={({ isActive }) => 'nav-link nav-link--settings ' + (isActive ? 'nav-link--active' : '')} onClick={() => setMobileOpen(false)}><Settings size={17} /><span>Administration</span></NavLink>}
         <div className="profile-menu">
           <button className="profile-trigger" onClick={() => setProfileOpen(v => !v)}><span className="avatar">{(user?.name || user?.username || 'A').slice(0,1).toUpperCase()}</span><span className="profile-copy"><b>{user?.name || 'Your workspace'}</b><small>{user?.username ? '@' + user.username : user?.email}</small></span><span>⌄</span></button>
           {profileOpen && <div className="profile-popover"><button onClick={() => void signOut()}><LogOut size={15} /> Sign out</button></div>}
         </div>
       </div>
     </motion.aside>
-    {mobileOpen && <><button className="mobile-more-scrim" type="button" aria-label="Close More menu" onClick={() => setMobileOpen(false)} /><motion.aside className="mobile-more-drawer" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 18 }} aria-label="More navigation"><div className="mobile-more-drawer__head"><b>More</b><button type="button" aria-label="Close menu" onClick={() => setMobileOpen(false)}><X size={17}/></button></div><nav><NavLink to="/quran" onClick={() => setMobileOpen(false)}><BookOpen size={17}/><span>Qur’an</span><ArrowRight size={14}/></NavLink>{commandDestinations.map(item => { const Icon=item.icon; return <NavLink key={item.to} to={item.to} onClick={() => setMobileOpen(false)}><Icon size={17}/><span>{item.label}</span><ArrowRight size={14}/></NavLink>; })}<div className="mobile-more-life-areas"><span className="eyebrow">YOUR LIFE AREAS</span><div>{selectedLifeAreas.map(id => <span key={id}>{lifeAreaNames[id]}</span>)}</div><NavLink to="/settings" onClick={() => setMobileOpen(false)}>Edit your areas <ArrowRight size={13}/></NavLink></div><NavLink to="/settings" onClick={() => setMobileOpen(false)}><SlidersHorizontal size={17}/><span>Settings</span><ArrowRight size={14}/></NavLink>{role === 'admin' && <NavLink to="/admin" onClick={() => setMobileOpen(false)}><Settings size={17}/><span>Administration</span><ArrowRight size={14}/></NavLink>}<button type="button" onClick={() => { setMobileOpen(false); void signOut(); }}><LogOut size={17}/><span>Sign out</span></button></nav></motion.aside></>}
+    {mobileOpen && <><button className="mobile-more-scrim" type="button" aria-label="Close More menu" onClick={() => setMobileOpen(false)} /><motion.aside className="mobile-more-drawer" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 18 }} aria-label="More navigation"><div className="mobile-more-drawer__head"><b>More</b><button type="button" aria-label="Close menu" onClick={() => setMobileOpen(false)}><X size={17}/></button></div><nav><NavLink to="/quran" onClick={() => setMobileOpen(false)}><BookOpen size={17}/><span>Qur’an</span><ArrowRight size={14}/></NavLink>{commandDestinations.map(item => { const Icon=item.icon; return <NavLink key={item.to} to={item.to} viewTransition={!isQuranRoute} onClick={() => setMobileOpen(false)}><Icon size={17}/><span>{item.label}</span><ArrowRight size={14}/></NavLink>; })}<div className="mobile-more-life-areas"><span className="eyebrow">YOUR LIFE AREAS</span><div>{selectedLifeAreas.map(id => <span key={id}>{lifeAreaNames[id]}</span>)}</div><NavLink to="/settings" viewTransition={!isQuranRoute} onClick={() => setMobileOpen(false)}>Edit your areas <ArrowRight size={13}/></NavLink></div><NavLink to="/settings" onClick={() => setMobileOpen(false)}><SlidersHorizontal size={17}/><span>Settings</span><ArrowRight size={14}/></NavLink>{role === 'admin' && <NavLink to="/admin" viewTransition={!isQuranRoute} onClick={() => setMobileOpen(false)}><Settings size={17}/><span>Administration</span><ArrowRight size={14}/></NavLink>}<button type="button" onClick={() => { setMobileOpen(false); void signOut(); }}><LogOut size={17}/><span>Sign out</span></button></nav></motion.aside></>}
     
-    <main id="atlas-main-content" className="main-area" tabIndex={-1}>
+    <main className="main-area">
       <motion.div ref={bootContentRef} className="atlas-workspace-boot" initial={reduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.24, ease: [0.16, 1, 0.3, 1] }}>
       <motion.header className="topbar" initial={reduceMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.18, delay: 0.04 }}>
         
@@ -211,21 +269,22 @@ export function AppShell() {
         <div className="topbar-right"><button className="global-capture-trigger" type="button" onClick={() => {setCommandOpen(true);setCommandQuery('');}}><Search size={14}/><span>Quick capture</span><kbd>⌘ K</kbd></button><button className="tour-launcher" type="button" onClick={() => setTourOpen(true)}><Compass size={14} /> Guided tour</button><span className="privacy-indicator"><span /> PRIVATE BY DESIGN</span><span className="topbar-date">{new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric'}).format(new Date())}</span></div>
       </motion.header>
 
-      <div className="page-container" ref={workspaceRef}>
-        {activeTabs.length > 0 && <nav className="module-subnav" aria-label="Module sections">{activeTabs.map(tab => <MotionNavLink key={tab.to} to={tab.to} onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={({ isActive }) => 'module-subnav__link ' + (isActive ? 'module-subnav__link--active' : '')}>{({isActive}) => <>{isActive && <motion.span className="module-subnav-indicator" layoutId={'atlas-subnav-' + current?.id} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}{tab.label}</>}</MotionNavLink>)}</nav>}
+      <div className="page-container">
+        {activeTabs.length > 0 && <nav className="module-subnav" aria-label="Module sections">{activeTabs.map(tab => <MotionNavLink key={tab.to} to={tab.to} viewTransition={!isQuranRoute} onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={({ isActive }) => 'module-subnav__link ' + (isActive ? 'module-subnav__link--active' : '')}>{({isActive}) => <>{isActive && <motion.span className="module-subnav-indicator" layoutId={'atlas-subnav-' + current?.id} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}{tab.label}</>}</MotionNavLink>)}</nav>}
         <EntrancePresetContext.Provider value={entrancePreset}>
-          <PortalTransition>
-          <motion.div
-            key={location.pathname}
-            className="room-view-transition"
-            initial={false}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0 }}
-            style={{ willChange: reduceMotion ? 'auto' : 'transform, opacity' }}
-          >
-            <Outlet />
-          </motion.div>
-          </PortalTransition>
+          {isQuranRoute ? (
+            <div className="room-view-transition"><Outlet /></div>
+          ) : (
+            <motion.div
+              key={location.pathname}
+              className={"room-view-transition " + (routeMeta.v2 ? 'a-route-v2 atlas-v2' : '')}
+              initial={false}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0 }}
+            >
+              <Outlet />
+            </motion.div>
+          )}
         </EntrancePresetContext.Provider>
       </div>
       </motion.div>
@@ -235,23 +294,23 @@ export function AppShell() {
         {quickTaskError && <p className="command-error">{quickTaskError}</p>}
         {quickReligion === 'islam' && <div className="command-checkins"><span className="eyebrow">TODAY · SALAH</span><div className="command-checkin-list">{(quickDeen.data?.prayers || []).map(item => <button type="button" key={item.prayer} className={item.completed ? 'is-complete' : ''} disabled={quickPrayerMutation.isPending} onClick={event => { if (!item.completed) sparkAtElement(event.currentTarget); quickPrayerMutation.mutate(item); }}><span>{item.completed ? '✓' : '○'}</span>{item.prayer}<small>{item.completed ? 'Recorded' : 'Mark done'}</small></button>)}</div></div>}
         {!!quickHabits.data?.length && <div className="command-checkins"><span className="eyebrow">TODAY · HABITS</span><div className="command-checkin-list">{quickHabits.data.map(item => <button type="button" key={item.id} className={item.done ? 'is-complete' : ''} disabled={quickHabitMutation.isPending} onClick={event => { if (!item.done) sparkAtElement(event.currentTarget); quickHabitMutation.mutate(item.id); }}><span>{item.done ? '✓' : '○'}</span>{item.title}<small>{item.done ? 'Done' : 'Mark done'}</small></button>)}</div></div>}
-        <div className="command-results"><span className="eyebrow">JUMP TO OR CHECK IN</span>{commandItems.map(item=>{const Icon=item.icon;return <button key={item.label} type="button" onClick={()=>{setCommandOpen(false);navigate(item.to);}}><Icon size={16}/><span><b>{item.label}</b><small>{item.detail}</small></span><kbd>{item.shortcut}</kbd></button>;})}{!commandItems.length&&<p>No matching destination.</p>}</div>
+        <div className="command-results"><span className="eyebrow">JUMP TO OR CHECK IN</span>{commandItems.map(item=>{const Icon=item.icon;return <button key={item.label} type="button" onClick={()=>{setCommandOpen(false);navigate(item.to, { viewTransition: !isQuranRoute });}}><Icon size={16}/><span><b>{item.label}</b><small>{item.detail}</small></span><kbd>{item.shortcut}</kbd></button>;})}{!commandItems.length&&<p>No matching destination.</p>}</div>
         <div className="command-footer"><span>Navigate between rooms</span><span>⌘ 1 — 6</span></div>
       </motion.section></motion.div>}</AnimatePresence>
       <motion.nav className="atlas-command-dock" layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }} aria-label="Atlas command dock">
-        <MagneticButton className="atlas-dock-action" aria-label="Open command search" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={15}/><span>Command</span><kbd>⌘ K</kbd></MagneticButton>
-        <MagneticButton className="atlas-dock-action" aria-label="Quick capture a task" onClick={() => { setCommandOpen(true); setCommandQuery('add a task'); }}><Plus size={15}/><span>Quick Capture</span></MagneticButton>
+        <button type="button" className="atlas-dock-action" aria-label="Open command search" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={15}/><span>Command</span><kbd>⌘ K</kbd></button>
+        <button type="button" className="atlas-dock-action" aria-label="Quick capture a task" onClick={() => { setCommandOpen(true); setCommandQuery('add a task'); }}><Plus size={15}/><span>Quick Capture</span></button>
         <motion.div className={'atlas-dock-focus ' + (focusSessionVisible ? 'is-expanded' : '')} layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }}>
-          <MagneticButton className="atlas-dock-action atlas-dock-focus__open" aria-label="Open Focus Timer" onClick={() => navigate('/focus')}><Timer size={15}/><span>Focus Timer</span>{focusSessionVisible && <strong><OdometerNumber value={focusClock}/></strong>}</MagneticButton>
-          {focusSessionVisible && <motion.div className="atlas-dock-focus__detail" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.18 }}><span title={focusContext}>{focusContext}</span><MagneticButton className="atlas-dock-action atlas-dock-focus__toggle" onClick={toggleTimer}>{focusActive ? <Pause size={13}/> : <Play size={13}/>}<small>{focusActive ? "Pause" : "Resume"}</small></MagneticButton></motion.div>}
+          <button type="button" className="atlas-dock-action atlas-dock-focus__open" aria-label="Open Focus Timer" onClick={() => navigate('/focus', { viewTransition: !isQuranRoute })}><Timer size={15}/><span>Focus Timer</span>{focusSessionVisible && <strong><OdometerNumber value={focusClock}/></strong>}</button>
+          {focusSessionVisible && <motion.div className="atlas-dock-focus__detail" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.18 }}><span title={focusContext}>{focusContext}</span><button type="button" className="atlas-dock-action atlas-dock-focus__toggle" onClick={toggleTimer}>{focusActive ? <Pause size={13}/> : <Play size={13}/>}<small>{focusActive ? "Pause" : "Resume"}</small></button></motion.div>}
         </motion.div>
-        <MagneticButton className="atlas-dock-action" aria-label="Open Daily Check-In" onClick={() => { navigate('/residence'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></MagneticButton>
+        <button type="button" className="atlas-dock-action" aria-label="Open Daily Check-In" onClick={() => { navigate('/residence', { viewTransition: !isQuranRoute }); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></button>
       </motion.nav>
       <nav className="atlas-mobile-dock" aria-label="Primary navigation">
         {rooms.map(item => {
           const Icon = item.icon;
           const active = item.paths.includes(location.pathname);
-          return <NavLink key={item.id} to={item.to} className={'atlas-mobile-dock__item ' + (active ? 'is-active' : '')} onClick={() => setMobileOpen(false)}><Icon size={18}/><span>{item.mobileLabel}</span></NavLink>;
+          return <NavLink key={item.id} to={item.to} viewTransition className={'atlas-mobile-dock__item ' + (active ? 'is-active' : '')} onClick={() => setMobileOpen(false)}><Icon size={18}/><span>{item.mobileLabel}</span></NavLink>;
         })}
         <NavLink to="/quran" className={'atlas-mobile-dock__item atlas-mobile-dock__quran ' + (location.pathname === '/quran' ? 'is-active' : '')} onClick={() => setMobileOpen(false)}><BookOpen size={18}/><span>Qur’an</span></NavLink>
         <button type="button" className="atlas-mobile-dock__item" onClick={() => setMobileOpen(true)} aria-expanded={mobileOpen}><SlidersHorizontal size={18}/><span>More</span></button>

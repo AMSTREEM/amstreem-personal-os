@@ -5,16 +5,19 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './auth/AuthProvider';
 import { AuthPage } from './components/AuthPage';
 import { AppShell } from './components/AppShell';
+import { AtlasV2Shell } from './components/AtlasV2Shell';
 import { QuranPage } from './pages/QuranPage';
 import { PasswordRecoveryPage } from './pages/PasswordRecoveryPage';
 import { SignupThankYouPage } from './components/SignupThankYouPage';
 
 const TodayPage = lazy(() => import('./pages/TodayPage').then(module => ({ default: module.TodayPage })));
-const AtlasHomePage = lazy(() => import('./pages/AtlasHomePage').then(module => ({ default: module.AtlasHomePage })));
+const ResidenceV2Page = lazy(() => import('./pages/ResidenceV2Page').then(module => ({ default: module.ResidenceV2Page })));
+const DailyRhythmV2Page = lazy(() => import('./pages/DailyRhythmV2Page').then(module => ({ default: module.DailyRhythmV2Page })));
+const ExecutionV2Page = lazy(() => import('./pages/ExecutionV2Page').then(module => ({ default: module.ExecutionV2Page })));
+const CalendarV2Page = lazy(() => import('./pages/CalendarV2Page').then(module => ({ default: module.CalendarV2Page })));
 const BlueprintPage = lazy(() => import('./pages/BlueprintPage').then(module => ({ default: module.BlueprintPage })));
 const GoalsPage = lazy(() => import('./pages/GoalsPage').then(module => ({ default: module.GoalsPage })));
 const FocusWorkspace = lazy(() => import('./components/FocusWorkspace').then(module => ({ default: module.FocusWorkspace })));
-const CalendarPage = lazy(() => import('./pages/CalendarPage').then(module => ({ default: module.CalendarPage })));
 const ValuesPage = lazy(() => import('./pages/ValuesPage').then(module => ({ default: module.ValuesPage })));
 const HabitsSelfControlView = lazy(() => import('./pages/ConsolidatedViews').then(module => ({ default: module.HabitsSelfControlView })));
 const LearningLibraryView = lazy(() => import('./pages/ConsolidatedViews').then(module => ({ default: module.LearningLibraryView })));
@@ -42,26 +45,29 @@ export function App() {
   if (!session) return <AuthPage />;
   if (signupConfirmationPending) return <SignupThankYouPage onContinue={continueAfterSignup} />;
   return <Routes>
-    <Route element={<AppShell />}>
+    {/* The protected Qur'an reader retains its existing shell and exact implementation. */}
+    <Route path="/quran" element={<AppShell />}>
+      <Route index element={<QuranPage />} />
+    </Route>
+
+    {/* Every other authenticated destination now uses the clean-slate Atlas v2 shell. */}
+    <Route element={<AtlasV2Shell />}>
       <Route index element={<Navigate to="/residence" replace />} />
-      {/* Canonical eight-view destinations */}
-      <Route path="/residence" element={<SuspendedPage><AtlasHomePage /></SuspendedPage>} />
+      <Route path="/residence" element={<SuspendedPage><ResidenceV2Page /></SuspendedPage>} />
       <Route path="/blueprint" element={<SuspendedPage><BlueprintPage /></SuspendedPage>} />
-      <Route path="/daily-rhythm" element={<SuspendedPage><TodayPage /></SuspendedPage>} />
+      <Route path="/daily-rhythm" element={<SuspendedPage><DailyRhythmV2Page /></SuspendedPage>} />
       <Route path="/home" element={<LegacyRedirect to="/residence" />} />
       <Route path="/today" element={<LegacyRedirect to="/daily-rhythm" />} />
       <Route path="/values" element={<SuspendedPage><ValuesPage /></SuspendedPage>} />
-      <Route path="/quran" element={<QuranPage />} />
       <Route path="/habits" element={<SuspendedPage><HabitsSelfControlView /></SuspendedPage>} />
-      <Route path="/actions" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>} />
+      <Route path="/actions" element={<SuspendedPage><ExecutionV2Page /></SuspendedPage>} />
       <Route path="/execution" element={<LegacyRedirect to="/actions" />} />
-      <Route path="/focus" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>} />
-      <Route path="/calendar" element={<SuspendedPage><CalendarPage /></SuspendedPage>} />
+      <Route path="/focus" element={<SuspendedPage><div className="atlas-v2 a-focus-room"><FocusWorkspace /></div></SuspendedPage>} />
+      <Route path="/calendar" element={<SuspendedPage><CalendarV2Page /></SuspendedPage>} />
       <Route path="/goals" element={<SuspendedPage><GoalsPage /></SuspendedPage>} />
       <Route path="/learning-library" element={<SuspendedPage><LearningLibraryView /></SuspendedPage>} />
       <Route path="/growth" element={<SuspendedPage><ReviewsInsightsView /></SuspendedPage>} />
       <Route path="/reviews-insights" element={<LegacyRedirect to="/growth" />} />
-      {/* Legacy bookmarks and deep links remain valid and preserve query/hash context. */}
       <Route path="/insights" element={<LegacyRedirect to="/growth" />} />
       <Route path="/reviews" element={<LegacyRedirect to="/growth" />} />
       <Route path="/rituals" element={<LegacyRedirect to="/habits" />} />
@@ -71,8 +77,8 @@ export function App() {
       <Route path="/learning" element={<LegacyRedirect to="/learning-library" />} />
       <Route path="/library" element={<LegacyRedirect to="/learning-library" />} />
       <Route path="/settings" element={<SuspendedPage><SettingsPage /></SuspendedPage>} />
-      <Route path="/admin" element={role === "admin" ? <SuspendedPage><AdminPage /></SuspendedPage> : <Navigate to="/today" replace />} />
-      <Route path="*" element={<Navigate to="/today" replace />} />
+      <Route path="/admin" element={role === 'admin' ? <SuspendedPage><AdminPage /></SuspendedPage> : <Navigate to="/daily-rhythm" replace />} />
+      <Route path="*" element={<Navigate to="/daily-rhythm" replace />} />
     </Route>
   </Routes>;
 }
