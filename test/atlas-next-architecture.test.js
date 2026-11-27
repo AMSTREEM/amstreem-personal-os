@@ -372,7 +372,8 @@ test('Qur’an is a standalone workspace and no longer renders inside Deen', () 
   assert.doesNotMatch(values, /QuranMushafReader|openMushaf/);
   assert.match(quran, /QuranMushafReader/);
   assert.match(quran, /autoOpen/);
-  assert.ok(app.includes('path="/quran" element={<QuranPage />}'));
+  assert.ok(app.includes('path="/quran" element={<AppShell />}'));
+  assert.match(app, /<Route index element={<QuranPage \/>} \/>/);
   assert.match(shell, /to="\/quran"/);
   assert.match(shell, /PERSONAL TOOLS/);
   assert.ok(!shell.includes('/values?openMushaf=1'));
@@ -404,7 +405,8 @@ test('Atlas four-room navigation exposes the eight core views and keeps Qur’an
   assert.match(shell, /label: 'Reviews & Insights'/);
   assert.match(shell, /location\.pathname === '\/quran' \? \[\] :/);
   assert.match(shell, /to="\/quran"/);
-  assert.match(app, /path="\/quran" element={<QuranPage \/>}/);
+  assert.match(app, /path="\/quran" element={<AppShell \/>}/);
+  assert.match(app, /<Route index element={<QuranPage \/>} \/>/);
   assert.match(quranPage, /<QuranMushafReader/);
   assert.match(reader, /UthmanicHafs|tajweed|Tajweed/);
 });
@@ -459,7 +461,8 @@ test('route-level code splitting keeps the specialist Qur’an route statically 
   assert.match(app, /const FocusWorkspace = lazy\(\(\) => import\('\.\/components\/FocusWorkspace'\)/);
   assert.match(app, /function SuspendedPage/);
   assert.match(app, /import \{ QuranPage \} from '\.\/pages\/QuranPage'/);
-  assert.ok(app.includes('path="/quran" element={<QuranPage />}'));
+  assert.ok(app.includes('path="/quran" element={<AppShell />}'));
+  assert.match(app, /<Route index element={<QuranPage \/>} \/>/);
   assert.ok(!app.includes('lazy(() => import(\'./pages/QuranPage\')'));
 });
 
