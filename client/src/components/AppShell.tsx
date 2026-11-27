@@ -207,9 +207,13 @@ export function AppShell() {
   const activeTabs = location.pathname === '/quran' ? [] : (current?.tabs || []);
   useEffect(() => {
     const root = document.documentElement;
-    root.setAttribute('data-room', routeMeta.room || 'none');
+    if (isQuranRoute || !routeMeta.room) {
+      root.removeAttribute('data-room');
+      return;
+    }
+    root.setAttribute('data-room', routeMeta.room);
     return () => root.removeAttribute('data-room');
-  }, [routeMeta.room]);
+  }, [isQuranRoute, routeMeta.room]);
   const activeView = activeTabs.find(tab => tab.paths.includes(location.pathname));
   useEffect(() => {
     if (focusActive && focusTimer.kind !== 'break') {
