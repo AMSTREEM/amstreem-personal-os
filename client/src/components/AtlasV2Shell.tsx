@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Activity, ArrowUpRight, BookOpen, CalendarDays, CheckSquare, Command,
-  Compass, GraduationCap, House, LogOut, Menu, MoonStar, Plus, Search,
-  Settings2, Sparkles, Target, TrendingUp, X
+  Activity, ArrowUpRight, BookOpen, CheckSquare, Command, House,
+  LogOut, Menu, MoonStar, Plus, Search, Settings2, Sparkles, TrendingUp, X
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { useQuery } from '@tanstack/react-query';
@@ -164,14 +163,14 @@ export function AtlasV2Shell() {
         <div className="a-topbar__actions">
           <span className="a-topbar__date">{dateLabel()}</span>
           <button className="a-search-trigger" type="button" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={15} /><span>Find anything</span><kbd>⌘ K</kbd></button>
-          <button className="a-capture-button" type="button" onClick={() => navigate('/actions')}><Plus size={16} /><span>Capture</span></button>
+          <button className="a-capture-button" type="button" onClick={() => navigate('/actions')}><Plus size={16} /><span>Actions</span></button>
           <button className="a-icon-button a-mobile-menu-trigger" type="button" onClick={() => setMobileMenuOpen(value => !value)} aria-label="Open navigation">{mobileMenuOpen ? <X size={19} /> : <Menu size={19} />}</button>
         </div>
       </header>
 
       <main className="a-content" id="main-content">
         <div className="a-content__intro">
-          <div><span className="a-content__overline"><Sparkles size={12} /> A SPACE TO MOVE WITH INTENTION</span><h1>{pageTitle}</h1></div>
+          <div><span className="a-content__overline"><Sparkles size={12} /> A SPACE TO MOVE WITH INTENTION</span></div>
           <span className="a-content__date">{dateLabel()}</span>
         </div>
         <div className="a-route-content"><Outlet /></div>
