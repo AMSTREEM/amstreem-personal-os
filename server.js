@@ -1420,15 +1420,25 @@ app.get('/api/leaderboard',async(q,s)=>{
  try{
   const key=process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY;
   if(!key)return s.status(503).json({error:'The leaderboard is temporarily unavailable.'});
-  const response=await fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=user_id,data`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
-  if(!response.ok)throw new Error('Could not read leaderboard totals.');
-  const rows=await response.json(),month=dateKey().slice(0,7),members=[],history={};
+  const [workspaceResponse,xpResponse]=await Promise.all([
+   fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=user_id,data`,{headers:{apikey:key,Authorization:`Bearer ${key}`}}),
+   fetch(`${supabaseConfig.url}/rest/v1/xp_ledger?select=user_id,points,local_date&order=awarded_at.asc&limit=10000`,{headers:{apikey:key,Authorization:`Bearer ${key}`}})
+  ]);
+  if(!workspaceResponse.ok||!xpResponse.ok)throw new Error('Could not read leaderboard totals.');
+  const rows=await workspaceResponse.json(),xpRows=await xpResponse.json(),month=dateKey().slice(0,7),members=[],history={},byUser=new Map();
+  for(const event of xpRows){
+   const stat=byUser.get(event.user_id)||{total:0,monthly:0,events:[]};
+   const points=Number(event.points)||0,period=String(event.local_date||'').slice(0,7);
+   stat.total+=points;if(period===month)stat.monthly+=points;
+   if(/^\d{4}-\d{2}$/.test(period)){const item=history[period]||(history[period]=new Map());const prior=item.get(event.user_id);item.set(event.user_id,{display:'',xp:(prior?.xp||0)+points});}
+   stat.events.push({period,points});byUser.set(event.user_id,stat);
+  }
   for(const row of rows){
-   const tables=row.data?.tables||{},events=Array.isArray(tables.xp_events)?tables.xp_events:[],settings=Array.isArray(tables.settings)?Object.fromEntries(tables.settings.map(x=>[x.key,x.value])):{};
-   const total=events.reduce((n,x)=>n+(Number(x.points)||0),0),monthly=events.reduce((n,x)=>n+(String(x.awarded_at||'').slice(0,7)===month?(Number(x.points)||0):0),0);
+   const tables=row.data?.tables||{},settings=Array.isArray(tables.settings)?Object.fromEntries(tables.settings.map(x=>[x.key,x.value])):{};
+   const stat=byUser.get(row.user_id)||{total:0,monthly:0,events:[]};
    const display=String(settings.leaderboard_name||'').trim().slice(0,24)||('Member '+String(row.user_id).slice(-4).toUpperCase());
-   members.push({userId:row.user_id,display,xp:monthly,totalXp:total,public:settings.leaderboard_public!=='0'});
-   if(settings.leaderboard_public!=='0')for(const e of events){const m=String(e.awarded_at||'').slice(0,7);if(!/^\d{4}-\d{2}$/.test(m))continue;const item=history[m]||(history[m]=new Map());item.set(row.user_id,{display,xp:(item.get(row.user_id)?.xp||0)+(Number(e.points)||0)});}
+   members.push({userId:row.user_id,display,xp:stat.monthly,totalXp:stat.total,public:settings.leaderboard_public!=='0'});
+   if(settings.leaderboard_public!=='0')for(const event of stat.events){if(!/^\d{4}-\d{2}$/.test(event.period))continue;const item=history[event.period]||(history[event.period]=new Map());const prior=item.get(row.user_id);item.set(row.user_id,{display,xp:(prior?.xp||0)+event.points});}
   }
   const visible=members.filter(m=>m.public).sort((a,b)=>b.xp-a.xp||b.totalXp-a.totalXp||a.display.localeCompare(b.display));
   const mine=members.find(m=>m.userId===q.user.id),myRank=mine?.public?visible.findIndex(m=>m.userId===q.user.id)+1:null;
