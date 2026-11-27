@@ -1171,7 +1171,7 @@ async function commitWorkspaceSnapshot(token, expectedVersion, snapshot, request
     p_request_hash: requestMeta.requestHash || null,
     p_force_history: Boolean(requestMeta.forceHistory),
     p_history_reason: requestMeta.historyReason || 'scheduled',
-    p_events: validateAtlasEventBatch(events)
+    p_events: validateAtlasEventBatch(events).map(event => ({ key: event.key, type: event.type, module: event.module, entity_id: event.entityId || null, occurred_at: event.occurredAt, local_date: event.localDate, payload: event.payload, source: event.source }))
   };
   const response = await fetch(`${supabaseConfig.url}/rest/v1/rpc/commit_workspace_with_events`, {
     method: 'POST',
