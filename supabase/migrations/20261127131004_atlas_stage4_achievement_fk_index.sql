@@ -1,0 +1,1 @@
+create index if not exists atlas_achievement_unlocks_achievement_id_idx on public.atlas_achievement_unlocks(achievement_id);
