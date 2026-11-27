@@ -7420,3 +7420,36 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .sidebar--collapsed .nav-link { justify-content: flex-start; gap: 12px; padding-right: 11px; padding-left: 11px; }
   .sidebar--collapsed .profile-trigger { justify-content: flex-start; padding: 9px 7px; }
 }
+
+
+/* Semantic token adoption for the shared shell; legacy theme values remain the source palette. */
+html, body { background: var(--atlas-bg); color: var(--atlas-text-1); }
+.sidebar { background: var(--atlas-surface-1); border-color: var(--atlas-border); }
+.topbar { border-color: var(--atlas-border); color: var(--atlas-text-1); }
+.surface-card, .stat-card { background: var(--atlas-surface-1); border-color: var(--atlas-border); }
+.nav-link { color: var(--atlas-text-2); }
+.nav-link--active { color: var(--atlas-brand); }
+.field-input, .profile-popover, .command-panel { border-color: var(--atlas-border); }
+.command-shortcuts kbd { font-family: var(--atlas-font-mono); }
+.quick-capture-types {
+  display: flex;
+  gap: 6px;
+  padding: 0 18px 10px;
+}
+.quick-capture-types button {
+  min-width: 64px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--atlas-border);
+  border-radius: 9px;
+  background: var(--atlas-surface-1);
+  color: var(--atlas-text-2);
+  font-size: 11px;
+  font-weight: 650;
+  text-transform: capitalize;
+}
+.quick-capture-types button[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--atlas-brand) 45%, var(--atlas-border));
+  background: color-mix(in srgb, var(--atlas-brand) 12%, var(--atlas-surface-1));
+  color: var(--atlas-brand);
+}
