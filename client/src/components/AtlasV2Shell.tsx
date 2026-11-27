@@ -6,6 +6,9 @@ import {
   Settings2, Sparkles, Target, TrendingUp, X
 } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '../lib/api';
+import { applyAtlasTheme, type AtlasTheme } from '../design/theme';
 
 const rooms = [
   {
@@ -51,6 +54,7 @@ export function AtlasV2Shell() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [commandQuery, setCommandQuery] = useState('');
+  const settings = useQuery({ queryKey: ['atlas-v2', 'theme-settings'], queryFn: () => api<Record<string, string>>('/settings') });
   const pageTitle = pageNames[location.pathname] || 'Amstreem Atlas';
   const initials = (user?.name || user?.username || 'A').trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
 
