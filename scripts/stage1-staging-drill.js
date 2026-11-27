@@ -13,6 +13,7 @@ const userId = process.env.ATLAS_STAGE1_TEST_USER_ID;
 const headers = { apikey: process.env.SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 const key = label => `atlas-stage1-${label}-${crypto.randomUUID()}`;
 const hash = value => crypto.createHash('sha256').update(value).digest('hex');
+const { replayWorkspaceMutation } = require('../workspace-replay');
 
 async function request(url, options = {}) {
   const response = await fetch(url, { ...options, headers: { ...headers, ...(options.headers || {}) } });
@@ -45,22 +46,33 @@ async function appRequest(path, body, method = 'PATCH') {
 }
 
 (async () => {
-  // Exercise the deployed HTTP middleware with two simultaneous, independent settings edits.
-  const beforeSettings = await appRequest('/api/settings', null, 'GET');
-  const originalTheme = beforeSettings.theme || 'shadowed-alchemist';
-  const originalTarget = String(beforeSettings.daily_target || '80');
-  const testTheme = originalTheme === 'light-porcelain' ? 'shadowed-alchemist' : 'light-porcelain';
-  const testTarget = originalTarget === '97' ? '98' : '97';
-  const parallel = await Promise.all([
-    appRequest('/api/settings', { theme: testTheme }),
-    appRequest('/api/settings', { daily_target: testTarget })
+  // Race two writes from the same version, then replay the loser on the winner's snapshot.
+  const concurrencyBase = await getWorkspace();
+  const writeA = JSON.parse(JSON.stringify(concurrencyBase.data));
+  const writeB = JSON.parse(JSON.stringify(concurrencyBase.data));
+  writeA.tables.settings ||= [];
+  writeB.tables.settings ||= [];
+  writeA.tables.settings.push({ key: 'atlas_stage1_concurrency_a', value: key('a') });
+  writeB.tables.settings.push({ key: 'atlas_stage1_concurrency_b', value: key('b') });
+  const raced = await Promise.allSettled([
+    commit(concurrencyBase.version, writeA, 'parallel-a'),
+    commit(concurrencyBase.version, writeB, 'parallel-b')
   ]);
-  if (parallel.some(result => !result || typeof result !== 'object')) throw new Error('Parallel settings requests returned unexpected results.');
-  const afterParallel = await appRequest('/api/settings', null, 'GET');
-  if (afterParallel.theme !== testTheme || String(afterParallel.daily_target) !== testTarget) {
-    throw new Error('Parallel-write check failed: one independent settings change was lost.');
+  const winners = raced.filter(result => result.status === 'fulfilled');
+  const losers = raced.filter(result => result.status === 'rejected');
+  if (winners.length !== 1 || losers.length !== 1 || !String(losers[0].reason.message).includes('version_conflict')) {
+    throw new Error('Concurrent compare-and-swap did not produce exactly one winner and one stale-write conflict.');
   }
-  await appRequest('/api/settings', { theme: originalTheme, daily_target: originalTarget });
+  const winnerSnapshot = await getWorkspace();
+  const losingMutation = raced[0].status === 'rejected' ? writeA : writeB;
+  const replayedSnapshot = replayWorkspaceMutation(concurrencyBase.data, losingMutation, winnerSnapshot.data);
+  await commit(winnerSnapshot.version, replayedSnapshot, 'parallel-replay');
+  const afterReplay = await getWorkspace();
+  const settings = new Map(afterReplay.data.tables.settings.map(row => [row.key, row.value]));
+  if (!settings.has('atlas_stage1_concurrency_a') || !settings.has('atlas_stage1_concurrency_b')) {
+    throw new Error('Parallel-write check failed: replay did not preserve both independent writes.');
+  }
+  await commit(afterReplay.version, concurrencyBase.data, 'parallel-cleanup', true, 'pre_restore');
 
   // Create a pre-destructive history point, mutate a harmless sentinel, then restore the exact snapshot.
   const initial = await getWorkspace();
