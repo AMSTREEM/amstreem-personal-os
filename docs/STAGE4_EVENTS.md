@@ -33,7 +33,8 @@ The Postgres event ledger is append-only and unique on `(user_id, event_key)`. E
 | Habits | `habit.checked`, `habit.unchecked` |
 | Learning | `learning.item_completed`, `learning.item_reopened`, `learning.study_logged` |
 | Growth | `review.submitted`, `review.reopened` |
-| Values | `practice.logged` for non-faith personal practices only |
+| Values | `practice.logged`, `practice.unlogged` for non-faith personal practices only |
+| Shared challenge service | `challenge.completed` |
 
 No event is emitted from Qur’an reading, Tajweed, prayer, or faith-record routes. Existing Qur’an and faith data and behaviour remain outside this stage's new integrations.
 
