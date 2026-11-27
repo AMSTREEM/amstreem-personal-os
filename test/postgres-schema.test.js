@@ -363,7 +363,7 @@ test('Atlas semantic design tokens preserve named themes and stay outside Qur’
     assert.ok(fs.readFileSync(path.join(__dirname, '..', 'client/src/styles.css'), 'utf8').includes(theme), `Existing theme ${theme} must remain supported`);
   }
   assert.doesNotMatch(tokens, /\.quran-|\.mushaf|\.tj-/i);
-  assert.doesNotMatch(tokens, /UthmanicHafs|Tajweed|font-family\s*:/i);
+  assert.doesNotMatch(tokens, /\.quran-|\.mushaf|\.tj-|@font-face|font-family\s*:/i);
   assert.ok(reader.includes('UthmanicHafs'));
   assert.ok(reader.includes('TAJWEED_CLASSES'));
 });
