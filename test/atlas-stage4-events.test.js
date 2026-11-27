@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { AtlasEventSchema } = require('../packages/contracts');
-const { appendAtlasEvent, createAtlasEvent, validateAtlasEventBatch, MAX_EVENTS_PER_COMMIT } = require('../server/atlas-events');
+const { appendAtlasEvent, appendImportedAtlasEvents, createAtlasEvent, validateImportedAtlasEvents, validateAtlasEventBatch, MAX_EVENTS_PER_REQUEST } = require('../server/atlas-events');
 
 const migration = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations', '20261127124100_atlas_stage4_event_ledger.sql'), 'utf8');
 const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
@@ -49,10 +49,20 @@ test('event publishers derive stable keys from the request idempotency key', () 
 test('event publisher rejects use outside a workspace request and enforces batch limits', () => {
   assert.throws(() => appendAtlasEvent(null, event()), /authenticated workspace request/);
   const context = { pendingEvents: [], idempotencyKey: 'retry-key-2026' };
-  for (let index = 0; index < MAX_EVENTS_PER_COMMIT; index++) {
+  for (let index = 0; index < MAX_EVENTS_PER_REQUEST; index++) {
     appendAtlasEvent(context, { type: 'task.completed', module: 'actions', entityId: String(index + 1), localDate: '2026-11-27', payload: { goalLinked: false } });
   }
   assert.throws(() => appendAtlasEvent(context, { type: 'task.completed', module: 'actions', entityId: 'overflow', localDate: '2026-11-27', payload: { goalLinked: false } }), /too many events/);
+});
+
+test('backup events retain their original keys but are reclassified as imports', () => {
+  const context = { pendingEvents: [], idempotencyKey: 'import-key-2026' };
+  const imported = appendImportedAtlasEvents(context, [event({ source: 'user' })]);
+  assert.equal(imported, 1);
+  assert.equal(context.pendingEvents[0].key, 'test-event-key-001');
+  assert.equal(context.pendingEvents[0].source, 'import');
+  assert.equal(validateImportedAtlasEvents([event()])[0].source, 'import');
+  assert.throws(() => validateImportedAtlasEvents([event(), event()]), /duplicate activity event keys/);
 });
 
 test('workspace version commits append events atomically and skip duplicate idempotency replays', () => {
