@@ -97,7 +97,7 @@ test('module publishers emit the contracted facts without instrumenting Qur’an
     'task.completed','task.reopened','focus.ended','goal.completed','goal.reopened',
     'goal.milestone_reached','goal.milestone_unreached','habit.checked','habit.unchecked',
     'learning.item_completed','learning.item_reopened','learning.study_logged',
-    'review.submitted','review.reopened','practice.logged'
+    'review.submitted','review.reopened','practice.logged','practice.unlogged'
   ]) assert.ok(server.includes("type:'"+type+"'"), 'missing publisher for '+type);
   const quranRoute = server.slice(server.indexOf("app.post('/api/deen/quran'"), server.indexOf("app.delete('/api/deen/quran/:id'"));
   const faithRoute = server.slice(server.indexOf("app.patch('/api/faith'"), server.indexOf("// Daily Rhythm records"));
