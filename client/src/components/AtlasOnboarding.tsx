@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { ArrowLeft, ArrowRight, Compass, Globe2, Target, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Compass, Globe2, Target } from 'lucide-react';
 import { api } from '../lib/api';
 
 type Props = { onComplete: () => void };
