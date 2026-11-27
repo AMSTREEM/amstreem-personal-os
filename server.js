@@ -30,7 +30,7 @@ app.use((req, res, next) => {
     const apiPath = req.path.startsWith('/api/');
     const protectedQuranPath = req.path.startsWith('/api/quran/');
     if (apiPath && !protectedQuranPath && res.statusCode >= 400 &&
-        body && typeof body === 'object' && !Array.isArray(body) && !body.type) {
+        body && typeof body === 'object' && !Array.isArray(body) && !(body.type && body.title && body.status && body.code)) {
       const status = res.statusCode;
       const code = status === 401 ? 'unauthenticated'
         : status === 403 ? 'forbidden'
