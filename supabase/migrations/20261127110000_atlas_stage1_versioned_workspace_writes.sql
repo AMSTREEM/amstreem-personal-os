@@ -157,5 +157,12 @@ $$;
 
 revoke all on function public.commit_workspace(bigint,jsonb,integer,text,text,boolean,text) from public, anon;
 grant execute on function public.commit_workspace(bigint,jsonb,integer,text,text,boolean,text) to authenticated;
-grant select, insert on public.personal_os_workspace_history to authenticated;
-grant select, insert on public.personal_os_workspace_idempotency to authenticated;
+drop policy if exists "workspace history owner delete" on public.personal_os_workspace_history;
+create policy "workspace history owner delete" on public.personal_os_workspace_history
+  for delete to authenticated using ((select auth.uid()) = user_id);
+drop policy if exists "workspace idempotency owner delete" on public.personal_os_workspace_idempotency;
+create policy "workspace idempotency owner delete" on public.personal_os_workspace_idempotency
+  for delete to authenticated using ((select auth.uid()) = user_id);
+grant select, insert, delete on public.personal_os_workspace_history to authenticated;
+grant select, insert, delete on public.personal_os_workspace_idempotency to authenticated;
+grant usage, select on sequence public.personal_os_workspace_history_id_seq to authenticated;
