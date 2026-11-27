@@ -26,5 +26,5 @@ html[data-a-theme='ivory'], html[data-a-theme='sahara'] {
  --a-success: oklch(0.50 0.14 155); --a-warning: oklch(0.53 0.13 70); --a-danger: oklch(0.52 0.19 25); --a-info: oklch(0.50 0.14 235); --a-room-l: 0.52; --a-room-c: 0.17;
  --a-room-soft: oklch(0.95 0.03 var(--a-room-h)); --a-room-ink: oklch(0.99 0 0);
 }
-html[data-a-theme='ivory'] .atlas-v2[data-room='rhythm'], html[data-a-theme='sahara'] .atlas-v2[data-room='rhythm'] { --a-room-l: 0.48; --a-room-c: 0.16; }
-html[data-a-theme='ivory'] .atlas-v2[data-room='none'], html[data-a-theme='sahara'] .atlas-v2[data-room='none'] { --a-room-l: 0.45; --a-room-c: 0.04; }
+html[data-a-theme='ivory'][data-room='rhythm'], html[data-a-theme='sahara'][data-room='rhythm'] { --a-room-l: 0.48; --a-room-c: 0.16; }
+html[data-a-theme='ivory'][data-room='none'], html[data-a-theme='sahara'][data-room='none'] { --a-room-l: 0.45; --a-room-c: 0.04; }
