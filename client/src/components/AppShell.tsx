@@ -166,7 +166,7 @@ export function AppShell() {
   const faithTabLabel = quickReligion === 'islam' ? 'Deen' : quickReligion === 'christianity' ? 'Faith & Reflection' : 'Daily Reflection';
 
   return <div data-atlas-shell={location.pathname === "/quran" ? "quran" : "workspace"} className={"app-frame " + (location.pathname === "/quran" ? "atlas-quran-mode" : "atlas-renaissance") + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
-    <a className="atlas-skip-link" href="#atlas-main-content">Skip to content</a>
+    {location.pathname !== '/quran' && <a className="atlas-skip-link" href="#atlas-main-content">Skip to content</a>}
     <CursorAura/><SparkBurst/><EnergyVortex/>
     <MobileInstallPrompt />
     <AnimatePresence initial={false}>{tourOpen && <AtlasWalkthrough onClose={closeTour} onOpenCommand={() => { setCommandOpen(true); setCommandQuery(''); }} />}</AnimatePresence>
