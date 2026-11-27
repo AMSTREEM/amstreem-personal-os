@@ -1175,8 +1175,8 @@ function serializeWorkspaceDatabase(workspaceDb) {
   return { format: 'personal-os-sqlite-snapshot-v3', schemaVersion: 3, tables };
 }
 async function commitWorkspaceSnapshot(userId, expectedVersion, snapshot, requestMeta = {}, events = []) {
-  const serviceKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!serviceKey) throw new Error('The server database credential is not configured.');
+  const adminHeaders = supabaseAdminHeaders();
+  if (!adminHeaders) throw new Error('The server database credential is not configured.');
   const payload = {
     p_user_id: userId,
     p_expected_version: expectedVersion,
@@ -1190,12 +1190,7 @@ async function commitWorkspaceSnapshot(userId, expectedVersion, snapshot, reques
   };
   const response = await fetch(`${supabaseConfig.url}/rest/v1/rpc/commit_workspace_with_events`, {
     method: 'POST',
-    headers: {
-      apikey: serviceKey,
-      Authorization: `Bearer ${serviceKey}`,
-      'Content-Type': 'application/json',
-      Prefer: 'return=representation'
-    },
+    headers: { ...adminHeaders, 'Content-Type': 'application/json', Prefer: 'return=representation' },
     body: JSON.stringify(payload)
   });
   const raw = await response.text();
