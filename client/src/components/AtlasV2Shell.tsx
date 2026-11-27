@@ -76,7 +76,6 @@ export function AtlasV2Shell() {
       ? savedTheme
       : legacyThemeMap[savedTheme] || 'obsidian';
     applyAtlasTheme(resolvedTheme);
-    localStorage.setItem('atlas_theme', resolvedTheme);
   }, [settings.data?.theme]);
 
   useEffect(() => {
