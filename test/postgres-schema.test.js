@@ -394,7 +394,7 @@ test('unified Atlas shell exposes nine module destinations, responsive navigatio
   assert.match(shell, /destinations = \[\.\.\.rooms, quranDestination\]/);
   assert.match(shell, /waitingForDestination/);
   assert.match(shell, /event\.key\.toLowerCase\(\) === 'c'/);
-  assert.match(shell, /event\.key === '\?' /);
+  assert.match(shell, /event\.key === '\?'/);
   assert.match(shell, /quickCaptureType === 'note' \? '\/notes' : '\/habits'/);
   assert.match(shell, /atlas-mobile-dock__capture/);
   assert.match(shell, /atlas-skip-link/);
