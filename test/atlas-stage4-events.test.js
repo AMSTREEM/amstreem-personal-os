@@ -34,6 +34,7 @@ test('event contract rejects unknown types, payload fields and mismatched module
   assert.equal(AtlasEventSchema.safeParse(event({ payload: { goalLinked: false, title: 'private task title' } })).success, false);
   assert.equal(AtlasEventSchema.safeParse(event({ module: 'growth' })).success, false);
   assert.equal(AtlasEventSchema.safeParse(event({ type: 'focus.ended', module: 'actions', payload: { minutes: 0 } })).success, false);
+  assert.equal(AtlasEventSchema.safeParse(event({ type: 'task.reopened', module: 'actions', payload: { reversesEventKey: 'completed-event-123' } })).success, true);
 });
 
 test('event publishers derive stable keys from the request idempotency key', () => {
@@ -67,7 +68,7 @@ test('backup events retain their original keys but are reclassified as imports',
 
 test('workspace version commits append events atomically and skip duplicate idempotency replays', () => {
   assert.match(server, /rpc\/commit_workspace_with_events/);
-  assert.match(server, /p_events: validateAtlasEventBatch\(events\)/);
+  assert.match(server, /p_events: validateAtlasEventBatch\(events\)\.map\(event => \(\{ key: event\.key, type: event\.type, module: event\.module, entity_id: event\.entityId \|\| null, occurred_at: event\.occurredAt, local_date: event\.localDate/);
   assert.match(server, /pendingEvents: \[\]/);
   assert.match(server, /context\.pendingEvents/);
   assert.match(migration, /public\.commit_workspace_with_events/);
