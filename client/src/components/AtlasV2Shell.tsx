@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { applyAtlasTheme, isAtlasTheme, type AtlasTheme } from '../design/theme';
 import '../design/shell.css';
+import '../design/legacy-bridge.css';
 
 const rooms = [
   {
