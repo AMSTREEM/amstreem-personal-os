@@ -419,7 +419,7 @@ test('Residence is a clean-slate direction-led Home, Life Blueprint is data-back
   const blueprint = read('client/src/pages/BlueprintPage.tsx');
   assert.ok(app.includes('path="/residence" element={<SuspendedPage><ResidenceV2Page /></SuspendedPage>}'));
   assert.ok(app.includes('path="/blueprint" element={<SuspendedPage><BlueprintPage /></SuspendedPage>}'));
-  assert.ok(app.includes('path="/daily-rhythm" element={<SuspendedPage><TodayPage /></SuspendedPage>}'));
+  assert.ok(app.includes('path="/daily-rhythm" element={<SuspendedPage><DailyRhythmV2Page /></SuspendedPage>}'));
   assert.ok(home.includes("api<Task[]>('/tasks')"));
   assert.ok(home.includes("api<Goal[]>('/goals')"));
   assert.ok(home.includes("api<Session[]>('/sessions')"));
@@ -457,7 +457,7 @@ test('personal intelligence suggestions are actionable, feedback-aware, and coun
 
 test('route-level code splitting keeps the specialist Qur’an route statically loaded', () => {
   const app = read('client/src/App.tsx');
-  assert.match(app, /const AtlasHomePage = lazy\(\(\) => import\('\.\/pages\/AtlasHomePage'\)/);
+  assert.match(app, /const ResidenceV2Page = lazy\(\(\) => import\('\.\/pages\/ResidenceV2Page'\)/);
   assert.match(app, /const FocusWorkspace = lazy\(\(\) => import\('\.\/components\/FocusWorkspace'\)/);
   assert.match(app, /function SuspendedPage/);
   assert.match(app, /import \{ QuranPage \} from '\.\/pages\/QuranPage'/);
