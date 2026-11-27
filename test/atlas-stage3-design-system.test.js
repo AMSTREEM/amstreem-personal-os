@@ -26,7 +26,7 @@ test('Atlas v2 shell owns responsive room navigation and keyboard access', () =>
   assert.match(shell, /id="main-content"/);
   assert.match(shell, /a-mobile-bar/);
   assert.match(shell, /a-mobile-drawer/);
-  assert.match(shell, /event.key.toLowerCase() === 'k'/);
+  assert.match(shell, /event\.key\.toLowerCase\(\) === 'k'/);
 });
 
 test('Qur’an route remains separate from Atlas v2 workspace chrome', () => {
