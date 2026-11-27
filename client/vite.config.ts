@@ -14,5 +14,5 @@ export default defineConfig({
     port: 5173,
     proxy: { '/api': 'http://localhost:3000' }
   },
-  build: { outDir: output, emptyOutDir: true, sourcemap: false }
+  build: { outDir: output, emptyOutDir: true, sourcemap: false, manifest: true }
 });
