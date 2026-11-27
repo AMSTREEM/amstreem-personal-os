@@ -1,29 +1,41 @@
 # Stage 2 — Contracts and Boundaries
 
-Status: implementation in progress on `atlas-stage2-contracts`.
+Status: **complete**. Merged into `atlas-next`, deployed to `amstreem-atlas-staging`, and passed authenticated staging QA on 2026-11-27.
 
-## Implemented
+## Delivered
 
-- Shared Zod 4 contract package for module IDs, event envelopes, module manifests, pagination, bootstrap payloads and RFC 9457 Problem Details.
-- Eight non-Qur’an module manifests and a CI-enforced dependency boundary check. Feature modules cannot import another module or reach into shell-owned source; the registry and shared module types remain at the module root.
-- Explicit request-field registry for all 100 non-Qur’an API routes. Route registration injects strict method/path-specific body, query and path-parameter validation. Unknown fields are rejected; known scalar fields receive type and length checks.
-- Dedicated validated backup-envelope and legacy-import request handling.
-- `/api/v1` aliases for non-Qur’an endpoints while retaining existing `/api` compatibility. Qur’an reader routes remain excluded and unversioned.
-- Standardized `application/problem+json` handling for API validation, authentication, authorization, rate limits, conflicts, not-found, parser and unexpected errors, with request IDs.
-- `GET /api/v1/bootstrap` validates against the shared bootstrap response schema; the web auth provider now hydrates from this endpoint.
-- Shared success-response shape validation is applied to every non-Qur’an API JSON response; bootstrap additionally has a strict field-level response schema.
-- Tests cover request strictness, import payloads, response shape, Qur’an isolation and one-to-one route-to-contract registration.
+- Shared Zod 4 schemas for module IDs/manifests, event envelopes, idempotency keys, pagination, bootstrap responses, JSON success-response shape and RFC 9457 Problem Details.
+- Eight non-Qur’an module manifests and CI-enforced dependency boundaries.
+- Explicit method/path-specific request-field contracts for all 100 non-Qur’an API routes. Request bodies, query parameters and path parameters are validated before route handlers; unknown fields are rejected and supported scalar fields are type-checked.
+- Dedicated validation for checksummed and legacy backup imports.
+- `/api/v1` aliases for non-Qur’an API endpoints while preserving existing `/api` compatibility. Qur’an reader endpoints remain unversioned and excluded.
+- Request IDs and `application/problem+json` for API validation, authentication, authorization, rate limits, conflicts, not-found, parser and unexpected errors.
+- Authenticated bootstrap endpoint with strict shared response schema; the web auth provider hydrates through `/api/v1/bootstrap`.
+- Shared JSON success-response shape validation for non-Qur’an API responses.
+- CI checks for route-to-contract completeness, strict request validation, response contracts, module boundaries and Qur’an/Tajweed file protection.
 
-## Remaining before Stage 2 sign-off
+## Verification
 
-1. Complete full CI verification on the final branch head.
-2. Merge to `atlas-next`, deploy staging only, and run authenticated staging QA for v1 aliases, bootstrap, validation failures, response shape and Problem Details content types.
-3. Verify no regressions in existing app flows and that the Qur’an reader remains unchanged.
+Both repository CI workflows passed on the merged Stage 2 changes. Render staging deployment reached `live` and the service started successfully.
+
+Authenticated staging QA passed all nine checks:
+
+| Check | Result |
+|---|---|
+| Health endpoint | PASS |
+| Readiness endpoint | PASS |
+| Bootstrap endpoint | PASS |
+| Legacy `/api/session` compatibility | PASS |
+| Versioned `/api/v1/session` | PASS |
+| Unknown request body field rejected | PASS |
+| Unknown query field rejected | PASS |
+| Existing unversioned Qur’an endpoint works | PASS |
+| Versioned Qur’an endpoint remains excluded | PASS |
 
 ## Protected scope
 
-The Qur’an reader, Tajweed rendering, Qur’an fonts, recitation, and the existing `/api/quran/*` route implementation are outside Stage 2. No production branch or production Supabase project is to be modified.
+The Qur’an reader, Tajweed rendering, Qur’an fonts, recitation and existing `/api/quran/*` route implementation remain outside Stage 2. No production branch or production Supabase project was modified.
 
 ## Release boundary
 
-Changes are developed on `atlas-stage2-contracts`, reviewed into `atlas-next`, and tested on staging. Production branch `audit-and-hardening` and production Supabase remain untouched.
+Stage 2 is merged into `atlas-next` and live on staging. Production branch `audit-and-hardening` and production Supabase remain untouched. Stage 2 is signed off; subsequent architecture work should begin as a separate stage/branch.
