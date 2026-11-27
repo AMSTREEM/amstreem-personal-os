@@ -402,3 +402,37 @@ test('unified Atlas shell exposes nine module destinations, responsive navigatio
   assert.match(styles, /--atlas-nav-width-expanded/);
   assert.match(styles, /\.quick-capture-types/);
 });
+
+
+test('PWA updates wait for user approval, never auto-reload, and exclude APIs and Qur’an assets', () => {
+  const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
+  const prompt = fs.readFileSync(path.join(__dirname, '..', 'client/src/components/PwaUpdatePrompt.tsx'), 'utf8');
+  const main = fs.readFileSync(path.join(__dirname, '..', 'client/src/main.tsx'), 'utf8');
+  const start = server.indexOf("// Versioned PWA worker:");
+  const end = server.indexOf("app.use(express.static(frontendDist", start);
+  const worker = server.slice(start, end);
+  assert.ok(start >= 0 && end > start);
+  assert.match(worker, /ATLAS_ACTIVATE_UPDATE/);
+  assert.match(worker, /pathname\.startsWith\('\/api\/'\)/);
+  assert.match(worker, /pathname === '\/quran'/);
+  assert.match(worker, /pathname\.startsWith\('\/fonts\/'\)/);
+  assert.doesNotMatch(worker, /clients\.forEach\(client => client\.navigate/);
+  assert.doesNotMatch(worker, /install[^]*?self\.skipWaiting\(\)/);
+  assert.match(prompt, /Apply next launch/);
+  assert.match(prompt, /ATLAS_ACTIVATE_UPDATE/);
+  assert.match(main, /PwaUpdatePrompt/);
+});
+
+test('Atlas system theme and high-contrast preferences are applied before and after first paint', () => {
+  const theme = fs.readFileSync(path.join(__dirname, '..', 'client/src/design/theme.ts'), 'utf8');
+  const settings = fs.readFileSync(path.join(__dirname, '..', 'client/src/pages/SettingsPage.tsx'), 'utf8');
+  const bootstrap = fs.readFileSync(path.join(__dirname, '..', 'client/public/theme-init.js'), 'utf8');
+  assert.match(theme, /themeId !== 'system'/);
+  assert.match(theme, /prefers-color-scheme: light/);
+  assert.match(theme, /watchAtlasSystemTheme/);
+  assert.match(theme, /data-contrast/);
+  assert.match(settings, /id: 'system'/);
+  assert.match(settings, /High-contrast interface/);
+  assert.match(bootstrap, /preference === 'system'/);
+  assert.match(bootstrap, /atlas-high-contrast/);
+});
