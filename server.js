@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('node:fs');
 const crypto = require('node:crypto');
+const { replayWorkspaceMutation } = require('./workspace-replay');
 const Database = require('better-sqlite3');
 const { restoreBackup, createBackupEnvelope, summarizeBackup } = require('./workspace-backup');
 const { AsyncLocalStorage } = require('node:async_hooks');
@@ -1081,10 +1082,10 @@ function serializeWorkspaceDatabase(workspaceDb) {
   for (const table of workspaceTables) tables[table] = workspaceDb.prepare(`SELECT * FROM ${table}`).all();
   return { format: 'personal-os-sqlite-snapshot-v3', schemaVersion: 3, tables };
 }
-async function writeWorkspaceSnapshot(userId, token, workspaceDb, expectedVersion, requestMeta = {}) {
+async function commitWorkspaceSnapshot(token, expectedVersion, snapshot, requestMeta = {}) {
   const payload = {
     p_expected_version: expectedVersion,
-    p_data: serializeWorkspaceDatabase(workspaceDb),
+    p_data: snapshot,
     p_schema_version: 3,
     p_idempotency_key: requestMeta.idempotencyKey || null,
     p_request_hash: requestMeta.requestHash || null,
@@ -1111,6 +1112,33 @@ async function writeWorkspaceSnapshot(userId, token, workspaceDb, expectedVersio
     throw error;
   }
   return typeof detail === 'string' ? JSON.parse(detail) : detail;
+}
+async function writeWorkspaceSnapshot(userId, token, workspaceDb, expectedVersion, baseSnapshot, requestMeta = {}) {
+  let snapshot = serializeWorkspaceDatabase(workspaceDb);
+  let version = expectedVersion;
+  let replayed = false;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const result = await commitWorkspaceSnapshot(token, version, snapshot, requestMeta);
+      return { ...result, replayed: replayed || Boolean(result?.replayed) };
+    } catch (error) {
+      if (error.code !== 'VERSION_CONFLICT' || attempt === 2) throw error;
+      const latest = await readWorkspaceSnapshot(userId, token);
+      if (latest.version === version) throw error;
+      try {
+        snapshot = replayWorkspaceMutation(baseSnapshot, snapshot, latest.data);
+      } catch (replayError) {
+        const conflict = new Error(replayError.message || 'This change conflicts with a newer workspace update.');
+        conflict.code = 'VERSION_CONFLICT';
+        throw conflict;
+      }
+      version = latest.version;
+      replayed = true;
+    }
+  }
+  const exhausted = new Error('Workspace changed repeatedly while saving. Reload and retry.');
+  exhausted.code = 'VERSION_CONFLICT';
+  throw exhausted;
 }
 // Username sign-in is resolved server-side so account email addresses are never exposed to the browser.
 app.post('/api/auth/username-login', rateLimit({ max: 8, windowMs: 60_000, prefix: 'username-login' }), async (req, res) => {
@@ -1162,6 +1190,7 @@ app.use('/api', async (req, res, next) => {
     release = await acquireUserLock(user.id);
     const workspaceState = await readWorkspaceSnapshot(user.id, token);
     workspaceDb = createWorkspaceDatabase(workspaceState.data);
+    const baseSnapshot = serializeWorkspaceDatabase(workspaceDb);
     const idempotencyKey = String(req.get('Idempotency-Key') || '').trim();
     if (idempotencyKey && (idempotencyKey.length < 8 || idempotencyKey.length > 200)) {
       workspaceDb.close();
@@ -1189,7 +1218,7 @@ app.use('/api', async (req, res, next) => {
           forceHistory: req.path === '/import',
           historyReason: req.path === '/import' ? 'pre_import' : 'scheduled'
         };
-        writeWorkspaceSnapshot(user.id, token, workspaceDb, workspaceState.version, requestMeta)
+        writeWorkspaceSnapshot(user.id, token, workspaceDb, workspaceState.version, baseSnapshot, requestMeta)
           .then(result => {
             if (result?.version) res.setHeader('X-Workspace-Version', String(result.version));
             if (result?.replayed) res.setHeader('Idempotency-Replayed', 'true');
