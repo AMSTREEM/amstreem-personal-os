@@ -12,7 +12,8 @@
     "typecheck": "tsc --project client/tsconfig.json --noEmit",
     "test": "node --test",
     "prebuild": "npm run typecheck && npm test && npm audit",
-    "check:frozen": "node scripts/check-frozen.mjs"
+    "check:frozen": "node scripts/check-frozen.mjs",
+    "check:contrast": "node scripts/check-contrast.mjs"
   },
   "engines": {
     "node": ">=20"
