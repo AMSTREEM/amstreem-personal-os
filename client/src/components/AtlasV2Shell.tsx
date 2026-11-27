@@ -7,7 +7,7 @@ import {
 import { useAuth } from '../auth/AuthProvider';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import { applyAtlasTheme, type AtlasTheme } from '../design/theme';
+import { applyAtlasTheme, isAtlasTheme, type AtlasTheme } from '../design/theme';
 import '../design/shell.css';
 
 const rooms = [
@@ -64,16 +64,19 @@ export function AtlasV2Shell() {
   ].filter(item => (item.label + ' ' + item.section).toLowerCase().includes(commandQuery.toLowerCase())), [commandQuery]);
 
   useEffect(() => {
-    const legacyTheme = settings.data?.theme;
-    if (!legacyTheme) return;
-    const themeByLegacy: Record<string, AtlasTheme> = {
+    const savedTheme = settings.data?.theme;
+    if (!savedTheme) return;
+    const legacyThemeMap: Record<string, AtlasTheme> = {
       'shadowed-alchemist': 'obsidian', 'abyssal-trench': 'obsidian', 'whispering-woods': 'obsidian',
       'nocturnal-amethyst': 'dusk', 'crimson-velvet': 'dusk',
       'light-porcelain': 'ivory', 'light-sage': 'ivory', 'light-lavender': 'ivory',
       'light-sky': 'ivory', 'light-sandstone': 'sahara'
     };
-    applyAtlasTheme(themeByLegacy[legacyTheme] || (legacyTheme.startsWith('light-') ? 'ivory' : 'obsidian'));
-    localStorage.setItem('atlas_theme', legacyTheme);
+    const resolvedTheme: AtlasTheme = isAtlasTheme(savedTheme)
+      ? savedTheme
+      : legacyThemeMap[savedTheme] || 'obsidian';
+    applyAtlasTheme(resolvedTheme);
+    localStorage.setItem('atlas_theme', resolvedTheme);
   }, [settings.data?.theme]);
 
   useEffect(() => {
