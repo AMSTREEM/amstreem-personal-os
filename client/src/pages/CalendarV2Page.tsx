@@ -2,7 +2,7 @@ import { useMemo,useState,type FormEvent } from 'react';
 import { useMutation,useQuery,useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft,ArrowRight,CalendarDays,Plus,Trash2 } from 'lucide-react';
 import { api,json } from '../lib/api';
-import { AtlasBadge,AtlasButton,AtlasCard,AtlasEmptyState,AtlasInput,AtlasSectionHeading,AtlasSkeleton } from '../components/ui/atlas-ui';
+import { AtlasButton,AtlasCard,AtlasEmptyState,AtlasInput,AtlasSectionHeading } from '../components/ui/atlas-ui';
 import './execution-v2.css';
 type Day={date:string;sections:string[];perfect:boolean};
 type Event={id:number;title:string;description:string;start_at:string;end_at:string|null;project_id:number|null};
