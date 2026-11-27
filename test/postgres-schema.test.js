@@ -417,7 +417,8 @@ test('PWA updates wait for user approval, never auto-reload, and exclude APIs an
   assert.match(worker, /pathname === '\/quran'/);
   assert.match(worker, /pathname\.startsWith\('\/fonts\/'\)/);
   assert.doesNotMatch(worker, /clients\.forEach\(client => client\.navigate/);
-  assert.doesNotMatch(worker, /install[^]*?self\.skipWaiting\(\)/);
+  const installBlock = worker.slice(worker.indexOf("self.addEventListener('install'"), worker.indexOf("self.addEventListener('message'"));
+  assert.doesNotMatch(installBlock, /skipWaiting/);
   assert.match(prompt, /Apply next launch/);
   assert.match(prompt, /ATLAS_ACTIVATE_UPDATE/);
   assert.match(main, /PwaUpdatePrompt/);
