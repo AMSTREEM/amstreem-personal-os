@@ -42,11 +42,13 @@ test('Qur’an route remains separate from Atlas v2 workspace chrome', () => {
 test('Atlas startup applies the selected modern theme consistently over stale legacy preferences', () => {
   const startup = read('client/public/theme-init.js');
   const theme = read('client/src/design/theme.ts');
-  assert.match(startup, /var validStored = Object\.prototype\.hasOwnProperty\.call\(themes, stored\)/);
-  assert.match(startup, /var config = themes\[theme\]/);
-  assert.match(startup, /root\.style\.colorScheme = config\.scheme/);
-  assert.match(startup, /root\.style\.backgroundColor = config\.color/);
-  assert.match(startup, /root\.setAttribute\('data-theme', config\.legacy\)/);
-  assert.match(theme, /localStorage\.setItem\('atlas_theme', mapping\.legacy\)/);
-  assert.match(theme, /root\.style\.backgroundColor = mapping\.color/);
+  for (const snippet of [
+    'var validStored = Object.prototype.hasOwnProperty.call(themes, stored)',
+    'var config = themes[theme]',
+    'root.style.colorScheme = config.scheme',
+    'root.style.backgroundColor = config.color',
+    "root.setAttribute('data-theme', config.legacy)"
+  ]) assert.ok(startup.includes(snippet), 'Missing startup theme behavior: ' + snippet);
+  assert.ok(theme.includes("localStorage.setItem('atlas_theme', mapping.legacy)"));
+  assert.ok(theme.includes('root.style.backgroundColor = mapping.color'));
 });
