@@ -7246,3 +7246,132 @@ html, body, #root, .app-frame, .main-area, .page-container {
   .history-row__main { min-width: calc(100% - 56px); }
   .history-row > .button { margin-left: 50px; }
 }
+
+
+/* Stage 3 · Unified shell navigation. Qur’an reader content is not targeted. */
+.sidebar {
+  width: var(--atlas-nav-width-expanded, 264px);
+  padding-top: 22px;
+  transition: width var(--atlas-duration-slow, 320ms) var(--atlas-ease-standard, cubic-bezier(.2,0,0,1));
+}
+.main-area {
+  margin-left: var(--atlas-nav-width-expanded, 264px);
+  transition: margin-left var(--atlas-duration-slow, 320ms) var(--atlas-ease-standard, cubic-bezier(.2,0,0,1));
+}
+.sidebar-collapse-toggle {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 2px 4px;
+  padding: 0 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: left;
+}
+.sidebar-collapse-toggle:hover {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--text);
+}
+.sidebar--collapsed {
+  width: var(--atlas-nav-width-rail, 72px);
+  padding-right: 10px;
+  padding-left: 10px;
+}
+.app-frame:has(.sidebar--collapsed) .main-area {
+  margin-left: var(--atlas-nav-width-rail, 72px);
+}
+.sidebar--collapsed .sidebar-brand {
+  justify-content: center;
+  padding: 0;
+}
+.sidebar--collapsed .sidebar-brand > span,
+.sidebar--collapsed .sidebar-caption,
+.sidebar--collapsed .nav-group__label,
+.sidebar--collapsed .room-nav-link > span,
+.sidebar--collapsed .room-nav-link > kbd,
+.sidebar--collapsed .sidebar-collapse-toggle > span,
+.sidebar--collapsed .nav-link--settings > span,
+.sidebar--collapsed .profile-copy,
+.sidebar--collapsed .profile-trigger > span:last-child {
+  display: none;
+}
+.sidebar--collapsed .primary-nav { overflow: visible; }
+.sidebar--collapsed .nav-link {
+  justify-content: center;
+  gap: 0;
+  padding-right: 0;
+  padding-left: 0;
+}
+.sidebar--collapsed .sidebar-bottom .nav-link { justify-content: center; }
+.sidebar--collapsed .profile-trigger { justify-content: center; padding: 9px 0; }
+.sidebar--collapsed .sidebar-collapse-toggle {
+  justify-content: center;
+  padding: 0;
+}
+.sidebar--collapsed .profile-popover {
+  right: auto;
+  left: calc(100% + 8px);
+  bottom: 0;
+  width: 190px;
+}
+@media (min-width: 1024px) {
+  .sidebar:not(.sidebar--collapsed) { width: var(--atlas-nav-width-expanded, 264px); }
+  .app-frame:not(:has(.sidebar--collapsed)) .main-area { margin-left: var(--atlas-nav-width-expanded, 264px); }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .sidebar {
+    width: var(--atlas-nav-width-rail, 72px);
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+  .main-area { margin-left: var(--atlas-nav-width-rail, 72px); }
+  .sidebar--expanded {
+    z-index: 50;
+    width: var(--atlas-nav-width-expanded, 264px);
+    padding-right: 18px;
+    padding-left: 18px;
+    box-shadow: 18px 0 45px rgba(0,0,0,.25);
+  }
+  .sidebar--expanded .sidebar-brand { justify-content: flex-start; padding: 0 9px; }
+  .sidebar--expanded .sidebar-brand > span,
+  .sidebar--expanded .sidebar-caption,
+  .sidebar--expanded .nav-group__label,
+  .sidebar--expanded .room-nav-link > span,
+  .sidebar--expanded .room-nav-link > kbd,
+  .sidebar--expanded .sidebar-collapse-toggle > span,
+  .sidebar--expanded .nav-link--settings > span,
+  .sidebar--expanded .profile-copy,
+  .sidebar--expanded .profile-trigger > span:last-child { display: revert; }
+  .sidebar--expanded .nav-link { justify-content: flex-start; gap: 12px; padding-right: 11px; padding-left: 11px; }
+  .sidebar--expanded .sidebar-collapse-toggle { justify-content: flex-start; padding: 0 10px; }
+  .sidebar--expanded .profile-trigger { justify-content: flex-start; padding: 9px 7px; }
+}
+@media (max-width: 767px) {
+  .sidebar { width: 270px; padding: 28px 18px 18px; }
+  .sidebar-collapse-toggle { display: none; }
+  .main-area { margin-left: 0; padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+  .atlas-mobile-dock__capture {
+    border: 1px solid color-mix(in srgb, var(--atlas-brand) 50%, var(--line));
+    background: color-mix(in srgb, var(--atlas-brand) 16%, var(--surface));
+    color: var(--atlas-brand);
+  }
+  .atlas-mobile-dock__capture svg { width: 20px; height: 20px; }
+}
+.atlas-skip-link {
+  position: fixed;
+  z-index: 200;
+  top: 8px;
+  left: 8px;
+  transform: translateY(-160%);
+  padding: 10px 14px;
+  border: 1px solid var(--atlas-border);
+  border-radius: 9px;
+  background: var(--atlas-surface-3);
+  color: var(--atlas-text-1);
+}
+.atlas-skip-link:focus { transform: translateY(0); }
