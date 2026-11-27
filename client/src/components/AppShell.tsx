@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, json } from '../lib/api';
+import { applyAtlasTheme, watchAtlasSystemTheme } from '../design/theme';
 import { ArrowRight, BookOpen, CalendarDays, Check, Compass, GraduationCap, Heart, History as HistoryIcon, House, ListChecks, LogOut, MoonStar, Pause, Play, Plus, Search, Settings, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Target, Timer, TrendingUp, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
@@ -189,22 +190,8 @@ export function AppShell() {
   useEffect(() => {
     const theme = settings.data?.theme;
     if (!theme) return;
-    localStorage.setItem('atlas_theme', theme);
-    const root = document.documentElement;
-    root.setAttribute('data-theme', theme);
-    root.style.colorScheme = theme.startsWith('light-') ? 'light' : 'dark';
-    const backgrounds: Record<string, string> = {
-      'shadowed-alchemist': '#07080A', 'nocturnal-amethyst': '#050408',
-      'abyssal-trench': '#03060C', 'whispering-woods': '#030806',
-      'crimson-velvet': '#080304', 'light-porcelain': '#F5F6F3',
-      'light-sandstone': '#F6F0E7', 'light-sage': '#EFF4EF',
-      'light-lavender': '#F4F1F8', 'light-sky': '#EFF5F9'
-    };
-    const background = backgrounds[theme];
-    if (background) {
-      root.style.backgroundColor = background;
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', background);
-    }
+    applyAtlasTheme(theme);
+    return watchAtlasSystemTheme(theme);
   }, [settings.data?.theme]);
   const storedFeatures = settings.data?.features;
   let enabledFeatures: string[] | null = null;
