@@ -1,6 +1,6 @@
 # Atlas v2 — Phase 4: route-by-route redesign
 
-Status: **in progress — Residence first**.
+Status: **in progress — Residence and Daily Rhythm redesigned; verification running**.
 
 ## Residence redesign
 
@@ -15,6 +15,17 @@ Status: **in progress — Residence first**.
 ## Design direction
 
 A calm, editorial workspace: clear hierarchy, intentional negative space, a focused next-step panel, open actions, active direction and effort signals. Responsive layouts and reduced-motion support are included.
+
+
+## Daily Rhythm redesign
+
+- Added `client/src/pages/DailyRhythmV2Page.tsx` and `client/src/pages/daily-rhythm-v2.css`.
+- Routed `/daily-rhythm` to the new workspace.
+- Built time-aware morning/day/evening framing, a persisted daily intention and next-focus prompt, today's action list, habit check-ins, and focus-time signals.
+- Reuses existing tasks, habits, sessions and daily-review APIs and cache keys.
+- Keeps Values & Faith as a separate destination. The new Daily Rhythm page does not read, write or import Qur'an reader state or APIs.
+- Added automated checks for route wiring, core actions, scoped styles and the protected Qur'an boundary.
+- Updated legacy architecture assertions to follow the new clean-slate routes rather than the retired Residence page.
 
 ## Protected boundary
 
