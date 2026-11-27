@@ -6,6 +6,7 @@ import { AuthProvider } from './auth/AuthProvider';
 import { MotionConfig } from 'motion/react';
 import { App } from './App';
 import './styles.css';
+import './design/tokens.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
