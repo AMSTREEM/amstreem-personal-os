@@ -1390,7 +1390,7 @@ CREATE TABLE IF NOT EXISTS weekly_challenges (week_start TEXT PRIMARY KEY, chall
 CREATE TABLE IF NOT EXISTS feedback_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, message TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 `;
 const one=(s,...a)=>db.prepare(s).get(...a), all=(s,...a)=>db.prepare(s).all(...a);
-function awardXp(eventKey,category,points){if(!eventKey||!Number.isInteger(points)||points<1)return;db.prepare('INSERT OR IGNORE INTO xp_events(event_key,category,points) VALUES(?,?,?)').run(eventKey,category,points);}
+// Legacy xp_events remain in the snapshot for backup compatibility; new awards use xp_ledger.
 const dateKey=(d=new Date())=>new Intl.DateTimeFormat('en-CA',{timeZone:'Africa/Lagos',year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
 // New installs start with no seeded habits; users define their own rituals.
 async function sendResendEmail(to, subject, html) {
