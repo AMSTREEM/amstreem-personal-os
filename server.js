@@ -6,7 +6,7 @@ const { restoreBackup } = require('./workspace-backup');
 const { AsyncLocalStorage } = require('node:async_hooks');
 const crypto = require('node:crypto');
 const { commitWorkspaceSnapshot, createWorkspaceRequestHash } = require('./server/workspace-persistence');
-const { positiveIdSchema, validateRequest, validateApiEnvelope, sendProblem } = require('./server/api-contracts');
+const { positiveIdSchema, validateRequest, validateApiEnvelope, sendProblem, onboardingSchema } = require('./server/api-contracts');
 const { apiProblemResponses } = require('./server/api-errors');
 const { resolveAppEnvironment, checkEnvironmentMarker, requestLogger } = require('./server/runtime-guard');
 const app = express();
@@ -1408,7 +1408,11 @@ CREATE TABLE IF NOT EXISTS feedback_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, 
 `;
 const one=(s,...a)=>db.prepare(s).get(...a), all=(s,...a)=>db.prepare(s).all(...a);
 function awardXp(eventKey,category,points){if(!eventKey||!Number.isInteger(points)||points<1)return;db.prepare('INSERT OR IGNORE INTO xp_events(event_key,category,points) VALUES(?,?,?)').run(eventKey,category,points);}
-const dateKey=(d=new Date())=>new Intl.DateTimeFormat('en-CA',{timeZone:'Africa/Lagos',year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+const dateKey=(d=new Date())=>{
+ let timezone='Africa/Lagos';
+ try { timezone=one('SELECT value FROM settings WHERE key=?','timezone')?.value || timezone; } catch {}
+ return new Intl.DateTimeFormat('en-CA',{timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+};
 // New installs start with no seeded habits; users define their own rituals.
 async function sendResendEmail(to, subject, html) {
  const key=process.env.RESEND_API_KEY, from=process.env.EMAIL_FROM;
@@ -1812,8 +1816,20 @@ app.post('/api/reviews',(q,s)=>{
 });
 
 app.get('/api/settings',(q,s)=>{const values=Object.fromEntries(all('SELECT key,value FROM settings').map(x=>[x.key,x.value]));values.faith_tradition=values.faith_tradition||values.religion||'general';s.json(values);});
+app.post('/api/onboarding', validateRequest(onboardingSchema), (q,s)=>{
+ const { timezone, goal_title, habit_title } = q.validated.body;
+ try { new Intl.DateTimeFormat('en-US',{timeZone:timezone}); }
+ catch { return s.status(400).json({error:'Choose a valid IANA time zone.'}); }
+ const create = db.transaction(()=>{
+  db.prepare("INSERT INTO settings(key,value) VALUES('timezone',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(timezone);
+  const goalResult=db.prepare('INSERT INTO goals(title,detail,target_date,category,horizon) VALUES(?,?,?,?,?)').run(goal_title,'',null,'Personal','long-term');
+  const habitResult=db.prepare('INSERT INTO habits(title,emoji,sort_order,goal_id) VALUES(?,?,COALESCE((SELECT MAX(sort_order)+1 FROM habits),1),?)').run(habit_title,'✦',null);
+  return { goal: one('SELECT * FROM goals WHERE id=?',goalResult.lastInsertRowid), habit: one('SELECT * FROM habits WHERE id=?',habitResult.lastInsertRowid) };
+ });
+ return s.status(201).json(create());
+});
 app.patch('/api/settings',(q,s)=>{
- const allowed=['daily_target','display_name','username','north_star','religion','faith_tradition','leaderboard_name','leaderboard_public','theme','features','life_areas','widgets','sidebar_collapsed','hifz_page','hifz_bookmark','murajaah_page','murajaah_bookmark','communication_style'];
+ const allowed=['daily_target','display_name','username','north_star','timezone','religion','faith_tradition','leaderboard_name','leaderboard_public','theme','features','life_areas','widgets','sidebar_collapsed','hifz_page','hifz_bookmark','murajaah_page','murajaah_bookmark','communication_style'];
  const themes=['system','shadowed-alchemist','nocturnal-amethyst','abyssal-trench','whispering-woods','crimson-velvet','light-porcelain','light-sandstone','light-sage','light-lavender','light-sky'];
  const features=['calendar','deen','faith','selfcontrol','learning','tasks','focus','library','goals','rankings','rituals','values'];
  const lifeAreas=['health','education','career','finance','faith','personal','relationships','lifestyle'];
@@ -1821,6 +1837,7 @@ app.patch('/api/settings',(q,s)=>{
  if(q.body.religion!==undefined&&!['islam','christianity','none','prefer_not_to_say'].includes(q.body.religion))return s.status(400).json({error:'Choose a valid religious experience.'});
  if(q.body.faith_tradition!==undefined&&!['islam','christianity','none','prefer_not_to_say','general'].includes(q.body.faith_tradition))return s.status(400).json({error:'Choose a valid faith tradition.'});
  if(q.body.theme!==undefined&&!themes.includes(q.body.theme))return s.status(400).json({error:'Choose a valid colour theme.'});
+ if(q.body.timezone!==undefined){try{new Intl.DateTimeFormat('en-US',{timeZone:String(q.body.timezone).trim()});}catch{return s.status(400).json({error:'Choose a valid IANA time zone.'});}}
  if(q.body.features!==undefined&&(!Array.isArray(q.body.features)||q.body.features.some(x=>!features.includes(x))))return s.status(400).json({error:'Choose valid workspace sections.'});
  if(q.body.life_areas!==undefined&&(!Array.isArray(q.body.life_areas)||q.body.life_areas.length<1||q.body.life_areas.length>8||new Set(q.body.life_areas).size!==q.body.life_areas.length||q.body.life_areas.some(x=>!lifeAreas.includes(x))))return s.status(400).json({error:'Choose at least one valid life area.'});
  if(q.body.widgets!==undefined&&(!q.body.widgets||typeof q.body.widgets!=='object'||Array.isArray(q.body.widgets)))return s.status(400).json({error:'Choose valid dashboard widgets.'});
