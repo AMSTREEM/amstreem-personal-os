@@ -5,7 +5,7 @@ import { AnimatePresence, MotionConfig, motion, useReducedMotion } from 'motion/
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, json } from '../lib/api';
 import { applyAtlasTheme, watchAtlasSystemTheme } from '../design/theme';
-import { atlasModules as rooms, quranShellEntry as quranDestination, atlasNavigationGroups as navigationGroups, atlasCommandDestinations as commandDestinations } from '../design/module-registry';
+import { atlasModules as rooms, quranShellEntry as quranDestination, atlasNavigationGroups as navigationGroups, atlasCommandDestinations as commandDestinations, atlasQuickCaptureTypes } from '../design/module-registry';
 import { ArrowRight, BookOpen, CalendarDays, Check, Compass, History as HistoryIcon, House, ListChecks, LogOut, Pause, Play, Plus, Search, Settings, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Timer, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
@@ -72,7 +72,7 @@ export function AppShell() {
   const focusTimer = useFocusTimer();
   const [clockNow, setClockNow] = useState(Date.now());
   const [quickTaskTitle, setQuickTaskTitle] = useState('');
-  const [quickCaptureType, setQuickCaptureType] = useState<'task' | 'note' | 'habit'>('task');
+  const [quickCaptureType, setQuickCaptureType] = useState<(typeof atlasQuickCaptureTypes)[number]>('task');
   const [quickTaskSaving, setQuickTaskSaving] = useState(false);
   const [quickTaskError, setQuickTaskError] = useState('');
   useEffect(() => {
@@ -269,7 +269,7 @@ export function AppShell() {
       <AnimatePresence initial={false}>{commandOpen && <motion.div className="command-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} onMouseDown={event => {if(event.target===event.currentTarget)setCommandOpen(false);}}><motion.section className="command-panel" role="dialog" aria-modal="true" aria-label="Atlas quick capture" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
         <div className="command-search"><Search size={17}/><input autoFocus value={commandQuery} onChange={event=>setCommandQuery(event.target.value)} placeholder="Search pillars, capture a task, or check in…"/><kbd>ESC</kbd></div>
         {commandQuery.toLowerCase() !== 'shortcuts' && <div className="quick-capture-types" role="group" aria-label="Capture type">
-          {(['task','note','habit'] as const).map(type => <button key={type} type="button" aria-pressed={quickCaptureType === type} onClick={() => setQuickCaptureType(type)}>{type === 'task' ? 'Task' : type === 'note' ? 'Note' : 'Habit'}</button>)}
+          {atlasQuickCaptureTypes.map(type => <button key={type} type="button" aria-pressed={quickCaptureType === type} onClick={() => setQuickCaptureType(type)}>{type === 'task' ? 'Task' : type === 'note' ? 'Note' : 'Habit'}</button>)}
         </div>}
         {commandQuery.toLowerCase() !== 'shortcuts' && <form className="command-task-form" onSubmit={captureQuickItem}><Zap size={15}/><input value={quickTaskTitle} onChange={event=>setQuickTaskTitle(event.target.value)} placeholder={quickCaptureType === 'task' ? 'What needs doing?' : quickCaptureType === 'note' ? 'Give this note a title…' : 'Name a habit to build…'} maxLength={quickCaptureType === 'habit' ? 100 : 180}/><button disabled={!quickTaskTitle.trim()||quickTaskSaving}>{quickTaskSaving?'Saving…':'Save ' + quickCaptureType}</button></form>}
         {quickTaskError && <p className="command-error">{quickTaskError}</p>}
