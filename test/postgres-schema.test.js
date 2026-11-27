@@ -174,7 +174,7 @@ test('workspace history is private, visible in Atlas, and restores with a pre-re
   assert.match(historyPage, /window\.confirm/);
   assert.match(historyPage, /workspace-history/);
   assert.match(app, /path="\/history"/);
-  assert.match(shell, /Workspace history/);
+  assert.match(fs.readFileSync(path.join(__dirname, '..', 'client/src/design/module-registry.ts'), 'utf8'), /Workspace history/);
 });
 
 
