@@ -1,4 +1,12 @@
 /* Atlas v2 shell — isolated from the frozen reader and legacy application shell. */
+/* Keyboard users can bypass repeated navigation and reach the current route content. */
+.a-skip-link {
+  position: fixed; z-index: 120; top: 10px; left: 10px; padding: 10px 14px;
+  transform: translateY(-160%); border: 1px solid var(--a-line-strong); border-radius: 9px;
+  background: var(--a-surface-1); color: var(--a-text); box-shadow: var(--a-shadow-2);
+  font-size: 12px; font-weight: 650;
+}
+.a-skip-link:focus { transform: translateY(0); outline: 2px solid var(--a-room); outline-offset: 3px; }
 .a-shell {
   --a-sidebar-width: 278px;
   position: relative;
