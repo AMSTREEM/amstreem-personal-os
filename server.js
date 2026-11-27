@@ -7,6 +7,7 @@ const { AsyncLocalStorage } = require('node:async_hooks');
 const crypto = require('node:crypto');
 const { commitWorkspaceSnapshot, createWorkspaceRequestHash } = require('./server/workspace-persistence');
 const { positiveIdSchema, validateRequest, sendProblem } = require('./server/api-contracts');
+const { apiProblemResponses } = require('./server/api-errors');
 const { resolveAppEnvironment, checkEnvironmentMarker, requestLogger } = require('./server/runtime-guard');
 const app = express();
 app.disable('x-powered-by');
@@ -1159,6 +1160,7 @@ app.use('/api/v1', (req, res, next) => {
   next();
 });
 
+app.use('/api', apiProblemResponses());
 app.use('/api', async (req, res, next) => {
   let release;
   let workspaceDb;
