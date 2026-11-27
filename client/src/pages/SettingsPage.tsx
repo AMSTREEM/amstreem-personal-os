@@ -3,26 +3,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Download, Upload } from 'lucide-react';
 import { primeAtlasAudio } from '../lib/microFeedback';
 import { api, json } from '../lib/api';
+import { applyAtlasTheme } from '../design/theme';
 import { Button, Card, Field, PageHeader, TextInput } from '../components/ui';
 
 type Settings = Record<string, string>;
-const themeBackgrounds: Record<string, string> = {
-  'shadowed-alchemist': '#07080A', 'nocturnal-amethyst': '#050408',
-  'abyssal-trench': '#03060C', 'whispering-woods': '#030806',
-  'crimson-velvet': '#080304', 'light-porcelain': '#F5F6F3',
-  'light-sandstone': '#F6F0E7', 'light-sage': '#EFF4EF',
-  'light-lavender': '#F4F1F8', 'light-sky': '#EFF5F9'
-};
-function applyTheme(themeId: string) {
-  if (!themeBackgrounds[themeId]) return;
-  localStorage.setItem('atlas_theme', themeId);
-  const root = document.documentElement;
-  root.setAttribute('data-theme', themeId);
-  root.style.colorScheme = themeId.startsWith('light-') ? 'light' : 'dark';
-  root.style.backgroundColor = themeBackgrounds[themeId];
-  const meta = document.querySelector('meta[name="theme-color"]');
-  meta?.setAttribute('content', themeBackgrounds[themeId]);
-}
 const lifeAreaOptions = [
   { id: 'health', name: 'Health & Fitness', desc: 'Training, nutrition and wellbeing', icon: '◈' },
   { id: 'education', name: 'Education & Learning', desc: 'Studying, reading and new skills', icon: '⌁' },
@@ -35,6 +19,9 @@ const lifeAreaOptions = [
 ];
 const defaultLifeAreas = lifeAreaOptions.map(area => area.id);
 const themes = [
+  { group: 'System', items: [
+    { id: 'system', name: 'System', note: 'Follow your device appearance', colors: ['#0A0E13','#F6F4EF','#22D3EE','#EAF0F6'] }
+  ]},
   { group: 'Dark', items: [
     { id: 'shadowed-alchemist', name: 'Shadowed Alchemist', note: 'Mysterious balanced', colors: ['#07080A','#0E1014','#CA8A04','#E4E4E7'] },
     { id: 'nocturnal-amethyst', name: 'Nocturnal Amethyst', note: 'Mysterious all-purple', colors: ['#050408','#0C0914','#C084FC','#EAE6F5'] },
@@ -69,13 +56,13 @@ export function SettingsPage() {
       setTarget(settings.data.daily_target || '80');
       setTheme(settings.data.theme || 'shadowed-alchemist');
       setCommunicationStyle(settings.data.communication_style || 'adaptive');
-      applyTheme(settings.data.theme || 'shadowed-alchemist');
+      applyAtlasTheme(settings.data.theme || 'shadowed-alchemist');
       try { setFeatures(settings.data.features ? JSON.parse(settings.data.features).map((feature: string) => feature === 'values' ? 'deen' : feature) : ['calendar','focus','rituals','selfcontrol','learning','library','deen']); } catch { setFeatures(['calendar','focus','rituals','selfcontrol','learning','library','deen']); }
       try { const saved = settings.data.life_areas ? JSON.parse(settings.data.life_areas) : defaultLifeAreas; setSelectedLifeAreas(Array.isArray(saved) ? saved.filter((id: string) => lifeAreaOptions.some(area => area.id === id)) : defaultLifeAreas); } catch { setSelectedLifeAreas(defaultLifeAreas); }
     }
   }, [settings.data]);
   const save = useMutation({
-    mutationFn: () => { applyTheme(theme); return api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), theme, features, life_areas: selectedLifeAreas, communication_style: communicationStyle })); },
+    mutationFn: () => { applyAtlasTheme(theme); return api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), theme, features, life_areas: selectedLifeAreas, communication_style: communicationStyle })); },
     onSuccess: () => { setMessage('Your preferences have been saved.'); void client.invalidateQueries({ queryKey: ['settings'] }); }
   });
   async function exportData() {
@@ -128,7 +115,7 @@ export function SettingsPage() {
             {themes.map(group => <section className="theme-picker-group" key={group.group}>
               <div className="theme-picker-group__heading">{group.group} palettes <small>{group.items.length} styles</small></div>
               <div className="theme-picker-grid">
-                {group.items.map(item => <button key={item.id} type="button" className="theme-preset" aria-pressed={theme === item.id} onClick={() => { setTheme(item.id); applyTheme(item.id); }}>
+                {group.items.map(item => <button key={item.id} type="button" className="theme-preset" aria-pressed={theme === item.id} onClick={() => { setTheme(item.id); applyAtlasTheme(item.id); }}>
                   <span className="theme-preset__swatches" aria-hidden="true">{item.colors.map((color, index) => <i key={index} style={{ background: color }} />)}</span>
                   <span className="theme-preset__copy"><b>{item.name}</b><small>{item.note}</small></span>
                   <span className="theme-preset__check">{theme === item.id ? <Check size={14} strokeWidth={2.4}/> : null}</span>
