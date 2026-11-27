@@ -78,3 +78,37 @@
  .memory-record{gap:8px;padding:12px}
  .memory-record-meta time{flex-basis:100%;margin-left:0}
 }
+
+
+/* Account and explicit cloud-memory controls */
+.memory-account{border:1px solid #343a30;border-radius:7px;background:linear-gradient(120deg,#1b2019,#151914);padding:16px;margin:0 0 18px}
+.memory-account-state{display:flex;align-items:center;gap:12px;color:#cdb780}
+.memory-account-state>svg{flex:none}
+.memory-account-state>div,.memory-auth-intro>div{display:grid;gap:5px;flex:1;min-width:0}
+.memory-account-state strong,.memory-auth-intro strong{font:600 11px Manrope;color:#e3e2d8}
+.memory-account-state span,.memory-auth-intro span{font-size:10px;line-height:1.65;color:#92988b;overflow-wrap:anywhere}
+.memory-account-state>.outline-button{flex:none}
+.memory-sync-panel{margin-top:14px;padding-top:14px;border-top:1px solid #30362c}
+.memory-consent{display:flex;align-items:flex-start;gap:10px;color:#a6ad9d;font-size:10px;line-height:1.7;cursor:pointer}
+.memory-consent input{accent-color:#cdb780;margin-top:2px;flex:none}
+.memory-sync-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}
+.memory-sync-actions>span{font:8px 'DM Mono';color:#7e8578}
+.memory-sync-actions .begin-button{display:flex;align-items:center;gap:8px;border:0;border-radius:4px;background:#cdb780;color:#181a14;padding:9px 12px;font-size:10px;font-weight:700}
+.memory-sync-actions .begin-button:disabled{opacity:.4;cursor:not-allowed}
+.memory-auth-intro{display:flex;align-items:flex-start;gap:12px;color:#cdb780;margin-bottom:15px}
+.memory-auth-form{display:grid;grid-template-columns:1fr 1fr auto;align-items:end;gap:10px}
+.memory-auth-form label{display:grid;gap:6px;color:#8e9488;font:9px 'DM Mono';letter-spacing:.6px;text-transform:uppercase}
+.memory-auth-form input{height:37px;min-width:0;border:1px solid #3a4035;border-radius:4px;background:#11150f;color:#e9e6dc;padding:0 10px;font:11px 'DM Sans';text-transform:none;letter-spacing:normal}
+.memory-auth-form input:focus{outline:1px solid #a8915d;border-color:#a8915d}
+.memory-auth-form .begin-button{height:37px;display:flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:4px;background:#cdb780;color:#181a14;padding:0 12px;font-size:10px;font-weight:700;white-space:nowrap}
+.memory-auth-form .begin-button:disabled{opacity:.45;cursor:not-allowed}
+.memory-auth-switch{margin-top:13px;border:0;background:none;color:#cdb780;font-size:10px;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:760px){
+ .memory-account{padding:13px}
+ .memory-account-state{flex-wrap:wrap;align-items:flex-start}
+ .memory-account-state>.outline-button{margin-left:auto}
+ .memory-auth-form{grid-template-columns:1fr}
+ .memory-auth-form .begin-button{justify-self:end}
+ .memory-sync-actions{align-items:flex-start;flex-direction:column}
+ .memory-sync-actions .begin-button{align-self:flex-end}
+}
