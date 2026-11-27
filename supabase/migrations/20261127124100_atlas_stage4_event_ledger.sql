@@ -38,11 +38,10 @@ drop policy if exists "activity events owner read" on public.activity_events;
 create policy "activity events owner read" on public.activity_events
   for select to authenticated using ((select auth.uid()) = user_id);
 drop policy if exists "activity events owner append" on public.activity_events;
-create policy "activity events owner append" on public.activity_events
-  for insert to authenticated with check ((select auth.uid()) = user_id);
 revoke all on public.activity_events from anon, authenticated;
-grant select, insert on public.activity_events to authenticated;
-grant usage, select on sequence public.activity_events_id_seq to authenticated;
+grant select on public.activity_events to authenticated;
+grant select, insert on public.activity_events to service_role;
+grant usage, select on sequence public.activity_events_id_seq to service_role;
 
 create table if not exists public.progress_daily (
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -549,11 +548,20 @@ security invoker
 set search_path = ''
 as $$
 declare
-  v_user_id uuid := auth.uid();
+  v_user_id uuid := p_user_id;
   v_result jsonb;
 begin
+  if current_user <> 'service_role' then
+    raise exception 'server_only_workspace_commit' using errcode = '42501';
+  end if;
   if v_user_id is null then
     raise exception 'authentication_required' using errcode = '42501';
+  end if;
+  perform set_config('request.jwt.claim.sub',v_user_id::text,true);
+  perform set_config('request.jwt.claim.role','authenticated',true);
+  perform set_config('request.jwt.claims',jsonb_build_object('sub',v_user_id::text,'role','authenticated')::text,true);
+  if auth.uid() is distinct from v_user_id then
+    raise exception 'workspace_owner_mismatch' using errcode = '42501';
   end if;
   if p_events is null or jsonb_typeof(p_events) <> 'array' then
     raise exception 'invalid_event_batch' using errcode = '22023';
@@ -586,8 +594,8 @@ begin
 end;
 $$;
 
-revoke all on function public.commit_workspace_with_events(bigint,jsonb,integer,text,text,boolean,text,jsonb) from public, anon;
-grant execute on function public.commit_workspace_with_events(bigint,jsonb,integer,text,text,boolean,text,jsonb) to authenticated;
+revoke all on function public.commit_workspace_with_events(uuid,bigint,jsonb,integer,text,text,boolean,text,jsonb) from public, anon, authenticated;
+grant execute on function public.commit_workspace_with_events(uuid,bigint,jsonb,integer,text,text,boolean,text,jsonb) to service_role;
 
 create or replace function public.get_progress_totals(
   p_start date default null,
@@ -1280,7 +1288,10 @@ begin
 end;
 $;
 
+grant execute on function public.commit_workspace(bigint,jsonb,integer,text,text,boolean,text) to service_role;
+
 create or replace function public.commit_workspace_with_events(
+  p_user_id uuid,
   p_expected_version bigint,
   p_data jsonb,
   p_schema_version integer,
