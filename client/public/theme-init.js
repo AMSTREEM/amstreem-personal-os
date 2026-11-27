@@ -5,8 +5,14 @@
     var legacyToAtlas = {
       'shadowed-alchemist': 'obsidian',
       'nocturnal-amethyst': 'dusk',
+      'abyssal-trench': 'obsidian',
+      'whispering-woods': 'obsidian',
+      'crimson-velvet': 'dusk',
       'light-porcelain': 'ivory',
-      'light-sandstone': 'sahara'
+      'light-sandstone': 'sahara',
+      'light-sage': 'ivory',
+      'light-lavender': 'ivory',
+      'light-sky': 'sahara'
     };
     var themes = {
       obsidian: { legacy: 'shadowed-alchemist', scheme: 'dark', color: '#0a0c11' },
