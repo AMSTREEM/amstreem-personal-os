@@ -91,6 +91,11 @@ test('incremental projections can be rebuilt from events and achievement unlocks
   assert.match(migration, /delete from public\.progress_daily where user_id = p_user_id/);
   assert.match(migration, /on conflict \(user_id, achievement_id\) do nothing/);
   assert.match(migration, /atlas_private\.evaluate_achievements/);
+  assert.match(migration, /legacy:session:/);
+  assert.match(migration, /legacy:habit:/);
+  assert.match(migration, /legacy:study:/);
+  assert.match(migration, /legacy:practice:/);
+  assert.match(migration, /atlas_achievement_unlocks\(user_id,achievement_id,unlocked_at\)/);
 });
 
 test('XP ledger enforces source awards, daily caps, compensating reversals and legacy backfill', () => {
@@ -98,6 +103,7 @@ test('XP ledger enforces source awards, daily caps, compensating reversals and l
   for (const cap of ['100','120','60','80','30']) assert.ok(migration.includes('then '+cap), 'missing daily XP cap '+cap);
   assert.match(migration, /'reversal:' \|\| new\.event_key/);
   assert.match(migration, /-v_original_xp_points/);
+  assert.match(migration, /if new\.source = 'import' then/);
   assert.match(migration, /from public\.personal_os_workspaces w/);
   assert.match(migration, /'legacy:' \|\|/);
   assert.doesNotMatch(server, /awardXp\(/);
