@@ -565,7 +565,7 @@ body:has(.app-frame.atlas-renaissance) { background:#f3f1e9; }
   background:
     radial-gradient(70rem 38rem at 86% -18%, color-mix(in oklch, var(--a-room) 8%, transparent), transparent 68%),
     var(--a-bg);
-  font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  font-family: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
 }
 .atlas-v2.app-frame .sidebar {
   width: var(--a-rail-w);
@@ -634,7 +634,7 @@ body:has(.app-frame.atlas-renaissance) { background:#f3f1e9; }
   backdrop-filter: blur(22px) saturate(140%);
   -webkit-backdrop-filter: blur(22px) saturate(140%);
 }
-.atlas-v2 .topbar-context b { padding: 0; border: 0; color: var(--a-text-muted); font: 700 9px 'Geist', sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+.atlas-v2 .topbar-context b { padding: 0; border: 0; color: var(--a-text-muted); font: 700 9px 'Geist Variable', sans-serif; letter-spacing: .16em; text-transform: uppercase; }
 .atlas-v2 .topbar-right { gap: 10px; }
 .atlas-v2 .global-capture-trigger,
 .atlas-v2 .tour-launcher {
@@ -794,13 +794,13 @@ body:has(.app-frame.atlas-renaissance) { background:#f3f1e9; }
 .atlas-v2 .a-route-v2 .atlas-dashboard__hero h2,
 .atlas-v2 .a-route-v2 .atlas-dashboard__section-head h2,
 .atlas-v2 .a-route-v2 .atlas-dashboard__direction h3,
-.atlas-v2 .a-route-v2 .atlas-dashboard__signals-heading h2 { font-family: 'Fraunces', Georgia, serif; font-weight: 500; letter-spacing: -.045em; }
+.atlas-v2 .a-route-v2 .atlas-dashboard__signals-heading h2 { font-family: 'Fraunces Variable', Georgia, serif; font-weight: 500; letter-spacing: -.045em; }
 
 
 /* === client/src/design/pages/auth.css === */
 /* Shared v2 primitives. Applied only to non-Qur'an workspace routes. */
 .atlas-v2 .a-route-v2 .page-header { margin-bottom: 30px; }
-.atlas-v2 .a-route-v2 .page-header h1 { color: var(--a-text); font: 650 clamp(32px, 4vw, 48px)/1.08 'Geist', sans-serif; letter-spacing: -.055em; }
+.atlas-v2 .a-route-v2 .page-header h1 { color: var(--a-text); font: 650 clamp(32px, 4vw, 48px)/1.08 'Geist Variable', sans-serif; letter-spacing: -.055em; }
 .atlas-v2 .a-route-v2 .page-header p { max-width: 680px; color: var(--a-text-muted); font-size: 12px; line-height: 1.8; }
 .atlas-v2 .a-route-v2 .eyebrow { color: var(--a-room); font-size: 8px; letter-spacing: .18em; }
 .atlas-v2 .a-route-v2 .surface-card,
@@ -968,4 +968,4 @@ body:has(.app-frame.atlas-renaissance) { background:#f3f1e9; }
 }
 
 .atlas-auth-v2 .auth-message-block h1,
-.atlas-auth-v2 .auth-panel h2 { font-family: 'Fraunces', Georgia, serif; font-weight: 500; }
+.atlas-auth-v2 .auth-panel h2 { font-family: 'Fraunces Variable', Georgia, serif; font-weight: 500; }
