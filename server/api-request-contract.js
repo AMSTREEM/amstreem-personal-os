@@ -42,9 +42,31 @@ const BackupEnvelopeSchema = z.object({
   data: z.record(z.string(), z.unknown())
 }).strict();
 const LegacyBackupSchema = z.object(optionalUnknownShape(legacyImportKeys)).strict();
-const BodySchema = z.object(optionalUnknownShape(bodyKeys)).strict();
-const QuerySchema = z.object(optionalUnknownShape(queryKeys)).strict();
-const ParamsSchema = z.object(optionalUnknownShape(paramKeys)).strict();
+const bodyShape = optionalUnknownShape(bodyKeys);
+const strings = ['title','detail','body','description','message','name','username','password','subject','url','author','notes','note','reflection','focus','category','type','item_type','status','kind','horizon','session_kind','record_type','activity','religion','faith_tradition','admin_tradition','theme','symbol','emoji','surah','date','log_date','record_date','due_date','target_date','start_date','start_at','end_at','session_date','period_start','period_end','period_type','session_key','trigger','response','signal','recommendationId'];
+for (const key of strings) bodyShape[key] = z.union([z.string().max(10000), z.null()]).optional();
+const ids = ['goal_id','project_id','task_id','lesson_id','parent_task_id'];
+for (const key of ids) bodyShape[key] = z.union([z.string(), z.number().int(), z.null()]).optional();
+const numbers = ['minutes','priority','pages','juz','ayah_start','ayah_end','urge_level'];
+for (const key of numbers) bodyShape[key] = z.union([z.number().finite(), z.string().regex(/^\\d+(?:\\.\\d+)?$/)]).optional();
+const booleans = ['completed','done','all_day','on_time','woke_up','prayed'];
+for (const key of booleans) bodyShape[key] = z.union([z.boolean(), z.number().int().min(0).max(1)]).optional();
+bodyShape.distractions = z.array(z.unknown()).optional();
+bodyShape.metadata = z.record(z.string(), z.unknown()).optional();
+bodyShape.userIds = z.array(z.string()).optional();
+const BodySchema = z.object(bodyShape).strict();
+const QuerySchema = z.object({
+  date: z.string().max(40).optional(),
+  end: z.string().max(40).optional(),
+  month: z.string().regex(/^\\d{4}-\\d{2}$/).optional(),
+  period: z.enum(['daily', 'weekly']).optional(),
+  start: z.string().max(40).optional()
+}).strict();
+const ParamsSchema = z.object({
+  id: z.string().min(1).max(128).optional(),
+  page: z.string().regex(/^\\d+$/).optional(),
+  surah: z.string().regex(/^\\d+$/).optional()
+}).strict();
 const IdempotencyKeySchema = z.string().trim().min(8).max(200);
 
 function issueList(error) {
