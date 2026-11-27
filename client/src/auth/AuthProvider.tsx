@@ -4,7 +4,7 @@ import { initialAuthFlowType, isInvalidRefreshTokenError, supabase } from '../li
 
 type UserProfile = { id: string; email: string; name: string; username: string };
 type BootstrapResponse = {
-  user: UserProfile;
+  user: Omit<UserProfile, 'email'> & { email: string | null };
   role: 'user' | 'admin';
   today: string;
   settings: Record<string, string>;
