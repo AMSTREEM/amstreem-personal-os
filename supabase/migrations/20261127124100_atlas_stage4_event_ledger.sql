@@ -519,8 +519,11 @@ begin
   if v_user_id is null then
     raise exception 'authentication_required' using errcode = '42501';
   end if;
-  if p_events is null or jsonb_typeof(p_events) <> 'array' or jsonb_array_length(p_events) > 5000 then
+  if p_events is null or jsonb_typeof(p_events) <> 'array' then
     raise exception 'invalid_event_batch' using errcode = '22023';
+  end if;
+  if jsonb_array_length(p_events) > 5000 then
+    raise exception 'event_batch_too_large' using errcode = '22023';
   end if;
 
   v_result := public.commit_workspace(
