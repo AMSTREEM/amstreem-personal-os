@@ -47,6 +47,7 @@ const requestObjectSchema = z.record(z.string(), z.unknown());
 function validateApiEnvelope() {
   return (req, res, next) => {
     const pathname = req.path || '';
+    if (!pathname.startsWith('/api/')) return next();
     if (pathname === '/api/quran' || pathname.startsWith('/api/quran/')) return next();
     const sources = ['params', 'query'];
     if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method)) sources.push('body');
