@@ -1,6 +1,7 @@
 'use strict';
 
 const { z } = require('zod');
+const { routeRequestFields } = require('./api-route-request-fields');
 
 const bodyKeys = [
   'admin_tradition', 'all', 'all_day', 'author', 'ayah_end', 'ayah_start', 'body',
@@ -81,16 +82,35 @@ function issueList(error) {
   }));
 }
 
+function schemaForFields(baseSchema, fields) {
+  const shape = {};
+  for (const field of fields) {
+    if (!Object.prototype.hasOwnProperty.call(baseSchema.shape, field)) {
+      throw new Error('API route contract references an unknown field: ' + field);
+    }
+    shape[field] = baseSchema.shape[field];
+  }
+  return z.object(shape).strict();
+}
+
 function apiRequestContract(req, res, next) {
   if (!req.path.startsWith('/api/') || req.path.startsWith('/api/quran/')) return next();
 
+  const routePath = typeof req.route?.path === 'string' ? req.route.path : '';
+  const routeContract = routeRequestFields[String(req.method || '').toUpperCase() + ' ' + routePath];
+  if (!routeContract) {
+    return res.status(500).json({ error: 'This API route has no registered request contract.' });
+  }
+
+  const bodySchema = routePath === '/api/import' || routePath === '/api/import/preview'
+    ? z.union([BackupEnvelopeSchema, LegacyBackupSchema])
+    : schemaForFields(BodySchema, routeContract.body);
+  const querySchema = schemaForFields(QuerySchema, routeContract.query);
+  const paramsSchema = schemaForFields(ParamsSchema, routeContract.params);
   const checks = [
-    ['body', req.body,
-      req.path === '/api/import' || req.path === '/api/import/preview'
-        ? z.union([BackupEnvelopeSchema, LegacyBackupSchema])
-        : BodySchema],
-    ['query', req.query, QuerySchema],
-    ['params', req.params, ParamsSchema]
+    ['body', req.body, bodySchema],
+    ['query', req.query, querySchema],
+    ['params', req.params, paramsSchema]
   ];
 
   for (const [source, value, schema] of checks) {
