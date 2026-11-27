@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Bookmark,
   Check, ChevronDown, CircleHelp, Command, Compass, Feather, Folder,
-  Layers3, Menu, Plus, Search, Send, Sparkles, X
+  Layers3, Menu, Plus, Search, Send, Sparkles, Trash2, X
 } from 'lucide-react';
 
 type Note = { id: number; text: string; createdAt: number };
@@ -23,10 +23,38 @@ const timeLabel = (timestamp: number) => new Intl.DateTimeFormat(undefined, {
 export default function App() {
   const [section, setSection] = useState<Section>('Today');
   const [draft, setDraft] = useState('');
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<Note[]>(() => {
+    try {
+      const saved = window.localStorage.getItem('amstreem.captures.v1');
+      if (!saved) return [];
+      const parsed: unknown = JSON.parse(saved);
+      if (!Array.isArray(parsed)) return [];
+      return parsed.filter((item): item is Note =>
+        item && typeof item.id === 'number' &&
+        typeof item.text === 'string' &&
+        typeof item.createdAt === 'number'
+      );
+    } catch {
+      return [];
+    }
+  });
   const [captureOpen, setCaptureOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [notice, setNotice] = useState('');
+  useEffect(() => {
+    try {
+      window.localStorage.setItem('amstreem.captures.v1', JSON.stringify(notes));
+    } catch {
+      setNotice('This browser could not save your captures. Check available site storage.');
+    }
+  }, [notes]);
+
+  const removeNote = (id: number) => {
+    setNotes(current => current.filter(note => note.id !== id));
+    setNotice('Capture removed from this device.');
+    window.setTimeout(() => setNotice(''), 3200);
+  };
+
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     return hour < 12 ? 'Good morning.' : hour < 18 ? 'Good afternoon.' : 'Good evening.';
@@ -39,7 +67,7 @@ export default function App() {
     setDraft('');
     setCaptureOpen(false);
     setSection('My world');
-    setNotice('Added to your world for this session.');
+    setNotice('Saved to your world on this device.');
     window.setTimeout(() => setNotice(''), 3200);
   };
 
@@ -176,8 +204,8 @@ export default function App() {
           {section === 'My world' && (
             <section className="collection-area">
               <div className="collection-header"><div><span className="kicker">YOUR CHOSEN CONTEXT</span><h2>{notes.length ? 'Things you chose to keep.' : 'An open space, ready when you are.'}</h2></div><button className="outline-button" onClick={() => { setDraft(''); setCaptureOpen(true); }}><Plus size={16} /> Capture a thought</button></div>
-              {notes.length ? <div className="thought-list">{notes.map(note => <article className="thought-item" key={note.id}><div className="thought-glyph"><Feather size={17} /></div><div className="thought-body"><p>{note.text}</p><span>CAPTURED · {timeLabel(note.createdAt)}</span></div><Check size={16} className="thought-check" /></article>)}</div> : <div className="empty-world"><div className="empty-glyph"><Layers3 size={23} /></div><h3>Your world begins with what matters to you.</h3><p>Save a thought, an idea, a question or a detail you want to keep in view.</p><button className="begin-button" onClick={() => { setDraft(''); setCaptureOpen(true); }}>Capture your first thought <ArrowRight size={15} /></button></div>}
-              <p className="local-note">This prototype keeps captures in the current browser session only. They are not yet synced or stored in an account.</p>
+              {notes.length ? <div className="thought-list">{notes.map(note => <article className="thought-item" key={note.id}><div className="thought-glyph"><Feather size={17} /></div><div className="thought-body"><p>{note.text}</p><span>CAPTURED · {timeLabel(note.createdAt)}</span></div><button className="delete-capture" onClick={() => removeNote(note.id)} aria-label="Delete capture"><Trash2 size={15} /></button></article>)}</div> : <div className="empty-world"><div className="empty-glyph"><Layers3 size={23} /></div><h3>Your world begins with what matters to you.</h3><p>Save a thought, an idea, a question or a detail you want to keep in view.</p><button className="begin-button" onClick={() => { setDraft(''); setCaptureOpen(true); }}>Capture your first thought <ArrowRight size={15} /></button></div>}
+              <p className="local-note">Captures are saved in this browser on this device. They are not uploaded or synced to an account yet. Clearing this browser’s site data may remove them.</p>
             </section>
           )}
 
@@ -193,7 +221,7 @@ export default function App() {
           {section === 'Activity' && (
             <section className="collection-area">
               <div className="collection-header"><div><span className="kicker">A QUIET RECORD</span><h2>Your recent captures.</h2></div><span className="activity-count">{notes.length} {notes.length === 1 ? 'entry' : 'entries'}</span></div>
-              {notes.length ? <div className="thought-list">{notes.map(note => <article className="thought-item" key={note.id}><div className="thought-glyph"><Activity size={17} /></div><div className="thought-body"><p>{note.text}</p><span>{timeLabel(note.createdAt)}</span></div></article>)}</div> : <div className="empty-world"><div className="empty-glyph"><Activity size={23} /></div><h3>Nothing to catch up on.</h3><p>This space will reflect the things you choose to do here. No streaks, scores or pressure.</p></div>}
+              {notes.length ? <div className="thought-list">{notes.map(note => <article className="thought-item" key={note.id}><div className="thought-glyph"><Activity size={17} /></div><div className="thought-body"><p>{note.text}</p><span>{timeLabel(note.createdAt)}</span></div><button className="delete-capture" onClick={() => removeNote(note.id)} aria-label="Delete capture"><Trash2 size={15} /></button></article>)}</div> : <div className="empty-world"><div className="empty-glyph"><Activity size={23} /></div><h3>Nothing to catch up on.</h3><p>This space will reflect the things you choose to do here. No streaks, scores or pressure.</p></div>}
             </section>
           )}
 
