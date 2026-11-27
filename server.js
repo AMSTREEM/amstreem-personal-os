@@ -85,6 +85,18 @@ const supabaseConfig = {
   url: process.env.SUPABASE_URL || fileSupabaseConfig.url,
   publishableKey: process.env.SUPABASE_PUBLISHABLE_KEY || fileSupabaseConfig.publishableKey
 };
+
+function supabaseAdminHeaders(extra = {}) {
+  const secretKey = process.env.SUPABASE_SECRET_KEY;
+  const serviceRoleJwt = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const apiKey = secretKey || serviceRoleJwt;
+  if (!apiKey) return null;
+  const headers = { apikey: apiKey, ...extra };
+  // Opaque sb_secret keys belong in apikey only; a legacy service_role JWT
+  // may also be sent as Authorization when that is the configured credential.
+  if (serviceRoleJwt) headers.Authorization = `Bearer ${serviceRoleJwt}`;
+  return headers;
+}
 if (process.env.ATLAS_STAGING === 'true') {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_PUBLISHABLE_KEY) {
     throw new Error('Staging requires its own Supabase URL and publishable key.');
