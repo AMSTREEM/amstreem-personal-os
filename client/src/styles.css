@@ -12,25 +12,25 @@
 
 :root {
   font-family: "DM Sans", sans-serif;
-  color: #EAF0F6;
-  background: #0A0E13;
+  color: #e8e8e2;
+  background: #11120f;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --bg: #0A0E13;
-  --sidebar: #0E141B;
-  --surface: #10161D;
-  --surface-raised: #161E27;
-  --line: #243140;
-  --line-soft: #1C2733;
-  --text: #EAF0F6;
-  --muted: #A9B6C4;
-  --subtle: #7D8CA3;
-  --accent: #22D3EE;
-  --accent-strong: #22D3EE;
-  --accent-wash: rgba(34,211,238,.12);
-  --success: #4ADE80;
-  --danger: #F87171;
-  --radius: 12px;
+  --bg: #11120f;
+  --sidebar: #151612;
+  --surface: #1b1d18;
+  --surface-raised: #22241e;
+  --line: #30332b;
+  --line-soft: #272a23;
+  --text: #e8e8e2;
+  --muted: #a2a69a;
+  --subtle: #73796d;
+  --accent: #c5a878;
+  --accent-strong: #d9bd8f;
+  --accent-wash: rgba(197,168,120,.12);
+  --success: #88b59a;
+  --danger: #d48c83;
+  --radius: 18px;
 }
 * { box-sizing: border-box; }
 html { min-width: 320px; background: var(--bg); }
