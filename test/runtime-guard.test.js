@@ -14,11 +14,16 @@ test('staging cannot be labelled as production or development', () => {
 });
 
 test('environment marker passes only when the database matches the application environment', async () => {
-  const fetchImpl = async () => ({ ok: true, json: async () => [{ value: 'staging' }] });
+  const fetchImpl = async (_url, options) => {
+    assert.equal(options.headers['x-atlas-probe-token'], 'test-probe-token');
+    assert.equal(options.headers.Authorization, undefined);
+    return { ok: true, json: async () => [{ value: 'staging' }] };
+  };
   const result = await checkEnvironmentMarker({
     appEnv: 'staging',
     supabaseUrl: 'https://example.supabase.co',
     apiKey: 'test-key',
+    probeToken: 'test-probe-token',
     fetchImpl
   });
   assert.deepEqual(result, { ok: true, database: true, environment: true });
@@ -29,11 +34,12 @@ test('environment marker fails closed on a mismatch or missing configuration', a
     appEnv: 'staging',
     supabaseUrl: 'https://example.supabase.co',
     apiKey: 'test-key',
+    probeToken: 'test-probe-token',
     fetchImpl: async () => ({ ok: true, json: async () => [{ value: 'production' }] })
   });
   assert.deepEqual(mismatch, { ok: false, reason: 'environment_mismatch' });
 
-  const missing = await checkEnvironmentMarker({ appEnv: 'production' });
+  const missing = await checkEnvironmentMarker({ appEnv: 'production', supabaseUrl: 'https://example.supabase.co', apiKey: 'test-key' });
   assert.deepEqual(missing, { ok: false, reason: 'configuration_missing' });
 });
 
@@ -42,6 +48,7 @@ test('environment marker treats unreachable database as not ready', async () => 
     appEnv: 'production',
     supabaseUrl: 'https://example.supabase.co',
     apiKey: 'test-key',
+    probeToken: 'test-probe-token',
     fetchImpl: async () => ({ ok: false })
   });
   assert.deepEqual(result, { ok: false, reason: 'database_unavailable' });
