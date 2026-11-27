@@ -13,7 +13,9 @@
     "test": "node --test",
     "prebuild": "npm run typecheck && npm test && npm audit",
     "check:frozen": "node scripts/check-frozen.mjs",
-    "check:contrast": "node scripts/check-contrast.mjs"
+    "check:contrast": "node scripts/check-contrast.mjs",
+    "baseline:auth": "node e2e/save-auth-state.mjs",
+    "baseline:screenshots": "playwright test --config=e2e/playwright.config.ts"
   },
   "engines": {
     "node": ">=20"
@@ -46,7 +48,8 @@
   },
   "devDependencies": {
     "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2"
+    "@types/react-dom": "^19.2.2",
+    "@playwright/test": "1.56.1"
   },
   "packageManager": "npm@10.9.9"
 }
