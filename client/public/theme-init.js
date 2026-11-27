@@ -1,6 +1,7 @@
 (function () {
   try {
-    var theme = localStorage.getItem('atlas_theme');
+    var preference = localStorage.getItem('atlas_theme');
+    var theme = preference === 'system' ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light-porcelain' : 'shadowed-alchemist') : preference;
     var dark = ['shadowed-alchemist', 'nocturnal-amethyst', 'abyssal-trench', 'whispering-woods', 'crimson-velvet'];
     var backgrounds = {
       'shadowed-alchemist': '#07080A',
@@ -17,9 +18,9 @@
     if (theme && backgrounds[theme]) {
       var root = document.documentElement;
       root.setAttribute('data-theme', theme);
+      root.setAttribute('data-theme-preference', preference || theme);
       root.style.colorScheme = dark.indexOf(theme) >= 0 ? 'dark' : 'light';
-      var meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.setAttribute('content', backgrounds[theme]);
+      document.querySelectorAll('meta[name="theme-color"]').forEach(function (meta) { meta.setAttribute('content', backgrounds[theme]); });
       root.style.backgroundColor = backgrounds[theme];
     }
   } catch (_) {}
