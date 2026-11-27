@@ -3,12 +3,12 @@
 const { z } = require('zod');
 
 const bodyKeys = [
-  'admin_tradition', 'all', 'all_day', 'ayah_end', 'ayah_start', 'body',
+  'admin_tradition', 'all', 'all_day', 'author', 'ayah_end', 'ayah_start', 'body',
   'category', 'completed', 'content', 'date', 'description', 'detail',
   'distractions', 'done', 'due_date', 'emoji', 'end_at', 'faith_tradition',
   'features', 'focus', 'goal_id', 'horizon', 'item_type', 'juz', 'kind',
   'lesson_id', 'life_areas', 'log_date', 'message', 'metadata', 'minutes',
-  'name', 'note', 'on_time', 'outcome', 'pages', 'parent_task_id', 'password',
+  'name', 'note', 'notes', 'on_time', 'outcome', 'pages', 'parent_task_id', 'password',
   'period_end', 'period_start', 'period_type', 'prayed', 'prayer', 'priority',
   'project_id', 'record_date', 'record_type', 'recommendationId', 'reflection',
   'religion', 'response', 'session_date', 'session_key', 'session_kind',
