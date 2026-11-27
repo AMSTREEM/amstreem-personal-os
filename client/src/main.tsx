@@ -15,6 +15,7 @@ import './design/fx.css';
 import './design/shell.css';
 import './design/pages/home.css';
 import './design/pages/shared.css';
+import './design/pages/auth.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
