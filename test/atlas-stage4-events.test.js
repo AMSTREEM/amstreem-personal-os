@@ -111,7 +111,7 @@ test('incremental projections can be rebuilt from events and achievement unlocks
 
 test('XP ledger enforces source awards, daily caps, compensating reversals and legacy backfill', () => {
   assert.match(migration, /create table if not exists public\.xp_ledger/);
-  for (const cap of ['100','120','60','80','30']) assert.ok(migration.includes('then '+cap), 'missing daily XP cap '+cap);
+  for (const cap of ['100','120','60','80','30']) assert.ok(migration.includes('v_cap := '+cap), 'missing daily XP cap '+cap);
   assert.match(migration, /'reversal:' \|\| new\.event_key/);
   assert.match(migration, /-v_original_xp_points/);
   assert.match(migration, /if new\.source = 'import' then/);
