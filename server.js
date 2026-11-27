@@ -1,8 +1,10 @@
 const express = require('express');
 const path = require('path');
 const fs = require('node:fs');
+const crypto = require('node:crypto');
+const { replayWorkspaceMutation } = require('./workspace-replay');
 const Database = require('better-sqlite3');
-const { restoreBackup } = require('./workspace-backup');
+const { restoreBackup, createBackupEnvelope, summarizeBackup } = require('./workspace-backup');
 const { AsyncLocalStorage } = require('node:async_hooks');
 const app = express();
 app.disable('x-powered-by');
@@ -1022,11 +1024,12 @@ async function acquireUserLock(userId) {
   return () => { release(); if (userLocks.get(userId) === tail) userLocks.delete(userId); };
 }
 async function readWorkspaceSnapshot(userId, token) {
-  const url = `${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=data&user_id=eq.${encodeURIComponent(userId)}`;
+  const url = `${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=data,version,schema_version&user_id=eq.${encodeURIComponent(userId)}`;
   const response = await fetch(url, { headers: { apikey: supabaseConfig.publishableKey, Authorization: `Bearer ${token}` } });
   if (!response.ok) throw new Error('Could not load your saved workspace from Supabase.');
   const rows = await response.json();
-  return rows[0]?.data || null;
+  const row = rows[0];
+  return row ? { data: row.data, version: Number(row.version) || 1, schemaVersion: Number(row.schema_version) || 3 } : { data: null, version: 0, schemaVersion: 3 };
 }
 function createWorkspaceDatabase(snapshot) {
   const workspaceDb = new Database(':memory:');
@@ -1079,18 +1082,65 @@ function serializeWorkspaceDatabase(workspaceDb) {
   for (const table of workspaceTables) tables[table] = workspaceDb.prepare(`SELECT * FROM ${table}`).all();
   return { format: 'personal-os-sqlite-snapshot-v3', schemaVersion: 3, tables };
 }
-async function writeWorkspaceSnapshot(userId, token, workspaceDb) {
-  const response = await fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces`, {
+async function commitWorkspaceSnapshot(token, expectedVersion, snapshot, requestMeta = {}) {
+  const payload = {
+    p_expected_version: expectedVersion,
+    p_data: snapshot,
+    p_schema_version: 3,
+    p_idempotency_key: requestMeta.idempotencyKey || null,
+    p_request_hash: requestMeta.requestHash || null,
+    p_force_history: Boolean(requestMeta.forceHistory),
+    p_history_reason: requestMeta.historyReason || 'scheduled'
+  };
+  const response = await fetch(`${supabaseConfig.url}/rest/v1/rpc/commit_workspace`, {
     method: 'POST',
     headers: {
       apikey: supabaseConfig.publishableKey,
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
-      Prefer: 'resolution=merge-duplicates,return=minimal'
+      Prefer: 'return=representation'
     },
-    body: JSON.stringify({ user_id: userId, data: serializeWorkspaceDatabase(workspaceDb), updated_at: new Date().toISOString() })
+    body: JSON.stringify(payload)
   });
-  if (!response.ok) throw new Error('Supabase rejected the workspace save.');
+  const raw = await response.text();
+  let detail = {};
+  try { detail = raw ? JSON.parse(raw) : {}; } catch { /* keep a generic safe error */ }
+  if (!response.ok) {
+    const error = new Error(detail.message || 'Supabase rejected the workspace save.');
+    if (detail.message === 'version_conflict' || detail.code === 'P0001') error.code = 'VERSION_CONFLICT';
+    if (detail.message === 'idempotency_key_reused') error.code = 'IDEMPOTENCY_KEY_REUSED';
+    throw error;
+  }
+  return typeof detail === 'string' ? JSON.parse(detail) : detail;
+}
+async function writeWorkspaceSnapshot(userId, token, workspaceDb, expectedVersion, baseSnapshot, requestMeta = {}) {
+  let snapshot = serializeWorkspaceDatabase(workspaceDb);
+  let version = expectedVersion;
+  let replayed = false;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const result = await commitWorkspaceSnapshot(token, version, snapshot, requestMeta);
+      return { ...result, replayed: replayed || Boolean(result?.replayed) };
+    } catch (error) {
+      if (error.code !== 'VERSION_CONFLICT' || attempt === 2) throw error;
+      const latest = await readWorkspaceSnapshot(userId, token);
+      if (latest.version === version) throw error;
+      try {
+        snapshot = replayWorkspaceMutation(baseSnapshot, snapshot, latest.data);
+        const validationDb = createWorkspaceDatabase(snapshot);
+        validationDb.close();
+      } catch (replayError) {
+        const conflict = new Error(replayError.message || 'This change conflicts with a newer workspace update.');
+        conflict.code = 'VERSION_CONFLICT';
+        throw conflict;
+      }
+      version = latest.version;
+      replayed = true;
+    }
+  }
+  const exhausted = new Error('Workspace changed repeatedly while saving. Reload and retry.');
+  exhausted.code = 'VERSION_CONFLICT';
+  throw exhausted;
 }
 // Username sign-in is resolved server-side so account email addresses are never exposed to the browser.
 app.post('/api/auth/username-login', rateLimit({ max: 8, windowMs: 60_000, prefix: 'username-login' }), async (req, res) => {
@@ -1140,28 +1190,53 @@ app.use('/api', async (req, res, next) => {
       return res.status(429).json({ error: 'Too many requests for this account. Please wait and try again.' });
     }
     release = await acquireUserLock(user.id);
-    const snapshot = await readWorkspaceSnapshot(user.id, token);
-    workspaceDb = createWorkspaceDatabase(snapshot);
-    const context = { userId: user.id, db: workspaceDb };
+    const workspaceState = await readWorkspaceSnapshot(user.id, token);
+    workspaceDb = createWorkspaceDatabase(workspaceState.data);
+    const baseSnapshot = serializeWorkspaceDatabase(workspaceDb);
+    const idempotencyKey = String(req.get('Idempotency-Key') || '').trim();
+    if (idempotencyKey && (idempotencyKey.length < 8 || idempotencyKey.length > 200)) {
+      workspaceDb.close();
+      release?.();
+      return res.status(400).json({ error: 'Idempotency-Key must contain between 8 and 200 characters.' });
+    }
+    const requestHash = idempotencyKey
+      ? crypto.createHash('sha256').update(JSON.stringify({ method: req.method, path: req.originalUrl, body: req.body ?? null })).digest('hex')
+      : null;
+    const context = { userId: user.id, db: workspaceDb, version: workspaceState.version };
     tenantContext.run(context, () => {
       const originalEnd = res.end.bind(res);
       let ending = false;
       res.end = (...args) => {
         if (ending) return res;
         ending = true;
-        if (req.method === 'GET' || req.method === 'HEAD') {
+        if (req.method === 'GET' || req.method === 'HEAD' || req.path === '/import/preview' || res.statusCode >= 400) {
           workspaceDb.close();
           release?.();
           return originalEnd(...args);
         }
-        writeWorkspaceSnapshot(user.id, token, workspaceDb)
-          .then(() => originalEnd(...args))
+        const requestMeta = {
+          idempotencyKey: idempotencyKey || null,
+          requestHash,
+          forceHistory: req.path === '/import',
+          historyReason: req.path === '/import' ? 'pre_import' : 'scheduled'
+        };
+        writeWorkspaceSnapshot(user.id, token, workspaceDb, workspaceState.version, baseSnapshot, requestMeta)
+          .then(result => {
+            if (result?.version) res.setHeader('X-Workspace-Version', String(result.version));
+            if (result?.replayed) res.setHeader('Idempotency-Replayed', 'true');
+            originalEnd(...args);
+          })
           .catch(error => {
             console.error('Workspace save failed:', error.message);
-            res.statusCode = 503;
+            res.statusCode = error.code === 'VERSION_CONFLICT' ? 409 : error.code === 'IDEMPOTENCY_KEY_REUSED' ? 422 : 503;
             res.removeHeader('Content-Length');
             res.setHeader('Content-Type', 'application/json; charset=utf-8');
-            originalEnd(JSON.stringify({ error: 'Your workspace could not be saved. Please retry.' }));
+            const message = error.code === 'VERSION_CONFLICT'
+              ? 'Another change was saved first. Reload your workspace and retry this action.'
+              : error.code === 'IDEMPOTENCY_KEY_REUSED'
+                ? 'This Idempotency-Key was already used for a different request.'
+                : 'Your workspace could not be saved. Please retry.';
+            originalEnd(JSON.stringify({ error: message, code: error.code || 'WORKSPACE_SAVE_FAILED' }));
           })
           .finally(() => { workspaceDb.close(); release?.(); });
         return res;
@@ -1648,11 +1723,25 @@ app.get('/api/calendar',(q,s)=>{const month=String(q.query.month||'');if(!/^\d{4
 app.post('/api/calendar/events',(q,s)=>{const title=String(q.body.title||'').trim(),startAt=String(q.body.start_at||'');if(!title||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(startAt))return s.status(400).json({error:'Add a title and a valid start time.'});const taskId=q.body.task_id?Number(q.body.task_id):null,projectId=q.body.project_id?Number(q.body.project_id):null;if(taskId&&!one('SELECT id FROM tasks WHERE id=?',taskId))return s.status(400).json({error:'Choose an existing task.'});if(projectId&&!one('SELECT id FROM projects WHERE id=?',projectId))return s.status(400).json({error:'Choose an existing project.'});const r=db.prepare('INSERT INTO calendar_events(title,description,start_at,end_at,all_day,task_id,project_id) VALUES(?,?,?,?,?,?,?)').run(title,String(q.body.description||''),startAt,q.body.end_at||null,q.body.all_day?1:0,taskId,projectId);s.status(201).json(one('SELECT * FROM calendar_events WHERE id=?',r.lastInsertRowid));});
 app.patch('/api/calendar/events/:id',(q,s)=>{const e=one('SELECT * FROM calendar_events WHERE id=?',q.params.id);if(!e)return s.status(404).json({error:'Calendar event not found.'});const title=String(q.body.title??e.title).trim(),startAt=String(q.body.start_at??e.start_at),taskId=q.body.task_id===undefined?e.task_id:(q.body.task_id||null),projectId=q.body.project_id===undefined?e.project_id:(q.body.project_id||null);if(!title||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(startAt))return s.status(400).json({error:'Check the event title and start time.'});if(taskId&&!one('SELECT id FROM tasks WHERE id=?',taskId))return s.status(400).json({error:'Choose an existing task.'});if(projectId&&!one('SELECT id FROM projects WHERE id=?',projectId))return s.status(400).json({error:'Choose an existing project.'});db.prepare('UPDATE calendar_events SET title=?,description=?,start_at=?,end_at=?,all_day=?,task_id=?,project_id=? WHERE id=?').run(title,q.body.description??e.description,startAt,q.body.end_at===undefined?e.end_at:(q.body.end_at||null),q.body.all_day===undefined?e.all_day:(q.body.all_day?1:0),taskId,projectId,e.id);s.json(one('SELECT * FROM calendar_events WHERE id=?',e.id));});
 app.delete('/api/calendar/events/:id',(q,s)=>{db.prepare('DELETE FROM calendar_events WHERE id=?').run(q.params.id);s.json({ok:true});});
-app.get('/api/export',(q,s)=>{s.setHeader('Content-Disposition','attachment; filename="personal-os-backup.json"');s.json({exportedAt:new Date().toISOString(),goals:all('SELECT * FROM goals'),projects:all('SELECT * FROM projects'),project_milestones:all('SELECT * FROM project_milestones'),tasks:all('SELECT * FROM tasks'),modules:all('SELECT * FROM modules'),learning_paths:all('SELECT * FROM learning_paths'),learning_lessons:all('SELECT * FROM learning_lessons'),learning_resources:all('SELECT * FROM learning_resources'),learning_study_logs:all('SELECT * FROM learning_study_logs'),sessions:all('SELECT * FROM sessions'),calendar_events:all('SELECT * FROM calendar_events'),notes:all('SELECT * FROM notes'),reading_items:all('SELECT * FROM reading_items'),reviews:all('SELECT * FROM reviews'),habits:all('SELECT * FROM habits'),habit_logs:all('SELECT * FROM habit_logs'),prayer_logs:all('SELECT * FROM prayer_logs'),quran_logs:all('SELECT * FROM quran_logs'),tahajjud_logs:all('SELECT * FROM tahajjud_logs'),faith_logs:all('SELECT * FROM faith_logs'),rhythm_records:all('SELECT * FROM rhythm_records'),self_control_logs:all('SELECT * FROM self_control_logs'),self_control_trackers:all('SELECT * FROM self_control_trackers'),self_control_entries:all('SELECT * FROM self_control_entries'),settings:all('SELECT * FROM settings'),email_events:all('SELECT * FROM email_events'),login_events:all('SELECT * FROM login_events'),xp_events:all('SELECT * FROM xp_events'),achievement_unlocks:all('SELECT * FROM achievement_unlocks'),weekly_challenges:all('SELECT * FROM weekly_challenges'),feedback_logs:all('SELECT * FROM feedback_logs')});});
+app.get('/api/export',(q,s)=>{s.setHeader('Content-Disposition','attachment; filename="personal-os-backup.json"');const data={exportedAt:new Date().toISOString(),goals:all('SELECT * FROM goals'),projects:all('SELECT * FROM projects'),project_milestones:all('SELECT * FROM project_milestones'),tasks:all('SELECT * FROM tasks'),modules:all('SELECT * FROM modules'),learning_paths:all('SELECT * FROM learning_paths'),learning_lessons:all('SELECT * FROM learning_lessons'),learning_resources:all('SELECT * FROM learning_resources'),learning_study_logs:all('SELECT * FROM learning_study_logs'),sessions:all('SELECT * FROM sessions'),calendar_events:all('SELECT * FROM calendar_events'),notes:all('SELECT * FROM notes'),reading_items:all('SELECT * FROM reading_items'),reviews:all('SELECT * FROM reviews'),habits:all('SELECT * FROM habits'),habit_logs:all('SELECT * FROM habit_logs'),prayer_logs:all('SELECT * FROM prayer_logs'),quran_logs:all('SELECT * FROM quran_logs'),tahajjud_logs:all('SELECT * FROM tahajjud_logs'),faith_logs:all('SELECT * FROM faith_logs'),rhythm_records:all('SELECT * FROM rhythm_records'),self_control_logs:all('SELECT * FROM self_control_logs'),self_control_trackers:all('SELECT * FROM self_control_trackers'),self_control_entries:all('SELECT * FROM self_control_entries'),settings:all('SELECT * FROM settings'),email_events:all('SELECT * FROM email_events'),login_events:all('SELECT * FROM login_events'),xp_events:all('SELECT * FROM xp_events'),achievement_unlocks:all('SELECT * FROM achievement_unlocks'),weekly_challenges:all('SELECT * FROM weekly_challenges'),feedback_logs:all('SELECT * FROM feedback_logs')};s.json(createBackupEnvelope(data));});
+app.post('/api/import/preview',(q,s)=>{
+ let previewDb;
+ try {
+  const summary=summarizeBackup(q.body,workspaceTables);
+  previewDb=createWorkspaceDatabase(serializeWorkspaceDatabase(db));
+  const imported=restoreBackup(previewDb,q.body,workspaceTables);
+  s.json({ok:true,dryRun:true,imported,summary,schemaVersion:3});
+ } catch(error) {
+  s.status(400).json({error:error.message||'The backup could not be validated.'});
+ } finally {
+  previewDb?.close();
+ }
+});
 app.post('/api/import',(q,s)=>{
  try {
+  const summary=summarizeBackup(q.body,workspaceTables);
   const imported=restoreBackup(db,q.body,workspaceTables);
-  s.json({ok:true,imported});
+  s.json({ok:true,imported,summary});
  } catch(error) {
   s.status(400).json({error:error.message||'The backup could not be imported.'});
  }
