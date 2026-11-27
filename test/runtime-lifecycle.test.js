@@ -45,7 +45,7 @@ test('Stage 0 CI fetches the base history and blocks protected Qur’an reader c
   assert.match(workflow, /fetch-depth: 0/);
   assert.match(workflow, /check:boundaries/);
   assert.match(atlasWorkflow, /check:frozen/);
-  assert.match(atlasWorkflow, /check-contrast/);
+  assert.match(atlasWorkflow, /check:contrast/);
   assert.match(atlasWorkflow, /npm run build/);
   const lock = fs.readFileSync(path.join(__dirname, '..', 'FROZEN.lock.json'), 'utf8');
   assert.match(lock, /QuranMushafReader/);

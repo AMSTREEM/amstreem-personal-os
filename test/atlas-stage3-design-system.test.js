@@ -24,8 +24,8 @@ test('Atlas v2 shell owns responsive room navigation and keyboard access', () =>
   assert.match(shell, /aria-label="Main navigation"/);
   assert.match(shell, /Skip to content/);
   assert.match(shell, /id="main-content"/);
-  assert.match(shell, /atlas-mobile-bar/);
-  assert.match(shell, /atlas-mobile-drawer/);
+  assert.match(shell, /a-mobile-bar/);
+  assert.match(shell, /a-mobile-drawer/);
   assert.match(shell, /event.key.toLowerCase() === 'k'/);
 });
 
