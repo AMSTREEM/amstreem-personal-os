@@ -1410,7 +1410,10 @@ const one=(s,...a)=>db.prepare(s).get(...a), all=(s,...a)=>db.prepare(s).all(...
 function awardXp(eventKey,category,points){if(!eventKey||!Number.isInteger(points)||points<1)return;db.prepare('INSERT OR IGNORE INTO xp_events(event_key,category,points) VALUES(?,?,?)').run(eventKey,category,points);}
 const dateKey=(d=new Date())=>{
  let timezone='Africa/Lagos';
- try { timezone=one('SELECT value FROM settings WHERE key=?','timezone')?.value || timezone; } catch {}
+ try {
+  const saved=one('SELECT value FROM settings WHERE key=?','timezone')?.value;
+  if(saved) { new Intl.DateTimeFormat('en-US',{timeZone:saved}); timezone=saved; }
+ } catch {}
  return new Intl.DateTimeFormat('en-CA',{timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
 };
 // New installs start with no seeded habits; users define their own rituals.
