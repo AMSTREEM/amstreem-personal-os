@@ -15,7 +15,10 @@
     "check:frozen": "node scripts/check-frozen.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
     "baseline:auth": "node e2e/save-auth-state.mjs",
-    "baseline:screenshots": "playwright test --config=e2e/playwright.config.ts"
+    "baseline:screenshots": "playwright test --config=e2e/playwright.config.ts",
+    "db:migrate:staging": "node scripts/migrate.js",
+    "stage1:drill": "node scripts/stage1-staging-drill.js",
+    "check:boundaries": "node scripts/check-boundaries.js"
   },
   "engines": {
     "node": ">=20"

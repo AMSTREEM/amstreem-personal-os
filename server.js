@@ -1,12 +1,83 @@
 const express = require('express');
 const path = require('path');
 const fs = require('node:fs');
+const crypto = require('node:crypto');
+const { replayWorkspaceMutation } = require('./workspace-replay');
 const Database = require('better-sqlite3');
-const { restoreBackup } = require('./workspace-backup');
+const { restoreBackup, createBackupEnvelope, summarizeBackup, unwrapBackup } = require('./workspace-backup');
 const { AsyncLocalStorage } = require('node:async_hooks');
+const { problemDetails, BootstrapResponseSchema, ApiJsonResponseSchema } = require('./packages/contracts');
+const { appendAtlasEvent, appendImportedAtlasEvents, validateImportedAtlasEvents, validateAtlasEventBatch } = require('./server/atlas-events');
 const app = express();
+const { apiRequestContract } = require('./server/api-request-contract');
+for (const method of ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']) {
+  const register = app[method].bind(app);
+  app[method] = (routePath, ...handlers) => {
+    if (typeof routePath === 'string' && routePath.startsWith('/api/') &&
+        !routePath.startsWith('/api/quran/')) {
+      return register(routePath, apiRequestContract, ...handlers);
+    }
+    return register(routePath, ...handlers);
+  };
+}
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
+app.use((req, res, next) => {
+  const requestId = crypto.randomUUID();
+  req.requestId = requestId;
+  res.setHeader('X-Request-Id', requestId);
+  const sendJson = res.json.bind(res);
+  res.json = body => {
+    const apiPath = req.path.startsWith('/api/');
+    const protectedQuranPath = req.path.startsWith('/api/quran/');
+    if (apiPath && !protectedQuranPath && res.statusCode < 400 && body !== undefined) {
+      const routePath = typeof req.route?.path === 'string' ? req.route.path : '';
+      const responseSchema = routePath === '/api/bootstrap' ? BootstrapResponseSchema : ApiJsonResponseSchema;
+      const parsed = responseSchema.safeParse(body);
+      if (!parsed.success) {
+        console.error('API response contract violation:', req.method, routePath, parsed.error.issues);
+        res.statusCode = 500;
+        body = problemDetails({
+          status: 500, code: 'internal', title: 'Internal server error',
+          detail: 'The API response did not match its shared response contract.',
+          requestId, instance: req.originalUrl
+        });
+        res.type('application/problem+json');
+      } else {
+        body = parsed.data;
+      }
+    }
+    if (apiPath && !protectedQuranPath && res.statusCode >= 400 &&
+        body && typeof body === 'object' && !Array.isArray(body) && !(body.type && body.title && body.status && body.code)) {
+      const status = res.statusCode;
+      const code = status === 401 ? 'unauthenticated'
+        : status === 403 ? 'forbidden'
+        : status === 404 ? 'not_found'
+        : status === 409 ? 'conflict'
+        : status === 429 ? 'rate_limited'
+        : status === 413 ? 'payload_too_large'
+        : status === 400 || status === 422 ? 'validation_failed'
+        : 'internal';
+      const title = ({
+        unauthenticated: 'Authentication required',
+        forbidden: 'Forbidden',
+        not_found: 'Not found',
+        conflict: 'Conflict',
+        rate_limited: 'Too many requests',
+        payload_too_large: 'Payload too large',
+        validation_failed: 'Request validation failed',
+        internal: 'Internal server error'
+      })[code];
+      const detail = typeof body.error === 'string' ? body.error
+        : typeof body.err === 'string' ? body.err
+        : typeof body.message === 'string' ? body.message : undefined;
+      body = problemDetails({ status, code, title, detail, requestId, instance: req.originalUrl, errors: Array.isArray(body.errors) ? body.errors : undefined });
+      res.type('application/problem+json');
+    }
+    return sendJson(body);
+  };
+  next();
+});
 const PORT = process.env.PORT || 3000;
 const fileSupabaseConfig = require('./supabase-config.json');
 const supabaseConfig = {
@@ -14,6 +85,18 @@ const supabaseConfig = {
   url: process.env.SUPABASE_URL || fileSupabaseConfig.url,
   publishableKey: process.env.SUPABASE_PUBLISHABLE_KEY || fileSupabaseConfig.publishableKey
 };
+
+function supabaseAdminHeaders(extra = {}) {
+  const secretKey = process.env.SUPABASE_SECRET_KEY;
+  const serviceRoleJwt = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const apiKey = secretKey || serviceRoleJwt;
+  if (!apiKey) return null;
+  const headers = { apikey: apiKey, ...extra };
+  // Opaque sb_secret keys belong in apikey only; a legacy service_role JWT
+  // may also be sent as Authorization when that is the configured credential.
+  if (serviceRoleJwt) headers.Authorization = `Bearer ${serviceRoleJwt}`;
+  return headers;
+}
 if (process.env.ATLAS_STAGING === 'true') {
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_PUBLISHABLE_KEY) {
     throw new Error('Staging requires its own Supabase URL and publishable key.');
@@ -81,7 +164,9 @@ function rateLimit({ max, windowMs = 60_000, prefix = 'ip' }) {
     next();
   };
 }
-app.get('/healthz', (req,res) => res.status(200).json({ ok: true }));
+let serverReady = false;
+app.get('/healthz', (_req, res) => res.status(200).json({ ok: true }));
+app.get('/readyz', (_req, res) => res.status(serverReady ? 200 : 503).json({ ok: serverReady }));
 const QURAN_FONT_FILENAME = 'UthmanicHafs1Ver18.woff2';
 const quranFontPath = path.join(__dirname, 'public', 'fonts', QURAN_FONT_FILENAME);
 let quranFontInflight = null;
@@ -942,6 +1027,7 @@ function getPageJuzFallback(page) {
 const ownerUserId = process.env.ADMIN_USER_ID || (process.env.ATLAS_STAGING === 'true' ? null : supabaseConfig.ownerUserId);
 const tenantContext = new AsyncLocalStorage();
 const userLocks = new Map();
+function publishAtlasEvent(event) { return appendAtlasEvent(tenantContext.getStore(), event); }
 const workspaceTables = [
   'goals','projects','project_milestones','tasks','modules','learning_paths','learning_lessons','learning_resources',
   'learning_study_logs','sessions','calendar_events','notes','reviews','settings','habits','habit_logs',
@@ -955,6 +1041,16 @@ function currentDb() {
 }
 const db = new Proxy({}, { get(_target, prop) { const active = currentDb(); const value = active[prop]; return typeof value === 'function' ? value.bind(active) : value; } });
 // Keep ordinary API payloads small; allow larger JSON only for explicit backup imports.
+app.use((req, res, next) => {
+  const pathname = String(req.url || '').split('?')[0];
+  if (pathname === '/api/v1/quran' || pathname.startsWith('/api/v1/quran/')) {
+    return res.status(404).json({ error: 'Qur’an endpoints retain their existing unversioned paths.' });
+  }
+  if (pathname === '/api/v1' || pathname.startsWith('/api/v1/')) {
+    req.url = req.url.replace(/^\/api\/v1(?=\/|$)/, '/api');
+  }
+  next();
+});
 app.use('/api/import', express.json({ limit: '10mb' }));
 app.use(express.json({ limit: '1mb' }));
 app.get('/supabase-config.js', (req, res) => {
@@ -1020,11 +1116,12 @@ async function acquireUserLock(userId) {
   return () => { release(); if (userLocks.get(userId) === tail) userLocks.delete(userId); };
 }
 async function readWorkspaceSnapshot(userId, token) {
-  const url = `${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=data&user_id=eq.${encodeURIComponent(userId)}`;
+  const url = `${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=data,version,schema_version&user_id=eq.${encodeURIComponent(userId)}`;
   const response = await fetch(url, { headers: { apikey: supabaseConfig.publishableKey, Authorization: `Bearer ${token}` } });
   if (!response.ok) throw new Error('Could not load your saved workspace from Supabase.');
   const rows = await response.json();
-  return rows[0]?.data || null;
+  const row = rows[0];
+  return row ? { data: row.data, version: Number(row.version) || 1, schemaVersion: Number(row.schema_version) || 3 } : { data: null, version: 0, schemaVersion: 3 };
 }
 function createWorkspaceDatabase(snapshot) {
   const workspaceDb = new Database(':memory:');
@@ -1077,30 +1174,76 @@ function serializeWorkspaceDatabase(workspaceDb) {
   for (const table of workspaceTables) tables[table] = workspaceDb.prepare(`SELECT * FROM ${table}`).all();
   return { format: 'personal-os-sqlite-snapshot-v3', schemaVersion: 3, tables };
 }
-async function writeWorkspaceSnapshot(userId, token, workspaceDb) {
-  const response = await fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces`, {
+async function commitWorkspaceSnapshot(userId, expectedVersion, snapshot, requestMeta = {}, events = []) {
+  const adminHeaders = supabaseAdminHeaders();
+  if (!adminHeaders) throw new Error('The server database credential is not configured.');
+  const payload = {
+    p_user_id: userId,
+    p_expected_version: expectedVersion,
+    p_data: snapshot,
+    p_schema_version: 3,
+    p_idempotency_key: requestMeta.idempotencyKey || null,
+    p_request_hash: requestMeta.requestHash || null,
+    p_force_history: Boolean(requestMeta.forceHistory),
+    p_history_reason: requestMeta.historyReason || 'scheduled',
+    p_events: validateAtlasEventBatch(events).map(event => ({ key: event.key, type: event.type, module: event.module, entity_id: event.entityId || null, occurred_at: event.occurredAt, local_date: event.localDate, payload: event.payload, source: event.source }))
+  };
+  const response = await fetch(`${supabaseConfig.url}/rest/v1/rpc/commit_workspace_with_events`, {
     method: 'POST',
-    headers: {
-      apikey: supabaseConfig.publishableKey,
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      Prefer: 'resolution=merge-duplicates,return=minimal'
-    },
-    body: JSON.stringify({ user_id: userId, data: serializeWorkspaceDatabase(workspaceDb), updated_at: new Date().toISOString() })
+    headers: { ...adminHeaders, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+    body: JSON.stringify(payload)
   });
-  if (!response.ok) throw new Error('Supabase rejected the workspace save.');
+  const raw = await response.text();
+  let detail = {};
+  try { detail = raw ? JSON.parse(raw) : {}; } catch { /* keep a generic safe error */ }
+  if (!response.ok) {
+    const error = new Error(detail.message || 'Supabase rejected the workspace save.');
+    if (detail.message === 'version_conflict' || detail.code === 'P0001') error.code = 'VERSION_CONFLICT';
+    if (detail.message === 'idempotency_key_reused') error.code = 'IDEMPOTENCY_KEY_REUSED';
+    throw error;
+  }
+  return typeof detail === 'string' ? JSON.parse(detail) : detail;
+}
+async function writeWorkspaceSnapshot(userId, token, workspaceDb, expectedVersion, baseSnapshot, requestMeta = {}, events = []) {
+  let snapshot = serializeWorkspaceDatabase(workspaceDb);
+  let version = expectedVersion;
+  let replayed = false;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const result = await commitWorkspaceSnapshot(userId, version, snapshot, requestMeta, events);
+      return { ...result, replayed: replayed || Boolean(result?.replayed) };
+    } catch (error) {
+      if (error.code !== 'VERSION_CONFLICT' || attempt === 2) throw error;
+      const latest = await readWorkspaceSnapshot(userId, token);
+      if (latest.version === version) throw error;
+      try {
+        snapshot = replayWorkspaceMutation(baseSnapshot, snapshot, latest.data);
+        const validationDb = createWorkspaceDatabase(snapshot);
+        validationDb.close();
+      } catch (replayError) {
+        const conflict = new Error(replayError.message || 'This change conflicts with a newer workspace update.');
+        conflict.code = 'VERSION_CONFLICT';
+        throw conflict;
+      }
+      version = latest.version;
+      replayed = true;
+    }
+  }
+  const exhausted = new Error('Workspace changed repeatedly while saving. Reload and retry.');
+  exhausted.code = 'VERSION_CONFLICT';
+  throw exhausted;
 }
 // Username sign-in is resolved server-side so account email addresses are never exposed to the browser.
 app.post('/api/auth/username-login', rateLimit({ max: 8, windowMs: 60_000, prefix: 'username-login' }), async (req, res) => {
   const username=String(req.body?.username||'').trim().replace(/^@/,'').toLowerCase();
   const password=String(req.body?.password||'');
   if(!/^[a-z0-9_]{3,24}$/.test(username)||!password||password.length>256) return res.status(400).json({error:'Enter a valid username and password.'});
-  const key=process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!key)return res.status(503).json({error:'Username sign-in is temporarily unavailable. Please use your email address.'});
+  const adminHeaders=supabaseAdminHeaders();
+  if(!adminHeaders)return res.status(503).json({error:'Username sign-in is temporarily unavailable. Please use your email address.'});
   try {
     let page=1,matches=[],more=true;
     while(more&&page<=100){
-      const listing=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
+      const listing=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:adminHeaders});
       if(!listing.ok)throw new Error('Account lookup unavailable.');
       const payload=await listing.json(),batch=payload.users||[];
       matches.push(...batch.filter(user=>username==='admin'?user.id===ownerUserId:String(user.user_metadata?.username||'').toLowerCase()===username));
@@ -1108,7 +1251,7 @@ app.post('/api/auth/username-login', rateLimit({ max: 8, windowMs: 60_000, prefi
     }
     if(matches.length!==1||!matches[0].email)return res.status(401).json({error:'Invalid username or password.'});
     if(username==='admin'&&String(matches[0].user_metadata?.username||'').toLowerCase()!=='admin'){
-      const updated=await fetch(`${supabaseConfig.url}/auth/v1/admin/users/${matches[0].id}`,{method:'PUT',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({user_metadata:{...(matches[0].user_metadata||{}),username:'admin'}})});
+      const updated=await fetch(`${supabaseConfig.url}/auth/v1/admin/users/${matches[0].id}`,{method:'PUT',headers:{...adminHeaders,'Content-Type':'application/json'},body:JSON.stringify({user_metadata:{...(matches[0].user_metadata||{}),username:'admin'}})});
       if(!updated.ok)throw new Error('Could not configure the administrator username.');
     }
     const auth=await fetch(`${supabaseConfig.url}/auth/v1/token?grant_type=password`,{method:'POST',headers:{apikey:supabaseConfig.publishableKey,'Content-Type':'application/json'},body:JSON.stringify({email:matches[0].email,password})});
@@ -1138,28 +1281,53 @@ app.use('/api', async (req, res, next) => {
       return res.status(429).json({ error: 'Too many requests for this account. Please wait and try again.' });
     }
     release = await acquireUserLock(user.id);
-    const snapshot = await readWorkspaceSnapshot(user.id, token);
-    workspaceDb = createWorkspaceDatabase(snapshot);
-    const context = { userId: user.id, db: workspaceDb };
+    const workspaceState = await readWorkspaceSnapshot(user.id, token);
+    workspaceDb = createWorkspaceDatabase(workspaceState.data);
+    const baseSnapshot = serializeWorkspaceDatabase(workspaceDb);
+    const idempotencyKey = String(req.get('Idempotency-Key') || '').trim();
+    if (idempotencyKey && (idempotencyKey.length < 8 || idempotencyKey.length > 200)) {
+      workspaceDb.close();
+      release?.();
+      return res.status(400).json({ error: 'Idempotency-Key must contain between 8 and 200 characters.' });
+    }
+    const requestHash = idempotencyKey
+      ? crypto.createHash('sha256').update(JSON.stringify({ method: req.method, path: req.originalUrl, body: req.body ?? null })).digest('hex')
+      : null;
+    const context = { userId: user.id, db: workspaceDb, version: workspaceState.version, pendingEvents: [], idempotencyKey: idempotencyKey || null };
     tenantContext.run(context, () => {
       const originalEnd = res.end.bind(res);
       let ending = false;
       res.end = (...args) => {
         if (ending) return res;
         ending = true;
-        if (req.method === 'GET' || req.method === 'HEAD') {
+        if (req.method === 'GET' || req.method === 'HEAD' || req.path === '/import/preview' || res.statusCode >= 400) {
           workspaceDb.close();
           release?.();
           return originalEnd(...args);
         }
-        writeWorkspaceSnapshot(user.id, token, workspaceDb)
-          .then(() => originalEnd(...args))
+        const requestMeta = {
+          idempotencyKey: idempotencyKey || null,
+          requestHash,
+          forceHistory: req.path === '/import',
+          historyReason: req.path === '/import' ? 'pre_import' : 'scheduled'
+        };
+        writeWorkspaceSnapshot(user.id, token, workspaceDb, workspaceState.version, baseSnapshot, requestMeta, context.pendingEvents)
+          .then(result => {
+            if (result?.version) res.setHeader('X-Workspace-Version', String(result.version));
+            if (result?.replayed) res.setHeader('Idempotency-Replayed', 'true');
+            originalEnd(...args);
+          })
           .catch(error => {
             console.error('Workspace save failed:', error.message);
-            res.statusCode = 503;
+            res.statusCode = error.code === 'VERSION_CONFLICT' ? 409 : error.code === 'IDEMPOTENCY_KEY_REUSED' ? 422 : 503;
             res.removeHeader('Content-Length');
             res.setHeader('Content-Type', 'application/json; charset=utf-8');
-            originalEnd(JSON.stringify({ error: 'Your workspace could not be saved. Please retry.' }));
+            const message = error.code === 'VERSION_CONFLICT'
+              ? 'Another change was saved first. Reload your workspace and retry this action.'
+              : error.code === 'IDEMPOTENCY_KEY_REUSED'
+                ? 'This Idempotency-Key was already used for a different request.'
+                : 'Your workspace could not be saved. Please retry.';
+            originalEnd(JSON.stringify({ error: message, code: error.code || 'WORKSPACE_SAVE_FAILED' }));
           })
           .finally(() => { workspaceDb.close(); release?.(); });
         return res;
@@ -1175,6 +1343,28 @@ app.use('/api', async (req, res, next) => {
   }
 });
 app.get('/api/session', (req, res) => res.json({ user: { id: req.user.id, email: req.user.email, name: req.user.user_metadata?.full_name || '', username: req.user.user_metadata?.username || '' }, role: req.user.id === ownerUserId ? 'admin' : 'user' }));
+app.get('/api/bootstrap', (req, res) => {
+  const settings = Object.fromEntries(all('SELECT key,value FROM settings').map(row => [row.key, row.value]));
+  const payload = {
+    user: {
+      id: req.user.id,
+      email: req.user.email || null,
+      name: req.user.user_metadata?.full_name || '',
+      username: req.user.user_metadata?.username || ''
+    },
+    role: req.user.id === ownerUserId ? 'admin' : 'user',
+    today: dateKey(),
+    settings,
+    navigationBadges: {}
+  };
+  const parsed = BootstrapResponseSchema.safeParse(payload);
+  if (!parsed.success) {
+    console.error('Bootstrap contract violation:', parsed.error.issues);
+    return res.status(500).json({ error: 'Atlas could not prepare your workspace bootstrap.' });
+  }
+  return res.json(parsed.data);
+});
+
 
 const schemaSql = `
 CREATE TABLE IF NOT EXISTS projects (id INTEGER PRIMARY KEY AUTOINCREMENT, goal_id INTEGER REFERENCES goals(id) ON DELETE SET NULL, title TEXT NOT NULL, description TEXT DEFAULT '', status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','completed','archived')), target_date TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
@@ -1210,7 +1400,7 @@ CREATE TABLE IF NOT EXISTS weekly_challenges (week_start TEXT PRIMARY KEY, chall
 CREATE TABLE IF NOT EXISTS feedback_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, message TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 `;
 const one=(s,...a)=>db.prepare(s).get(...a), all=(s,...a)=>db.prepare(s).all(...a);
-function awardXp(eventKey,category,points){if(!eventKey||!Number.isInteger(points)||points<1)return;db.prepare('INSERT OR IGNORE INTO xp_events(event_key,category,points) VALUES(?,?,?)').run(eventKey,category,points);}
+// Legacy xp_events remain in the snapshot for backup compatibility; new awards use xp_ledger.
 const dateKey=(d=new Date())=>new Intl.DateTimeFormat('en-CA',{timeZone:'Africa/Lagos',year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
 // New installs start with no seeded habits; users define their own rituals.
 async function sendResendEmail(to, subject, html) {
@@ -1238,17 +1428,26 @@ app.post('/api/announcements/:id/read',async(req,res)=>{try{const id=Number(req.
 app.post('/api/login-event',(req,res)=>{const date=dateKey();const last=one('SELECT login_date FROM login_events ORDER BY id DESC LIMIT 1');if(last?.login_date!==date)db.prepare('INSERT INTO login_events(login_date) VALUES(?)').run(date);res.json({ok:true});});
 app.get('/api/leaderboard',async(q,s)=>{
  try{
-  const key=process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!key)return s.status(503).json({error:'The leaderboard is temporarily unavailable.'});
-  const response=await fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=user_id,data`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
-  if(!response.ok)throw new Error('Could not read leaderboard totals.');
-  const rows=await response.json(),month=dateKey().slice(0,7),members=[],history={};
+  const adminHeaders=supabaseAdminHeaders();
+  if(!adminHeaders)return s.status(503).json({error:'The leaderboard is temporarily unavailable.'});
+  const [workspaceResponse,xpResponse]=await Promise.all([
+   fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=user_id,data`,{headers:adminHeaders}),
+   fetch(`${supabaseConfig.url}/rest/v1/xp_ledger?select=user_id,points,local_date&order=awarded_at.asc&limit=10000`,{headers:adminHeaders})
+  ]);
+  if(!workspaceResponse.ok||!xpResponse.ok)throw new Error('Could not read leaderboard totals.');
+  const rows=await workspaceResponse.json(),xpRows=await xpResponse.json(),month=dateKey().slice(0,7),members=[],history={},byUser=new Map();
+  for(const event of xpRows){
+   const stat=byUser.get(event.user_id)||{total:0,monthly:0,events:[]};
+   const points=Number(event.points)||0,period=String(event.local_date||'').slice(0,7);
+   stat.total+=points;if(period===month)stat.monthly+=points;
+   stat.events.push({period,points});byUser.set(event.user_id,stat);
+  }
   for(const row of rows){
-   const tables=row.data?.tables||{},events=Array.isArray(tables.xp_events)?tables.xp_events:[],settings=Array.isArray(tables.settings)?Object.fromEntries(tables.settings.map(x=>[x.key,x.value])):{};
-   const total=events.reduce((n,x)=>n+(Number(x.points)||0),0),monthly=events.reduce((n,x)=>n+(String(x.awarded_at||'').slice(0,7)===month?(Number(x.points)||0):0),0);
+   const tables=row.data?.tables||{},settings=Array.isArray(tables.settings)?Object.fromEntries(tables.settings.map(x=>[x.key,x.value])):{};
+   const stat=byUser.get(row.user_id)||{total:0,monthly:0,events:[]};
    const display=String(settings.leaderboard_name||'').trim().slice(0,24)||('Member '+String(row.user_id).slice(-4).toUpperCase());
-   members.push({userId:row.user_id,display,xp:monthly,totalXp:total,public:settings.leaderboard_public!=='0'});
-   if(settings.leaderboard_public!=='0')for(const e of events){const m=String(e.awarded_at||'').slice(0,7);if(!/^\d{4}-\d{2}$/.test(m))continue;const item=history[m]||(history[m]=new Map());item.set(row.user_id,{display,xp:(item.get(row.user_id)?.xp||0)+(Number(e.points)||0)});}
+   members.push({userId:row.user_id,display,xp:stat.monthly,totalXp:stat.total,public:settings.leaderboard_public!=='0'});
+   if(settings.leaderboard_public!=='0')for(const event of stat.events){if(!/^\d{4}-\d{2}$/.test(event.period))continue;const item=history[event.period]||(history[event.period]=new Map());const prior=item.get(row.user_id);item.set(row.user_id,{display,xp:(prior?.xp||0)+event.points});}
   }
   const visible=members.filter(m=>m.public).sort((a,b)=>b.xp-a.xp||b.totalXp-a.totalXp||a.display.localeCompare(b.display));
   const mine=members.find(m=>m.userId===q.user.id),myRank=mine?.public?visible.findIndex(m=>m.userId===q.user.id)+1:null;
@@ -1259,9 +1458,9 @@ app.get('/api/leaderboard',async(q,s)=>{
 });
 app.get('/api/admin/analytics',async(req,res)=>{
  try {
-  const key=process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!key)return res.status(503).json({error:'Admin analytics are not configured.'});
-  const response=await fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=user_id,data`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
+  const adminHeaders=supabaseAdminHeaders();
+  if(!adminHeaders)return res.status(503).json({error:'Admin analytics are not configured.'});
+  const response=await fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=user_id,data`,{headers:adminHeaders});
   if(!response.ok)throw new Error('Could not load aggregate workspace activity.');
   const rows=await response.json(),today=dateKey(),toDate=s=>new Date(s+'T12:00:00');
   const addDays=(date,n)=>{const d=toDate(date);d.setDate(d.getDate()+n);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
@@ -1273,43 +1472,43 @@ app.get('/api/admin/analytics',async(req,res)=>{
 });
 app.get('/api/admin/users',async(req,res)=>{
  try {
-  const key=process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!key)return res.status(503).json({error:'Admin directory is not configured. Add SUPABASE_SECRET_KEY to the server environment.'});
+  const adminHeaders=supabaseAdminHeaders();
+  if(!adminHeaders)return res.status(503).json({error:'Admin directory is not configured. Add SUPABASE_SECRET_KEY to the server environment.'});
   let page=1,users=[],more=true;
-  while(more&&page<=100){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});if(!r.ok)throw new Error('Could not retrieve the account directory.');const payload=await r.json();const batch=payload.users||[];users.push(...batch);more=batch.length===100;page++;}
+  while(more&&page<=100){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:adminHeaders});if(!r.ok)throw new Error('Could not retrieve the account directory.');const payload=await r.json();const batch=payload.users||[];users.push(...batch);more=batch.length===100;page++;}
   res.json({email_configured:!!(process.env.RESEND_API_KEY&&process.env.EMAIL_FROM),users:users.map(u=>({id:u.id,name:String(u.user_metadata?.full_name||u.user_metadata?.name||'—').slice(0,80),username:String(u.user_metadata?.username||'').slice(0,30),email:u.email||'',created_at:u.created_at||null,email_confirmed:!!u.email_confirmed_at,thank_you_sent_at:u.app_metadata?.personal_os_thank_you?.status==='sent'?u.app_metadata.personal_os_thank_you.sent_at:null,thank_you_status:u.app_metadata?.personal_os_thank_you?.status||'not_sent'})).sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''))});
  } catch(e){res.status(502).json({error:e.message||'Could not load users.'})}
 });
 app.post('/api/admin/thank-you',async(req,res)=>{
  try {
-  const key=process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!key)return res.status(503).json({error:'Admin directory is not configured.'});
+  const adminHeaders=supabaseAdminHeaders();
+  if(!adminHeaders)return res.status(503).json({error:'Admin directory is not configured.'});
   if(!process.env.RESEND_API_KEY||!process.env.EMAIL_FROM)return res.status(503).json({error:'Thank-you email is not activated yet. Configure RESEND_API_KEY and EMAIL_FROM in Render.'});
   const subject=String(req.body.subject||'Thank you for using Amstreem Atlas').trim().slice(0,120);
   const message=String(req.body.message||'Thank you for being part of Amstreem Atlas. I appreciate you giving the system a place in your daily life.').trim().slice(0,4000);
   if(!message)return res.status(400).json({error:'Write a message first.'});
   let recipients=[];
-  if(req.body.all===true||Array.isArray(req.body.userIds)){let page=1,more=true;while(more&&page<=100){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});if(!r.ok)throw new Error('Could not retrieve recipients.');const batch=(await r.json()).users||[];recipients.push(...batch);more=batch.length===100;page++;}}
+  if(req.body.all===true||Array.isArray(req.body.userIds)){let page=1,more=true;while(more&&page<=100){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:adminHeaders});if(!r.ok)throw new Error('Could not retrieve recipients.');const batch=(await r.json()).users||[];recipients.push(...batch);more=batch.length===100;page++;}}
   else return res.status(400).json({error:'Choose recipients.'});
   if(Array.isArray(req.body.userIds)){const ids=new Set(req.body.userIds.filter(x=>typeof x==='string'));recipients=recipients.filter(u=>ids.has(u.id));}
   const eligible=recipients.filter(u=>u.email&&u.id!==ownerUserId);
   const targets=eligible.filter(u=>['not_sent','failed',undefined].includes(u.app_metadata?.personal_os_thank_you?.status));
   let sent=0,failed=0,pending=0,skippedAlreadySent=eligible.filter(u=>u.app_metadata?.personal_os_thank_you?.status==='sent').length,skippedPending=eligible.filter(u=>u.app_metadata?.personal_os_thank_you?.status==='pending').length;
   const escapeHtml=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const updateMailStatus=async(user,status,extra={})=>{const metadata={...(user.app_metadata||{}),personal_os_thank_you:{status,...extra}};const response=await fetch(`${supabaseConfig.url}/auth/v1/admin/users/${encodeURIComponent(user.id)}`,{method:'PUT',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({app_metadata:metadata})});if(!response.ok)throw new Error('Could not save recipient email status.');user.app_metadata=metadata;};
+  const updateMailStatus=async(user,status,extra={})=>{const metadata={...(user.app_metadata||{}),personal_os_thank_you:{status,...extra}};const response=await fetch(`${supabaseConfig.url}/auth/v1/admin/users/${encodeURIComponent(user.id)}`,{method:'PUT',headers:{...adminHeaders,'Content-Type':'application/json'},body:JSON.stringify({app_metadata:metadata})});if(!response.ok)throw new Error('Could not save recipient email status.');user.app_metadata=metadata;};
   for(const user of targets){try{await updateMailStatus(user,'pending',{started_at:new Date().toISOString()});const name=escapeHtml(user.user_metadata?.full_name||'there'),body=escapeHtml(message).replace(/\n/g,'<br>');const result=await sendResendEmail(user.email,subject,`<div style="font-family:Arial,sans-serif;line-height:1.7;color:#222"><p>Hello ${name},</p><p>${body}</p><p>— Amstreem Atlas</p></div>`);try{await updateMailStatus(user,'sent',{sent_at:new Date().toISOString(),email_id:result?.id||null});sent++;}catch(markError){pending++;console.error('Email sent but status update is pending:',markError.message);}}catch(e){failed++;console.error('Thank-you email failed:',e.message);try{await updateMailStatus(user,'failed',{failed_at:new Date().toISOString()});}catch(markError){pending++;console.error('Could not update failed email status:',markError.message);}}}
   res.json({sent,failed,pending,skippedAlreadySent,skippedPending,total:targets.length});
  }catch(e){res.status(502).json({error:e.message||'Could not send emails.'})}
 });
 app.post('/api/admin/thank-you/mark-sent',async(req,res)=>{
  try{
-  const key=process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!key)return res.status(503).json({error:'Admin directory is not configured.'});
+  const adminHeaders=supabaseAdminHeaders();
+  if(!adminHeaders)return res.status(503).json({error:'Admin directory is not configured.'});
   if(!Array.isArray(req.body.userIds)||!req.body.userIds.length)return res.status(400).json({error:'Select accounts to mark as sent.'});
   const ids=new Set(req.body.userIds.filter(x=>typeof x==='string'));let users=[],page=1,more=true;
-  while(more&&page<=100){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});if(!r.ok)throw new Error('Could not retrieve recipients.');const batch=(await r.json()).users||[];users.push(...batch);more=batch.length===100;page++;}
+  while(more&&page<=100){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:adminHeaders});if(!r.ok)throw new Error('Could not retrieve recipients.');const batch=(await r.json()).users||[];users.push(...batch);more=batch.length===100;page++;}
   const targets=users.filter(u=>ids.has(u.id)&&u.email&&u.id!==ownerUserId&&u.app_metadata?.personal_os_thank_you?.status!=='sent');let marked=0;
-  for(const user of targets){const metadata={...(user.app_metadata||{}),personal_os_thank_you:{status:'sent',sent_at:new Date().toISOString(),manually_marked:true}};const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users/${encodeURIComponent(user.id)}`,{method:'PUT',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({app_metadata:metadata})});if(!r.ok)throw new Error('Could not save a recipient status.');marked++;}
+  for(const user of targets){const metadata={...(user.app_metadata||{}),personal_os_thank_you:{status:'sent',sent_at:new Date().toISOString(),manually_marked:true}};const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users/${encodeURIComponent(user.id)}`,{method:'PUT',headers:{...adminHeaders,'Content-Type':'application/json'},body:JSON.stringify({app_metadata:metadata})});if(!r.ok)throw new Error('Could not save a recipient status.');marked++;}
   res.json({marked});
  }catch(e){res.status(502).json({error:e.message||'Could not update recipient statuses.'});}
 });
@@ -1381,54 +1580,30 @@ app.post('/api/intelligence/feedback',(req,res)=>{
  db.prepare("INSERT INTO settings(key,value) VALUES('atlas_intelligence_feedback',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(JSON.stringify(history.slice(-40)));
  res.json({ok:true});
 });
-function achievementMetrics(){
- return {
-  tasks:one("SELECT COUNT(*) n FROM tasks WHERE done=1").n,
-  focusMinutes:one("SELECT COALESCE(SUM(minutes),0) n FROM sessions").n,
-  focusSessions:one("SELECT COUNT(*) n FROM sessions").n,
-  lessons:one("SELECT COUNT(*) n FROM learning_lessons WHERE status='Completed'").n,
-  goals:one("SELECT COUNT(*) n FROM goals WHERE status='completed'").n,
-  habitCheckins:one("SELECT COUNT(*) n FROM habit_logs").n
- };
-}
-function achievementDefinitions(metrics){
- return [
-  {id:'first-finish',name:'First things first',description:'Complete your first task',icon:'✓',metric:'tasks',target:1},
-  {id:'task-ten',name:'Getting things done',description:'Complete 10 tasks',icon:'↗',metric:'tasks',target:10},
-  {id:'task-fifty',name:'Reliable executor',description:'Complete 50 tasks',icon:'◆',metric:'tasks',target:50},
-  {id:'focus-hour',name:'One focused hour',description:'Invest 60 minutes in focus',icon:'◷',metric:'focusMinutes',target:60},
-  {id:'deep-work',name:'Return to deep work',description:'Complete 10 focus sessions',icon:'◎',metric:'focusSessions',target:10},
-  {id:'first-lesson',name:'Curiosity in motion',description:'Complete your first lesson',icon:'◇',metric:'lessons',target:1},
-  {id:'five-lessons',name:'A learner by practice',description:'Complete 5 lessons',icon:'✦',metric:'lessons',target:5},
-  {id:'first-goal',name:'A promise kept',description:'Complete your first goal',icon:'⌖',metric:'goals',target:1},
-  {id:'ritual-week',name:'Small promises',description:'Record 7 daily ritual check-ins',icon:'✳',metric:'habitCheckins',target:7},
-  {id:'ritual-month',name:'Consistency, compounded',description:'Record 30 daily ritual check-ins',icon:'✧',metric:'habitCheckins',target:30}
- ].map(item=>{
-  const value=Number(metrics[item.metric]||0);
-  const unlock=one('SELECT unlocked_at FROM achievement_unlocks WHERE achievement_id=?',item.id);
-  return {...item,value,unlocked:value>=item.target,progress:Math.min(100,Math.round(value/item.target*100)),remaining:Math.max(0,item.target-value),unlockedAt:unlock?.unlocked_at||null};
- });
+async function getProgressTotals(req,startDate=null,endDate=null){
+ const rows=await atlasRest(req,'rpc/get_progress_totals',{method:'POST',body:{p_start:startDate,p_end:endDate}});
+ return Object.fromEntries((rows||[]).map(row=>[row.metric,Number(row.value)||0]));
 }
 function currentWeekStart(){
  const localDay=new Date(dateKey()+'T12:00:00Z');
  localDay.setUTCDate(localDay.getUTCDate()-((localDay.getUTCDay()+6)%7));
  return localDay.toISOString().slice(0,10);
 }
-function weeklyChallengeState(challenge,weekStart){
- const metrics={
-  focus_minutes:one("SELECT COALESCE(SUM(minutes),0) n FROM sessions WHERE session_date>=? AND session_date<date(?,'+7 days')",weekStart,weekStart).n,
-  study_minutes:one("SELECT COALESCE(SUM(minutes),0) n FROM learning_study_logs WHERE log_date>=? AND log_date<date(?,'+7 days')",weekStart,weekStart).n,
-  habit_checkins:one("SELECT COUNT(*) n FROM habit_logs WHERE log_date>=? AND log_date<date(?,'+7 days')",weekStart,weekStart).n
- };
+function addAtlasDays(date,days){
+ const value=new Date(date+'T12:00:00Z');
+ value.setUTCDate(value.getUTCDate()+days);
+ return value.toISOString().slice(0,10);
+}
+function weeklyChallengeState(challenge,weekStart,metrics){
  const value=Number(metrics[challenge.metric]||0),complete=value>=challenge.target;
  return {...challenge,weekStart,value,progress:Math.min(100,Math.round(value/challenge.target*100)),remaining:Math.max(0,challenge.target-value),complete,earned:!!challenge.claimed_at,completedAt:challenge.completed_at};
 }
-function createWeeklyChallenge(weekStart){
+function createWeeklyChallenge(weekStart,recentMetrics){
  const activeHabits=one('SELECT COUNT(*) n FROM habits WHERE active=1').n;
  const activeLessons=one("SELECT COUNT(*) n FROM learning_lessons WHERE status!='Completed'").n;
- const focusRecent=one("SELECT COALESCE(SUM(minutes),0) n FROM sessions WHERE session_date>=date(?,'-14 days') AND session_date<?",weekStart,weekStart).n;
- const studyRecent=one("SELECT COALESCE(SUM(minutes),0) n FROM learning_study_logs WHERE log_date>=date(?,'-14 days') AND log_date<?",weekStart,weekStart).n;
- const habitRecent=one("SELECT COUNT(*) n FROM habit_logs WHERE log_date>=date(?,'-14 days') AND log_date<?",weekStart,weekStart).n;
+ const focusRecent=Number(recentMetrics.focus_minutes||0);
+ const studyRecent=Number(recentMetrics.study_minutes||0);
+ const habitRecent=Number(recentMetrics.habit_checkins||0);
  const options=[];
  if(activeHabits>0)options.push({id:'ritual-rhythm',title:'Keep your rituals alive',description:'Record a few check-ins for the habits you chose.',metric:'habit_checkins',target:Math.max(3,Math.min(10,activeHabits*3)),score:habitRecent+activeHabits*2});
  if(activeLessons>0)options.push({id:'learning-investment',title:'Invest in your next chapter',description:'Put focused study time into a lesson you are working through.',metric:'study_minutes',target:Math.max(45,Math.min(150,Math.round((studyRecent/2||60)/15)*15)),score:studyRecent+activeLessons*5});
@@ -1438,59 +1613,106 @@ function createWeeklyChallenge(weekStart){
  db.prepare('INSERT OR IGNORE INTO weekly_challenges(week_start,challenge_id,title,description,metric,target) VALUES(?,?,?,?,?,?)').run(weekStart,chosen.id,chosen.title,chosen.description,chosen.metric,chosen.target);
  return one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
 }
-app.post('/api/weekly-challenge/sync',(req,res)=>{
- const weekStart=currentWeekStart();
- let challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
- if(!challenge)challenge=createWeeklyChallenge(weekStart);
- let state=weeklyChallengeState(challenge,weekStart);
- if(state.complete&&!challenge.claimed_at){
-  const completedAt=new Date().toISOString();
-  db.prepare('UPDATE weekly_challenges SET completed_at=COALESCE(completed_at,?),claimed_at=? WHERE week_start=?').run(completedAt,completedAt,weekStart);
-  awardXp('weekly-challenge:'+weekStart,'Weekly challenge',50);
-  challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
-  state=weeklyChallengeState(challenge,weekStart);
-  state.justCompleted=true;
- }
- res.json(state);
+async function loadAchievementState(req){
+ const [metrics,definitions,unlockRows]=await Promise.all([
+  getProgressTotals(req),
+  atlasRest(req,'atlas_achievement_definitions?select=id,title,description,icon,metric,target,tier,secret&order=target.asc'),
+  atlasRest(req,'atlas_achievement_unlocks?select=achievement_id,unlocked_at&order=unlocked_at.desc')
+ ]);
+ const metricAliases={tasks_completed:'tasks',focus_minutes:'focusMinutes',focus_sessions:'focusSessions',learning_items_completed:'lessons',goals_completed:'goals',habit_checkins:'habitCheckins'};
+ const compatibleMetrics={...metrics,tasks:metrics.tasks_completed||0,focusMinutes:metrics.focus_minutes||0,focusSessions:metrics.focus_sessions||0,lessons:metrics.learning_items_completed||0,goals:metrics.goals_completed||0,habitCheckins:metrics.habit_checkins||0};
+ const unlockedById=new Map((unlockRows||[]).map(row=>[row.achievement_id,row.unlocked_at]));
+ const achievements=(definitions||[]).map(item=>{
+  const value=Number(metrics[item.metric]||0),unlockedAt=unlockedById.get(item.id)||null;
+  return {...item,name:item.title,sourceMetric:item.metric,metric:metricAliases[item.metric]||item.metric,value,unlocked:!!unlockedAt||value>=Number(item.target),progress:Math.min(100,Math.round(value/Number(item.target)*100)),remaining:Math.max(0,Number(item.target)-value),unlockedAt};
+ });
+ return {metrics:compatibleMetrics,achievements,unlocked:achievements.filter(item=>item.unlocked).length,total:achievements.length,recent:achievements.filter(item=>item.unlockedAt).sort((a,b)=>b.unlockedAt.localeCompare(a.unlockedAt)).slice(0,5)};
+}
+app.post('/api/weekly-challenge/sync',async(req,res)=>{
+ try{
+  const weekStart=currentWeekStart(),weekEnd=addAtlasDays(weekStart,7);
+  const currentMetrics=await getProgressTotals(req,weekStart,weekEnd);
+  let challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
+  if(!challenge){
+   const recentMetrics=await getProgressTotals(req,addAtlasDays(weekStart,-14),weekStart);
+   challenge=createWeeklyChallenge(weekStart,recentMetrics);
+  }
+  let state=weeklyChallengeState(challenge,weekStart,currentMetrics);
+  if(state.complete&&!challenge.claimed_at){
+   const completedAt=new Date().toISOString();
+   db.prepare('UPDATE weekly_challenges SET completed_at=COALESCE(completed_at,?),claimed_at=? WHERE week_start=?').run(completedAt,completedAt,weekStart);
+   publishAtlasEvent({type:'challenge.completed',module:'growth',entityId:weekStart,localDate:dateKey(),payload:{challengeId:challenge.challenge_id,metric:challenge.metric,value:state.value,target:challenge.target},source:'system'});
+   challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
+   state=weeklyChallengeState(challenge,weekStart,currentMetrics);
+   state.justCompleted=true;
+  }
+  res.json(state);
+ }catch(error){console.error('Weekly challenge sync:',error.message);res.status(503).json({error:'Your weekly challenge could not be updated. Please retry.'});}
 });
-app.get('/api/weekly-challenge',(req,res)=>{
- const weekStart=currentWeekStart(),challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
- if(!challenge)return res.status(404).json({error:'This week’s challenge has not been created yet.'});
- res.json(weeklyChallengeState(challenge,weekStart));
+app.get('/api/weekly-challenge',async(req,res)=>{
+ try{
+  const weekStart=currentWeekStart(),weekEnd=addAtlasDays(weekStart,7),challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
+  if(!challenge)return res.status(404).json({error:'This week’s challenge has not been created yet.'});
+  const metrics=await getProgressTotals(req,weekStart,weekEnd);
+  res.json(weeklyChallengeState(challenge,weekStart,metrics));
+ }catch(error){console.error('Weekly challenge:',error.message);res.status(503).json({error:'Your weekly challenge is temporarily unavailable.'});}
 });
-app.get('/api/achievements',(req,res)=>{
- const metrics=achievementMetrics(),achievements=achievementDefinitions(metrics);
- res.json({metrics,achievements,unlocked:achievements.filter(x=>x.unlocked).length,total:achievements.length,recent:achievements.filter(x=>x.unlockedAt).sort((a,b)=>b.unlockedAt.localeCompare(a.unlockedAt)).slice(0,5)});
+app.get('/api/achievements',async(req,res)=>{
+ try{res.json(await loadAchievementState(req));}
+ catch(error){console.error('Achievements:',error.message);res.status(503).json({error:'Achievements are temporarily unavailable.'});}
 });
-app.post('/api/achievements/sync',(req,res)=>{
- const metrics=achievementMetrics(),eligible=achievementDefinitions(metrics).filter(x=>x.unlocked&&!x.unlockedAt);
- const insert=db.prepare('INSERT OR IGNORE INTO achievement_unlocks(achievement_id) VALUES(?)');
- const sync=db.transaction(()=>eligible.forEach(x=>insert.run(x.id)));
- sync();
- const achievements=achievementDefinitions(metrics);
- res.json({newUnlocks:achievements.filter(x=>eligible.some(e=>e.id===x.id)),achievements,unlocked:achievements.filter(x=>x.unlocked).length,total:achievements.length,recent:achievements.filter(x=>x.unlockedAt).sort((a,b)=>b.unlockedAt.localeCompare(a.unlockedAt)).slice(0,5)});
+app.post('/api/achievements/sync',async(req,res)=>{
+ try{
+  const state=await loadAchievementState(req);
+  const unseen=state.achievements.filter(item=>item.unlocked&&!one('SELECT achievement_id FROM achievement_unlocks WHERE achievement_id=?',item.id));
+  const newUnlocks=unseen.map(item=>({...item,unlockedAt:item.unlockedAt||new Date().toISOString()}));
+  const insert=db.prepare('INSERT OR IGNORE INTO achievement_unlocks(achievement_id,unlocked_at) VALUES(?,?)');
+  const mark=db.transaction(()=>newUnlocks.forEach(item=>insert.run(item.id,item.unlockedAt)));
+  mark();
+  res.json({...state,newUnlocks});
+ }catch(error){console.error('Achievement sync:',error.message);res.status(503).json({error:'Achievements could not be synchronized. Please retry.'});}
 });
-app.get('/api/progress',(req,res)=>{
- const totalXp=one('SELECT COALESCE(SUM(points),0) total FROM xp_events').total;
- const thresholds=[0,50,150,300,500,800,1200,1700,2300,3000,4000,5200,6600,8200,10000];
- while(totalXp>=thresholds[thresholds.length-1])thresholds.push(thresholds[thresholds.length-1]+Math.round(1000+thresholds.length*125));
- let index=0;while(index+1<thresholds.length&&totalXp>=thresholds[index+1])index++;
- const level=index+1,currentFloor=thresholds[index],nextFloor=thresholds[index+1];
- const titles=['Newcomer','Starter','Builder','Pathfinder','Maker','Strategist','Specialist','Architect','Vanguard','Atlas'];
- const lastEvent=one('SELECT category,points,awarded_at FROM xp_events ORDER BY awarded_at DESC,id DESC LIMIT 1')||null;
- res.json({totalXp,level,title:titles[index]||'Master Builder',currentFloor,nextFloor,progressPct:Math.max(0,Math.min(100,Math.round((totalXp-currentFloor)/(nextFloor-currentFloor)*100))),remaining:Math.max(0,nextFloor-totalXp),lastEvent});
+app.get('/api/progress',async(req,res)=>{
+ try{
+  const summary=await atlasRest(req,'rpc/get_xp_summary',{method:'POST',body:{}});
+  const totalXp=Number(summary?.totalXp)||0;
+  let level=1;
+  while(totalXp>=50*level*(level+1))level++;
+  const currentFloor=50*level*(level-1),nextFloor=50*level*(level+1);
+  const titles=['Newcomer','Starter','Builder','Pathfinder','Maker','Strategist','Specialist','Architect','Vanguard','Atlas'];
+  res.json({totalXp,level,title:titles[level-1]||'Master Builder',currentFloor,nextFloor,progressPct:Math.max(0,Math.min(100,Math.round((totalXp-currentFloor)/(nextFloor-currentFloor)*100))),remaining:Math.max(0,nextFloor-totalXp),lastEvent:summary?.lastEvent||null});
+ }catch(error){console.error('Progress summary:',error.message);res.status(503).json({error:'Your progress summary is temporarily unavailable.'});}
+});
+app.get('/api/residence/briefing',async(req,res)=>{
+ try{
+  const today=dateKey(),startDate=addAtlasDays(today,-6),endDate=addAtlasDays(today,1);
+  const rows=await atlasRest(req,'progress_daily?select=local_date,module,metric,value&local_date=gte.'+startDate+'&local_date=lt.'+endDate+'&order=local_date.asc');
+  const metrics={},daily=new Map();
+  for(const row of rows||[]){
+   metrics[row.metric]=(metrics[row.metric]||0)+Number(row.value||0);
+   const day=daily.get(row.local_date)||{};
+   day[row.metric]=(day[row.metric]||0)+Number(row.value||0);
+   daily.set(row.local_date,day);
+  }
+  const totals={tasksCompleted:metrics.tasks_completed||0,focusMinutes:metrics.focus_minutes||0,focusSessions:metrics.focus_sessions||0,habitCheckins:metrics.habit_checkins||0,learningCompleted:metrics.learning_items_completed||0,studyMinutes:metrics.study_minutes||0,goalsCompleted:metrics.goals_completed||0};
+  const hasEvidence=Object.values(totals).some(value=>value>0);
+  const message=hasEvidence
+   ? 'Over the last seven days: '+totals.tasksCompleted+' tasks completed, '+totals.focusMinutes+' focused minutes and '+totals.habitCheckins+' habit check-ins. Progress is evidence, not pressure.'
+   : 'Your weekly briefing will take shape as new activity is recorded.';
+  res.json({startDate,endDate:addAtlasDays(today,0),metrics:totals,daily:[...daily.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([date,values])=>({date,...values})),message});
+ }catch(error){console.error('Residence briefing:',error.message);res.status(503).json({error:'Your Residence briefing is temporarily unavailable.'});}
 });
 app.get('/api/projects',(q,s)=>{const rows=all("SELECT p.*,g.title AS goal_title,(SELECT COUNT(*) FROM tasks t WHERE t.project_id=p.id AND t.done=0) AS open_tasks,(SELECT COUNT(*) FROM project_milestones m WHERE m.project_id=p.id) AS milestone_count,(SELECT COALESCE(SUM(ss.minutes),0) FROM sessions ss WHERE ss.project_id=p.id OR ss.task_id IN (SELECT t.id FROM tasks t WHERE t.project_id=p.id)) AS focus_minutes,(SELECT COUNT(*) FROM tasks t WHERE t.project_id=p.id) AS task_count,(SELECT COUNT(*) FROM tasks t WHERE t.project_id=p.id AND t.done=1) AS completed_tasks FROM projects p LEFT JOIN goals g ON g.id=p.goal_id WHERE p.status!='archived' ORDER BY p.status='completed',COALESCE(p.target_date,'9999-12-31'),p.id DESC");s.json(rows.map(p=>({...p,progress_pct:p.task_count?Math.round(p.completed_tasks/p.task_count*100):0,milestones:all('SELECT * FROM project_milestones WHERE project_id=? ORDER BY sort_order,id',p.id)})));});
 app.post('/api/projects',(q,s)=>{const title=String(q.body.title||'').trim();const goalId=q.body.goal_id?Number(q.body.goal_id):null;if(!title)return s.status(400).json({error:'A project needs a title.'});if(goalId&&!one('SELECT id FROM goals WHERE id=?',goalId))return s.status(400).json({error:'Choose an existing goal.'});const r=db.prepare('INSERT INTO projects(title,description,goal_id,target_date) VALUES(?,?,?,?)').run(title,String(q.body.description||''),goalId,q.body.target_date||null);s.status(201).json(one('SELECT * FROM projects WHERE id=?',r.lastInsertRowid));});
 app.patch('/api/projects/:id',(q,s)=>{const p=one('SELECT * FROM projects WHERE id=?',q.params.id);if(!p)return s.status(404).json({error:'Project not found.'});const title=String(q.body.title??p.title).trim(),status=q.body.status??p.status,goalId=q.body.goal_id===undefined?p.goal_id:(q.body.goal_id?Number(q.body.goal_id):null);if(!title||!['active','completed','archived'].includes(status))return s.status(400).json({error:'Check the project details and status.'});if(goalId&&!one('SELECT id FROM goals WHERE id=?',goalId))return s.status(400).json({error:'Choose an existing goal.'});db.prepare('UPDATE projects SET title=?,description=?,status=?,target_date=?,goal_id=? WHERE id=?').run(title,q.body.description??p.description,status,q.body.target_date===undefined?p.target_date:(q.body.target_date||null),goalId,p.id);s.json(one('SELECT * FROM projects WHERE id=?',p.id));});
 app.delete('/api/projects/:id',(q,s)=>{const r=db.prepare('DELETE FROM projects WHERE id=?').run(q.params.id);if(!r.changes)return s.status(404).json({error:'Project not found.'});s.json({ok:true});});
 app.post('/api/projects/:id/milestones',(q,s)=>{const project=one('SELECT id FROM projects WHERE id=?',q.params.id);if(!project)return s.status(404).json({error:'Project not found.'});const title=String(q.body.title||'').trim();if(!title)return s.status(400).json({error:'A milestone needs a title.'});const r=db.prepare('INSERT INTO project_milestones(project_id,title,target_date,sort_order) VALUES(?,?,?,COALESCE((SELECT MAX(sort_order)+1 FROM project_milestones WHERE project_id=?),1))').run(project.id,title,q.body.target_date||null,project.id);s.status(201).json(one('SELECT * FROM project_milestones WHERE id=?',r.lastInsertRowid));});
-app.patch('/api/project-milestones/:id',(q,s)=>{const m=one('SELECT * FROM project_milestones WHERE id=?',q.params.id);if(!m)return s.status(404).json({error:'Milestone not found.'});const title=String(q.body.title??m.title).trim();if(!title)return s.status(400).json({error:'A milestone needs a title.'});db.prepare('UPDATE project_milestones SET title=?,target_date=?,completed=? WHERE id=?').run(title,q.body.target_date===undefined?m.target_date:(q.body.target_date||null),q.body.completed===undefined?m.completed:(q.body.completed?1:0),m.id);s.json(one('SELECT * FROM project_milestones WHERE id=?',m.id));});
+app.patch('/api/project-milestones/:id',(q,s)=>{const m=one('SELECT * FROM project_milestones WHERE id=?',q.params.id);if(!m)return s.status(404).json({error:'Milestone not found.'});const title=String(q.body.title??m.title).trim();if(!title)return s.status(400).json({error:'A milestone needs a title.'});const completed=q.body.completed===undefined?m.completed:(q.body.completed?1:0);db.prepare('UPDATE project_milestones SET title=?,target_date=?,completed=? WHERE id=?').run(title,q.body.target_date===undefined?m.target_date:(q.body.target_date||null),completed,m.id);if(!m.completed&&completed)publishAtlasEvent({type:'goal.milestone_reached',module:'goals',entityId:String(m.id),localDate:dateKey(),payload:{projectId:String(m.project_id)}});else if(m.completed&&!completed)publishAtlasEvent({type:'goal.milestone_unreached',module:'goals',entityId:String(m.id),localDate:dateKey(),payload:{projectId:String(m.project_id)}});s.json(one('SELECT * FROM project_milestones WHERE id=?',m.id));});
 app.delete('/api/project-milestones/:id',(q,s)=>{db.prepare('DELETE FROM project_milestones WHERE id=?').run(q.params.id);s.json({ok:true});});
 
 app.get('/api/tasks',(q,s)=>s.json(all("SELECT t.*,p.title AS project_title,g.title AS goal_title,(SELECT COALESCE(SUM(ss.minutes),0) FROM sessions ss WHERE ss.task_id=t.id) AS focus_minutes,(SELECT COUNT(*) FROM tasks child WHERE child.parent_task_id=t.id) AS subtask_count FROM tasks t LEFT JOIN projects p ON p.id=t.project_id LEFT JOIN goals g ON g.id=t.goal_id ORDER BY t.parent_task_id IS NOT NULL,t.done ASC,t.priority ASC,COALESCE(t.due_date,'9999-12-31') ASC,t.id DESC")));
 app.post('/api/tasks',(q,s)=>{const {title,detail='',category='Learning',due_date=null,project_id=null,goal_id=null,priority=2,parent_task_id=null}=q.body;if(!title?.trim()||title.trim().length>180)return s.status(400).json({error:'A task title is required (up to 180 characters).'});if(project_id&&!one('SELECT id FROM projects WHERE id=?',project_id))return s.status(400).json({error:'Choose an existing project.'});if(goal_id&&!one('SELECT id FROM goals WHERE id=?',goal_id))return s.status(400).json({error:'Choose an existing goal.'});if(!Number.isInteger(Number(priority))||Number(priority)<1||Number(priority)>4)return s.status(400).json({error:'Choose a valid task priority.'});if(parent_task_id){const parent=one('SELECT id,parent_task_id FROM tasks WHERE id=?',parent_task_id);if(!parent||parent.parent_task_id)return s.status(400).json({error:'Subtasks must belong to an existing top-level task.'});}const r=db.prepare('INSERT INTO tasks(title,detail,category,due_date,project_id,goal_id,priority,parent_task_id) VALUES(?,?,?,?,?,?,?,?)').run(title.trim(),String(detail).slice(0,4000),category,due_date||null,project_id||null,goal_id||null,Number(priority),parent_task_id||null);s.status(201).json(one('SELECT * FROM tasks WHERE id=?',r.lastInsertRowid));});
-app.patch('/api/tasks/:id',(q,s)=>{const t=one('SELECT * FROM tasks WHERE id=?',q.params.id);if(!t)return s.status(404).json({error:'Task not found'});const done=q.body.done===undefined?t.done:(q.body.done?1:0);const projectId=q.body.project_id===undefined?t.project_id:(q.body.project_id||null);const goalId=q.body.goal_id===undefined?t.goal_id:(q.body.goal_id||null);const priority=q.body.priority===undefined?t.priority:Number(q.body.priority);if(projectId&&!one('SELECT id FROM projects WHERE id=?',projectId))return s.status(400).json({error:'Choose an existing project.'});if(goalId&&!one('SELECT id FROM goals WHERE id=?',goalId))return s.status(400).json({error:'Choose an existing goal.'});if(!Number.isInteger(priority)||priority<1||priority>4)return s.status(400).json({error:'Choose a valid task priority.'});db.prepare('UPDATE tasks SET done=?,title=?,detail=?,category=?,due_date=?,project_id=?,goal_id=?,priority=? WHERE id=?').run(done,q.body.title??t.title,q.body.detail??t.detail,q.body.category??t.category,q.body.due_date===undefined?t.due_date:(q.body.due_date||null),projectId,goalId,priority,q.params.id);if(!t.done&&done)awardXp('task:'+t.id,'tasks',5);s.json(one('SELECT * FROM tasks WHERE id=?',q.params.id));});
+app.patch('/api/tasks/:id',(q,s)=>{const t=one('SELECT * FROM tasks WHERE id=?',q.params.id);if(!t)return s.status(404).json({error:'Task not found'});const done=q.body.done===undefined?t.done:(q.body.done?1:0);const projectId=q.body.project_id===undefined?t.project_id:(q.body.project_id||null);const goalId=q.body.goal_id===undefined?t.goal_id:(q.body.goal_id||null);const priority=q.body.priority===undefined?t.priority:Number(q.body.priority);if(projectId&&!one('SELECT id FROM projects WHERE id=?',projectId))return s.status(400).json({error:'Choose an existing project.'});if(goalId&&!one('SELECT id FROM goals WHERE id=?',goalId))return s.status(400).json({error:'Choose an existing goal.'});if(!Number.isInteger(priority)||priority<1||priority>4)return s.status(400).json({error:'Choose a valid task priority.'});db.prepare('UPDATE tasks SET done=?,title=?,detail=?,category=?,due_date=?,project_id=?,goal_id=?,priority=? WHERE id=?').run(done,q.body.title??t.title,q.body.detail??t.detail,q.body.category??t.category,q.body.due_date===undefined?t.due_date:(q.body.due_date||null),projectId,goalId,priority,q.params.id);const linkedGoal=goalId||(projectId?one('SELECT goal_id FROM projects WHERE id=?',projectId)?.goal_id:null);if(!t.done&&done)publishAtlasEvent({type:'task.completed',module:'actions',entityId:String(t.id),localDate:dateKey(),payload:{goalLinked:!!linkedGoal}});else if(t.done&&!done)publishAtlasEvent({type:'task.reopened',module:'actions',entityId:String(t.id),localDate:dateKey(),payload:{}});s.json(one('SELECT * FROM tasks WHERE id=?',q.params.id));});
 app.delete('/api/tasks/:id',(q,s)=>{db.prepare('DELETE FROM tasks WHERE id=?').run(q.params.id);s.json({ok:true});});
 app.get('/api/modules',(q,s)=>s.json(all('SELECT * FROM modules ORDER BY sort_order')));
 app.patch('/api/modules/:id',(q,s)=>{const {status}=q.body;if(!['Not started','In progress','Completed'].includes(status))return s.status(400).json({error:'Invalid status'});db.prepare('UPDATE modules SET status=? WHERE id=?').run(status,q.params.id);s.json(one('SELECT * FROM modules WHERE id=?',q.params.id));});
@@ -1504,15 +1726,15 @@ app.post('/api/learning/paths',(q,s)=>{const {title,subject='',description='',ta
 app.patch('/api/learning/paths/:id',(q,s)=>{const p=one('SELECT * FROM learning_paths WHERE id=?',q.params.id);if(!p)return s.status(404).json({error:'Learning path not found.'});const d=q.body,goalId=d.goal_id===undefined?p.goal_id:(d.goal_id?Number(d.goal_id):null);if(goalId&&!one('SELECT id FROM goals WHERE id=?',goalId))return s.status(400).json({error:'Choose an existing goal.'});db.prepare('UPDATE learning_paths SET title=?,subject=?,description=?,target_date=?,goal_id=? WHERE id=?').run(d.title??p.title,d.subject??p.subject,d.description??p.description,d.target_date===undefined?p.target_date:(d.target_date||null),goalId,p.id);s.json(one('SELECT * FROM learning_paths WHERE id=?',p.id));});
 app.delete('/api/learning/paths/:id',(q,s)=>{db.prepare('DELETE FROM learning_paths WHERE id=?').run(q.params.id);s.json({ok:true});});
 app.post('/api/learning/paths/:id/lessons',(q,s)=>{const p=one('SELECT id FROM learning_paths WHERE id=?',q.params.id);if(!p)return s.status(404).json({error:'Learning path not found.'});if(!q.body.title?.trim())return s.status(400).json({error:'Give the lesson a title.'});const order=one('SELECT COALESCE(MAX(sort_order),0)+1 n FROM learning_lessons WHERE path_id=?',p.id).n;const r=db.prepare('INSERT INTO learning_lessons(path_id,title,content,sort_order) VALUES(?,?,?,?)').run(p.id,q.body.title.trim(),q.body.content||'',order);s.json(one('SELECT * FROM learning_lessons WHERE id=?',r.lastInsertRowid));});
-app.patch('/api/learning/lessons/:id',(q,s)=>{const l=one('SELECT * FROM learning_lessons WHERE id=?',q.params.id);if(!l)return s.status(404).json({error:'Lesson not found.'});const d=q.body;if(d.status!==undefined&&!['Not started','In progress','Completed'].includes(d.status))return s.status(400).json({error:'Invalid lesson status.'});db.prepare('UPDATE learning_lessons SET title=?,content=?,notes=?,status=? WHERE id=?').run(d.title??l.title,d.content??l.content,d.notes??l.notes,d.status??l.status,l.id);if(l.status!=='Completed'&&d.status==='Completed')awardXp('lesson:'+l.id,'learning',10);s.json(one('SELECT * FROM learning_lessons WHERE id=?',l.id));});
+app.patch('/api/learning/lessons/:id',(q,s)=>{const l=one('SELECT * FROM learning_lessons WHERE id=?',q.params.id);if(!l)return s.status(404).json({error:'Lesson not found.'});const d=q.body;if(d.status!==undefined&&!['Not started','In progress','Completed'].includes(d.status))return s.status(400).json({error:'Invalid lesson status.'});const status=d.status??l.status;db.prepare('UPDATE learning_lessons SET title=?,content=?,notes=?,status=? WHERE id=?').run(d.title??l.title,d.content??l.content,d.notes??l.notes,status,l.id);if(l.status!=='Completed'&&status==='Completed')publishAtlasEvent({type:'learning.item_completed',module:'learning',entityId:String(l.id),localDate:dateKey(),payload:{}});else if(l.status==='Completed'&&status!=='Completed')publishAtlasEvent({type:'learning.item_reopened',module:'learning',entityId:String(l.id),localDate:dateKey(),payload:{}});s.json(one('SELECT * FROM learning_lessons WHERE id=?',l.id));});
 app.delete('/api/learning/lessons/:id',(q,s)=>{db.prepare('DELETE FROM learning_lessons WHERE id=?').run(q.params.id);s.json({ok:true});});
 app.post('/api/learning/lessons/:id/resources',(q,s)=>{const l=one('SELECT id FROM learning_lessons WHERE id=?',q.params.id);if(!l)return s.status(404).json({error:'Lesson not found.'});const {title,url}=q.body;if(!title?.trim()||!url?.trim())return s.status(400).json({error:'Add a resource name and URL.'});let parsed;try{parsed=new URL(url)}catch{return s.status(400).json({error:'Enter a valid URL.'})}if(!['http:','https:'].includes(parsed.protocol))return s.status(400).json({error:'Only web links are supported.'});const r=db.prepare('INSERT INTO learning_resources(lesson_id,title,url) VALUES(?,?,?)').run(l.id,title.trim(),parsed.href);s.json(one('SELECT * FROM learning_resources WHERE id=?',r.lastInsertRowid));});
 app.delete('/api/learning/resources/:id',(q,s)=>{db.prepare('DELETE FROM learning_resources WHERE id=?').run(q.params.id);s.json({ok:true});});
-app.post('/api/learning/lessons/:id/study',(q,s)=>{const l=one('SELECT id FROM learning_lessons WHERE id=?',q.params.id);if(!l)return s.status(404).json({error:'Lesson not found.'});const minutes=Number(q.body.minutes);if(!Number.isInteger(minutes)||minutes<1||minutes>600)return s.status(400).json({error:'Study time must be between 1 and 600 minutes.'});const r=db.prepare('INSERT INTO learning_study_logs(lesson_id,log_date,minutes,reflection) VALUES(?,?,?,?)').run(l.id,q.body.log_date||dateKey(),minutes,q.body.reflection||'');s.json(one('SELECT * FROM learning_study_logs WHERE id=?',r.lastInsertRowid));});
+app.post('/api/learning/lessons/:id/study',(q,s)=>{const l=one('SELECT id FROM learning_lessons WHERE id=?',q.params.id);if(!l)return s.status(404).json({error:'Lesson not found.'});const minutes=Number(q.body.minutes);if(!Number.isInteger(minutes)||minutes<1||minutes>600)return s.status(400).json({error:'Study time must be between 1 and 600 minutes.'});const logDate=q.body.log_date||dateKey();if(!validRecordDate(logDate))return s.status(400).json({error:'Choose a valid study date.'});const r=db.prepare('INSERT INTO learning_study_logs(lesson_id,log_date,minutes,reflection) VALUES(?,?,?,?)').run(l.id,logDate,minutes,q.body.reflection||'');publishAtlasEvent({type:'learning.study_logged',module:'learning',entityId:String(l.id),localDate:logDate,payload:{minutes}});s.json(one('SELECT * FROM learning_study_logs WHERE id=?',r.lastInsertRowid));});
 app.get('/api/learning/study-logs',(q,s)=>{const manual=all("SELECT sl.id,sl.log_date,sl.minutes,sl.reflection,'study' AS source,ll.title lesson_title,lp.title path_title FROM learning_study_logs sl JOIN learning_lessons ll ON ll.id=sl.lesson_id JOIN learning_paths lp ON lp.id=ll.path_id ORDER BY sl.log_date DESC,sl.id DESC LIMIT 50");const focus=all("SELECT ss.id,ss.session_date AS log_date,ss.minutes,ss.reflection,'focus' AS source,ll.title lesson_title,lp.title path_title FROM sessions ss JOIN learning_lessons ll ON ll.id=ss.lesson_id JOIN learning_paths lp ON lp.id=ll.path_id ORDER BY ss.session_date DESC,ss.id DESC LIMIT 50");s.json([...manual,...focus].sort((a,b)=>b.log_date.localeCompare(a.log_date)||b.id-a.id).slice(0,50));});
 
 app.get('/api/sessions',(q,s)=>s.json(all("SELECT ss.*,t.title AS task_title,p.title AS project_title,ll.title AS lesson_title,lp.title AS path_title FROM sessions ss LEFT JOIN tasks t ON t.id=ss.task_id LEFT JOIN projects p ON p.id=ss.project_id LEFT JOIN learning_lessons ll ON ll.id=ss.lesson_id LEFT JOIN learning_paths lp ON lp.id=ll.path_id ORDER BY ss.session_date DESC,ss.id DESC LIMIT 100").map(row=>({...row,distractions:(()=>{try{return JSON.parse(row.distractions_json||'[]')}catch{return []}})()}))));
-app.post('/api/sessions',(q,s)=>{const {session_date,minutes,focus,reflection='',task_id=null,project_id=null,lesson_id=null,session_key=null,session_kind='focus',distractions=[]}=q.body;const duration=Number(minutes);if(!Number.isInteger(duration)||duration<1||duration>600||!String(focus||'').trim())return s.status(400).json({error:'Add a focus and a valid duration (1–600 minutes).'});if(!['focus','break'].includes(session_kind))return s.status(400).json({error:'Choose a valid session type.'});if(session_key!==null&&(typeof session_key!=='string'||session_key.length<8||session_key.length>100))return s.status(400).json({error:'The focus session key is invalid.'});if(task_id&&!one('SELECT id FROM tasks WHERE id=?',task_id))return s.status(400).json({error:'Choose an existing task.'});if(project_id&&!one('SELECT id FROM projects WHERE id=?',project_id))return s.status(400).json({error:'Choose an existing project.'});if(lesson_id&&!one('SELECT id FROM learning_lessons WHERE id=?',lesson_id))return s.status(400).json({error:'Choose an existing learning lesson.'});if(!Array.isArray(distractions)||distractions.length>50||distractions.some(item=>typeof item!=='string'||item.length>240))return s.status(400).json({error:'Check the distraction log.'});if(session_key){const existing=one('SELECT * FROM sessions WHERE session_key=?',session_key);if(existing)return s.json(existing);}const logDate=session_date||dateKey(),projectFromTask=task_id?one('SELECT project_id FROM tasks WHERE id=?',task_id)?.project_id:null,linkedProject=project_id||projectFromTask||null;const insert=db.prepare('INSERT OR IGNORE INTO sessions(session_date,minutes,focus,reflection,task_id,project_id,lesson_id,session_key,session_kind,distractions_json) VALUES(?,?,?,?,?,?,?,?,?,?)').run(logDate,duration,String(focus).trim().slice(0,120),String(reflection||'').slice(0,4000),task_id||null,linkedProject,lesson_id||null,session_key||null,session_kind,JSON.stringify(distractions));const session= session_key?one('SELECT * FROM sessions WHERE session_key=?',session_key):one('SELECT * FROM sessions WHERE id=?',insert.lastInsertRowid);if(!session)return s.status(500).json({error:'The focus session could not be recorded.'});if(insert.changes)awardXp('session:'+session.id,'focus',Math.min(20,Math.floor(duration/10)*2)||1);s.status(insert.changes?201:200).json(session);});
+app.post('/api/sessions',(q,s)=>{const {session_date,minutes,focus,reflection='',task_id=null,project_id=null,lesson_id=null,session_key=null,session_kind='focus',distractions=[]}=q.body;const duration=Number(minutes);if(!Number.isInteger(duration)||duration<1||duration>600||!String(focus||'').trim())return s.status(400).json({error:'Add a focus and a valid duration (1–600 minutes).'});if(session_date&&!validRecordDate(session_date))return s.status(400).json({error:'Choose a valid focus date.'});if(!['focus','break'].includes(session_kind))return s.status(400).json({error:'Choose a valid session type.'});if(session_key!==null&&(typeof session_key!=='string'||session_key.length<8||session_key.length>100))return s.status(400).json({error:'The focus session key is invalid.'});if(task_id&&!one('SELECT id FROM tasks WHERE id=?',task_id))return s.status(400).json({error:'Choose an existing task.'});if(project_id&&!one('SELECT id FROM projects WHERE id=?',project_id))return s.status(400).json({error:'Choose an existing project.'});if(lesson_id&&!one('SELECT id FROM learning_lessons WHERE id=?',lesson_id))return s.status(400).json({error:'Choose an existing learning lesson.'});if(!Array.isArray(distractions)||distractions.length>50||distractions.some(item=>typeof item!=='string'||item.length>240))return s.status(400).json({error:'Check the distraction log.'});if(session_key){const existing=one('SELECT * FROM sessions WHERE session_key=?',session_key);if(existing)return s.json(existing);}const logDate=session_date||dateKey(),projectFromTask=task_id?one('SELECT project_id FROM tasks WHERE id=?',task_id)?.project_id:null,linkedProject=project_id||projectFromTask||null;const insert=db.prepare('INSERT OR IGNORE INTO sessions(session_date,minutes,focus,reflection,task_id,project_id,lesson_id,session_key,session_kind,distractions_json) VALUES(?,?,?,?,?,?,?,?,?,?)').run(logDate,duration,String(focus).trim().slice(0,120),String(reflection||'').slice(0,4000),task_id||null,linkedProject,lesson_id||null,session_key||null,session_kind,JSON.stringify(distractions));const session= session_key?one('SELECT * FROM sessions WHERE session_key=?',session_key):one('SELECT * FROM sessions WHERE id=?',insert.lastInsertRowid);if(!session)return s.status(500).json({error:'The focus session could not be recorded.'});if(insert.changes&&session_kind==='focus')publishAtlasEvent({type:'focus.ended',module:'actions',entityId:String(session.id),localDate:logDate,payload:{minutes:duration}});s.status(insert.changes?201:200).json(session);});
 app.get('/api/reading-items',(q,s)=>s.json(all('SELECT * FROM reading_items ORDER BY CASE status WHEN \'Active\' THEN 0 WHEN \'Queued\' THEN 1 ELSE 2 END,updated_at DESC,id DESC')));
 app.post('/api/reading-items',(q,s)=>{const d=q.body||{},title=String(d.title||'').trim(),type=String(d.item_type||'book');if(!title||title.length>180||!['book','article','reference'].includes(type))return s.status(400).json({error:'Add a title and choose a valid resource type.'});let url='';if(d.url){try{const parsed=new URL(String(d.url));if(!['http:','https:'].includes(parsed.protocol))throw new Error();url=parsed.href}catch{return s.status(400).json({error:'Use a valid http or https link.'})}}const result=db.prepare('INSERT INTO reading_items(title,item_type,url,author,notes,status) VALUES(?,?,?,?,?,?)').run(title,type,url,String(d.author||'').slice(0,160),String(d.notes||'').slice(0,3000),'Queued');s.status(201).json(one('SELECT * FROM reading_items WHERE id=?',result.lastInsertRowid));});
 app.patch('/api/reading-items/:id',(q,s)=>{const item=one('SELECT * FROM reading_items WHERE id=?',q.params.id);if(!item)return s.status(404).json({error:'Library item not found.'});const d=q.body||{},status=d.status===undefined?item.status:String(d.status);if(!['Queued','Active','Completed'].includes(status))return s.status(400).json({error:'Choose Queued, Active or Completed.'});const title=d.title===undefined?item.title:String(d.title).trim();if(!title||title.length>180)return s.status(400).json({error:'Add a valid title.'});db.prepare('UPDATE reading_items SET title=?,author=?,notes=?,status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?').run(title,d.author===undefined?item.author:String(d.author).slice(0,160),d.notes===undefined?item.notes:String(d.notes).slice(0,3000),status,item.id);s.json(one('SELECT * FROM reading_items WHERE id=?',item.id));});
@@ -1523,10 +1745,10 @@ app.put('/api/notes/:id',(q,s)=>{db.prepare('UPDATE notes SET title=?,body=?,upd
 app.delete('/api/notes/:id',(q,s)=>{db.prepare('DELETE FROM notes WHERE id=?').run(q.params.id);s.json({ok:true});});
 app.get('/api/goals',(q,s)=>s.json(all("SELECT g.*,(SELECT COALESCE(SUM(ss.minutes),0) FROM sessions ss WHERE ss.task_id IN (SELECT t.id FROM tasks t LEFT JOIN projects tp ON tp.id=t.project_id WHERE t.goal_id=g.id OR tp.goal_id=g.id) OR ss.project_id IN (SELECT p.id FROM projects p WHERE p.goal_id=g.id) OR ss.lesson_id IN (SELECT ll.id FROM learning_lessons ll JOIN learning_paths lp ON lp.id=ll.path_id WHERE lp.goal_id=g.id)) AS focus_minutes,(SELECT COUNT(*) FROM tasks t LEFT JOIN projects tp ON tp.id=t.project_id WHERE t.goal_id=g.id OR tp.goal_id=g.id) AS linked_tasks,(SELECT COUNT(*) FROM tasks t LEFT JOIN projects tp ON tp.id=t.project_id WHERE (t.goal_id=g.id OR tp.goal_id=g.id) AND t.done=1) AS completed_tasks FROM goals g WHERE g.status!='archived' ORDER BY g.status='completed',g.target_date")));
 app.post('/api/goals',(q,s)=>{if(!q.body.title?.trim())return s.status(400).json({error:'A goal needs a title.'});const category=String(q.body.category||'Personal').trim().slice(0,60)||'Personal',horizon=String(q.body.horizon||'long-term');if(!['short-term','long-term'].includes(horizon))return s.status(400).json({error:'Choose a short-term or long-term goal.'});const r=db.prepare('INSERT INTO goals(title,detail,target_date,category,horizon) VALUES(?,?,?,?,?)').run(q.body.title.trim(),q.body.detail||'',q.body.target_date||null,category,horizon);s.json(one('SELECT * FROM goals WHERE id=?',r.lastInsertRowid));});
-app.patch('/api/goals/:id',(q,s)=>{const previous=one('SELECT * FROM goals WHERE id=?',q.params.id);if(!previous)return s.status(404).json({error:'Goal not found.'});const status=q.body.status;if(!['active','completed','archived'].includes(status))return s.status(400).json({error:'Invalid goal status.'});db.prepare('UPDATE goals SET status=? WHERE id=?').run(status,q.params.id);if(previous.status!=='completed'&&status==='completed')awardXp('goal:'+previous.id,'goals',25);s.json(one('SELECT * FROM goals WHERE id=?',q.params.id));});
+app.patch('/api/goals/:id',(q,s)=>{const previous=one('SELECT * FROM goals WHERE id=?',q.params.id);if(!previous)return s.status(404).json({error:'Goal not found.'});const status=q.body.status;if(!['active','completed','archived'].includes(status))return s.status(400).json({error:'Invalid goal status.'});db.prepare('UPDATE goals SET status=? WHERE id=?').run(status,q.params.id);if(previous.status!=='completed'&&status==='completed')publishAtlasEvent({type:'goal.completed',module:'goals',entityId:String(previous.id),localDate:dateKey(),payload:{}});else if(previous.status==='completed'&&status==='active')publishAtlasEvent({type:'goal.reopened',module:'goals',entityId:String(previous.id),localDate:dateKey(),payload:{}});s.json(one('SELECT * FROM goals WHERE id=?',q.params.id));});
 app.delete('/api/goals/:id',(q,s)=>{db.prepare('DELETE FROM goals WHERE id=?').run(q.params.id);s.json({ok:true});});
 app.get('/api/habits',(q,s)=>{const date=q.query.date||dateKey();const habits=all('SELECT h.*,g.title AS goal_title,CASE WHEN l.id IS NULL THEN 0 ELSE 1 END done FROM habits h LEFT JOIN goals g ON g.id=h.goal_id LEFT JOIN habit_logs l ON l.habit_id=h.id AND l.log_date=? WHERE h.active=1 ORDER BY h.sort_order',date);const logs=all('SELECT habit_id,log_date FROM habit_logs WHERE log_date<=? ORDER BY habit_id,log_date DESC',date);const byHabit=new Map();for(const log of logs){const dates=byHabit.get(log.habit_id)||new Set();dates.add(log.log_date);byHabit.set(log.habit_id,dates);}s.json(habits.map(habit=>{const dates=byHabit.get(habit.id)||new Set();let cursor=new Date(date+'T12:00:00');if(!dates.has(date))cursor.setDate(cursor.getDate()-1);let streak=0;while(dates.has(dateKey(cursor))){streak++;cursor.setDate(cursor.getDate()-1);}return {...habit,streak};}));});
-app.post('/api/habits/:id/toggle',(q,s)=>{const date=q.body.date||dateKey();const exists=one('SELECT id FROM habit_logs WHERE habit_id=? AND log_date=?',q.params.id,date);if(exists)db.prepare('DELETE FROM habit_logs WHERE id=?').run(exists.id);else{db.prepare('INSERT OR IGNORE INTO habit_logs(habit_id,log_date) VALUES(?,?)').run(q.params.id,date);if(date===dateKey())awardXp('habit:'+q.params.id+':'+date,'habits',3);}s.json({ok:true,done:!exists});});
+app.post('/api/habits/:id/toggle',(q,s)=>{const date=q.body.date||dateKey();if(!validRecordDate(date))return s.status(400).json({error:'Choose a valid habit date.'});const exists=one('SELECT id FROM habit_logs WHERE habit_id=? AND log_date=?',q.params.id,date);if(exists){db.prepare('DELETE FROM habit_logs WHERE id=?').run(exists.id);publishAtlasEvent({type:'habit.unchecked',module:'habits',entityId:String(q.params.id),localDate:date,payload:{logDate:date}});}else{const inserted=db.prepare('INSERT OR IGNORE INTO habit_logs(habit_id,log_date) VALUES(?,?)').run(q.params.id,date);if(inserted.changes)publishAtlasEvent({type:'habit.checked',module:'habits',entityId:String(q.params.id),localDate:date,payload:{logDate:date}});}s.json({ok:true,done:!exists});});
 app.post('/api/habits',(q,s)=>{if(!q.body.title?.trim())return s.status(400).json({error:'Give the ritual a name.'});const goalId=q.body.goal_id===undefined||q.body.goal_id===null||q.body.goal_id===''?null:Number(q.body.goal_id);if(goalId!==null&&(!Number.isInteger(goalId)||goalId<1||!one('SELECT id FROM goals WHERE id=? AND status=\'active\'',goalId)))return s.status(400).json({error:'Choose an active goal.'});const r=db.prepare('INSERT INTO habits(title,emoji,sort_order,goal_id) VALUES(?,?,COALESCE((SELECT MAX(sort_order)+1 FROM habits),1),?)').run(q.body.title.trim(),q.body.emoji||'✦',goalId);s.json(one('SELECT * FROM habits WHERE id=?',r.lastInsertRowid));});
 app.patch('/api/habits/:id',(q,s)=>{const habit=one('SELECT * FROM habits WHERE id=? AND active=1',q.params.id);if(!habit)return s.status(404).json({error:'Habit not found.'});const title=String(q.body.title??habit.title).trim(),emoji=String(q.body.emoji??habit.emoji).trim().slice(0,8)||'✦',rawGoalId=q.body.goal_id===undefined?habit.goal_id:q.body.goal_id,goalId=rawGoalId===null||rawGoalId===''?null:Number(rawGoalId);if(!title||title.length>100)return s.status(400).json({error:'Give the habit a name (up to 100 characters).'});if(goalId!==null&&(!Number.isInteger(goalId)||goalId<1||!one('SELECT id FROM goals WHERE id=? AND status=\'active\'',goalId)))return s.status(400).json({error:'Choose an active goal.'});db.prepare('UPDATE habits SET title=?,emoji=?,goal_id=? WHERE id=?').run(title,emoji,goalId,habit.id);s.json(one('SELECT * FROM habits WHERE id=?',habit.id));});
 app.delete('/api/habits/:id',(q,s)=>{db.prepare('DELETE FROM habits WHERE id=?').run(q.params.id);s.json({ok:true});});
@@ -1609,8 +1831,12 @@ app.post('/api/reviews',(q,s)=>{
  const alignmentComplete=field('alignment_complete',0)?1:0,shutdownComplete=field('shutdown_complete',0)?1:0;
  if(alignmentComplete&&!intention)return s.status(400).json({error:'Add a daily intention before completing Morning Alignment.'});
  if(shutdownComplete&&(!wins.trim()||!challenges.trim()||!lessons.trim()||!nextFocus.trim()))return s.status(400).json({error:'Complete all four reflection prompts before closing the day.'});
+ const wasSubmitted=!!existing?.shutdown_complete;
  const result=db.prepare('INSERT INTO reviews(period_type,period_start,period_end,wins,challenges,lessons,next_focus,intention,priority_task_ids,alignment_complete,shutdown_complete) VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(period_type,period_start) DO UPDATE SET period_end=excluded.period_end,wins=excluded.wins,challenges=excluded.challenges,lessons=excluded.lessons,next_focus=excluded.next_focus,intention=excluded.intention,priority_task_ids=excluded.priority_task_ids,alignment_complete=excluded.alignment_complete,shutdown_complete=excluded.shutdown_complete,updated_at=CURRENT_TIMESTAMP').run(period_type,period_start,period_end,wins,challenges,lessons,nextFocus,intention,JSON.stringify(priorityIds),alignmentComplete,shutdownComplete);
  const row=one('SELECT * FROM reviews WHERE period_type=? AND period_start=?',period_type,period_start);
+ const reviewEntityId=period_type+':'+period_start;
+ if(!wasSubmitted&&shutdownComplete)publishAtlasEvent({type:'review.submitted',module:'growth',entityId:reviewEntityId,localDate:dateKey(),payload:{periodType:period_type,periodStart:period_start}});
+ else if(wasSubmitted&&!shutdownComplete)publishAtlasEvent({type:'review.reopened',module:'growth',entityId:reviewEntityId,localDate:dateKey(),payload:{periodType:period_type,periodStart:period_start}});
  s.json({...row,priority_task_ids:priorityIds});
 });
 
@@ -1639,21 +1865,81 @@ function rhythmTradition(){const setting=one("SELECT value FROM settings WHERE k
 function rhythmRecord(row){if(!row)return row;let metadata={};try{metadata=JSON.parse(row.metadata_json||'{}')}catch{}return {...row,metadata};}
 app.get('/api/rhythm/records',(q,s)=>{const date=String(q.query.date||dateKey());if(!validRecordDate(date))return s.status(400).json({error:'Choose a valid date.'});s.json(all('SELECT * FROM rhythm_records WHERE record_date=? ORDER BY created_at,id',date).map(rhythmRecord));});
 app.get('/api/rhythm/summary',(q,s)=>{const date=String(q.query.date||dateKey());if(!validRecordDate(date))return s.status(400).json({error:'Choose a valid date.'});const records=all('SELECT * FROM rhythm_records WHERE record_date=? ORDER BY created_at,id',date).map(rhythmRecord);const completed=records.filter(item=>item.status==='completed').length;const planned=records.filter(item=>item.status==='planned').length;s.json({date,tradition:rhythmTradition(),completed,planned,total:completed+planned,records});});
-app.post('/api/rhythm/records',(q,s)=>{const recordDate=String(q.body.record_date||dateKey()),type=String(q.body.record_type||''),title=String(q.body.title||'').trim(),detail=String(q.body.detail||'').trim(),status=String(q.body.status||'completed'),metadata=q.body.metadata&&typeof q.body.metadata==='object'&&!Array.isArray(q.body.metadata)?q.body.metadata:{};if(!validRecordDate(recordDate)||recordDate>dateKey()&&!['planned'].includes(status))return s.status(400).json({error:'Choose a valid date for this record.'});if(!rhythmTypes.has(type)||!title||title.length>120||detail.length>4000||!['planned','completed','active','answered'].includes(status))return s.status(400).json({error:'Check the activity, title, details and status.'});const isOwner=q.user?.id===ownerUserId;const requestedTradition=String(q.body.admin_tradition||'');const tradition=isOwner&&['islam','christianity','general'].includes(requestedTradition)?requestedTradition:rhythmTradition();const allowed=type==='sunnah'||type==='adhkar'||type==='jumuah'||type==='muhasabah'?tradition==='islam':type==='prayer_rhythm'||type==='intercessory'||type==='bible_reading'||type==='scripture_memory'||type==='sermon_note'||type==='pray_reflection'?tradition==='christianity':type==='daily_intention'||type==='wisdom_note'||type==='evening_reflection'?tradition==='general':false;if(!allowed)return s.status(403).json({error:'This activity does not belong to the selected Daily Rhythm.'});const metadataJson=JSON.stringify(metadata);if(metadataJson.length>8000)return s.status(400).json({error:'Keep the activity details under 8 KB.'});const result=db.prepare('INSERT INTO rhythm_records(record_date,tradition,record_type,title,detail,status,metadata_json) VALUES(?,?,?,?,?,?,?)').run(recordDate,tradition,type,title,detail,status,metadataJson);s.status(201).json(rhythmRecord(one('SELECT * FROM rhythm_records WHERE id=?',result.lastInsertRowid)));});
-app.patch('/api/rhythm/records/:id',(q,s)=>{const existing=one('SELECT * FROM rhythm_records WHERE id=?',q.params.id);if(!existing)return s.status(404).json({error:'Daily Rhythm record not found.'});if(existing.tradition!==rhythmTradition()&&q.user?.id!==ownerUserId)return s.status(403).json({error:'This record belongs to a different Daily Rhythm.'});const title=String(q.body.title??existing.title).trim(),detail=String(q.body.detail??existing.detail).trim(),status=String(q.body.status??existing.status);if(!title||title.length>120||detail.length>4000||!['planned','completed','active','answered'].includes(status))return s.status(400).json({error:'Check the title, details and status.'});db.prepare('UPDATE rhythm_records SET title=?,detail=?,status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?').run(title,detail,status,existing.id);s.json(rhythmRecord(one('SELECT * FROM rhythm_records WHERE id=?',existing.id)));});
-app.delete('/api/rhythm/records/:id',(q,s)=>{const result=db.prepare('DELETE FROM rhythm_records WHERE id=?').run(q.params.id);if(!result.changes)return s.status(404).json({error:'Daily Rhythm record not found.'});s.json({ok:true});});
+app.post('/api/rhythm/records',(q,s)=>{const recordDate=String(q.body.record_date||dateKey()),type=String(q.body.record_type||''),title=String(q.body.title||'').trim(),detail=String(q.body.detail||'').trim(),status=String(q.body.status||'completed'),metadata=q.body.metadata&&typeof q.body.metadata==='object'&&!Array.isArray(q.body.metadata)?q.body.metadata:{};if(!validRecordDate(recordDate)||recordDate>dateKey()&&!['planned'].includes(status))return s.status(400).json({error:'Choose a valid date for this record.'});if(!rhythmTypes.has(type)||!title||title.length>120||detail.length>4000||!['planned','completed','active','answered'].includes(status))return s.status(400).json({error:'Check the activity, title, details and status.'});const isOwner=q.user?.id===ownerUserId;const requestedTradition=String(q.body.admin_tradition||'');const tradition=isOwner&&['islam','christianity','general'].includes(requestedTradition)?requestedTradition:rhythmTradition();const allowed=type==='sunnah'||type==='adhkar'||type==='jumuah'||type==='muhasabah'?tradition==='islam':type==='prayer_rhythm'||type==='intercessory'||type==='bible_reading'||type==='scripture_memory'||type==='sermon_note'||type==='pray_reflection'?tradition==='christianity':type==='daily_intention'||type==='wisdom_note'||type==='evening_reflection'?tradition==='general':false;if(!allowed)return s.status(403).json({error:'This activity does not belong to the selected Daily Rhythm.'});const metadataJson=JSON.stringify(metadata);if(metadataJson.length>8000)return s.status(400).json({error:'Keep the activity details under 8 KB.'});const result=db.prepare('INSERT INTO rhythm_records(record_date,tradition,record_type,title,detail,status,metadata_json) VALUES(?,?,?,?,?,?,?)').run(recordDate,tradition,type,title,detail,status,metadataJson);if(status==='completed'&&['daily_intention','wisdom_note','evening_reflection'].includes(type))publishAtlasEvent({type:'practice.logged',module:'values',entityId:String(result.lastInsertRowid),localDate:recordDate,payload:{practiceType:type}});s.status(201).json(rhythmRecord(one('SELECT * FROM rhythm_records WHERE id=?',result.lastInsertRowid)));});
+app.patch('/api/rhythm/records/:id',(q,s)=>{const existing=one('SELECT * FROM rhythm_records WHERE id=?',q.params.id);if(!existing)return s.status(404).json({error:'Daily Rhythm record not found.'});if(existing.tradition!==rhythmTradition()&&q.user?.id!==ownerUserId)return s.status(403).json({error:'This record belongs to a different Daily Rhythm.'});const title=String(q.body.title??existing.title).trim(),detail=String(q.body.detail??existing.detail).trim(),status=String(q.body.status??existing.status);if(!title||title.length>120||detail.length>4000||!['planned','completed','active','answered'].includes(status))return s.status(400).json({error:'Check the title, details and status.'});db.prepare('UPDATE rhythm_records SET title=?,detail=?,status=?,updated_at=CURRENT_TIMESTAMP WHERE id=?').run(title,detail,status,existing.id);const isPersonalPractice=existing.tradition==='general'&&['daily_intention','wisdom_note','evening_reflection'].includes(existing.record_type);if(isPersonalPractice&&existing.status!=='completed'&&status==='completed')publishAtlasEvent({type:'practice.logged',module:'values',entityId:String(existing.id),localDate:existing.record_date,payload:{practiceType:existing.record_type}});else if(isPersonalPractice&&existing.status==='completed'&&status!=='completed')publishAtlasEvent({type:'practice.unlogged',module:'values',entityId:String(existing.id),localDate:existing.record_date,payload:{practiceType:existing.record_type}});s.json(rhythmRecord(one('SELECT * FROM rhythm_records WHERE id=?',existing.id)));});
+app.delete('/api/rhythm/records/:id',(q,s)=>{const existing=one('SELECT * FROM rhythm_records WHERE id=?',q.params.id);if(!existing)return s.status(404).json({error:'Daily Rhythm record not found.'});if(existing.tradition==='general'&&existing.status==='completed'&&['daily_intention','wisdom_note','evening_reflection'].includes(existing.record_type))publishAtlasEvent({type:'practice.unlogged',module:'values',entityId:String(existing.id),localDate:existing.record_date,payload:{practiceType:existing.record_type}});db.prepare('DELETE FROM rhythm_records WHERE id=?').run(q.params.id);s.json({ok:true});});
 app.get('/api/calendar',(q,s)=>{const month=String(q.query.month||'');if(!/^\d{4}-\d{2}$/.test(month))return s.status(400).json({error:'Choose a valid calendar month.'});const from=month+'-01',to=month+'-31';const map=new Map();const add=(date,section)=>{if(!map.has(date))map.set(date,new Set());map.get(date).add(section)};const religion=one("SELECT value FROM settings WHERE key='religion'")?.value||'none';const queries=[['SELECT DISTINCT session_date date FROM sessions','focus'],['SELECT DISTINCT log_date date FROM learning_study_logs','learning'],['SELECT DISTINCT log_date date FROM habit_logs','habits']];if(religion==='islam'||q.user.id===ownerUserId)queries.push(['SELECT DISTINCT prayer_date date FROM prayer_logs WHERE completed=1','faith'],['SELECT DISTINCT log_date date FROM quran_logs','faith']);if(religion==='christianity'||q.user.id===ownerUserId)queries.push(['SELECT DISTINCT log_date date FROM faith_logs WHERE completed=1','faith']);for(const [sql,section] of queries)for(const row of all(sql))add(row.date,section);const allDays=[...map.entries()].map(([date,set])=>({date,sections:[...set],perfect:set.size>=3}));const days=allDays.filter(x=>x.date>=from&&x.date<=to).sort((a,b)=>a.date.localeCompare(b.date));const streaks={};for(const section of ['focus','learning','habits','faith']){const dates=allDays.filter(x=>x.sections.includes(section)).map(x=>x.date).sort();let current=0,cursor=new Date();const key=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');if(!dates.includes(key(cursor)))cursor.setDate(cursor.getDate()-1);const set=new Set(dates);while(set.has(key(cursor))){current++;cursor.setDate(cursor.getDate()-1)}let best=0,run=0,prev=null;for(const date of dates){const d=new Date(date+'T12:00:00');run=prev&&Math.round((d-prev)/86400000)===1?run+1:1;best=Math.max(best,run);prev=d}streaks[section]={current,best};}const events=all("SELECT * FROM calendar_events WHERE substr(start_at,1,7)=? ORDER BY start_at,id",month);s.json({month,days,streaks,events});});
 app.post('/api/calendar/events',(q,s)=>{const title=String(q.body.title||'').trim(),startAt=String(q.body.start_at||'');if(!title||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(startAt))return s.status(400).json({error:'Add a title and a valid start time.'});const taskId=q.body.task_id?Number(q.body.task_id):null,projectId=q.body.project_id?Number(q.body.project_id):null;if(taskId&&!one('SELECT id FROM tasks WHERE id=?',taskId))return s.status(400).json({error:'Choose an existing task.'});if(projectId&&!one('SELECT id FROM projects WHERE id=?',projectId))return s.status(400).json({error:'Choose an existing project.'});const r=db.prepare('INSERT INTO calendar_events(title,description,start_at,end_at,all_day,task_id,project_id) VALUES(?,?,?,?,?,?,?)').run(title,String(q.body.description||''),startAt,q.body.end_at||null,q.body.all_day?1:0,taskId,projectId);s.status(201).json(one('SELECT * FROM calendar_events WHERE id=?',r.lastInsertRowid));});
 app.patch('/api/calendar/events/:id',(q,s)=>{const e=one('SELECT * FROM calendar_events WHERE id=?',q.params.id);if(!e)return s.status(404).json({error:'Calendar event not found.'});const title=String(q.body.title??e.title).trim(),startAt=String(q.body.start_at??e.start_at),taskId=q.body.task_id===undefined?e.task_id:(q.body.task_id||null),projectId=q.body.project_id===undefined?e.project_id:(q.body.project_id||null);if(!title||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(startAt))return s.status(400).json({error:'Check the event title and start time.'});if(taskId&&!one('SELECT id FROM tasks WHERE id=?',taskId))return s.status(400).json({error:'Choose an existing task.'});if(projectId&&!one('SELECT id FROM projects WHERE id=?',projectId))return s.status(400).json({error:'Choose an existing project.'});db.prepare('UPDATE calendar_events SET title=?,description=?,start_at=?,end_at=?,all_day=?,task_id=?,project_id=? WHERE id=?').run(title,q.body.description??e.description,startAt,q.body.end_at===undefined?e.end_at:(q.body.end_at||null),q.body.all_day===undefined?e.all_day:(q.body.all_day?1:0),taskId,projectId,e.id);s.json(one('SELECT * FROM calendar_events WHERE id=?',e.id));});
 app.delete('/api/calendar/events/:id',(q,s)=>{db.prepare('DELETE FROM calendar_events WHERE id=?').run(q.params.id);s.json({ok:true});});
-app.get('/api/export',(q,s)=>{s.setHeader('Content-Disposition','attachment; filename="personal-os-backup.json"');s.json({exportedAt:new Date().toISOString(),goals:all('SELECT * FROM goals'),projects:all('SELECT * FROM projects'),project_milestones:all('SELECT * FROM project_milestones'),tasks:all('SELECT * FROM tasks'),modules:all('SELECT * FROM modules'),learning_paths:all('SELECT * FROM learning_paths'),learning_lessons:all('SELECT * FROM learning_lessons'),learning_resources:all('SELECT * FROM learning_resources'),learning_study_logs:all('SELECT * FROM learning_study_logs'),sessions:all('SELECT * FROM sessions'),calendar_events:all('SELECT * FROM calendar_events'),notes:all('SELECT * FROM notes'),reading_items:all('SELECT * FROM reading_items'),reviews:all('SELECT * FROM reviews'),habits:all('SELECT * FROM habits'),habit_logs:all('SELECT * FROM habit_logs'),prayer_logs:all('SELECT * FROM prayer_logs'),quran_logs:all('SELECT * FROM quran_logs'),tahajjud_logs:all('SELECT * FROM tahajjud_logs'),faith_logs:all('SELECT * FROM faith_logs'),rhythm_records:all('SELECT * FROM rhythm_records'),self_control_logs:all('SELECT * FROM self_control_logs'),self_control_trackers:all('SELECT * FROM self_control_trackers'),self_control_entries:all('SELECT * FROM self_control_entries'),settings:all('SELECT * FROM settings'),email_events:all('SELECT * FROM email_events'),login_events:all('SELECT * FROM login_events'),xp_events:all('SELECT * FROM xp_events'),achievement_unlocks:all('SELECT * FROM achievement_unlocks'),weekly_challenges:all('SELECT * FROM weekly_challenges'),feedback_logs:all('SELECT * FROM feedback_logs')});});
+app.get('/api/export',async(q,s)=>{
+ try{
+  const activityRows=await atlasRest(q,'activity_events?select=id,event_key,type,module,entity_id,occurred_at,local_date,payload,source&order=id.asc&limit=5001');
+  if((activityRows||[]).length>5000)return s.status(413).json({error:'The activity history exceeds the current 5,000-event export limit.'});
+  const activityEvents=(activityRows||[]).map(row=>({
+   key:row.event_key,type:row.type,module:row.module,
+   ...(row.entity_id?{entityId:row.entity_id}:{}),
+   occurredAt:row.occurred_at,localDate:row.local_date,payload:row.payload,source:row.source
+  }));
+  const data={exportedAt:new Date().toISOString(),goals:all('SELECT * FROM goals'),projects:all('SELECT * FROM projects'),project_milestones:all('SELECT * FROM project_milestones'),tasks:all('SELECT * FROM tasks'),modules:all('SELECT * FROM modules'),learning_paths:all('SELECT * FROM learning_paths'),learning_lessons:all('SELECT * FROM learning_lessons'),learning_resources:all('SELECT * FROM learning_resources'),learning_study_logs:all('SELECT * FROM learning_study_logs'),sessions:all('SELECT * FROM sessions'),calendar_events:all('SELECT * FROM calendar_events'),notes:all('SELECT * FROM notes'),reading_items:all('SELECT * FROM reading_items'),reviews:all('SELECT * FROM reviews'),habits:all('SELECT * FROM habits'),habit_logs:all('SELECT * FROM habit_logs'),prayer_logs:all('SELECT * FROM prayer_logs'),quran_logs:all('SELECT * FROM quran_logs'),tahajjud_logs:all('SELECT * FROM tahajjud_logs'),faith_logs:all('SELECT * FROM faith_logs'),rhythm_records:all('SELECT * FROM rhythm_records'),self_control_logs:all('SELECT * FROM self_control_logs'),self_control_trackers:all('SELECT * FROM self_control_trackers'),self_control_entries:all('SELECT * FROM self_control_entries'),settings:all('SELECT * FROM settings'),email_events:all('SELECT * FROM email_events'),login_events:all('SELECT * FROM login_events'),xp_events:all('SELECT * FROM xp_events'),achievement_unlocks:all('SELECT * FROM achievement_unlocks'),weekly_challenges:all('SELECT * FROM weekly_challenges'),feedback_logs:all('SELECT * FROM feedback_logs'),activity_events:activityEvents};
+  const backup=createBackupEnvelope(data);
+  if(Buffer.byteLength(JSON.stringify(backup),'utf8')>10*1024*1024)return s.status(413).json({error:'The activity history is too large for a single backup. Please contact support before exporting.'});
+  s.setHeader('Content-Disposition','attachment; filename="personal-os-backup.json"');
+  s.json(backup);
+ }catch(error){console.error('Workspace export:',error.message);s.status(503).json({error:'Your workspace backup could not be created. Please retry.'});}
+});
+app.post('/api/import/preview',(q,s)=>{
+ let previewDb;
+ try {
+  const backupData=unwrapBackup(q.body);
+  const importedEvents=validateImportedAtlasEvents(backupData.activity_events||[]);
+  const summary=summarizeBackup(q.body,workspaceTables);
+  previewDb=createWorkspaceDatabase(serializeWorkspaceDatabase(db));
+  const imported=restoreBackup(previewDb,q.body,workspaceTables);
+  s.json({ok:true,dryRun:true,imported,summary,activityEvents:importedEvents.length,schemaVersion:Number.isInteger(q.body?.schemaVersion)?q.body.schemaVersion:1});
+ } catch(error) {
+  s.status(400).json({error:error.message||'The backup could not be validated.'});
+ } finally {
+  previewDb?.close();
+ }
+});
 app.post('/api/import',(q,s)=>{
  try {
+  const backupData=unwrapBackup(q.body);
+  const summary=summarizeBackup(q.body,workspaceTables);
   const imported=restoreBackup(db,q.body,workspaceTables);
-  s.json({ok:true,imported});
+  const activityEvents=appendImportedAtlasEvents(tenantContext.getStore(),backupData.activity_events||[]);
+  s.json({ok:true,imported,summary,activityEvents});
  } catch(error) {
   s.status(400).json({error:error.message||'The backup could not be imported.'});
  }
+});
+app.use('/api', (req, res, next) => {
+  if (req.path.startsWith('/quran/')) return next();
+  return res.status(404).json({ error: 'API route not found.' });
+});
+app.use((error, req, res, next) => {
+  if (!req.path.startsWith('/api/') || req.path.startsWith('/api/quran/')) return next(error);
+  if (res.headersSent) return next(error);
+  const status = Number.isInteger(error.status) && error.status >= 400 && error.status <= 599
+    ? error.status : 500;
+  const code = status === 400 ? 'validation_failed'
+    : status === 413 ? 'payload_too_large'
+    : status === 401 ? 'unauthenticated'
+    : status === 403 ? 'forbidden'
+    : status === 404 ? 'not_found'
+    : status === 409 ? 'conflict'
+    : status === 429 ? 'rate_limited'
+    : status === 413 ? 'payload_too_large'
+    : 'internal';
+  const title = status >= 500 ? 'Internal server error' : 'Request failed';
+  const body = problemDetails({
+    status, code, title,
+    detail: status >= 500 ? undefined : error.message,
+    requestId: req.requestId,
+    instance: req.originalUrl
+  });
+  return res.status(status).type('application/problem+json').json(body);
 });
 app.get('*',(req,res,next)=>{
   if(req.path.startsWith('/api/')) return next();
@@ -1676,4 +1962,36 @@ Promise.all([fetchAlQuranCloudPage(1), fetchAlQuranCloudPage(2)])
     console.info('Direct Tajweed tokens:', coloredAyahs(page1), '/', page1.ayahs.length, 'page 1 ayahs;', coloredAyahs(page2), '/', page2.ayahs.length, 'page 2 ayahs; 2:1 marked characters:', openingMarked);
   })
   .catch(error => console.warn('Quran reading data startup check failed:', error.message));
-app.listen(PORT, '0.0.0.0',()=>console.log(`Amstreem Atlas running on 0.0.0.0:${PORT}`));
+const httpServer = app.listen(PORT, '0.0.0.0', () => {
+  serverReady = true;
+  console.log(`Amstreem Atlas running on 0.0.0.0:${PORT}`);
+});
+
+let shutdownStarted = false;
+function shutdown(signal) {
+  if (shutdownStarted) return;
+  shutdownStarted = true;
+  serverReady = false;
+  console.info(`Received ${signal}; beginning graceful shutdown.`);
+
+  const forceShutdownTimer = setTimeout(() => {
+    console.error('Graceful shutdown timed out; closing remaining connections.');
+    httpServer.closeAllConnections?.();
+    process.exit(1);
+  }, 10_000);
+  forceShutdownTimer.unref();
+
+  httpServer.close(error => {
+    clearTimeout(forceShutdownTimer);
+    if (error) {
+      console.error('HTTP server shutdown failed:', error);
+      process.exitCode = 1;
+      return;
+    }
+    console.info('HTTP server closed cleanly.');
+  });
+  httpServer.closeIdleConnections?.();
+}
+
+process.once('SIGTERM', () => shutdown('SIGTERM'));
+process.once('SIGINT', () => shutdown('SIGINT'));
