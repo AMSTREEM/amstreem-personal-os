@@ -13,7 +13,7 @@ test('every registered non-Qur’an API route receives the shared request-contra
   assert.ok(wrappedMethods, 'server must wrap every supported Express route registration method');
   assert.match(source, /routePath\.startsWith\('\/api\/'\)/);
   assert.match(source, /!routePath\.startsWith\('\/api\/quran\/'\)/);
-  assert.match(source, /ApiJsonResponseSchema\.safeParse\(body\)/);
+  assert.ok(source.includes('responseSchema.safeParse(body)'));
   assert.match(source, /BootstrapResponseSchema/);
 
   const routePattern = /app\.(get|post|put|patch|delete|head|options)\s*\(\s*(['"])(\/api\/[^'"]+)\2/g;
