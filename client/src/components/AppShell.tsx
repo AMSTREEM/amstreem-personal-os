@@ -80,7 +80,6 @@ export function AppShell() {
     document.addEventListener('change', celebrate, true);
     return () => document.removeEventListener('change', celebrate, true);
   }, []);
-  const workspaceRef = useRef<HTMLDivElement>(null);
   const bootContentRef = useRef<HTMLDivElement>(null);
 
   const navigate = useNavigate();
@@ -285,12 +284,12 @@ export function AppShell() {
       </motion.section></motion.div>}</AnimatePresence>
       <motion.nav className="atlas-command-dock" layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }} aria-label="Atlas command dock">
         <button type="button" className="atlas-dock-action" aria-label="Open command search" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={15}/><span>Command</span><kbd>⌘ K</kbd></button>
-        <button type="button" className="atlas-dock-action" aria-label="Quick capture a task" onClick={() => { setCommandOpen(true); setCommandQuery('add a task'); }}><Plus size={15}/><span>Quick Capture</span></MagneticButton>
+        <button type="button" className="atlas-dock-action" aria-label="Quick capture a task" onClick={() => { setCommandOpen(true); setCommandQuery('add a task'); }}><Plus size={15}/><span>Quick Capture</span></button>
         <motion.div className={'atlas-dock-focus ' + (focusSessionVisible ? 'is-expanded' : '')} layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }}>
-          <button type="button" className="atlas-dock-action atlas-dock-focus__open" aria-label="Open Focus Timer" onClick={() => navigate('/focus', { viewTransition: true })}><Timer size={15}/><span>Focus Timer</span>{focusSessionVisible && <strong><OdometerNumber value={focusClock}/></strong>}</MagneticButton>
-          {focusSessionVisible && <motion.div className="atlas-dock-focus__detail" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.18 }}><span title={focusContext}>{focusContext}</span><button type="button" className="atlas-dock-action atlas-dock-focus__toggle" onClick={toggleTimer}>{focusActive ? <Pause size={13}/> : <Play size={13}/>}<small>{focusActive ? "Pause" : "Resume"}</small></MagneticButton></motion.div>}
+          <button type="button" className="atlas-dock-action atlas-dock-focus__open" aria-label="Open Focus Timer" onClick={() => navigate('/focus', { viewTransition: true })}><Timer size={15}/><span>Focus Timer</span>{focusSessionVisible && <strong><OdometerNumber value={focusClock}/></strong>}</button>
+          {focusSessionVisible && <motion.div className="atlas-dock-focus__detail" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.18 }}><span title={focusContext}>{focusContext}</span><button type="button" className="atlas-dock-action atlas-dock-focus__toggle" onClick={toggleTimer}>{focusActive ? <Pause size={13}/> : <Play size={13}/>}<small>{focusActive ? "Pause" : "Resume"}</small></button></motion.div>}
         </motion.div>
-        <button type="button" className="atlas-dock-action" aria-label="Open Daily Check-In" onClick={() => { navigate('/residence', { viewTransition: true }); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></MagneticButton>
+        <button type="button" className="atlas-dock-action" aria-label="Open Daily Check-In" onClick={() => { navigate('/residence', { viewTransition: true }); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></button>
       </motion.nav>
       <nav className="atlas-mobile-dock" aria-label="Primary navigation">
         {rooms.map(item => {
