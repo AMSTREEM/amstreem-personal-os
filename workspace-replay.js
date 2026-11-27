@@ -9,6 +9,18 @@ const PRIMARY_KEYS = {
   feedback_logs: ['id']
 };
 
+const UNIQUE_KEYS = {
+  sessions: [['session_key']],
+  habit_logs: [['habit_id', 'log_date']],
+  prayer_logs: [['prayer_date', 'prayer']],
+  tahajjud_logs: [['log_date']],
+  faith_logs: [['log_date', 'activity']],
+  self_control_logs: [['category', 'log_date']],
+  self_control_entries: [['tracker_id', 'log_date']],
+  reviews: [['period_type', 'period_start']],
+  xp_events: [['event_key']]
+};
+
 function canonical(value) {
   if (Array.isArray(value)) return '[' + value.map(canonical).join(',') + ']';
   if (value && typeof value === 'object') {
@@ -67,7 +79,18 @@ function replayWorkspaceMutation(baseSnapshot, localSnapshot, latestSnapshot) {
         throw new Error(`Workspace conflict in ${table}: the same record was changed by another request.`);
       }
     }
-    merged.tables[table] = [...output.values()];
+    const rows = [...output.values()];
+    for (const uniqueKey of UNIQUE_KEYS[table] || []) {
+      const seen = new Set();
+      for (const row of rows) {
+        const values = uniqueKey.map(key => row[key]);
+        if (values.some(value => value === null || value === undefined)) continue;
+        const uniqueId = JSON.stringify(values);
+        if (seen.has(uniqueId)) throw new Error(`Workspace conflict in ${table}: a unique record key was used by concurrent writes.`);
+        seen.add(uniqueId);
+      }
+    }
+    merged.tables[table] = rows;
   }
   return merged;
 }
