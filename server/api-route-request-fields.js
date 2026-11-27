@@ -79,7 +79,7 @@ const routeRequestFields = Object.freeze({
   "DELETE /api/deen/quran/:id": {"body":[],"query":[],"params":["id"]},
   "GET /api/self-control": {"body":[],"query":["date"],"params":[]},
   "POST /api/self-control": {"body":["name","start_date","symbol"],"query":[],"params":[]},
-  "PATCH /api/self-control/:id": {"body":["length","name","symbol"],"query":[],"params":["id"]},
+  "PATCH /api/self-control/:id": {"body":["name","symbol"],"query":[],"params":["id"]},
   "PATCH /api/self-control/:id/start": {"body":["start_date"],"query":[],"params":["id"]},
   "POST /api/self-control/:id/checkin": {"body":["date","note","outcome","response","trigger","urge_level"],"query":[],"params":["id"]},
   "DELETE /api/self-control/:id": {"body":[],"query":[],"params":["id"]},
