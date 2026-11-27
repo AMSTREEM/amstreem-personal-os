@@ -9,6 +9,7 @@ import { useAuth } from '../auth/AuthProvider';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { applyAtlasTheme, type AtlasTheme } from '../design/theme';
+import '../design/shell.css';
 
 const rooms = [
   {
