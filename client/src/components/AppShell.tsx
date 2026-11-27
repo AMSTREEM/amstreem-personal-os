@@ -12,12 +12,7 @@ import { EntrancePresetContext, useEntrancePreset } from './EntranceMotion';
 import { playAtlasFeedback } from '../lib/microFeedback';
 import { useFocusTimer, updateFocusTimer } from '../lib/focusTimerStore';
 import { OdometerNumber } from './fx/OdometerNumber';
-import { PortalTransition, setPortalOrigin } from './fx/PortalTransition';
 import { SparkBurst } from './fx/SparkBurst';
-import { EnergyVortex } from './fx/AtlasEngines';
-import { CursorAura } from './fx/CursorAura';
-import { MagneticButton } from './fx/MagneticButton';
-import { useSpotlightGrid } from './fx/useSpotlightGrid';
 import '../styles/atlas-renaissance.css';
 
 const MotionNavLink = motion.create(NavLink);
@@ -87,7 +82,6 @@ export function AppShell() {
   }, []);
   const workspaceRef = useRef<HTMLDivElement>(null);
   const bootContentRef = useRef<HTMLDivElement>(null);
-  useSpotlightGrid(workspaceRef);
 
   const navigate = useNavigate();
   const { user, role, signOut, session, completeOnboarding } = useAuth();
@@ -129,7 +123,7 @@ export function AppShell() {
       const typing = !!el && (el.isContentEditable || ['INPUT','TEXTAREA','SELECT'].includes(el.tagName));
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setCommandOpen(v => !v); setCommandQuery(''); return; }
       if (event.key === 'Escape') { setCommandOpen(false); return; }
-      if (!typing && (event.metaKey || event.ctrlKey) && !event.altKey && /^[1-4]$/.test(event.key)) { event.preventDefault(); setPortalOrigin(window.innerWidth/2,window.innerHeight/2); navigate(paths[Number(event.key)-1]); }
+      if (!typing && (event.metaKey || event.ctrlKey) && !event.altKey && /^[1-4]$/.test(event.key)) { event.preventDefault(); navigate(paths[Number(event.key)-1]); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -219,8 +213,8 @@ export function AppShell() {
   }, [focusActive, focusTimer.kind, focusClock, focusContext, current?.label]);
   const faithTabLabel = quickReligion === 'islam' ? 'Deen' : quickReligion === 'christianity' ? 'Faith & Reflection' : 'Daily Reflection';
 
-  return <div data-room={location.pathname === "/quran" ? "none" : current?.id === "execution" ? "execute" : current?.id || "none"} className={(location.pathname === "/quran" ? "app-frame atlas-quran-mode" : "atlas-v2 app-frame atlas-renaissance") + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
-    <CursorAura/><SparkBurst/><EnergyVortex/>
+  return <div data-room={location.pathname === "/quran" ? "none" : current?.id === "execution" ? "execute" : current?.id || "none"} className={(location.pathname === "/quran" ? "app-frame atlas-quran-mode" : "atlas-v2 app-frame atlas-renaissance") + (booting ? " atlas-booting" : "")}>
+    <SparkBurst />
     <MobileInstallPrompt />
     <AnimatePresence initial={false}>{tourOpen && <AtlasWalkthrough onClose={closeTour} onOpenCommand={() => { setCommandOpen(true); setCommandQuery(''); }} />}</AnimatePresence>
     <motion.aside className={'sidebar ' + (mobileOpen ? 'sidebar--open' : '')} initial={reduceMotion ? false : { x: -12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
@@ -232,7 +226,7 @@ export function AppShell() {
           {rooms.map((item,index) => {
             const Icon = item.icon;
             const active = item.paths.includes(location.pathname);
-            return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={'nav-link room-nav-link ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>⌘ {index+1}</kbd></MotionNavLink>;
+            return <MotionNavLink key={item.id} to={item.to} end viewTransition onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={'nav-link room-nav-link ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>⌘ {index+1}</kbd></MotionNavLink>;
           })}
         </div>
         <div className="nav-group nav-group--specialist">
@@ -264,10 +258,9 @@ export function AppShell() {
         <div className="topbar-right"><button className="global-capture-trigger" type="button" onClick={() => {setCommandOpen(true);setCommandQuery('');}}><Search size={14}/><span>Quick capture</span><kbd>⌘ K</kbd></button><button className="tour-launcher" type="button" onClick={() => setTourOpen(true)}><Compass size={14} /> Guided tour</button><span className="privacy-indicator"><span /> PRIVATE BY DESIGN</span><span className="topbar-date">{new Intl.DateTimeFormat(undefined,{weekday:'short',month:'short',day:'numeric'}).format(new Date())}</span></div>
       </motion.header>
 
-      <div className="page-container" ref={workspaceRef}>
-        {activeTabs.length > 0 && <nav className="module-subnav" aria-label="Module sections">{activeTabs.map(tab => <MotionNavLink key={tab.to} to={tab.to} onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={({ isActive }) => 'module-subnav__link ' + (isActive ? 'module-subnav__link--active' : '')}>{({isActive}) => <>{isActive && <motion.span className="module-subnav-indicator" layoutId={'atlas-subnav-' + current?.id} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}{tab.label}</>}</MotionNavLink>)}</nav>}
+      <div className="page-container">
+        {activeTabs.length > 0 && <nav className="module-subnav" aria-label="Module sections">{activeTabs.map(tab => <MotionNavLink key={tab.to} to={tab.to} viewTransition onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={({ isActive }) => 'module-subnav__link ' + (isActive ? 'module-subnav__link--active' : '')}>{({isActive}) => <>{isActive && <motion.span className="module-subnav-indicator" layoutId={'atlas-subnav-' + current?.id} transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}{tab.label}</>}</MotionNavLink>)}</nav>}
         <EntrancePresetContext.Provider value={entrancePreset}>
-          <PortalTransition>
           <motion.div
             key={location.pathname}
             className="room-view-transition"
@@ -278,7 +271,6 @@ export function AppShell() {
           >
             <Outlet />
           </motion.div>
-          </PortalTransition>
         </EntrancePresetContext.Provider>
       </div>
       </motion.div>
@@ -292,13 +284,13 @@ export function AppShell() {
         <div className="command-footer"><span>Navigate between rooms</span><span>⌘ 1 — 6</span></div>
       </motion.section></motion.div>}</AnimatePresence>
       <motion.nav className="atlas-command-dock" layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }} aria-label="Atlas command dock">
-        <MagneticButton className="atlas-dock-action" aria-label="Open command search" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={15}/><span>Command</span><kbd>⌘ K</kbd></MagneticButton>
-        <MagneticButton className="atlas-dock-action" aria-label="Quick capture a task" onClick={() => { setCommandOpen(true); setCommandQuery('add a task'); }}><Plus size={15}/><span>Quick Capture</span></MagneticButton>
+        <button type="button" className="atlas-dock-action" aria-label="Open command search" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={15}/><span>Command</span><kbd>⌘ K</kbd></button>
+        <button type="button" className="atlas-dock-action" aria-label="Quick capture a task" onClick={() => { setCommandOpen(true); setCommandQuery('add a task'); }}><Plus size={15}/><span>Quick Capture</span></MagneticButton>
         <motion.div className={'atlas-dock-focus ' + (focusSessionVisible ? 'is-expanded' : '')} layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }}>
-          <MagneticButton className="atlas-dock-action atlas-dock-focus__open" aria-label="Open Focus Timer" onClick={() => navigate('/focus')}><Timer size={15}/><span>Focus Timer</span>{focusSessionVisible && <strong><OdometerNumber value={focusClock}/></strong>}</MagneticButton>
-          {focusSessionVisible && <motion.div className="atlas-dock-focus__detail" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.18 }}><span title={focusContext}>{focusContext}</span><MagneticButton className="atlas-dock-action atlas-dock-focus__toggle" onClick={toggleTimer}>{focusActive ? <Pause size={13}/> : <Play size={13}/>}<small>{focusActive ? "Pause" : "Resume"}</small></MagneticButton></motion.div>}
+          <button type="button" className="atlas-dock-action atlas-dock-focus__open" aria-label="Open Focus Timer" onClick={() => navigate('/focus', { viewTransition: true })}><Timer size={15}/><span>Focus Timer</span>{focusSessionVisible && <strong><OdometerNumber value={focusClock}/></strong>}</MagneticButton>
+          {focusSessionVisible && <motion.div className="atlas-dock-focus__detail" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }} transition={{ duration: 0.18 }}><span title={focusContext}>{focusContext}</span><button type="button" className="atlas-dock-action atlas-dock-focus__toggle" onClick={toggleTimer}>{focusActive ? <Pause size={13}/> : <Play size={13}/>}<small>{focusActive ? "Pause" : "Resume"}</small></MagneticButton></motion.div>}
         </motion.div>
-        <MagneticButton className="atlas-dock-action" aria-label="Open Daily Check-In" onClick={() => { navigate('/residence'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></MagneticButton>
+        <button type="button" className="atlas-dock-action" aria-label="Open Daily Check-In" onClick={() => { navigate('/residence', { viewTransition: true }); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></MagneticButton>
       </motion.nav>
       <nav className="atlas-mobile-dock" aria-label="Primary navigation">
         {rooms.map(item => {
