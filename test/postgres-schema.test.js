@@ -240,12 +240,12 @@ test('workspace history restore validates numeric IDs before handler without com
 
 test('API v1 aliases reuse legacy handlers while keeping Qur’an routes outside the versioned surface', () => {
   const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
-  const alias = server.indexOf("app.use('/api/v1'");
+  const alias = server.indexOf("req.path !== '/api/v1'");
   const auth = server.indexOf("app.use('/api', async (req, res, next) =>");
   assert.ok(alias > 0 && alias < auth);
   const block = server.slice(alias, auth);
-  assert.match(block, /req\.url = '\/api' \+ req\.url/);
-  assert.match(block, /quran\(\?:/);
+  assert.match(block, /req\.url = '\/api' \+ req\.url\.slice\('\/api\/v1'\.length\)/);
+  assert.match(block, /versionedPath === '\/quran'/);
   assert.match(block, /versioned_route_unavailable/);
 });
 
