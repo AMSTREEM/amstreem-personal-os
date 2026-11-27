@@ -1,6 +1,6 @@
 # Stage 4 — Events and Shared Services
 
-**Status:** implementation complete; staging migrations applied; CI and deployment verification pending  
+**Status:** implementation complete; staging migrations applied; all CI checks passed; staging deployment and authenticated QA pending  
 **Branch:** `atlas-stage4-events`  
 **Base:** `atlas-next`  
 **Release target:** staging only
