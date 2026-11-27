@@ -1,6 +1,12 @@
 name: Amstreem frontend verification
 
 on:
+  push:
+    branches:
+      - amstreem/intelligence-memory-foundation
+    paths:
+      - "amstreem-new/**"
+      - ".github/workflows/amstreem-frontend.yml"
   pull_request:
     branches:
       - amstreem-clean-start
