@@ -13,7 +13,7 @@ function parseTheme(name) {
   for (const token of ['bg', 'text', 'text-muted', 'text-faint']) {
     const match = block.match(new RegExp(`--a-${token}:\\s*oklch\\(([^)]+)\\)`));
     if (!match) throw new Error(`Missing --a-${token} in ${name}`);
-    const parts = match[1].split(/[\\s/]+/).filter(Boolean).map(Number);
+    const parts = match[1].split(/\s+/).filter(Boolean).map(Number);
     if (parts.length < 3 || parts.some(value => !Number.isFinite(value))) {
       throw new Error(`Invalid OKLCH token --a-${token} in ${name}`);
     }
