@@ -76,7 +76,7 @@ test('migration runner refuses to run outside the isolated staging environment',
   assert.match(runner, /skjxwzmpajdcrfacwoap/);
 });
 
-test('workspace commits use the signed-in user's token and enforce ownership in the database', () => {
+test("workspace commits use the signed-in user's token and enforce ownership in the database", () => {
   const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
   const migration = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations', '20261127194000_workspace_commit_authenticated_rpc.sql'), 'utf8');
   const start = server.indexOf('async function commitWorkspaceSnapshot(');
