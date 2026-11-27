@@ -15,6 +15,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, BookOpen, CalendarDays, Flame, FolderKanban, Heart, MoonStar, Plus, ShieldCheck, Sparkles, Sun, Target, Timer, Zap } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api, json } from '../lib/api';
+import { queryKeys } from '../lib/queryKeys';
 import { Card, EmptyState, PageHeader } from '../components/ui';
 import { useAuth } from '../auth/AuthProvider';
 
@@ -100,7 +101,7 @@ export function TodayPage() {
   const [timer, setTimer] = useState<StoredTimer>(readTimer);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const tick = window.setInterval(() => setWallClock(Date.now()), 30000); return () => window.clearInterval(tick); }, []);
-  const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Settings>('/settings') });
+  const settings = useQuery({ queryKey: queryKeys.settings, queryFn: () => api<Settings>('/settings') });
   const religion = settings.data?.faith_tradition || settings.data?.religion || 'none';
   let selectedLifeAreas: string[] = lifeAreaCards.map(area => area.id);
   try {
@@ -109,63 +110,63 @@ export function TodayPage() {
   } catch { /* Existing workspaces retain the full default set. */ }
   let showCalendar = true;
   if (settings.data?.features) { try { showCalendar = JSON.parse(settings.data.features).includes('calendar'); } catch { showCalendar = true; } }
-  const dailyReviews = useQuery({ queryKey: ['reviews', 'daily'], queryFn: () => api<DailyReview[]>('/reviews?period=daily') });
+  const dailyReviews = useQuery({ queryKey: queryKeys.reviews('daily'), queryFn: () => api<DailyReview[]>('/reviews?period=daily') });
   const dailyReview = dailyReviews.data?.find(item => item.period_start === today);
   const yesterdayDate = new Date(today + 'T12:00:00'); yesterdayDate.setDate(yesterdayDate.getDate() - 1);
   const yesterdayKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(yesterdayDate);
   const yesterdayReview = dailyReviews.data?.find(item => item.period_start === yesterdayKey);
-  const overview = useQuery({ queryKey: ['overview'], queryFn: () => api<Overview>('/overview') });
-  const focusSessions = useQuery({ queryKey: ['sessions'], queryFn: () => api<FocusSession[]>('/sessions') });
-  const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => api<Task[]>('/tasks') });
-  const habits = useQuery({ queryKey: ['habits', today], queryFn: () => api<Habit[]>('/habits?date=' + today) });
-  const deen = useQuery({ queryKey: ['deen', today], queryFn: () => api<Deen>('/deen/summary?date=' + today), enabled: religion === 'islam' });
-  const faith = useQuery({ queryKey: ['faith', today], queryFn: () => api<Faith[]>('/faith?date=' + today), enabled: religion === 'christianity' });
-  const rhythmSummary = useQuery({ queryKey: ['rhythm-summary', today], queryFn: () => api<RhythmSummary>('/rhythm/summary?date=' + today) });
-  const learning = useQuery({ queryKey: ['learning-paths'], queryFn: () => api<{ id: number; title: string; lessons: { id: number; title: string; status: string }[] }[]>('/learning/paths'), enabled: !!timer.lessonId || rhythm === 'day' });
-  const goals = useQuery({ queryKey: ['goals'], queryFn: () => api<Goal[]>('/goals') });
-  const calendarSummary = useQuery({ queryKey: ['calendar-summary', today.slice(0, 7)], queryFn: () => api<CalendarSummary>('/calendar?month=' + today.slice(0, 7)) });
-  const selfControl = useQuery({ queryKey: ['self-control', today], queryFn: () => api<SelfControlSummary>('/self-control?date=' + today) });
-  const announcements = useQuery({ queryKey: ['announcements'], queryFn: () => api<AnnouncementFeed>('/announcements') });
+  const overview = useQuery({ queryKey: queryKeys.overview, queryFn: () => api<Overview>('/overview') });
+  const focusSessions = useQuery({ queryKey: queryKeys.sessions, queryFn: () => api<FocusSession[]>('/sessions') });
+  const tasks = useQuery({ queryKey: queryKeys.tasks, queryFn: () => api<Task[]>('/tasks') });
+  const habits = useQuery({ queryKey: queryKeys.habits(today), queryFn: () => api<Habit[]>('/habits?date=' + today) });
+  const deen = useQuery({ queryKey: queryKeys.deen(today), queryFn: () => api<Deen>('/deen/summary?date=' + today), enabled: religion === 'islam' });
+  const faith = useQuery({ queryKey: queryKeys.faith(today), queryFn: () => api<Faith[]>('/faith?date=' + today), enabled: religion === 'christianity' });
+  const rhythmSummary = useQuery({ queryKey: queryKeys.rhythmSummary(today), queryFn: () => api<RhythmSummary>('/rhythm/summary?date=' + today) });
+  const learning = useQuery({ queryKey: queryKeys.learningPaths, queryFn: () => api<{ id: number; title: string; lessons: { id: number; title: string; status: string }[] }[]>('/learning/paths'), enabled: !!timer.lessonId || rhythm === 'day' });
+  const goals = useQuery({ queryKey: queryKeys.goals, queryFn: () => api<Goal[]>('/goals') });
+  const calendarSummary = useQuery({ queryKey: queryKeys.calendarSummary(today.slice(0, 7)), queryFn: () => api<CalendarSummary>('/calendar?month=' + today.slice(0, 7)) });
+  const selfControl = useQuery({ queryKey: queryKeys.selfControl(today), queryFn: () => api<SelfControlSummary>('/self-control?date=' + today) });
+  const announcements = useQuery({ queryKey: queryKeys.announcements, queryFn: () => api<AnnouncementFeed>('/announcements') });
 
   const saveDaily = useMutation({
     mutationFn: (payload: Partial<DailyReview>) => api<DailyReview>('/reviews', json('POST', {
       period_type: 'daily', period_start: today, period_end: today, ...payload
     })),
-    onSuccess: (_data, variables) => { void client.invalidateQueries({ queryKey: ['reviews', 'daily'] }); if (variables.alignment_complete === 1) setEditingAlignment(false); }
+    onSuccess: (_data, variables) => { void client.invalidateQueries({ queryKey: queryKeys.reviews('daily') }); if (variables.alignment_complete === 1) setEditingAlignment(false); }
   });
 
   const addTask = useMutation({
     mutationFn: () => api<Task>('/tasks', json('POST', { title: quickTask.trim(), category: 'Personal', due_date: today })),
-    onSuccess: () => { setQuickTask(''); void client.invalidateQueries({ queryKey: ['tasks'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
+    onSuccess: () => { setQuickTask(''); void client.invalidateQueries({ queryKey: queryKeys.tasks }); void client.invalidateQueries({ queryKey: queryKeys.overview }); }
   });
   const toggleTask = useMutation({
     mutationFn: (task: Task) => api<Task>('/tasks/' + task.id, json('PATCH', { done: !task.done })),
     onMutate: async task => {
       if (!task.done) { playAtlasFeedback('tick'); triggerSparkBurst(window.innerWidth/2, window.innerHeight*.44); }
-      await client.cancelQueries({ queryKey: ['tasks'] });
-      const previous = client.getQueryData<Task[]>(['tasks']);
-      client.setQueryData<Task[]>(['tasks'], current => current?.map(item => item.id === task.id ? { ...item, done: task.done ? 0 : 1 } : item));
+      await client.cancelQueries({ queryKey: queryKeys.tasks });
+      const previous = client.getQueryData<Task[]>(queryKeys.tasks);
+      client.setQueryData<Task[]>(queryKeys.tasks, current => current?.map(item => item.id === task.id ? { ...item, done: task.done ? 0 : 1 } : item));
       return { previous };
     },
-    onError: (_error, _task, context) => { if (context?.previous) client.setQueryData(['tasks'], context.previous); },
-    onSettled: () => { void client.invalidateQueries({ queryKey: ['tasks'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
+    onError: (_error, _task, context) => { if (context?.previous) client.setQueryData(queryKeys.tasks, context.previous); },
+    onSettled: () => { void client.invalidateQueries({ queryKey: queryKeys.tasks }); void client.invalidateQueries({ queryKey: queryKeys.overview }); }
   });
   const toggleHabit = useMutation({
     onMutate: habit => { if (!habit.done) { playAtlasFeedback('tick'); triggerSparkBurst(window.innerWidth/2, window.innerHeight*.44); } },
     mutationFn: (habit: Habit) => api('/habits/' + habit.id + '/toggle', json('POST', { date: today })),
-    onSuccess: () => { void client.invalidateQueries({ queryKey: ['habits', today] }); void client.invalidateQueries({ queryKey: ['self-control'] }); void client.invalidateQueries({ queryKey: ['overview'] }); }
+    onSuccess: () => { void client.invalidateQueries({ queryKey: queryKeys.habits(today) }); void client.invalidateQueries({ queryKey: queryKeys.selfControl() }); void client.invalidateQueries({ queryKey: queryKeys.overview }); }
   });
   const togglePrayer = useMutation({
     onMutate: item => { if (!item.completed) { playAtlasFeedback('tick'); triggerSparkBurst(window.innerWidth/2, window.innerHeight*.44); } },
     mutationFn: (item: Prayer) => api('/deen/prayer', json('PATCH', { date: today, prayer: item.prayer, completed: !item.completed })),
-    onSuccess: () => void client.invalidateQueries({ queryKey: ['deen', today] })
+    onSuccess: () => void client.invalidateQueries({ queryKey: queryKeys.deen(today) })
   });
   const toggleFaith = useMutation({
     onMutate: item => { if (!item.completed) { playAtlasFeedback('tick'); triggerSparkBurst(window.innerWidth/2, window.innerHeight*.44); } },
     mutationFn: (item: Faith) => api('/faith', json('PATCH', { date: today, activity: item.activity, completed: !item.completed })),
-    onSuccess: () => void client.invalidateQueries({ queryKey: ['faith', today] })
+    onSuccess: () => void client.invalidateQueries({ queryKey: queryKeys.faith(today) })
   });
-  const markAnnouncementRead = useMutation({ mutationFn: (id: number) => api('/announcements/' + id + '/read', json('POST')), onSuccess: () => void client.invalidateQueries({ queryKey: ['announcements'] }) });
+  const markAnnouncementRead = useMutation({ mutationFn: (id: number) => api('/announcements/' + id + '/read', json('POST')), onSuccess: () => void client.invalidateQueries({ queryKey: queryKeys.announcements }) });
 
   const habitList = habits.data || [];
   const completedHabits = habitList.filter(habit => habit.done).length;
