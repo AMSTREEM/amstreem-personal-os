@@ -23,6 +23,8 @@ test('invalid Supabase refresh tokens clear only the current browser session', (
   assert.match(client, /isInvalidRefreshTokenMessage\(message\)/);
   assert.match(client, /auth\.signOut\(\{ scope: 'local' \}\)/);
   assert.match(auth, /isInvalidRefreshTokenError\(error\)/);
-  assert.match(auth, /getSession\(\)\.then/);
+  assert.match(auth, /await import\('\.\.\/lib\/supabase'\)/);
+  assert.match(auth, /supabase\.auth\.getSession\(\)/);
+  assert.match(auth, /supabase\.auth\.onAuthStateChange/);
   assert.match(auth, /Session restore failed/);
 });
