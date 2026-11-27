@@ -89,6 +89,7 @@ export function AppShell() {
   const focusTimer = useFocusTimer();
   const [clockNow, setClockNow] = useState(Date.now());
   const [quickTaskTitle, setQuickTaskTitle] = useState('');
+  const [quickCaptureType, setQuickCaptureType] = useState<'task' | 'note' | 'habit'>('task');
   const [quickTaskSaving, setQuickTaskSaving] = useState(false);
   const [quickTaskError, setQuickTaskError] = useState('');
   useEffect(() => {
@@ -154,14 +155,18 @@ export function AppShell() {
   function writeTimer(value: Parameters<typeof updateFocusTimer>[0]) { updateFocusTimer(value); }
   function toggleTimer() { if (focusActive) writeTimer({ ...focusTimer, remaining: focusRemaining, deadline: null }); else if (focusRemaining > 0) writeTimer({ ...focusTimer, deadline: Date.now() + focusRemaining * 1000 }); }
   function finishTimer() { const elapsed = Math.max(0, (focusTimer.durationSeconds || focusTimer.remaining) - focusRemaining); writeTimer({ ...focusTimer, remaining: 0, deadline: null, durationSeconds: elapsed, sessionKey: elapsed >= 60 ? focusTimer.sessionKey : null }); navigate('/focus'); }
-  async function captureTask(event: FormEvent) {
-    event.preventDefault(); if (!quickTaskTitle.trim() || quickTaskSaving) return;
+  async function captureQuickItem(event: FormEvent) {
+    event.preventDefault();
+    const title = quickTaskTitle.trim();
+    if (!title || quickTaskSaving) return;
     setQuickTaskSaving(true); setQuickTaskError('');
+    const endpoint = quickCaptureType === 'task' ? '/tasks' : quickCaptureType === 'note' ? '/notes' : '/habits';
+    const payload = quickCaptureType === 'task' ? { title, category: 'Personal' } : quickCaptureType === 'note' ? { title, body: '' } : { title, emoji: '✦' };
     try {
-      await api('/tasks', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({title:quickTaskTitle.trim(),category:'Personal'}) });
+      await api(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       setQuickTaskTitle(''); setCommandOpen(false);
-      void queryClient.invalidateQueries({queryKey:['tasks']}); void queryClient.invalidateQueries({queryKey:['overview']});
-    } catch (error) { setQuickTaskError(error instanceof Error ? error.message : 'Could not save task.'); }
+      for (const key of [['tasks'], ['overview'], ['notes'], ['habits']]) void queryClient.invalidateQueries({ queryKey: key });
+    } catch (error) { setQuickTaskError(error instanceof Error ? error.message : 'Could not save this item.'); }
     finally { setQuickTaskSaving(false); }
   }
   const commandItems = useMemo(() => commandDestinations.map((item,index) => ({...item,detail:item.detail || 'Open module',shortcut:index < 9 ? 'g '+(index+1) : ''})).filter(item => (item.label+' '+item.detail).toLowerCase().includes(commandQuery.toLowerCase())),[commandQuery]);
@@ -285,7 +290,10 @@ export function AppShell() {
       </motion.div>
       <AnimatePresence initial={false}>{commandOpen && <motion.div className="command-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} onMouseDown={event => {if(event.target===event.currentTarget)setCommandOpen(false);}}><motion.section className="command-panel" role="dialog" aria-modal="true" aria-label="Atlas quick capture" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
         <div className="command-search"><Search size={17}/><input autoFocus value={commandQuery} onChange={event=>setCommandQuery(event.target.value)} placeholder="Search pillars, capture a task, or check in…"/><kbd>ESC</kbd></div>
-        {(!commandQuery || 'add a task'.includes(commandQuery.toLowerCase())) && <form className="command-task-form" onSubmit={captureTask}><Zap size={15}/><input value={quickTaskTitle} onChange={event=>setQuickTaskTitle(event.target.value)} placeholder="Capture a task…" maxLength={180}/><button disabled={!quickTaskTitle.trim()||quickTaskSaving}>{quickTaskSaving?'Saving…':'Add task'}</button></form>}
+        <div className="quick-capture-types" role="group" aria-label="Capture type">
+          {(['task','note','habit'] as const).map(type => <button key={type} type="button" aria-pressed={quickCaptureType === type} onClick={() => setQuickCaptureType(type)}>{type === 'task' ? 'Task' : type === 'note' ? 'Note' : 'Habit'}</button>)}
+        </div>
+        <form className="command-task-form" onSubmit={captureQuickItem}><Zap size={15}/><input value={quickTaskTitle} onChange={event=>setQuickTaskTitle(event.target.value)} placeholder={quickCaptureType === 'task' ? 'What needs doing?' : quickCaptureType === 'note' ? 'Give this note a title…' : 'Name a habit to build…'} maxLength={quickCaptureType === 'habit' ? 100 : 180}/><button disabled={!quickTaskTitle.trim()||quickTaskSaving}>{quickTaskSaving?'Saving…':'Save ' + quickCaptureType}</button></form>
         {quickTaskError && <p className="command-error">{quickTaskError}</p>}
         {quickReligion === 'islam' && <div className="command-checkins"><span className="eyebrow">TODAY · SALAH</span><div className="command-checkin-list">{(quickDeen.data?.prayers || []).map(item => <button type="button" key={item.prayer} className={item.completed ? 'is-complete' : ''} disabled={quickPrayerMutation.isPending} onClick={event => { if (!item.completed) sparkAtElement(event.currentTarget); quickPrayerMutation.mutate(item); }}><span>{item.completed ? '✓' : '○'}</span>{item.prayer}<small>{item.completed ? 'Recorded' : 'Mark done'}</small></button>)}</div></div>}
         {!!quickHabits.data?.length && <div className="command-checkins"><span className="eyebrow">TODAY · HABITS</span><div className="command-checkin-list">{quickHabits.data.map(item => <button type="button" key={item.id} className={item.done ? 'is-complete' : ''} disabled={quickHabitMutation.isPending} onClick={event => { if (!item.done) sparkAtElement(event.currentTarget); quickHabitMutation.mutate(item.id); }}><span>{item.done ? '✓' : '○'}</span>{item.title}<small>{item.done ? 'Done' : 'Mark done'}</small></button>)}</div></div>}
