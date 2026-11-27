@@ -32,4 +32,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add package-lock.json
           git commit -m "chore(atlas-v2): sync Fontsource lockfile"
+          git fetch origin atlas-v2
+          git rebase origin/atlas-v2
           git push origin HEAD:atlas-v2
