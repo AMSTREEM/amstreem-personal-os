@@ -504,3 +504,23 @@ test('Atlas route code is lazy-loaded and gzip budgets are enforced on every bui
   assert.match(budget, /180 \* 1024/);
   assert.match(budget, /120 \* 1024/);
 });
+
+
+test('Atlas shell accessibility contracts cover landmarks, focus, dialogs and touch targets', () => {
+  const shell = fs.readFileSync(path.join(__dirname, '..', 'client/src/components/AppShell.tsx'), 'utf8');
+  const onboarding = fs.readFileSync(path.join(__dirname, '..', 'client/src/components/AtlasOnboarding.tsx'), 'utf8');
+  const styles = fs.readFileSync(path.join(__dirname, '..', 'client/src/styles.css'), 'utf8');
+  const settings = fs.readFileSync(path.join(__dirname, '..', 'client/src/pages/SettingsPage.tsx'), 'utf8');
+  assert.match(shell, /atlas-skip-link/);
+  assert.match(shell, /aria-live="polite"/);
+  assert.match(shell, /aria-label="Primary navigation"/);
+  assert.match(shell, /tabIndex=\{-1\}/);
+  assert.match(shell, /heading\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(onboarding, /role="dialog"/);
+  assert.match(onboarding, /aria-modal="true"/);
+  assert.match(onboarding, /event\.key !== 'Tab'/);
+  assert.match(styles, /\.nav-link \{ min-height: 44px; \}/);
+  assert.match(styles, /:focus-visible/);
+  assert.match(styles, /prefers-reduced-motion: reduce/);
+  assert.match(settings, /High-contrast interface/);
+});
