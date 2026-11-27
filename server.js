@@ -1185,6 +1185,9 @@ app.use('/api', async (req, res, next) => {
     const savedWorkspace = await readWorkspaceSnapshot(user.id, token);
     workspaceDb = createWorkspaceDatabase(savedWorkspace.data);
     const workspaceState = { version: savedWorkspace.version, schemaVersion: savedWorkspace.schemaVersion };
+    req.workspaceState = workspaceState;
+    req.workspaceToken = token;
+    req.workspaceUserId = user.id;
     const context = { userId: user.id, db: workspaceDb };
     tenantContext.run(context, () => {
       const originalEnd = res.end.bind(res);
@@ -1192,7 +1195,7 @@ app.use('/api', async (req, res, next) => {
       res.end = (...args) => {
         if (ending) return res;
         ending = true;
-        if (['GET', 'HEAD', 'OPTIONS'].includes(req.method) || res.statusCode >= 400) {
+        if (req.skipWorkspaceCommit || ['GET', 'HEAD', 'OPTIONS'].includes(req.method) || res.statusCode >= 400) {
           workspaceDb.close();
           release?.();
           return originalEnd(...args);
@@ -1236,6 +1239,80 @@ app.use('/api', async (req, res, next) => {
   }
 });
 app.get('/api/session', (req, res) => res.json({ user: { id: req.user.id, email: req.user.email, name: req.user.user_metadata?.full_name || '', username: req.user.user_metadata?.username || '' }, role: req.user.id === ownerUserId ? 'admin' : 'user' }));
+app.get('/api/history', async (req, res) => {
+  try {
+    const items = await atlasRest(req, 'personal_os_workspace_history?select=id,version,schema_version,reason,created_at&order=created_at.desc&limit=50');
+    res.json({ items: items || [], currentVersion: req.workspaceState?.version ?? 0 });
+  } catch (error) {
+    console.error('Workspace history list failed:', error.message);
+    res.status(503).json({ error: 'Workspace history is temporarily unavailable.' });
+  }
+});
+
+app.post('/api/history/snapshot', async (req, res) => {
+  req.skipWorkspaceCommit = true;
+  try {
+    const context = tenantContext.getStore();
+    if (!context?.db || !req.workspaceState) return res.status(503).json({ error: 'Workspace is not ready for a snapshot.' });
+    const snapshot = serializeWorkspaceDatabase(context.db);
+    const result = await commitWorkspaceSnapshot({
+      supabaseUrl: supabaseConfig.url,
+      publishableKey: supabaseConfig.publishableKey,
+      token: req.workspaceToken,
+      userId: req.workspaceUserId,
+      expectedVersion: req.workspaceState.version,
+      data: snapshot,
+      schemaVersion: snapshot.schemaVersion,
+      idempotencyKey: req.idempotencyKey || crypto.randomUUID(),
+      requestHash: req.idempotencyHash || createWorkspaceRequestHash({ method: req.method, path: req.originalUrl, body: req.body }),
+      forceHistory: true,
+      historyReason: 'manual',
+      events: []
+    });
+    res.status(201).json({ version: result.version, message: 'Snapshot created.' });
+  } catch (error) {
+    const conflict = error.code === 'version_conflict';
+    res.status(conflict ? 409 : 503).json({ error: conflict ? 'Your workspace changed. Refresh history and try again.' : 'Could not create a history snapshot.', code: conflict ? 'version_conflict' : 'history_snapshot_failed' });
+  }
+});
+
+app.post('/api/history/:id/restore', async (req, res) => {
+  req.skipWorkspaceCommit = true;
+  try {
+    const historyId = Number(req.params.id);
+    if (!Number.isSafeInteger(historyId) || historyId < 1) return res.status(400).json({ error: 'Choose a valid history point.' });
+    if (!req.workspaceState) return res.status(503).json({ error: 'Workspace is not ready to restore.' });
+    const rows = await atlasRest(req, `personal_os_workspace_history?select=id,version,schema_version,snapshot,reason,created_at&id=eq.${historyId}&limit=1`);
+    const point = rows?.[0];
+    if (!point) return res.status(404).json({ error: 'That history point was not found.' });
+    const snapshot = point.snapshot;
+    if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot) ||
+        !['personal-os-sqlite-snapshot-v1','personal-os-sqlite-snapshot-v2','personal-os-sqlite-snapshot-v3'].includes(snapshot.format) ||
+        !snapshot.tables || typeof snapshot.tables !== 'object') {
+      return res.status(422).json({ error: 'This history point has an unsupported snapshot format.' });
+    }
+    const result = await commitWorkspaceSnapshot({
+      supabaseUrl: supabaseConfig.url,
+      publishableKey: supabaseConfig.publishableKey,
+      token: req.workspaceToken,
+      userId: req.workspaceUserId,
+      expectedVersion: req.workspaceState.version,
+      data: snapshot,
+      schemaVersion: Number(point.schema_version) || Number(snapshot.schemaVersion) || 3,
+      idempotencyKey: req.idempotencyKey || crypto.randomUUID(),
+      requestHash: req.idempotencyHash || createWorkspaceRequestHash({ method: req.method, path: req.originalUrl, body: req.body }),
+      forceHistory: true,
+      historyReason: 'pre_restore',
+      events: []
+    });
+    res.json({ version: result.version, restoredFrom: historyId, message: 'Workspace restored. Your previous workspace was saved to history first.' });
+  } catch (error) {
+    const conflict = error.code === 'version_conflict';
+    console.error('Workspace history restore failed:', error.message);
+    res.status(conflict ? 409 : 503).json({ error: conflict ? 'Your workspace changed. Refresh history and try again.' : 'Could not restore this history point.', code: conflict ? 'version_conflict' : 'history_restore_failed' });
+  }
+});
+
 
 const schemaSql = `
 CREATE TABLE IF NOT EXISTS projects (id INTEGER PRIMARY KEY AUTOINCREMENT, goal_id INTEGER REFERENCES goals(id) ON DELETE SET NULL, title TEXT NOT NULL, description TEXT DEFAULT '', status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','completed','archived')), target_date TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
