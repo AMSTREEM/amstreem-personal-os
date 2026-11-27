@@ -28,6 +28,8 @@ jobs:
         run: npm install
       - name: Frozen Qur'an integrity gate
         run: npm run check:frozen
+      - name: WCAG theme contrast gate
+        run: npm run check:contrast
       - name: TypeScript typecheck
         run: npm run typecheck
       - name: Production build
