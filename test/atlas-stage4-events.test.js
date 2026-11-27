@@ -70,6 +70,8 @@ test('backup events retain their original keys but are reclassified as imports',
 test('workspace version commits append events atomically and skip duplicate idempotency replays', () => {
   assert.match(server, /rpc\/commit_workspace_with_events/);
   assert.match(server, /p_events: validateAtlasEventBatch\(events\)\.map\(event => \(\{ key: event\.key, type: event\.type, module: event\.module, entity_id: event\.entityId \|\| null, occurred_at: event\.occurredAt, local_date: event\.localDate/);
+  assert.match(server, /p_user_id: userId/);
+  assert.match(server, /SUPABASE_SECRET_KEY \|\| process\.env\.SUPABASE_SERVICE_ROLE_KEY/);
   assert.match(server, /pendingEvents: \[\]/);
   assert.match(server, /context\.pendingEvents/);
   assert.match(migration, /public\.commit_workspace_with_events/);
@@ -83,7 +85,11 @@ test('event ledger is append-only, account-scoped and has explicit Data API gran
   assert.match(migration, /activity events owner append/);
   assert.match(migration, /activity_events_append_only/);
   assert.match(migration, /revoke all on public\.activity_events from anon, authenticated/);
-  assert.match(migration, /grant select, insert on public\.activity_events to authenticated/);
+  assert.match(migration, /grant select on public\.activity_events to authenticated/);
+  assert.match(migration, /grant select, insert on public\.activity_events to service_role/);
+  assert.doesNotMatch(migration, /grant select, insert on public\.activity_events to authenticated/);
+  assert.match(migration, /current_user <> 'service_role'/);
+  assert.match(migration, /commit_workspace_with_events\(uuid,bigint,jsonb,integer,text,text,boolean,text,jsonb\) to service_role/);
   assert.match(migration, /grant select on public\.xp_ledger to service_role/);
 });
 
