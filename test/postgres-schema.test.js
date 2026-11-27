@@ -530,5 +530,9 @@ test('Atlas shell accessibility contracts cover landmarks, focus, dialogs and to
   assert.match(styles, /\.nav-link \{ min-height: 44px; \}/);
   assert.match(styles, /:focus-visible/);
   assert.match(styles, /prefers-reduced-motion: reduce/);
+  assert.match(shell, /atlas-mobile-dock__indicator/);
+  assert.match(shell, /layoutId="atlas-mobile-dock-indicator"/);
+  assert.doesNotMatch(styles, /transition: width var\(--atlas-duration/);
+  assert.doesNotMatch(styles, /transition: margin-left var\(--atlas-duration/);
   assert.match(settings, /High-contrast interface/);
 });
