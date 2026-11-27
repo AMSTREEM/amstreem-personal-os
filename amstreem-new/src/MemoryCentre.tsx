@@ -1,15 +1,38 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Bookmark, Download, Pencil, Plus, Search, ShieldCheck, Trash2, X, Check } from 'lucide-react';
+import type { User } from '@supabase/supabase-js';
+import { Bookmark, Download, Pencil, Plus, Search, ShieldCheck, Trash2, X, Check, Cloud, CloudOff, LogOut, LockKeyhole } from 'lucide-react';
 import {
   createMemory, exportMemories, readMemories, updateMemory, writeMemories,
   type MemoryKind, type MemoryRecord, type MemorySensitivity,
 } from './lib/memory';
+import { isSupabaseConfigured, supabase } from './lib/supabase';
 
 const kindLabels: Record<MemoryKind, string> = {
   fact: 'Fact', preference: 'Preference', goal: 'Goal',
   project: 'Project', experience: 'Experience', other: 'Other',
 };
 const kindOptions = Object.keys(kindLabels) as MemoryKind[];
+
+type CloudMemoryRow = {
+  id: string;
+  content: string;
+  memory_type: MemoryKind;
+  sensitivity: MemorySensitivity;
+  source: MemoryRecord['source'];
+  consented_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+const isUuid = (value: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
+function fromCloud(row: CloudMemoryRow): MemoryRecord {
+  return {
+    id: row.id, content: row.content, kind: row.memory_type,
+    sensitivity: row.sensitivity, source: row.source,
+    consentedAt: row.consented_at, createdAt: row.created_at, updatedAt: row.updated_at,
+  };
+}
 
 export default function MemoryCentre() {
   const [memories, setMemories] = useState<MemoryRecord[]>(() => readMemories());
@@ -21,11 +44,35 @@ export default function MemoryCentre() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [notice, setNotice] = useState('');
   const [formOpen, setFormOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
+  const [syncBusy, setSyncBusy] = useState(false);
+  const [syncConsent, setSyncConsent] = useState(false);
+  const [lastSync, setLastSync] = useState('');
 
   useEffect(() => {
     try { writeMemories(memories); }
     catch { setNotice('Your browser could not save this memory. Check available site storage.'); }
   }, [memories]);
+
+  useEffect(() => {
+    if (!supabase) return;
+    let alive = true;
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!alive) return;
+      if (error) setNotice(error.message);
+      setUser(data.session?.user ?? null);
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setSyncConsent(false);
+      setLastSync('');
+    });
+    return () => { alive = false; listener.subscription.unsubscribe(); };
+  }, []);
 
   const visible = useMemo(() => memories.filter(memory =>
     (kindFilter === 'all' || memory.kind === kindFilter) &&
@@ -42,10 +89,10 @@ export default function MemoryCentre() {
     try {
       if (editingId) {
         setMemories(current => updateMemory(current, editingId, { content, kind, sensitivity }));
-        setNotice('Memory updated.');
+        setNotice('Memory updated on this device. Use Sync now to update your account copy.');
       } else {
         setMemories(current => [createMemory({ content, kind, sensitivity }), ...current]);
-        setNotice('Saved to your memory centre.');
+        setNotice('Saved to your memory centre on this device.');
       }
       resetForm();
     } catch (error) {
@@ -58,10 +105,102 @@ export default function MemoryCentre() {
     setKind(memory.kind); setSensitivity(memory.sensitivity); setFormOpen(true);
   };
 
-  const remove = (id: string) => {
-    if (!window.confirm('Delete this memory from this browser? This cannot be undone.')) return;
+  const remove = async (id: string) => {
+    if (!window.confirm('Delete this memory? If it has been synced, its account copy will also be deleted. This cannot be undone.')) return;
+    if (user && supabase) {
+      const { error } = await supabase.from('memories').delete().eq('id', id);
+      if (error) {
+        setNotice(`Could not delete the account copy: ${error.message}`);
+        return;
+      }
+    }
     setMemories(current => current.filter(memory => memory.id !== id));
-    setNotice('Memory deleted from this device.');
+    setNotice(user ? 'Memory deleted from this device and your account.' : 'Memory deleted from this device.');
+  };
+
+  const authenticate = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!supabase || !email.trim() || !password) return;
+    setAuthBusy(true); setNotice('');
+    try {
+      if (authMode === 'signup') {
+        const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
+        if (error) throw error;
+        setNotice(data.session
+          ? 'Your account is ready. You are signed in.'
+          : 'Account request received. Check your email for a confirmation link before signing in.');
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (error) throw error;
+        setNotice('You are signed in. Your local memories have not been uploaded.');
+      }
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : 'Authentication could not be completed.');
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
+  const signOut = async () => {
+    if (!supabase) return;
+    const { error } = await supabase.auth.signOut();
+    setNotice(error ? error.message : 'You have signed out. Your local memories remain on this device.');
+  };
+
+  const syncNow = async () => {
+    if (!supabase || !user || !syncConsent || syncBusy) return;
+    setSyncBusy(true); setNotice('');
+    try {
+      const { data: cloudRows, error: readError } = await supabase
+        .from('memories')
+        .select('id,content,memory_type,sensitivity,source,consented_at,created_at,updated_at')
+        .order('updated_at', { ascending: false });
+      if (readError) throw readError;
+
+      const merged = new Map<string, MemoryRecord>();
+      (cloudRows as CloudMemoryRow[] | null ?? []).forEach(row => {
+        const memory = fromCloud(row);
+        merged.set(memory.id, memory);
+      });
+
+      const localForUpload = memories.map(memory => isUuid(memory.id)
+        ? memory
+        : { ...memory, id: crypto.randomUUID() });
+      localForUpload.forEach(local => {
+        const cloud = merged.get(local.id);
+        if (!cloud || new Date(local.updatedAt).getTime() >= new Date(cloud.updatedAt).getTime()) {
+          merged.set(local.id, local);
+        }
+      });
+
+      const finalRecords = [...merged.values()].sort((a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      );
+      if (finalRecords.length) {
+        const rows = finalRecords.map(memory => ({
+          id: memory.id,
+          user_id: user.id,
+          content: memory.content,
+          memory_type: memory.kind,
+          sensitivity: memory.sensitivity,
+          source: memory.source,
+          consented_at: memory.consentedAt,
+          created_at: memory.createdAt,
+          updated_at: memory.updatedAt,
+        }));
+        const { error: writeError } = await supabase.from('memories').upsert(rows, { onConflict: 'id' });
+        if (writeError) throw writeError;
+      }
+      setMemories(finalRecords);
+      setLastSync(new Date().toLocaleString());
+      setNotice(`Sync complete. ${finalRecords.length} memories are available to this account.`);
+    } catch (error) {
+      setNotice(error instanceof Error
+        ? `Sync did not complete: ${error.message}`
+        : 'Sync did not complete. Your local memories are unchanged.');
+    } finally {
+      setSyncBusy(false);
+    }
   };
 
   const timestamp = (value: string) => new Intl.DateTimeFormat(undefined, {
@@ -81,8 +220,32 @@ export default function MemoryCentre() {
 
       <div className="memory-promise">
         <ShieldCheck size={18} />
-        <div><strong>Explicit, editable and under your control.</strong><span>These memories currently stay in this browser on this device. They are not connected to an AI model or synced to an account.</span></div>
+        <div><strong>Explicit, editable and under your control.</strong><span>Signing in never uploads memories by itself. You choose when to sync, and you can review what is stored here before doing so.</span></div>
       </div>
+
+      <section className="memory-account" aria-label="Account and cloud sync">
+        {!isSupabaseConfigured || !supabase ? (
+          <div className="memory-account-state"><CloudOff size={18} /><div><strong>Cloud account is not configured yet.</strong><span>Your local memory centre still works. Cloud sync will be available after the site receives its public Supabase configuration.</span></div></div>
+        ) : user ? (
+          <>
+            <div className="memory-account-state"><Cloud size={18} /><div><strong>Signed in</strong><span>{user.email ?? 'Your Amstreem account'} · Local memories are not automatically uploaded.</span></div><button className="outline-button" onClick={signOut}><LogOut size={14} /> Sign out</button></div>
+            <div className="memory-sync-panel">
+              <label className="memory-consent"><input type="checkbox" checked={syncConsent} onChange={event => setSyncConsent(event.target.checked)} /><span>I choose to sync all {memories.length} memories in this browser, including entries marked sensitive, to my private account. I understand they will be stored in Supabase and available when I sign in on another device.</span></label>
+              <div className="memory-sync-actions"><span>{lastSync ? `Last synced: ${lastSync}` : 'Manual sync only · No background upload'}</span><button className="begin-button" disabled={!syncConsent || syncBusy} onClick={syncNow}>{syncBusy ? 'Syncing…' : 'Sync now'} <Cloud size={15} /></button></div>
+            </div>
+          </>
+        ) : (
+          <div className="memory-auth">
+            <div className="memory-auth-intro"><LockKeyhole size={18} /><div><strong>Your private Amstreem account</strong><span>Sign in to access cloud memory on other devices. Signing in does not upload anything.</span></div></div>
+            <form onSubmit={authenticate} className="memory-auth-form">
+              <label>Email<input type="email" autoComplete="email" required value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" /></label>
+              <label>Password<input type="password" autoComplete={authMode === 'signup' ? 'new-password' : 'current-password'} minLength={8} required value={password} onChange={event => setPassword(event.target.value)} placeholder="At least 8 characters" /></label>
+              <button className="begin-button" type="submit" disabled={authBusy}>{authBusy ? 'Please wait…' : authMode === 'signup' ? 'Create account' : 'Sign in'} <Check size={15} /></button>
+            </form>
+            <button className="memory-auth-switch" onClick={() => { setAuthMode(current => current === 'signin' ? 'signup' : 'signin'); setNotice(''); }}>{authMode === 'signin' ? 'New to Amstreem? Create an account' : 'Already have an account? Sign in'}</button>
+          </div>
+        )}
+      </section>
 
       {formOpen && <div className="memory-editor">
         <div className="memory-editor-top"><span className="kicker">{editingId ? 'EDIT MEMORY' : 'ADD A MEMORY'}</span><button className="memory-close" onClick={resetForm} aria-label="Close editor"><X size={17} /></button></div>
@@ -105,7 +268,7 @@ export default function MemoryCentre() {
         <div className="memory-record-icon"><Bookmark size={16} /></div>
         <div className="memory-record-content"><div className="memory-record-meta"><span>{kindLabels[memory.kind]}</span>{memory.sensitivity === 'sensitive' && <span className="sensitive-label">Sensitive</span>}<time>{timestamp(memory.updatedAt)}</time></div><p>{memory.content}</p><small>Saved by you · {memory.source === 'user_created' ? 'Original entry' : memory.source}</small></div>
         <button className="delete-capture" onClick={() => edit(memory)} aria-label="Edit memory"><Pencil size={15} /></button>
-        <button className="delete-capture" onClick={() => remove(memory.id)} aria-label="Delete memory"><Trash2 size={15} /></button>
+        <button className="delete-capture" onClick={() => void remove(memory.id)} aria-label="Delete memory"><Trash2 size={15} /></button>
       </article>)}</div> : <div className="empty-world memory-empty"><div className="empty-glyph"><Bookmark size={22} /></div><h3>{memories.length ? 'No memories match that search.' : 'Your memory centre is yours to shape.'}</h3><p>{memories.length ? 'Try a different phrase or type.' : 'Start with a preference, a goal, a useful fact or something you want to keep in view. You decide what belongs here.'}</p>{!memories.length && <button className="begin-button" onClick={() => setFormOpen(true)}>Add your first memory <Plus size={15} /></button>}</div>}
 
       {notice && <div className="memory-notice" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Dismiss message"><X size={13} /></button></div>}
