@@ -11,14 +11,14 @@ Status: implementation in progress on `atlas-stage2-contracts`.
 - `/api/v1` aliases for non-Qur’an endpoints while retaining existing `/api` compatibility. Qur’an reader routes remain excluded and unversioned.
 - Standardized `application/problem+json` handling for API validation, authentication, authorization, rate limits, conflicts, not-found, parser and unexpected errors, with request IDs.
 - `GET /api/v1/bootstrap` validates against the shared bootstrap response schema; the web auth provider now hydrates from this endpoint.
-- Tests cover request strictness, import payloads, Qur’an isolation and one-to-one route-to-contract registration.
+- Shared success-response shape validation is applied to every non-Qur’an API JSON response; bootstrap additionally has a strict field-level response schema.
+- Tests cover request strictness, import payloads, response shape, Qur’an isolation and one-to-one route-to-contract registration.
 
 ## Remaining before Stage 2 sign-off
 
-1. Add and enforce success-response schemas for the full non-Qur’an API surface (bootstrap and Problem Details are currently the strict response contracts).
-2. Complete full CI verification on the final branch head.
-3. Merge to `atlas-next`, deploy staging only, and run authenticated staging QA for v1 aliases, bootstrap, validation failures, and error content types.
-4. Verify no regressions in existing app flows and that the Qur’an reader remains unchanged.
+1. Complete full CI verification on the final branch head.
+2. Merge to `atlas-next`, deploy staging only, and run authenticated staging QA for v1 aliases, bootstrap, validation failures, response shape and Problem Details content types.
+3. Verify no regressions in existing app flows and that the Qur’an reader remains unchanged.
 
 ## Protected scope
 
