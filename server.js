@@ -6,7 +6,7 @@ const { restoreBackup } = require('./workspace-backup');
 const { AsyncLocalStorage } = require('node:async_hooks');
 const crypto = require('node:crypto');
 const { commitWorkspaceSnapshot, createWorkspaceRequestHash } = require('./server/workspace-persistence');
-const { positiveIdSchema, validateRequest, sendProblem } = require('./server/api-contracts');
+const { positiveIdSchema, validateRequest, validateApiEnvelope, sendProblem } = require('./server/api-contracts');
 const { apiProblemResponses } = require('./server/api-errors');
 const { resolveAppEnvironment, checkEnvironmentMarker, requestLogger } = require('./server/runtime-guard');
 const app = express();
@@ -1162,6 +1162,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(validateApiEnvelope());
 app.use('/api', apiProblemResponses());
 app.use('/api', async (req, res, next) => {
   let release;
