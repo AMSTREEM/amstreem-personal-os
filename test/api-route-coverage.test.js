@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { routeRequestFields } = require('../server/api-route-request-fields');
 
 test('every registered non-Qur’an API route receives the shared request-contract middleware', () => {
   const source = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
@@ -24,4 +25,10 @@ test('every registered non-Qur’an API route receives the shared request-contra
   assert.ok(contractedRoutes.length >= 60, 'the route inventory should cover the current Atlas API surface');
   assert.equal(routes.length, quranRoutes.length + contractedRoutes.length);
   assert.ok(contractedRoutes.every(route => ['get', 'post', 'put', 'patch', 'delete', 'head', 'options'].includes(route.method)));
+  for (const route of contractedRoutes) {
+    const key = route.method.toUpperCase() + ' ' + route.path;
+    assert.ok(routeRequestFields[key], 'missing request contract for ' + key);
+  }
+  assert.equal(Object.keys(routeRequestFields).length, contractedRoutes.length,
+    'request contract registry must not contain stale or duplicate routes');
 });
