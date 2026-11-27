@@ -12,7 +12,7 @@ create table if not exists public.activity_events (
     'habit.checked','habit.unchecked',
     'learning.item_completed','learning.item_reopened','learning.study_logged',
     'review.submitted','review.reopened',
-    'practice.logged',
+    'practice.logged','practice.unlogged',
     'challenge.completed'
   ]::text[])),
   module text not null check (module = any (array[
@@ -161,6 +161,7 @@ begin
     when 'habit.unchecked' then 'habit.checked'
     when 'learning.item_reopened' then 'learning.item_completed'
     when 'review.reopened' then 'review.submitted'
+    when 'practice.unlogged' then 'practice.logged'
     else null
   end;
 
@@ -264,12 +265,13 @@ begin
     when 'review.submitted' then 'reviews_submitted'
     when 'review.reopened' then 'reviews_submitted'
     when 'practice.logged' then 'practices_logged'
+    when 'practice.unlogged' then 'practices_logged'
     else null
   end;
 
   if v_metric is not null then
     v_delta := case
-      when new.type in ('task.reopened','goal.reopened','goal.milestone_unreached','habit.unchecked','learning.item_reopened','review.reopened')
+      when new.type in ('task.reopened','goal.reopened','goal.milestone_unreached','habit.unchecked','learning.item_reopened','review.reopened','practice.unlogged')
         then case when v_reverses_key is null then 0 else -1 end
       else 1
     end;
@@ -471,6 +473,11 @@ begin
     union all
     select user_id,local_date,module,'practices_logged',1
       from public.activity_events where user_id=p_user_id and type='practice.logged'
+    union all
+    select original.user_id,original.local_date,original.module,'practices_logged',-1
+      from public.activity_events reversal join public.activity_events original
+        on original.user_id=reversal.user_id and original.event_key=reversal.payload->>'reversesEventKey'
+     where reversal.user_id=p_user_id and reversal.type='practice.unlogged'
     union all
     select user_id,local_date,module,'focus_minutes',greatest(0,coalesce((payload->>'minutes')::bigint,0))
       from public.activity_events where user_id=p_user_id and type='focus.ended'
