@@ -61,9 +61,14 @@ export function PwaUpdatePrompt() {
     const fields = Array.from(document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('input, textarea, select'));
     const hasUnsavedEdits = fields.some(field => {
       if (field instanceof HTMLInputElement && (field.type === 'checkbox' || field.type === 'radio')) return field.checked !== field.defaultChecked;
-      const initialValue = field instanceof HTMLSelectElement
-        ? (Array.from(field.options).find(option => option.defaultSelected)?.value ?? field.options[0]?.value ?? '')
-        : field.defaultValue;
+      let initialValue: string;
+      if (field instanceof HTMLSelectElement) {
+        initialValue = Array.from(field.options).find(option => option.defaultSelected)?.value ?? field.options[0]?.value ?? '';
+      } else if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+        initialValue = field.defaultValue;
+      } else {
+        return false;
+      }
       return field.value !== initialValue;
     }) || !!document.querySelector('[contenteditable="true"][data-dirty="true"]');
     if (hasUnsavedEdits) { queueForNextLaunch(); return; }
