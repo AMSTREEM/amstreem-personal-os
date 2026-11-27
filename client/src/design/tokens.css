@@ -66,6 +66,8 @@
 
 :root[data-theme^="light-"] {
   color-scheme: light;
+  --atlas-brand: #0E7490;
+  --atlas-brand-solid: #0E7490;
   --atlas-on-brand: #FFFFFF;
   --atlas-module-residence: #0E7490;
   --atlas-module-actions: #C2410C;
