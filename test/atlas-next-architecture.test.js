@@ -404,7 +404,7 @@ test('Atlas four-room navigation exposes the eight core views and keeps Qur’an
   assert.match(navigation, /label: 'Projects & Tasks'/);
   assert.match(navigation, /label: 'Goals & Milestones'/);
   assert.match(navigation, /label: 'Learning & Library'/);
-  assert.match(shell, /label: 'Reviews & Insights'/);
+  assert.match(navigation, /label: 'Reviews & Insights'/);
   assert.match(shell, /location\.pathname === '\/quran' \? \[\] :/);
   assert.match(shell, /to="\/quran"/);
   assert.match(app, /path="\/quran" element={<QuranPage \/>}/);
