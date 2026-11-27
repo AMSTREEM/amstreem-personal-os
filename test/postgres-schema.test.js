@@ -176,3 +176,54 @@ test('workspace history is private, visible in Atlas, and restores with a pre-re
   assert.match(app, /path="\/history"/);
   assert.match(shell, /Workspace history/);
 });
+
+
+test('shared API contracts validate common identifiers, dates, pagination and communication preferences', () => {
+  const contracts = require('../server/api-contracts');
+  assert.equal(contracts.positiveIdSchema.parse('42'), 42);
+  assert.equal(contracts.positiveIdSchema.safeParse('0').success, false);
+  assert.equal(contracts.dateKeySchema.safeParse('2026-11-27').success, true);
+  assert.equal(contracts.dateKeySchema.safeParse('27-11-2026').success, false);
+  assert.deepEqual(contracts.paginationQuerySchema.parse({}), { limit: 25, offset: 0 });
+  assert.equal(contracts.paginationQuerySchema.safeParse({ limit: 1000 }).success, false);
+  assert.equal(contracts.communicationStyleSchema.safeParse('advisor').success, true);
+  assert.equal(contracts.communicationStyleSchema.safeParse('unrestricted').success, false);
+});
+
+test('shared API validation middleware emits RFC-style problem responses and stores parsed values', () => {
+  const contracts = require('../server/api-contracts');
+  const middleware = contracts.validateRequest(contracts.paginationQuerySchema, 'query');
+  const req = { query: { limit: '10', offset: '5' } };
+  let nextCalled = false;
+  middleware(req, {}, () => { nextCalled = true; });
+  assert.equal(nextCalled, true);
+  assert.deepEqual(req.validated.query, { limit: 10, offset: 5 });
+
+  let response;
+  const invalidReq = { query: { limit: '5000' } };
+  const res = {
+    status(value) { response = { status: value }; return this; },
+    type(value) { response.contentType = value; return this; },
+    json(value) { response.body = value; return this; }
+  };
+  middleware(invalidReq, res, () => assert.fail('next must not run for invalid input'));
+  assert.equal(response.status, 400);
+  assert.equal(response.contentType, 'application/problem+json');
+  assert.equal(response.body.code, 'validation_error');
+  assert.ok(Array.isArray(response.body.errors));
+});
+
+test('shared API problem helper uses a stable problem-details envelope', () => {
+  const { sendProblem } = require('../server/api-contracts');
+  let response;
+  const res = {
+    status(value) { response = { status: value }; return this; },
+    type(value) { response.contentType = value; return this; },
+    json(value) { response.body = value; return this; }
+  };
+  sendProblem(res, { status: 404, title: 'Not Found', detail: 'Record not found.', code: 'not_found', instance: '/api/example/1' });
+  assert.equal(response.status, 404);
+  assert.equal(response.contentType, 'application/problem+json');
+  assert.equal(response.body.type, 'about:blank');
+  assert.equal(response.body.instance, '/api/example/1');
+});
