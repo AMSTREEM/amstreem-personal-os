@@ -43,6 +43,7 @@ export function SettingsPage() {
   const [name, setName] = useState('');
   const [northStar, setNorthStar] = useState('');
   const [target, setTarget] = useState('80');
+  const [timezone, setTimezone] = useState(() => Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Lagos');
   const [theme, setTheme] = useState('shadowed-alchemist');
   const [communicationStyle, setCommunicationStyle] = useState('adaptive');
   const [features, setFeatures] = useState<string[]>(['calendar','focus','rituals','selfcontrol','learning','library','deen']);
@@ -56,6 +57,7 @@ export function SettingsPage() {
       setName(settings.data.display_name || '');
       setNorthStar(settings.data.north_star || '');
       setTarget(settings.data.daily_target || '80');
+      setTimezone(settings.data.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Lagos');
       setTheme(settings.data.theme || 'shadowed-alchemist');
       setCommunicationStyle(settings.data.communication_style || 'adaptive');
       applyAtlasTheme(settings.data.theme || 'shadowed-alchemist');
@@ -64,7 +66,7 @@ export function SettingsPage() {
     }
   }, [settings.data]);
   const save = useMutation({
-    mutationFn: () => { applyAtlasTheme(theme); return api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), theme, features, life_areas: selectedLifeAreas, communication_style: communicationStyle })); },
+    mutationFn: () => { applyAtlasTheme(theme); return api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), timezone, theme, features, life_areas: selectedLifeAreas, communication_style: communicationStyle })); },
     onSuccess: () => { setMessage('Your preferences have been saved.'); void client.invalidateQueries({ queryKey: ['settings'] }); }
   });
   async function exportData() {
@@ -110,6 +112,7 @@ export function SettingsPage() {
           {communicationStyle === 'adaptive' && <p className="field__hint">Adaptive combination is selected: Atlas should read the context instead of repeating a fixed script.</p>}
         </Field>
         <Field label="Daily focus intention (minutes)"><TextInput type="number" min="10" max="600" value={target} onChange={event => setTarget(event.target.value)} /></Field>
+        <Field label="Time zone"><p className="field__hint">Atlas uses this IANA time zone to decide when your day begins and ends.</p><TextInput value={timezone} onChange={event => setTimezone(event.target.value)} placeholder="Africa/Lagos" /></Field>
         <Field label="Optional workspace views"><p className="field__hint">Your six core pillars always stay available. Turn secondary views on or off as your workspace needs change.</p><div className="settings-module-grid">{[{id:'calendar',name:'Calendar',desc:'A calendar view inside Projects & Tasks.'},{id:'library',name:'Personal Library',desc:'A library tab inside Learning Studio.'}].map(module => <label className="settings-module-choice" key={module.id}><input type="checkbox" checked={features.includes(module.id)} onChange={event => setFeatures(current => event.target.checked ? [...current,module.id] : current.filter(id => id !== module.id))} /><span><b>{module.name}</b><small>{module.desc}</small></span></label>)}</div></Field>
         <Field label="Micro-feedback"><label className="settings-module-choice"><input type="checkbox" checked={soundFeedback} onChange={event => { const enabled = event.target.checked; setSoundFeedback(enabled); try { localStorage.setItem('atlas-sound-feedback', enabled ? 'on' : 'off'); } catch { /* Optional audio. */ } if (enabled) primeAtlasAudio(); }} /><span><b>Subtle sound cues</b><small>Quiet 15ms ticks for task and prayer check-offs, plus a soft Focus completion chime. Off by default.</small></span></label></Field>
         <Field label="Accessibility"><label className="settings-module-choice"><input type="checkbox" checked={highContrast} onChange={event => setHighContrast(event.target.checked)} /><span><b>High-contrast interface</b><small>Strengthen borders and secondary text for easier reading on every Atlas screen.</small></span></label></Field>
