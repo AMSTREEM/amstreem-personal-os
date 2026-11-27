@@ -7,16 +7,12 @@ import { MotionConfig } from 'motion/react';
 import { App } from './App';
 import './styles.css';
 import './styles/atlas-rooms.css';
+import './styles/atlas-renaissance.css';
 import './design/tokens.css';
 import './design/themes.css';
 import './design/containment.css';
 import './design/shadcn-map.css';
 import './design/fx.css';
-import './design/shell.css';
-import './design/pages/home.css';
-import './design/pages/shared.css';
-import './design/pages/auth.css';
-import './design/pages/rooms.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
