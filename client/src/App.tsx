@@ -13,6 +13,8 @@ import { SignupThankYouPage } from './components/SignupThankYouPage';
 const TodayPage = lazy(() => import('./pages/TodayPage').then(module => ({ default: module.TodayPage })));
 const ResidenceV2Page = lazy(() => import('./pages/ResidenceV2Page').then(module => ({ default: module.ResidenceV2Page })));
 const DailyRhythmV2Page = lazy(() => import('./pages/DailyRhythmV2Page').then(module => ({ default: module.DailyRhythmV2Page })));
+const ExecutionV2Page = lazy(() => import('./pages/ExecutionV2Page').then(module => ({ default: module.ExecutionV2Page })));
+const CalendarV2Page = lazy(() => import('./pages/CalendarV2Page').then(module => ({ default: module.CalendarV2Page })));
 const BlueprintPage = lazy(() => import('./pages/BlueprintPage').then(module => ({ default: module.BlueprintPage })));
 const GoalsPage = lazy(() => import('./pages/GoalsPage').then(module => ({ default: module.GoalsPage })));
 const FocusWorkspace = lazy(() => import('./components/FocusWorkspace').then(module => ({ default: module.FocusWorkspace })));
@@ -59,10 +61,10 @@ export function App() {
       <Route path="/today" element={<LegacyRedirect to="/daily-rhythm" />} />
       <Route path="/values" element={<SuspendedPage><ValuesPage /></SuspendedPage>} />
       <Route path="/habits" element={<SuspendedPage><HabitsSelfControlView /></SuspendedPage>} />
-      <Route path="/actions" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>} />
+      <Route path="/actions" element={<SuspendedPage><ExecutionV2Page /></SuspendedPage>} />
       <Route path="/execution" element={<LegacyRedirect to="/actions" />} />
-      <Route path="/focus" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>} />
-      <Route path="/calendar" element={<SuspendedPage><CalendarPage /></SuspendedPage>} />
+      <Route path="/focus" element={<SuspendedPage><div className="atlas-v2 a-focus-room"><FocusWorkspace /></div></SuspendedPage>} />
+      <Route path="/calendar" element={<SuspendedPage><CalendarV2Page /></SuspendedPage>} />
       <Route path="/goals" element={<SuspendedPage><GoalsPage /></SuspendedPage>} />
       <Route path="/learning-library" element={<SuspendedPage><LearningLibraryView /></SuspendedPage>} />
       <Route path="/growth" element={<SuspendedPage><ReviewsInsightsView /></SuspendedPage>} />
