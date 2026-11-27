@@ -236,3 +236,15 @@ test('workspace history restore validates numeric IDs before handler without com
   assert.match(route, /validateRequest\(require\('zod'\)\.z\.object\(\{ id: positiveIdSchema \}\), 'params'\)/);
   assert.match(route, /req\.validated\.params\.id/);
 });
+
+
+test('API v1 aliases reuse legacy handlers while keeping Qur’an routes outside the versioned surface', () => {
+  const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
+  const alias = server.indexOf("app.use('/api/v1'");
+  const auth = server.indexOf("app.use('/api', async (req, res, next) =>");
+  assert.ok(alias > 0 && alias < auth);
+  const block = server.slice(alias, auth);
+  assert.match(block, /req\.url = '\/api' \+ req\.url/);
+  assert.match(block, /quran\(\?:/);
+  assert.match(block, /versioned_route_unavailable/);
+});
