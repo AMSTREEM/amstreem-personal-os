@@ -52,6 +52,7 @@ function summarizeBackup(backup, allowedTables) {
     summary[table] = rows.length;
   }
   for (const table of externalTables) {
+    if (!Object.prototype.hasOwnProperty.call(data, table)) continue;
     const rows = data[table] ?? [];
     if (!Array.isArray(rows)) throw new Error(`The ${table} section is invalid.`);
     summary[table] = rows.length;
