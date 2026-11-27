@@ -556,7 +556,7 @@ $$;
 -- Preserve existing XP exactly; these legacy awards do not originate from new events.
 insert into public.xp_ledger(user_id,event_key,source_event_key,category,points,local_date,awarded_at,is_legacy)
 select w.user_id,
-       'legacy:'||(x.value->>'event_key'),
+       'legacy:' || (x.value->>'event_key'),
        x.value->>'event_key',
        case lower(coalesce(x.value->>'category','legacy'))
          when 'weekly challenge' then 'challenge'
