@@ -14,6 +14,7 @@ import './design/shadcn-map.css';
 import './design/fx.css';
 import './design/shell.css';
 import './design/pages/home.css';
+import './design/pages/shared.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
