@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -21,3 +23,16 @@ jobs:
       - run: npm run typecheck
       - run: npm run build --ignore-scripts
       - run: npm test
+      - name: Protect Qur’an reader and Tajweed assets during Stage 0
+        if: github.event_name == 'pull_request' && github.head_ref == 'atlas-v2-implementation'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          changed_files="$(git diff --name-only "origin/${BASE_REF}...HEAD")"
+          protected_files="$(printf '%s\\n' "$changed_files" | grep -Ei '(^client/src/.*/?[^/]*(quran|tajweed)[^/]*\\.(tsx?|css)$|^client/src/(components/QuranMushafReader\\.tsx|pages/QuranPage\\.tsx)$|^(public|client/public)/fonts/|^test/[^/]*(quran|tajweed)[^/]*\\.test\\.js$)' || true)"
+          if [ -n "$protected_files" ]; then
+            echo "Stage 0 must not modify protected Qur’an reader or Tajweed files:"
+            printf '%s\\n' "$protected_files"
+            exit 1
+          fi
+          echo "Protected Qur’an reader and Tajweed files are unchanged."
