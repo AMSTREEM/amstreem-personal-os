@@ -425,7 +425,10 @@ test('PWA updates wait for user approval, never auto-reload, and exclude APIs an
   assert.doesNotMatch(worker, /clients\.forEach\(client => client\.navigate/);
   const installBlock = worker.slice(worker.indexOf("self.addEventListener('install'"), worker.indexOf("self.addEventListener('message'"));
   assert.doesNotMatch(installBlock, /skipWaiting/);
-  assert.match(prompt, /Apply next launch/);
+  assert.match(prompt, /Apply now/);
+  assert.match(prompt, /Next launch/);
+  assert.match(prompt, /hasUnsavedEdits/);
+  assert.match(prompt, /if \(hasUnsavedEdits\) \{ queueForNextLaunch\(\); return; \}/);
   assert.match(prompt, /ATLAS_ACTIVATE_UPDATE/);
   assert.match(main, /PwaUpdatePrompt/);
   const templateStart = worker.indexOf('.send(`') + 7;
