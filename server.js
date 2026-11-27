@@ -6,7 +6,7 @@ const { restoreBackup } = require('./workspace-backup');
 const { AsyncLocalStorage } = require('node:async_hooks');
 const crypto = require('node:crypto');
 const { commitWorkspaceSnapshot, createWorkspaceRequestHash } = require('./server/workspace-persistence');
-const { positiveIdSchema, validateRequest } = require('./server/api-contracts');
+const { positiveIdSchema, validateRequest, sendProblem } = require('./server/api-contracts');
 const { resolveAppEnvironment, checkEnvironmentMarker, requestLogger } = require('./server/runtime-guard');
 const app = express();
 app.disable('x-powered-by');
@@ -1149,6 +1149,16 @@ app.post('/api/auth/username-login', rateLimit({ max: 8, windowMs: 60_000, prefi
     return res.json({access_token:session.access_token,refresh_token:session.refresh_token});
   }catch(error){console.error('Username sign-in failed:',error.message);return res.status(503).json({error:'Username sign-in is temporarily unavailable. Please try your email address.'});}
 });
+// Versioned aliases share the exact same handlers and authentication path as legacy /api routes.
+// Qur'an endpoints remain on their protected legacy contract until separately versioned.
+app.use('/api/v1', (req, res, next) => {
+  if (/^\\/quran(?:\\/|$)/.test(req.path)) {
+    return sendProblem(res, { status: 404, title: 'Not Found', detail: 'The Qur’an API is not available under /api/v1.', code: 'versioned_route_unavailable', instance: req.originalUrl });
+  }
+  req.url = '/api' + req.url;
+  next();
+});
+
 app.use('/api', async (req, res, next) => {
   let release;
   let workspaceDb;
