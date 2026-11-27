@@ -7,7 +7,9 @@ const {
   ModuleManifestSchema,
   ProblemDetailsSchema,
   problemDetails,
-  IdempotencyKeySchema
+  IdempotencyKeySchema,
+  ApiJsonResponseSchema,
+  BootstrapResponseSchema
 } = require('../packages/contracts');
 
 test('problem details use the shared RFC 9457 application contract', () => {
@@ -65,4 +67,22 @@ test('module manifests are strict and use supported navigation groups', () => {
 test('idempotency keys have bounded lengths', () => {
   assert.equal(IdempotencyKeySchema.safeParse('atlas-test-key-123').success, true);
   assert.equal(IdempotencyKeySchema.safeParse('short').success, false);
+});
+
+test('shared API success responses are JSON objects or arrays', () => {
+  assert.equal(ApiJsonResponseSchema.safeParse({ ok: true }).success, true);
+  assert.equal(ApiJsonResponseSchema.safeParse([{ id: 1 }]).success, true);
+  assert.equal(ApiJsonResponseSchema.safeParse('unexpected scalar').success, false);
+});
+
+test('bootstrap response is a strict typed contract', () => {
+  const payload = {
+    user: { id: 'user_1', email: null, name: '', username: '' },
+    role: 'user',
+    today: '2026-11-27',
+    settings: {},
+    navigationBadges: {}
+  };
+  assert.equal(BootstrapResponseSchema.safeParse(payload).success, true);
+  assert.equal(BootstrapResponseSchema.safeParse({ ...payload, unexpected: true }).success, false);
 });
