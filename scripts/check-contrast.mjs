@@ -10,7 +10,7 @@ function parseTheme(name) {
   const block = css.match(selector)?.[1];
   if (!block) throw new Error(`Missing theme block: ${name}`);
   const values = {};
-  for (const token of ['bg', 'text', 'text-muted', 'text-faint']) {
+  for (const token of ['bg', 'surface-1', 'surface-2', 'surface-3', 'text', 'text-muted', 'text-faint']) {
     const match = block.match(new RegExp(`--a-${token}:\\s*oklch\\(([^)]+)\\)`));
     if (!match) throw new Error(`Missing --a-${token} in ${name}`);
     const parts = match[1].split(/\s+/).filter(Boolean).map(Number);
@@ -56,17 +56,19 @@ function contrast(a, b) {
 let failures = 0;
 for (const name of ['obsidian', 'dusk', 'ivory', 'sahara']) {
   const theme = parseTheme(name);
-  const background = oklchToRgb(theme.bg);
-  for (const token of ['text', 'text-muted', 'text-faint']) {
-    const ratio = contrast(background, oklchToRgb(theme[token]));
-    const pass = ratio >= 4.5;
-    console.log(`${pass ? 'PASS' : 'FAIL'} ${name} --a-${token}: ${ratio.toFixed(2)}:1`);
-    if (!pass) failures++;
+  for (const backgroundToken of ['bg', 'surface-1', 'surface-2', 'surface-3']) {
+    const background = oklchToRgb(theme[backgroundToken]);
+    for (const textToken of ['text', 'text-muted', 'text-faint']) {
+      const ratio = contrast(background, oklchToRgb(theme[textToken]));
+      const pass = ratio >= 4.5;
+      console.log(`${pass ? 'PASS' : 'FAIL'} ${name} --a-${textToken} on --a-${backgroundToken}: ${ratio.toFixed(2)}:1`);
+      if (!pass) failures++;
+    }
   }
 }
 if (failures) {
   console.error(`Contrast gate failed: ${failures} token pair(s) below WCAG AA 4.5:1.`);
   process.exitCode = 1;
 } else {
-  console.log('Contrast gate passed: all theme text tokens meet WCAG AA 4.5:1.');
+  console.log('Contrast gate passed: all text/surface combinations meet WCAG AA 4.5:1.');
 }
