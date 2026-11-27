@@ -1127,6 +1127,8 @@ async function writeWorkspaceSnapshot(userId, token, workspaceDb, expectedVersio
       if (latest.version === version) throw error;
       try {
         snapshot = replayWorkspaceMutation(baseSnapshot, snapshot, latest.data);
+        const validationDb = createWorkspaceDatabase(snapshot);
+        validationDb.close();
       } catch (replayError) {
         const conflict = new Error(replayError.message || 'This change conflicts with a newer workspace update.');
         conflict.code = 'VERSION_CONFLICT';
