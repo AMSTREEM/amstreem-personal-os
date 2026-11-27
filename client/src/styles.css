@@ -7375,3 +7375,48 @@ html, body, #root, .app-frame, .main-area, .page-container {
   color: var(--atlas-text-1);
 }
 .atlas-skip-link:focus { transform: translateY(0); }
+
+
+/* Command palette keyboard help */
+.command-shortcuts {
+  display: grid;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.command-shortcuts > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.command-shortcuts > div span { margin-left: auto; color: var(--subtle); }
+.command-shortcuts kbd {
+  min-width: 24px;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font: 600 10px var(--atlas-font-mono);
+  text-align: center;
+}
+@media (max-width: 767px) {
+  .sidebar--collapsed {
+    width: 270px;
+    padding: 28px 18px 18px;
+  }
+  .sidebar--collapsed .sidebar-brand { justify-content: flex-start; padding: 0 9px; }
+  .sidebar--collapsed .sidebar-brand > span,
+  .sidebar--collapsed .sidebar-caption,
+  .sidebar--collapsed .nav-group__label,
+  .sidebar--collapsed .room-nav-link > span,
+  .sidebar--collapsed .room-nav-link > kbd,
+  .sidebar--collapsed .nav-link--settings > span,
+  .sidebar--collapsed .profile-copy,
+  .sidebar--collapsed .profile-trigger > span:last-child { display: revert; }
+  .sidebar--collapsed .primary-nav { overflow: auto; }
+  .sidebar--collapsed .nav-link { justify-content: flex-start; gap: 12px; padding-right: 11px; padding-left: 11px; }
+  .sidebar--collapsed .profile-trigger { justify-content: flex-start; padding: 9px 7px; }
+}
