@@ -1,5 +1,5 @@
 const themeBackgrounds: Record<string, string> = {
-  'shadowed-alchemist': '#07080A',
+  'shadowed-alchemist': '#0A0E13',
   'nocturnal-amethyst': '#050408',
   'abyssal-trench': '#03060C',
   'whispering-woods': '#030806',
@@ -43,4 +43,22 @@ export function applyAtlasContrast(enabled: boolean) {
   const root = document.documentElement;
   root.setAttribute('data-contrast', enabled ? 'high' : 'normal');
   try { localStorage.setItem('atlas-high-contrast', enabled ? 'on' : 'off'); } catch {}
+}
+
+
+export type AtlasMotionPreference = 'system' | 'reduced' | 'full';
+
+export function getAtlasMotionPreference(): AtlasMotionPreference {
+  try {
+    const value = localStorage.getItem('atlas-motion-preference');
+    return value === 'reduced' || value === 'full' ? value : 'system';
+  } catch {
+    return 'system';
+  }
+}
+
+export function applyAtlasMotionPreference(preference: AtlasMotionPreference) {
+  document.documentElement.setAttribute('data-motion', preference);
+  try { localStorage.setItem('atlas-motion-preference', preference); } catch {}
+  window.dispatchEvent(new CustomEvent('atlas:motion-preference-change', { detail: preference }));
 }
