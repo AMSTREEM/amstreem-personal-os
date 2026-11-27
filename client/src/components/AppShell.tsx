@@ -204,7 +204,7 @@ export function AppShell() {
   const routeMeta = getAtlasRouteMeta(location.pathname);
   const isQuranRoute = routeMeta.frozen === true;
   const current = rooms.find(item => item.paths.includes(location.pathname));
-  const activeTabs = isQuranRoute ? [] : (current?.tabs || []);
+  const activeTabs = location.pathname === '/quran' ? [] : (current?.tabs || []);
   const activeView = activeTabs.find(tab => tab.paths.includes(location.pathname));
   useEffect(() => {
     if (focusActive && focusTimer.kind !== 'break') {
