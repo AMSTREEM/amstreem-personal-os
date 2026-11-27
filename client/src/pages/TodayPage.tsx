@@ -16,6 +16,7 @@ import { ArrowRight, BookOpen, CalendarDays, Flame, FolderKanban, Heart, MoonSta
 import { Link, useNavigate } from 'react-router-dom';
 import { api, json } from '../lib/api';
 import { queryKeys } from '../lib/queryKeys';
+// The calendar-summary cache key is preserved through queryKeys.calendarSummary().
 import { Card, EmptyState, PageHeader } from '../components/ui';
 import { useAuth } from '../auth/AuthProvider';
 
