@@ -75,3 +75,19 @@ test('migration runner refuses to run outside the isolated staging environment',
   assert.match(runner, /SUPABASE_DB_PASSWORD/);
   assert.match(runner, /skjxwzmpajdcrfacwoap/);
 });
+
+test("workspace commits use the signed-in user's token and enforce ownership in the database", () => {
+  const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
+  const migration = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations', '20261127194000_workspace_commit_authenticated_rpc.sql'), 'utf8');
+  const start = server.indexOf('async function commitWorkspaceSnapshot(');
+  const end = server.indexOf('async function writeWorkspaceSnapshot', start);
+  const commit = server.slice(start, end);
+  assert.match(commit, /commitWorkspaceSnapshot\(userId, token,/);
+  assert.match(commit, /apikey: supabaseConfig\.publishableKey/);
+  assert.match(commit, /Authorization: `Bearer \$\{token\}`/);
+  assert.doesNotMatch(commit, /supabaseAdminHeaders/);
+  assert.match(migration, /security definer/i);
+  assert.match(migration, /v_user_id is distinct from p_user_id/i);
+  assert.match(migration, /revoke all on function[\s\S]*from public, anon, service_role/i);
+  assert.match(migration, /to authenticated/i);
+});
