@@ -7620,3 +7620,10 @@ html, body { background: var(--atlas-bg); color: var(--atlas-text-1); }
   background: var(--module-accent, var(--atlas-brand));
   transform: translateX(-50%);
 }
+
+.atlas-update-toast > .atlas-update-toast__later {
+  border-color: var(--atlas-border);
+  background: transparent;
+  color: var(--atlas-text-2);
+}
+.atlas-update-toast > button:disabled { cursor: wait; opacity: .65; }
