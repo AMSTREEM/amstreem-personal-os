@@ -248,3 +248,28 @@ test('API v1 aliases reuse legacy handlers while keeping Qur’an routes outside
   assert.match(block, /quran\(\?:/);
   assert.match(block, /versioned_route_unavailable/);
 });
+
+
+test('API errors are normalised to problem details without removing legacy error fields or touching Qur’an responses', () => {
+  const { apiProblemResponses } = require('../server/api-errors');
+  let wrapped;
+  let response;
+  const req = { path: '/tasks' };
+  const res = {
+    statusCode: 400,
+    json(body) { response = body; return this; },
+    type(value) { this.contentType = value; return this; }
+  };
+  apiProblemResponses()(req, res, () => { wrapped = res.json; });
+  wrapped({ error: 'Choose a valid task priority.', code: 'invalid_priority' });
+  assert.equal(response.type, 'about:blank');
+  assert.equal(response.status, 400);
+  assert.equal(response.detail, 'Choose a valid task priority.');
+  assert.equal(response.error, 'Choose a valid task priority.');
+  assert.equal(res.contentType, 'application/problem+json');
+
+  let quranNext = false;
+  const quranRes = { json(body) { return body; } };
+  apiProblemResponses()({ path: '/quran/page/1' }, quranRes, () => { quranNext = true; });
+  assert.equal(quranNext, true);
+});
