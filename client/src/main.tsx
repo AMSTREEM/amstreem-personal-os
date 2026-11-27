@@ -12,6 +12,8 @@ import './design/themes.css';
 import './design/containment.css';
 import './design/shadcn-map.css';
 import './design/fx.css';
+import './design/shell.css';
+import './design/pages/home.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,4 +31,3 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </MotionConfig>
   </React.StrictMode>
 );
-import './design/shell.css';
