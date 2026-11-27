@@ -4,7 +4,7 @@ const { z } = require('zod');
 
 const bodyKeys = [
   'admin_tradition', 'all', 'all_day', 'author', 'ayah_end', 'ayah_start', 'body',
-  'category', 'completed', 'content', 'date', 'description', 'detail',
+  'category', 'completed', 'content', 'date', 'description', 'detail', 'wins', 'challenges', 'lessons', 'next_focus', 'intention', 'priority_task_ids', 'alignment_complete', 'shutdown_complete', 'daily_target', 'display_name', 'north_star', 'leaderboard_name', 'leaderboard_public', 'sidebar_collapsed', 'hifz_page', 'hifz_bookmark', 'murajaah_page', 'murajaah_bookmark',
   'distractions', 'done', 'due_date', 'emoji', 'end_at', 'faith_tradition',
   'features', 'focus', 'goal_id', 'horizon', 'item_type', 'juz', 'kind',
   'lesson_id', 'life_areas', 'log_date', 'message', 'metadata', 'minutes',
@@ -43,17 +43,21 @@ const BackupEnvelopeSchema = z.object({
 }).strict();
 const LegacyBackupSchema = z.object(optionalUnknownShape(legacyImportKeys)).strict();
 const bodyShape = optionalUnknownShape(bodyKeys);
-const strings = ['title','detail','body','description','message','name','username','password','subject','url','author','notes','note','reflection','focus','category','type','item_type','status','kind','horizon','session_kind','record_type','activity','religion','faith_tradition','admin_tradition','theme','symbol','emoji','surah','date','log_date','record_date','due_date','target_date','start_date','start_at','end_at','session_date','period_start','period_end','period_type','session_key','trigger','response','signal','recommendationId'];
+const strings = ['wins','challenges','lessons','next_focus','intention','display_name','north_star','leaderboard_name','hifz_bookmark','murajaah_bookmark','title','detail','body','description','message','name','username','password','subject','url','author','notes','note','reflection','focus','category','type','item_type','status','kind','horizon','session_kind','record_type','activity','religion','faith_tradition','admin_tradition','theme','symbol','emoji','surah','date','log_date','record_date','due_date','target_date','start_date','start_at','end_at','session_date','period_start','period_end','period_type','session_key','trigger','response','signal','recommendationId'];
 for (const key of strings) bodyShape[key] = z.union([z.string().max(10000), z.null()]).optional();
 const ids = ['goal_id','project_id','task_id','lesson_id','parent_task_id'];
 for (const key of ids) bodyShape[key] = z.union([z.string(), z.number().int(), z.null()]).optional();
-const numbers = ['minutes','priority','pages','juz','ayah_start','ayah_end','urge_level'];
+const numbers = ['minutes','priority','pages','juz','ayah_start','ayah_end','urge_level','daily_target','hifz_page','murajaah_page'];
 for (const key of numbers) bodyShape[key] = z.union([z.number().finite(), z.string().regex(/^\\d+(?:\\.\\d+)?$/)]).optional();
-const booleans = ['completed','done','all_day','on_time','woke_up','prayed'];
+const booleans = ['completed','done','all_day','on_time','woke_up','prayed','alignment_complete','shutdown_complete','leaderboard_public','sidebar_collapsed'];
 for (const key of booleans) bodyShape[key] = z.union([z.boolean(), z.number().int().min(0).max(1)]).optional();
 bodyShape.distractions = z.array(z.unknown()).optional();
 bodyShape.metadata = z.record(z.string(), z.unknown()).optional();
 bodyShape.userIds = z.array(z.string()).optional();
+bodyShape.features = z.array(z.string()).optional();
+bodyShape.life_areas = z.array(z.string()).optional();
+bodyShape.widgets = z.record(z.string(), z.unknown()).optional();
+bodyShape.priority_task_ids = z.union([z.array(z.union([z.string(), z.number().int()])), z.string()]).optional();
 const BodySchema = z.object(bodyShape).strict();
 const QuerySchema = z.object({
   date: z.string().max(40).optional(),
