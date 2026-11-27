@@ -47,3 +47,10 @@ test('rejects colliding concurrent inserts and deletes of remotely changed rows'
   const remoteEdit = snapshot({ goals: [{ id: 2, title: 'Changed elsewhere' }] });
   assert.throws(() => replayWorkspaceMutation(baseDelete, localDelete, remoteEdit), /request deleted it/);
 });
+
+test('rejects collisions on composite SQLite unique constraints', () => {
+  const base = snapshot({ habit_logs: [] });
+  const local = snapshot({ habit_logs: [{ id: 10, habit_id: 4, log_date: '2026-11-27' }] });
+  const latest = snapshot({ habit_logs: [{ id: 11, habit_id: 4, log_date: '2026-11-27' }] });
+  assert.throws(() => replayWorkspaceMutation(base, local, latest), /unique record key/);
+});
