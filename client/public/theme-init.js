@@ -1,26 +1,21 @@
 (function () {
   try {
-    var theme = localStorage.getItem('atlas_theme');
-    var dark = ['shadowed-alchemist', 'nocturnal-amethyst', 'abyssal-trench', 'whispering-woods', 'crimson-velvet'];
-    var backgrounds = {
-      'shadowed-alchemist': '#07080A',
-      'nocturnal-amethyst': '#050408',
-      'abyssal-trench': '#03060C',
-      'whispering-woods': '#030806',
-      'crimson-velvet': '#080304',
-      'light-porcelain': '#F5F6F3',
-      'light-sandstone': '#F6F0E7',
-      'light-sage': '#EFF4EF',
-      'light-lavender': '#F4F1F8',
-      'light-sky': '#EFF5F9'
+    var stored = localStorage.getItem('atlas.theme');
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var themes = {
+      obsidian: { legacy: 'shadowed-alchemist', scheme: 'dark', color: '#0a0c11' },
+      dusk: { legacy: 'nocturnal-amethyst', scheme: 'dark', color: '#0e0d1c' },
+      ivory: { legacy: 'light-porcelain', scheme: 'light', color: '#fcfaf6' },
+      sahara: { legacy: 'light-sandstone', scheme: 'light', color: '#fdf4e7' }
     };
-    if (theme && backgrounds[theme]) {
-      var root = document.documentElement;
-      root.setAttribute('data-theme', theme);
-      root.style.colorScheme = dark.indexOf(theme) >= 0 ? 'dark' : 'light';
-      var meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.setAttribute('content', backgrounds[theme]);
-      root.style.backgroundColor = backgrounds[theme];
-    }
+    var theme = Object.prototype.hasOwnProperty.call(themes, stored) ? stored : (prefersDark ? 'obsidian' : 'ivory');
+    var config = themes[theme];
+    var root = document.documentElement;
+    root.setAttribute('data-a-theme', theme);
+    root.setAttribute('data-theme', config.legacy);
+    root.style.colorScheme = config.scheme;
+    root.style.backgroundColor = config.color;
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', config.color);
   } catch (_) {}
 })();
