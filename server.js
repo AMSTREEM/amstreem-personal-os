@@ -1243,12 +1243,12 @@ app.post('/api/auth/username-login', rateLimit({ max: 8, windowMs: 60_000, prefi
   const username=String(req.body?.username||'').trim().replace(/^@/,'').toLowerCase();
   const password=String(req.body?.password||'');
   if(!/^[a-z0-9_]{3,24}$/.test(username)||!password||password.length>256) return res.status(400).json({error:'Enter a valid username and password.'});
-  const key=process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!key)return res.status(503).json({error:'Username sign-in is temporarily unavailable. Please use your email address.'});
+  const adminHeaders=supabaseAdminHeaders();
+  if(!adminHeaders)return res.status(503).json({error:'Username sign-in is temporarily unavailable. Please use your email address.'});
   try {
     let page=1,matches=[],more=true;
     while(more&&page<=100){
-      const listing=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
+      const listing=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:adminHeaders});
       if(!listing.ok)throw new Error('Account lookup unavailable.');
       const payload=await listing.json(),batch=payload.users||[];
       matches.push(...batch.filter(user=>username==='admin'?user.id===ownerUserId:String(user.user_metadata?.username||'').toLowerCase()===username));
@@ -1256,7 +1256,7 @@ app.post('/api/auth/username-login', rateLimit({ max: 8, windowMs: 60_000, prefi
     }
     if(matches.length!==1||!matches[0].email)return res.status(401).json({error:'Invalid username or password.'});
     if(username==='admin'&&String(matches[0].user_metadata?.username||'').toLowerCase()!=='admin'){
-      const updated=await fetch(`${supabaseConfig.url}/auth/v1/admin/users/${matches[0].id}`,{method:'PUT',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({user_metadata:{...(matches[0].user_metadata||{}),username:'admin'}})});
+      const updated=await fetch(`${supabaseConfig.url}/auth/v1/admin/users/${matches[0].id}`,{method:'PUT',headers:{...adminHeaders,'Content-Type':'application/json'},body:JSON.stringify({user_metadata:{...(matches[0].user_metadata||{}),username:'admin'}})});
       if(!updated.ok)throw new Error('Could not configure the administrator username.');
     }
     const auth=await fetch(`${supabaseConfig.url}/auth/v1/token?grant_type=password`,{method:'POST',headers:{apikey:supabaseConfig.publishableKey,'Content-Type':'application/json'},body:JSON.stringify({email:matches[0].email,password})});
@@ -1433,11 +1433,11 @@ app.post('/api/announcements/:id/read',async(req,res)=>{try{const id=Number(req.
 app.post('/api/login-event',(req,res)=>{const date=dateKey();const last=one('SELECT login_date FROM login_events ORDER BY id DESC LIMIT 1');if(last?.login_date!==date)db.prepare('INSERT INTO login_events(login_date) VALUES(?)').run(date);res.json({ok:true});});
 app.get('/api/leaderboard',async(q,s)=>{
  try{
-  const key=process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!key)return s.status(503).json({error:'The leaderboard is temporarily unavailable.'});
+  const adminHeaders=supabaseAdminHeaders();
+  if(!adminHeaders)return s.status(503).json({error:'The leaderboard is temporarily unavailable.'});
   const [workspaceResponse,xpResponse]=await Promise.all([
-   fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=user_id,data`,{headers:{apikey:key,Authorization:`Bearer ${key}`}}),
-   fetch(`${supabaseConfig.url}/rest/v1/xp_ledger?select=user_id,points,local_date&order=awarded_at.asc&limit=10000`,{headers:{apikey:key,Authorization:`Bearer ${key}`}})
+   fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=user_id,data`,{headers:adminHeaders}),
+   fetch(`${supabaseConfig.url}/rest/v1/xp_ledger?select=user_id,points,local_date&order=awarded_at.asc&limit=10000`,{headers:adminHeaders})
   ]);
   if(!workspaceResponse.ok||!xpResponse.ok)throw new Error('Could not read leaderboard totals.');
   const rows=await workspaceResponse.json(),xpRows=await xpResponse.json(),month=dateKey().slice(0,7),members=[],history={},byUser=new Map();
@@ -1463,9 +1463,9 @@ app.get('/api/leaderboard',async(q,s)=>{
 });
 app.get('/api/admin/analytics',async(req,res)=>{
  try {
-  const key=process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!key)return res.status(503).json({error:'Admin analytics are not configured.'});
-  const response=await fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=user_id,data`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
+  const adminHeaders=supabaseAdminHeaders();
+  if(!adminHeaders)return res.status(503).json({error:'Admin analytics are not configured.'});
+  const response=await fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=user_id,data`,{headers:adminHeaders});
   if(!response.ok)throw new Error('Could not load aggregate workspace activity.');
   const rows=await response.json(),today=dateKey(),toDate=s=>new Date(s+'T12:00:00');
   const addDays=(date,n)=>{const d=toDate(date);d.setDate(d.getDate()+n);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
@@ -1477,43 +1477,43 @@ app.get('/api/admin/analytics',async(req,res)=>{
 });
 app.get('/api/admin/users',async(req,res)=>{
  try {
-  const key=process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!key)return res.status(503).json({error:'Admin directory is not configured. Add SUPABASE_SECRET_KEY to the server environment.'});
+  const adminHeaders=supabaseAdminHeaders();
+  if(!adminHeaders)return res.status(503).json({error:'Admin directory is not configured. Add SUPABASE_SECRET_KEY to the server environment.'});
   let page=1,users=[],more=true;
-  while(more&&page<=100){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});if(!r.ok)throw new Error('Could not retrieve the account directory.');const payload=await r.json();const batch=payload.users||[];users.push(...batch);more=batch.length===100;page++;}
+  while(more&&page<=100){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:adminHeaders});if(!r.ok)throw new Error('Could not retrieve the account directory.');const payload=await r.json();const batch=payload.users||[];users.push(...batch);more=batch.length===100;page++;}
   res.json({email_configured:!!(process.env.RESEND_API_KEY&&process.env.EMAIL_FROM),users:users.map(u=>({id:u.id,name:String(u.user_metadata?.full_name||u.user_metadata?.name||'—').slice(0,80),username:String(u.user_metadata?.username||'').slice(0,30),email:u.email||'',created_at:u.created_at||null,email_confirmed:!!u.email_confirmed_at,thank_you_sent_at:u.app_metadata?.personal_os_thank_you?.status==='sent'?u.app_metadata.personal_os_thank_you.sent_at:null,thank_you_status:u.app_metadata?.personal_os_thank_you?.status||'not_sent'})).sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''))});
  } catch(e){res.status(502).json({error:e.message||'Could not load users.'})}
 });
 app.post('/api/admin/thank-you',async(req,res)=>{
  try {
-  const key=process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!key)return res.status(503).json({error:'Admin directory is not configured.'});
+  const adminHeaders=supabaseAdminHeaders();
+  if(!adminHeaders)return res.status(503).json({error:'Admin directory is not configured.'});
   if(!process.env.RESEND_API_KEY||!process.env.EMAIL_FROM)return res.status(503).json({error:'Thank-you email is not activated yet. Configure RESEND_API_KEY and EMAIL_FROM in Render.'});
   const subject=String(req.body.subject||'Thank you for using Amstreem Atlas').trim().slice(0,120);
   const message=String(req.body.message||'Thank you for being part of Amstreem Atlas. I appreciate you giving the system a place in your daily life.').trim().slice(0,4000);
   if(!message)return res.status(400).json({error:'Write a message first.'});
   let recipients=[];
-  if(req.body.all===true||Array.isArray(req.body.userIds)){let page=1,more=true;while(more&&page<=100){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});if(!r.ok)throw new Error('Could not retrieve recipients.');const batch=(await r.json()).users||[];recipients.push(...batch);more=batch.length===100;page++;}}
+  if(req.body.all===true||Array.isArray(req.body.userIds)){let page=1,more=true;while(more&&page<=100){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:adminHeaders});if(!r.ok)throw new Error('Could not retrieve recipients.');const batch=(await r.json()).users||[];recipients.push(...batch);more=batch.length===100;page++;}}
   else return res.status(400).json({error:'Choose recipients.'});
   if(Array.isArray(req.body.userIds)){const ids=new Set(req.body.userIds.filter(x=>typeof x==='string'));recipients=recipients.filter(u=>ids.has(u.id));}
   const eligible=recipients.filter(u=>u.email&&u.id!==ownerUserId);
   const targets=eligible.filter(u=>['not_sent','failed',undefined].includes(u.app_metadata?.personal_os_thank_you?.status));
   let sent=0,failed=0,pending=0,skippedAlreadySent=eligible.filter(u=>u.app_metadata?.personal_os_thank_you?.status==='sent').length,skippedPending=eligible.filter(u=>u.app_metadata?.personal_os_thank_you?.status==='pending').length;
   const escapeHtml=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const updateMailStatus=async(user,status,extra={})=>{const metadata={...(user.app_metadata||{}),personal_os_thank_you:{status,...extra}};const response=await fetch(`${supabaseConfig.url}/auth/v1/admin/users/${encodeURIComponent(user.id)}`,{method:'PUT',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({app_metadata:metadata})});if(!response.ok)throw new Error('Could not save recipient email status.');user.app_metadata=metadata;};
+  const updateMailStatus=async(user,status,extra={})=>{const metadata={...(user.app_metadata||{}),personal_os_thank_you:{status,...extra}};const response=await fetch(`${supabaseConfig.url}/auth/v1/admin/users/${encodeURIComponent(user.id)}`,{method:'PUT',headers:{...adminHeaders,'Content-Type':'application/json'},body:JSON.stringify({app_metadata:metadata})});if(!response.ok)throw new Error('Could not save recipient email status.');user.app_metadata=metadata;};
   for(const user of targets){try{await updateMailStatus(user,'pending',{started_at:new Date().toISOString()});const name=escapeHtml(user.user_metadata?.full_name||'there'),body=escapeHtml(message).replace(/\n/g,'<br>');const result=await sendResendEmail(user.email,subject,`<div style="font-family:Arial,sans-serif;line-height:1.7;color:#222"><p>Hello ${name},</p><p>${body}</p><p>— Amstreem Atlas</p></div>`);try{await updateMailStatus(user,'sent',{sent_at:new Date().toISOString(),email_id:result?.id||null});sent++;}catch(markError){pending++;console.error('Email sent but status update is pending:',markError.message);}}catch(e){failed++;console.error('Thank-you email failed:',e.message);try{await updateMailStatus(user,'failed',{failed_at:new Date().toISOString()});}catch(markError){pending++;console.error('Could not update failed email status:',markError.message);}}}
   res.json({sent,failed,pending,skippedAlreadySent,skippedPending,total:targets.length});
  }catch(e){res.status(502).json({error:e.message||'Could not send emails.'})}
 });
 app.post('/api/admin/thank-you/mark-sent',async(req,res)=>{
  try{
-  const key=process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!key)return res.status(503).json({error:'Admin directory is not configured.'});
+  const adminHeaders=supabaseAdminHeaders();
+  if(!adminHeaders)return res.status(503).json({error:'Admin directory is not configured.'});
   if(!Array.isArray(req.body.userIds)||!req.body.userIds.length)return res.status(400).json({error:'Select accounts to mark as sent.'});
   const ids=new Set(req.body.userIds.filter(x=>typeof x==='string'));let users=[],page=1,more=true;
-  while(more&&page<=100){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});if(!r.ok)throw new Error('Could not retrieve recipients.');const batch=(await r.json()).users||[];users.push(...batch);more=batch.length===100;page++;}
+  while(more&&page<=100){const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users?page=${page}&per_page=100`,{headers:adminHeaders});if(!r.ok)throw new Error('Could not retrieve recipients.');const batch=(await r.json()).users||[];users.push(...batch);more=batch.length===100;page++;}
   const targets=users.filter(u=>ids.has(u.id)&&u.email&&u.id!==ownerUserId&&u.app_metadata?.personal_os_thank_you?.status!=='sent');let marked=0;
-  for(const user of targets){const metadata={...(user.app_metadata||{}),personal_os_thank_you:{status:'sent',sent_at:new Date().toISOString(),manually_marked:true}};const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users/${encodeURIComponent(user.id)}`,{method:'PUT',headers:{apikey:key,Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({app_metadata:metadata})});if(!r.ok)throw new Error('Could not save a recipient status.');marked++;}
+  for(const user of targets){const metadata={...(user.app_metadata||{}),personal_os_thank_you:{status:'sent',sent_at:new Date().toISOString(),manually_marked:true}};const r=await fetch(`${supabaseConfig.url}/auth/v1/admin/users/${encodeURIComponent(user.id)}`,{method:'PUT',headers:{...adminHeaders,'Content-Type':'application/json'},body:JSON.stringify({app_metadata:metadata})});if(!r.ok)throw new Error('Could not save a recipient status.');marked++;}
   res.json({marked});
  }catch(e){res.status(502).json({error:e.message||'Could not update recipient statuses.'});}
 });
