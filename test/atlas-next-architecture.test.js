@@ -47,21 +47,24 @@ test('project, task, calendar, focus and review records can be linked', () => {
   assert.match(server, /study_minutes:studyMinutes/);
 });
 
-test('six primary destinations and personal life areas shape the Atlas workspace', () => {
+test('nine manifest-driven module destinations and personal life areas shape the Atlas workspace', () => {
   const shell = read('client/src/components/AppShell.tsx');
+  const registry = read('client/src/design/module-registry.ts');
   const settings = read('client/src/pages/SettingsPage.tsx');
   const server = read('server.js');
-  for (const destination of ['Home', 'Actions', 'Goals', 'Focus', 'Growth', 'Calendar']) {
-    assert.ok(shell.includes("label: '" + destination + "'"), 'Missing destination ' + destination);
+  for (const destination of ['Residence', 'Actions', 'Goals', 'Calendar', 'Habits', 'Learning Library', 'Growth', 'Values', 'Qur’an']) {
+    assert.ok(registry.includes("label: '" + destination + "'"), 'Missing destination ' + destination);
   }
-  assert.match(shell, /const rooms = \[/);
-  assert.match(shell, /\^\[1-6\]\$/);
+  assert.match(registry, /atlasModules: AtlasModuleManifest/);
+  assert.match(registry, /atlasNavigationGroups/);
+  assert.match(registry, /protected: true/);
+  assert.match(shell, /navigationGroups\.map/);
   assert.match(shell, /atlas-mobile-dock/);
   assert.match(shell, /to="\/quran"/);
-  assert.match(shell, /PERSONAL TOOLS/);
   assert.match(shell, /<span>Qur’an<\/span>/);
   assert.match(shell, /YOUR LIFE AREAS/);
   assert.match(shell, /lifeAreaNames/);
+  assert.match(shell, /destinations = \[\.\.\.rooms, quranDestination\]/);
   assert.match(settings, /Your life areas/);
   assert.match(settings, /life_areas: selectedLifeAreas/);
   assert.match(server, /'life_areas'/);
@@ -245,28 +248,24 @@ test('Web Audio micro-feedback is zero-dependency, opt-in, quiet and tied to che
   assert.match(read('client/src/pages/ValuesPage.tsx'), /playAtlasFeedback\('tick'\)/);
 });
 
-test('first-run walkthrough explains the six Atlas destinations and personal life areas', () => {
+test('first-run setup and guided tour explain the unified Atlas shell', () => {
   const tour = read('client/src/components/AtlasWalkthrough.tsx');
+  const onboarding = read('client/src/components/AtlasOnboarding.tsx');
   const shell = read('client/src/components/AppShell.tsx');
   const residence = read('client/src/pages/TodayPage.tsx');
-  assert.equal((tour.match(/title: '/g) || []).length, 7);
-  assert.match(tour, /Start with Home/);
-  assert.match(tour, /⌘ 6 · Calendar/);
-  assert.match(tour, /Choose the life areas you want to work on/);
-  assert.match(tour, /Today’s priorities/);
-  assert.match(tour, /Upcoming commitments/);
-  assert.match(tour, /Life-area context/);
-  assert.match(tour, /UNDERSTAND WHERE YOU ARE/);
-  assert.match(tour, /Qur’an, Learning Library and faith practices/);
-  assert.match(tour, /Measurable outcomes/);
-  assert.match(tour, /Focus timer · Study sessions/);
-  assert.match(tour, /Progress evidence/);
-  assert.match(tour, /Daily and weekly schedules/);
-  assert.match(tour, /Learning/);
-  assert.match(tour, /Reviews · Progress evidence/);
-  assert.match(tour, /PERSONAL BY DESIGN/);
+  assert.equal((tour.match(/title: '/g) || []).length, 6);
+  assert.match(tour, /Start with Residence/);
+  assert.match(tour, /g 4 · Calendar/);
+  assert.match(tour, /g 9 · Qur’an/);
+  assert.match(tour, /Six quick stops/);
+  assert.match(tour, /Ctrl\/⌘ \+ K/);
   assert.match(tour, /navigate\(stepRoutes\[index\]\)/);
   assert.match(tour, /onOpenCommand\?\.\(\)/);
+  assert.match(onboarding, /Where should Atlas anchor your day/);
+  assert.match(onboarding, /What is one outcome that matters/);
+  assert.match(onboarding, /What small routine will support it/);
+  assert.match(onboarding, /\/onboarding/);
+  assert.match(shell, /onboardingOpen && <AtlasOnboarding/);
   assert.match(shell, /onOpenCommand=\{\(\) => \{ setCommandOpen\(true\);/);
   assert.match(residence, /Good \$\{rhythm/);
 });
@@ -374,7 +373,7 @@ test('Qur’an is a standalone workspace and no longer renders inside Deen', () 
   assert.match(quran, /autoOpen/);
   assert.ok(app.includes('path="/quran" element={<QuranPage />}'));
   assert.match(shell, /to="\/quran"/);
-  assert.match(shell, /PERSONAL TOOLS/);
+  assert.match(shell, /data-module="quran"/);
   assert.ok(!shell.includes('/values?openMushaf=1'));
   assert.match(shell, /faithTabLabel = quickReligion === 'islam' \? 'Deen'/);
 });
