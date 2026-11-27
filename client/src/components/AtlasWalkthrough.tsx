@@ -106,7 +106,7 @@ export function AtlasWalkthrough({ onClose, onOpenCommand }: Props) {
         <aside className="atlas-tour__intro">
           <span className="atlas-tour__eyebrow">A GUIDED INTRODUCTION</span>
           <h2>Make room for what matters.</h2>
-          <p>Seven quick stops to see how Atlas helps you choose direction, take action and make meaningful progress.</p>
+          <p>Six quick stops to see how Atlas helps you choose direction, take action and make meaningful progress.</p>
           <div className="atlas-tour__progress" aria-label={`Step ${index + 1} of ${steps.length}`}><i style={{ width: `${((index + 1) / steps.length) * 100}%` }} /></div>
           <nav className="atlas-tour__nav" aria-label="Walkthrough steps">
             {steps.map((item, i) => <button key={item.label} type="button" aria-label={`Go to step ${i + 1}: ${item.title}`} aria-current={i === index ? 'step' : undefined} onClick={() => setIndex(i)}>{String(i + 1).padStart(2, '0')}</button>)}
