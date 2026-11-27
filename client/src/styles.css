@@ -7542,7 +7542,7 @@ html, body { background: var(--atlas-bg); color: var(--atlas-text-1); }
 .atlas-onboarding-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 120;
+  z-index: 180;
   display: grid;
   place-items: center;
   padding: 20px;
