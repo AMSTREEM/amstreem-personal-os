@@ -269,7 +269,7 @@ test('Room 3 has a dedicated Focus Room with safe context handoffs and a persist
   const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
   assert.ok(app.includes('path="/actions" element={<SuspendedPage><ExecutionV2Page /></SuspendedPage>}'));
-  assert.ok(app.includes('path="/focus" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>}'));
+  assert.ok(app.includes('path="/focus" element={<SuspendedPage><div className="atlas-v2 a-focus-room"><FocusWorkspace /></div></SuspendedPage>}'));
   assert.ok(shell.includes("paths: ['/actions', '/focus', '/calendar']"));
   assert.ok(shell.includes("label: 'Projects & Tasks', to: '/actions'"));
   assert.match(shell, /navigate\('\/focus'\)/);
