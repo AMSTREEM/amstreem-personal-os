@@ -3,21 +3,39 @@ import { supabase } from './supabase';
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const { data: { session } } = await supabase.auth.getSession();
   const headers = new Headers(init.headers);
+  const method = (init.method || 'GET').toUpperCase();
+  const isMutation = !['GET', 'HEAD', 'OPTIONS'].includes(method);
+  const pathOnly = path.split('?')[0];
+  const retrySafe = isMutation && !/^\/(?:admin(?:\/|$)|welcome(?:\/|$)|feedback(?:\/|$)|announcements(?:\/|$)|import(?:\/|$)|auth(?:\/|$))/.test(pathOnly);
+
   if (init.body && !(init.body instanceof FormData) && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
   if (session?.access_token) headers.set('Authorization', 'Bearer ' + session.access_token);
-  const response = await fetch('/api' + path, { ...init, headers });
-  if (!response.ok) {
-    let message = 'Something went wrong. Please try again.';
-    try {
-      const payload = await response.json();
-      if (payload?.error) message = payload.error;
-    } catch { /* Keep the fallback message. */ }
-    throw new Error(message);
+
+  if (isMutation && !headers.has('Idempotency-Key')) {
+    headers.set('Idempotency-Key', crypto.randomUUID());
   }
-  if (response.status === 204) return undefined as T;
-  return response.json() as Promise<T>;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const response = await fetch('/api' + path, { ...init, headers });
+    if (response.ok) {
+      if (response.status === 204) return undefined as T;
+      return response.json() as Promise<T>;
+    }
+
+    let payload: { error?: string; code?: string } | null = null;
+    try {
+      payload = await response.json();
+    } catch { /* Keep the fallback message. */ }
+
+    if (response.status === 409 && payload?.code === 'version_conflict' && retrySafe && attempt < 2) {
+      continue;
+    }
+    throw new Error(payload?.error || 'Something went wrong. Please try again.');
+  }
+
+  throw new Error('Your workspace changed repeatedly while saving. Please retry.');
 }
 
 export const json = (method: string, body?: unknown): RequestInit => ({
