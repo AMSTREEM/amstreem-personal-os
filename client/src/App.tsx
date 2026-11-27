@@ -12,6 +12,7 @@ import { ValuesPage } from './pages/ValuesPage';
 import { QuranPage } from './pages/QuranPage';
 import { HabitsSelfControlView, LearningLibraryView, ReviewsInsightsView } from './pages/ConsolidatedViews';
 import { SettingsPage } from './pages/SettingsPage';
+import { HistoryPage } from './pages/HistoryPage';
 import { AdminPage } from './pages/AdminPage';
 import { PasswordRecoveryPage } from './pages/PasswordRecoveryPage';
 import { SignupThankYouPage } from './components/SignupThankYouPage';
@@ -59,6 +60,7 @@ export function App() {
       <Route path="/learning" element={<LegacyRedirect to="/goals" />} />
       <Route path="/library" element={<LegacyRedirect to="/learning-library" />} />
       <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/history" element={<HistoryPage />} />
       <Route path="/admin" element={role === "admin" ? <AdminPage /> : <Navigate to="/today" replace />} />
       <Route path="*" element={<Navigate to="/today" replace />} />
     </Route>
