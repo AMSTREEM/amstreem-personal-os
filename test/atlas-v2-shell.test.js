@@ -34,3 +34,17 @@ test('Atlas v2 shell is responsive and uses namespaced design tokens', () => {
   assert.match(css, /var\(--a-bg\)/);
   assert.match(css, /var\(--a-surface-1\)/);
 });
+
+test('appearance settings apply the four Atlas themes and migrate legacy saved palettes', () => {
+  const shell = read('client/src/components/AtlasV2Shell.tsx');
+  const settings = read('client/src/pages/SettingsPage.tsx');
+  const theme = read('client/src/design/theme.ts');
+  for (const id of ['obsidian', 'dusk', 'ivory', 'sahara']) {
+    assert.ok(theme.includes(id), 'missing Atlas theme: ' + id);
+    assert.ok(settings.includes("id: '" + id + "'"), 'settings picker missing Atlas theme: ' + id);
+  }
+  assert.match(shell, /isAtlasTheme\(savedTheme\)/);
+  assert.match(settings, /applyAtlasTheme\(resolvedTheme\)/);
+  assert.match(settings, /legacyThemeMap/);
+  assert.doesNotMatch(settings, /function applyTheme\(/);
+});
