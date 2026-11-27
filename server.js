@@ -1829,6 +1829,32 @@ app.post('/api/import',(q,s)=>{
   s.status(400).json({error:error.message||'The backup could not be imported.'});
  }
 });
+app.use('/api', (req, res, next) => {
+  if (req.path.startsWith('/quran/')) return next();
+  return res.status(404).json({ error: 'API route not found.' });
+});
+app.use((error, req, res, next) => {
+  if (!req.path.startsWith('/api/') || req.path.startsWith('/api/quran/')) return next(error);
+  if (res.headersSent) return next(error);
+  const status = Number.isInteger(error.status) && error.status >= 400 && error.status <= 599
+    ? error.status : 500;
+  const code = status === 400 || status === 413 ? 'validation_failed'
+    : status === 401 ? 'unauthenticated'
+    : status === 403 ? 'forbidden'
+    : status === 404 ? 'not_found'
+    : status === 409 ? 'conflict'
+    : status === 429 ? 'rate_limited'
+    : status === 413 ? 'payload_too_large'
+    : 'internal';
+  const title = status >= 500 ? 'Internal server error' : 'Request failed';
+  const body = problemDetails({
+    status, code, title,
+    detail: status >= 500 ? undefined : error.message,
+    requestId: req.requestId,
+    instance: req.originalUrl
+  });
+  return res.status(status).type('application/problem+json').json(body);
+});
 app.get('*',(req,res,next)=>{
   if(req.path.startsWith('/api/')) return next();
   if (!fs.existsSync(frontendEntry)) {
