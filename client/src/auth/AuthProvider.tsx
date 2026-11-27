@@ -1,7 +1,7 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { initialAuthFlowType, isInvalidRefreshTokenError, supabase } from '../lib/supabase';
 
+type SupabaseClient = typeof import('../lib/supabase')['supabase'];
 type UserProfile = { id: string; email: string; name: string; username: string };
 type AuthState = {
   session: Session | null;
@@ -19,7 +19,19 @@ type AuthState = {
 };
 const Context = createContext<AuthState | null>(null);
 
+const initialAuthFlowType = typeof window !== 'undefined'
+  ? new URLSearchParams(window.location.hash.slice(1)).get('type') || new URLSearchParams(window.location.search).get('type')
+  : null;
+const isInvalidRefreshTokenError = (error: unknown) => {
+  if (!error || typeof error !== 'object') return false;
+  const candidate = error as { message?: unknown; status?: unknown; code?: unknown };
+  const message = typeof candidate.message === 'string' ? candidate.message : '';
+  return /invalid refresh token|refresh token (not found|expired|invalid)|refresh_token_not_found/i.test(message) ||
+    (candidate.status === 400 && /refresh.?token/i.test(String(candidate.code || '') + ' ' + message));
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const supabaseRef = useRef<SupabaseClient | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [role, setRole] = useState<string | null>(null);
@@ -46,46 +58,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-    supabase.auth.getSession().then(async ({ data, error }) => {
-      if (!mounted) return;
-      if (error) {
-        console.error('Session restore:', error.message);
-        if (isInvalidRefreshTokenError(error)) {
-          // Clear only this browser's stale session; other devices remain signed in.
-          await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
-          if (!mounted) return;
-          setSession(null);
-          setUser(null);
-          setRole(null);
-          setLoading(false);
-          return;
-        }
-      }
-      setSession(data.session);
-      await hydrate(data.session);
-      if (mounted) setLoading(false);
-    }).catch(async (error: unknown) => {
-      if (!mounted) return;
-      if (isInvalidRefreshTokenError(error)) {
-        await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
+    let subscription: { unsubscribe: () => void } | null = null;
+    const initialize = async () => {
+      try {
+        const { supabase } = await import('../lib/supabase');
         if (!mounted) return;
-        setSession(null);
-        setUser(null);
-        setRole(null);
-      } else {
-        console.error('Session restore failed:', error);
+        supabaseRef.current = supabase;
+        const { data, error } = await supabase.auth.getSession();
+        if (!mounted) return;
+        if (error) {
+          console.error('Session restore:', error.message);
+          if (isInvalidRefreshTokenError(error)) {
+            await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
+            if (!mounted) return;
+            setSession(null); setUser(null); setRole(null); setLoading(false);
+            return;
+          }
+        }
+        setSession(data.session);
+        await hydrate(data.session);
+        if (mounted) setLoading(false);
+        const result = supabase.auth.onAuthStateChange((_event, next) => {
+          setSession(next);
+          if (!next) { setUser(null); setRole(null); }
+          else { queueMicrotask(() => { void hydrate(next); }); }
+        });
+        subscription = result.data.subscription;
+      } catch (error) {
+        if (!mounted) return;
+        if (isInvalidRefreshTokenError(error)) {
+          await supabaseRef.current?.auth.signOut({ scope: 'local' }).catch(() => undefined);
+          if (!mounted) return;
+          setSession(null); setUser(null); setRole(null);
+        } else {
+          console.error('Session restore failed:', error);
+        }
+        if (mounted) setLoading(false);
       }
-      if (mounted) setLoading(false);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, next) => {
-      setSession(next);
-      if (!next) { setUser(null); setRole(null); }
-      else { queueMicrotask(() => { void hydrate(next); }); }
-    });
-    return () => { mounted = false; subscription.unsubscribe(); };
+    };
+    void initialize();
+    return () => { mounted = false; subscription?.unsubscribe(); };
   }, [hydrate]);
 
   const signIn = useCallback(async (identifier: string, password: string) => {
+    const supabase = supabaseRef.current;
+    if (!supabase) throw new Error('Authentication is still initializing.');
     if (identifier.includes('@')) {
       const { data, error } = await supabase.auth.signInWithPassword({ email: identifier, password });
       if (error) throw error;
@@ -106,6 +123,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [hydrate]);
 
   const signUp = useCallback(async (name: string, username: string, email: string, password: string) => {
+    const supabase = supabaseRef.current;
+    if (!supabase) throw new Error('Authentication is still initializing.');
     const { data, error } = await supabase.auth.signUp({
       email, password,
       options: { data: { full_name: name, username, religion: 'none', onboarding_completed: false }, emailRedirectTo: window.location.origin }
@@ -116,21 +135,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [hydrate]);
 
   const signOut = useCallback(async () => {
+    const supabase = supabaseRef.current;
+    if (!supabase) throw new Error('Authentication is still initializing.');
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   }, []);
 
   const requestPasswordReset = useCallback(async (email: string) => {
+    const supabase = supabaseRef.current;
+    if (!supabase) throw new Error('Authentication is still initializing.');
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
     if (error) throw error;
   }, []);
 
   const updatePassword = useCallback(async (password: string) => {
+    const supabase = supabaseRef.current;
+    if (!supabase) throw new Error('Authentication is still initializing.');
     const { error } = await supabase.auth.updateUser({ password });
     if (error) throw error;
   }, []);
 
   const completeOnboarding = useCallback(async () => {
+    const supabase = supabaseRef.current;
+    if (!supabase) throw new Error('Authentication is still initializing.');
     const { error } = await supabase.auth.updateUser({ data: { onboarding_completed: true, onboarding_version: 2 } });
     if (error) throw error;
   }, []);
