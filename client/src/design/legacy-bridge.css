@@ -1,0 +1,78 @@
+/* Legacy feature bridge: old data workflows, new Atlas v2 visual language.
+   Strictly scoped to the V2 shell; the Qur'an reader remains untouched. */
+.atlas-v2 .stack { gap:24px; }
+.atlas-v2 .page-header { align-items:flex-end; gap:22px; margin-bottom:6px; }
+.atlas-v2 .page-header h1 { margin:13px 0 10px; color:var(--a-text); font:500 clamp(36px,4.5vw,58px)/1.02 'Fraunces Variable',Georgia,serif; letter-spacing:-.05em; }
+.atlas-v2 .page-header p { max-width:620px; color:var(--a-text-muted); font-size:12px; line-height:1.8; }
+.atlas-v2 .page-header .eyebrow,.atlas-v2 .eyebrow { color:var(--a-room); font:750 8px 'Geist Variable',sans-serif; letter-spacing:.19em; }
+.atlas-v2 .surface-card {
+  padding:25px; border:1px solid var(--a-line); border-radius:18px;
+  background:linear-gradient(145deg,color-mix(in oklch,var(--a-surface-1) 96%,var(--a-room)),var(--a-surface-1));
+  box-shadow:0 7px 28px color-mix(in oklch,var(--a-bg) 12%,transparent);
+}
+.atlas-v2 .card-heading { align-items:flex-start; margin-bottom:20px; }
+.atlas-v2 .card-heading h2,.atlas-v2 .card-heading h3 { color:var(--a-text); font:600 15px 'Geist Variable',sans-serif; letter-spacing:-.025em; }
+.atlas-v2 .card-heading p { color:var(--a-text-faint); font-size:10px; line-height:1.7; }
+.atlas-v2 .button {
+  min-height:42px; padding-inline:16px; border-radius:11px; font:650 11px 'Geist Variable',sans-serif;
+  transition:transform 160ms ease,border-color 160ms ease,background 160ms ease,box-shadow 160ms ease;
+}
+.atlas-v2 .button--primary { background:var(--a-room); color:var(--a-room-ink); box-shadow:0 6px 18px color-mix(in oklch,var(--a-room) 16%,transparent); }
+.atlas-v2 .button--primary:hover { background:var(--a-room); filter:brightness(1.08); }
+.atlas-v2 .button--secondary { border-color:var(--a-line); background:var(--a-surface-2); color:var(--a-text); }
+.atlas-v2 .button--ghost { color:var(--a-text-muted); }
+.atlas-v2 .field { gap:8px; }
+.atlas-v2 .field__label { color:var(--a-text); font-size:10px; font-weight:650; }
+.atlas-v2 .field__hint,.atlas-v2 .field-error { color:var(--a-text-faint); font-size:9px; line-height:1.6; }
+.atlas-v2 .field-input {
+  min-height:43px; padding:0 13px; border:1px solid var(--a-line); border-radius:10px;
+  background:var(--a-surface-2); color:var(--a-text); font:11px 'Geist Variable',sans-serif;
+}
+.atlas-v2 .field-input:focus { border-color:color-mix(in oklch,var(--a-room) 65%,var(--a-line)); background:var(--a-surface-1); outline:0; box-shadow:var(--a-focus); }
+.atlas-v2 .field-input::placeholder { color:var(--a-text-faint); }
+.atlas-v2 .form-stack { gap:19px; }
+.atlas-v2 .settings-module-grid { gap:10px; }
+.atlas-v2 .settings-module-choice {
+  padding:14px; border-color:var(--a-line); border-radius:12px; background:var(--a-surface-2);
+}
+.atlas-v2 .settings-module-choice:has(input:checked) { border-color:color-mix(in oklch,var(--a-room) 60%,var(--a-line)); background:color-mix(in oklch,var(--a-room) 8%,var(--a-surface-1)); }
+.atlas-v2 .settings-module-choice b { color:var(--a-text); font-size:10px; }
+.atlas-v2 .settings-module-choice small { color:var(--a-text-faint); font-size:9px; line-height:1.5; }
+.atlas-v2 .theme-picker-groups { gap:19px; }
+.atlas-v2 .theme-picker-group__heading { color:var(--a-text); font:700 9px 'Geist Variable',sans-serif; letter-spacing:.15em; }
+.atlas-v2 .theme-picker-grid { gap:10px; }
+.atlas-v2 .theme-preset {
+  padding:14px; border-color:var(--a-line); border-radius:13px; background:var(--a-surface-2);
+  transition:border-color 150ms ease,background 150ms ease,transform 150ms ease;
+}
+.atlas-v2 .theme-preset:hover { transform:translateY(-2px); border-color:var(--a-line-strong); }
+.atlas-v2 .theme-preset[aria-pressed=true] { border-color:var(--a-room); background:color-mix(in oklch,var(--a-room) 8%,var(--a-surface-1)); box-shadow:inset 0 0 0 1px color-mix(in oklch,var(--a-room) 30%,transparent); }
+.atlas-v2 .theme-preset__copy b { color:var(--a-text); font-size:10px; }
+.atlas-v2 .theme-preset__copy small { color:var(--a-text-faint); font-size:9px; }
+.atlas-v2 .theme-preset__check { color:var(--a-room); }
+.atlas-v2 .form-message { color:var(--a-success); font-size:10px; }
+.atlas-v2 .content-grid { gap:16px; }
+.atlas-v2 .list-row { padding:14px 0; border-color:var(--a-line); }
+.atlas-v2 .list-row__body b { color:var(--a-text); font-size:11px; }
+.atlas-v2 .list-row__body small,.atlas-v2 .list-row__meta { color:var(--a-text-faint); font-size:9px; }
+.atlas-v2 .growth-workspace-switcher { display:flex; flex-wrap:wrap; gap:7px; padding:6px; border:1px solid var(--a-line); border-radius:13px; background:var(--a-surface-2); }
+.atlas-v2 .growth-workspace-switcher button { min-height:35px; padding:0 14px; border:1px solid transparent; border-radius:9px; background:transparent; color:var(--a-text-muted); font:600 10px 'Geist Variable',sans-serif; }
+.atlas-v2 .growth-workspace-switcher button.is-active { border-color:var(--a-line); background:var(--a-surface-1); color:var(--a-text); box-shadow:var(--a-shadow-1); }
+.atlas-v2 .growth-section-heading h2 { color:var(--a-text); font:500 clamp(25px,3vw,34px) 'Fraunces Variable',Georgia,serif; letter-spacing:-.035em; }
+.atlas-v2 .growth-section-heading p { color:var(--a-text-faint); font-size:10px; }
+.atlas-v2 .goal-card,.atlas-v2 .goal-spatial-wrap .surface-card { border-color:var(--a-line); border-radius:17px; background:var(--a-surface-1); }
+.atlas-v2 .goal-card h2 { color:var(--a-text); font:500 24px 'Fraunces Variable',Georgia,serif; }
+.atlas-v2 .goal-card p,.atlas-v2 .goal-card small { color:var(--a-text-faint); }
+.atlas-v2 .goal-progress-track { background:var(--a-surface-3); }
+.atlas-v2 .goal-progress-track span { background:var(--a-room); }
+.atlas-v2 .goal-link-actions a,.atlas-v2 .text-link { color:var(--a-room); }
+.atlas-v2 .atlas-add-disclosure { border-color:var(--a-line); border-radius:12px; background:var(--a-surface-2); }
+.atlas-v2 .atlas-add-disclosure summary { color:var(--a-text); }
+.atlas-v2 .inline-error { color:var(--a-danger); }
+@media(max-width:700px) {
+ .atlas-v2 .page-header { align-items:flex-start; flex-direction:column; }
+ .atlas-v2 .page-header h1 { font-size:40px; }
+ .atlas-v2 .surface-card { padding:19px; border-radius:15px; }
+ .atlas-v2 .settings-module-grid,.atlas-v2 .theme-picker-grid { grid-template-columns:1fr; }
+}
+@media(prefers-reduced-motion:reduce) { .atlas-v2 .button,.atlas-v2 .theme-preset { transition:none; } }
