@@ -542,6 +542,53 @@ $$;
 revoke all on function public.commit_workspace_with_events(bigint,jsonb,integer,text,text,boolean,text,jsonb) from public, anon;
 grant execute on function public.commit_workspace_with_events(bigint,jsonb,integer,text,text,boolean,text,jsonb) to authenticated;
 
+create or replace function public.get_progress_totals(
+  p_start date default null,
+  p_end date default null
+)
+returns table(metric text, value bigint)
+language sql
+stable
+security invoker
+set search_path = ''
+as $
+  select p.metric, sum(p.value)::bigint
+    from public.progress_daily p
+   where p.user_id = (select auth.uid())
+     and (p_start is null or p.local_date >= p_start)
+     and (p_end is null or p.local_date < p_end)
+   group by p.metric;
+$;
+revoke all on function public.get_progress_totals(date,date) from public, anon;
+grant execute on function public.get_progress_totals(date,date) to authenticated;
+
+create or replace function public.get_xp_summary()
+returns jsonb
+language sql
+stable
+security invoker
+set search_path = ''
+as $
+  select jsonb_build_object(
+    'totalXp', coalesce(sum(x.points),0),
+    'lastEvent', (
+      select jsonb_build_object(
+        'category', last_x.category,
+        'points', last_x.points,
+        'awarded_at', last_x.awarded_at
+      )
+      from public.xp_ledger last_x
+      where last_x.user_id = (select auth.uid())
+      order by last_x.awarded_at desc, last_x.id desc
+      limit 1
+    )
+  )
+  from public.xp_ledger x
+  where x.user_id = (select auth.uid());
+$;
+revoke all on function public.get_xp_summary() from public, anon;
+grant execute on function public.get_xp_summary() to authenticated;
+
 -- Preserve existing workspace XP exactly; these are legacy awards, not new events.
 insert into public.xp_ledger(
   user_id,event_key,source_event_key,category,points,local_date,awarded_at,is_legacy
