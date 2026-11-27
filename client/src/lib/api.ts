@@ -12,12 +12,13 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers.set('Content-Type', 'application/json');
   }
   if (session?.access_token) headers.set('Authorization', 'Bearer ' + session.access_token);
-  const response = await fetch('/api' + path, { ...init, headers });
+  const apiRoot = path.startsWith('/quran/') ? '/api' : '/api/v1';
+  const response = await fetch(apiRoot + path, { ...init, headers });
   if (!response.ok) {
     let message = 'Something went wrong. Please try again.';
     try {
       const payload = await response.json();
-      if (payload?.error) message = payload.error;
+      if (payload?.detail || payload?.error || payload?.title) message = payload.detail || payload.error || payload.title;
     } catch { /* Keep the fallback message. */ }
     throw new Error(message);
   }
