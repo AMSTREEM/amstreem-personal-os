@@ -2,8 +2,8 @@ import { lazy, Suspense, useEffect } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from './auth/AuthProvider';
-import { AuthPage } from './components/AuthPage';
-import { SignupThankYouPage } from './components/SignupThankYouPage';
+const AuthPage = lazy(() => import('./components/AuthPage').then(module => ({ default: module.AuthPage })));
+const SignupThankYouPage = lazy(() => import('./components/SignupThankYouPage').then(module => ({ default: module.SignupThankYouPage })));
 
 const AppShell = lazy(() => import('./components/AppShell').then(module => ({ default: module.AppShell })));
 const TodayPage = lazy(() => import('./pages/TodayPage').then(module => ({ default: module.TodayPage })));
@@ -42,8 +42,8 @@ export function App() {
   const hashType = new URLSearchParams(window.location.hash.slice(1)).get('type');
   const queryType = new URLSearchParams(window.location.search).get('type');
   if (hashType === 'recovery' || queryType === 'recovery') return <Suspense fallback={<RouteLoading />}><PasswordRecoveryPage /></Suspense>;
-  if (!session) return <AuthPage />;
-  if (signupConfirmationPending) return <SignupThankYouPage onContinue={continueAfterSignup} />;
+  if (!session) return <Suspense fallback={<RouteLoading />}><AuthPage /></Suspense>;
+  if (signupConfirmationPending) return <Suspense fallback={<RouteLoading />}><SignupThankYouPage onContinue={continueAfterSignup} /></Suspense>;
   return <Suspense fallback={<RouteLoading />}>
     <Routes>
       <Route element={<AppShell />}>
