@@ -110,8 +110,9 @@ export function AtlasV2Shell() {
   }
 
   return <div className="atlas-v2 a-shell">
+    <a className="a-skip-link" href="#main-content">Skip to content</a>
     <div className="a-shell__ambient" aria-hidden="true" />
-    <aside className="a-sidebar" aria-label="Main navigation">
+    <aside className="a-sidebar" id="atlas-primary-navigation" aria-label="Main navigation">
       <NavLink to="/residence" className="a-brand" aria-label="Amstreem Atlas home">
         <span className="a-brand__mark"><span /><span /><span /></span>
         <span className="a-brand__word"><strong>AMSTREEM</strong><small>ATLAS / PERSONAL OS</small></span>
@@ -164,7 +165,7 @@ export function AtlasV2Shell() {
           <span className="a-topbar__date">{dateLabel()}</span>
           <button className="a-search-trigger" type="button" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={15} /><span>Find anything</span><kbd>⌘ K</kbd></button>
           <button className="a-capture-button" type="button" onClick={() => navigate('/actions')}><Plus size={16} /><span>Actions</span></button>
-          <button className="a-icon-button a-mobile-menu-trigger" type="button" onClick={() => setMobileMenuOpen(value => !value)} aria-label="Open navigation">{mobileMenuOpen ? <X size={19} /> : <Menu size={19} />}</button>
+          <button className="a-icon-button a-mobile-menu-trigger" type="button" onClick={() => setMobileMenuOpen(value => !value)} aria-label={mobileMenuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={mobileMenuOpen} aria-controls="atlas-mobile-drawer">{mobileMenuOpen ? <X size={19} /> : <Menu size={19} />}</button>
         </div>
       </header>
 
@@ -188,7 +189,7 @@ export function AtlasV2Shell() {
     </nav>
 
     {mobileMenuOpen && <div className="a-mobile-drawer-backdrop" onClick={() => setMobileMenuOpen(false)}>
-      <section className="a-mobile-drawer" aria-label="More navigation" onClick={event => event.stopPropagation()}>
+      <section className="a-mobile-drawer" id="atlas-mobile-drawer" role="dialog" aria-modal="true" aria-label="More navigation" onClick={event => event.stopPropagation()}>
         <div className="a-mobile-drawer__heading"><strong>Explore Atlas</strong><button type="button" className="a-icon-button" onClick={() => setMobileMenuOpen(false)} aria-label="Close menu"><X size={18} /></button></div>
         {rooms.flatMap(room => room.links.map(link => ({ ...link, section: room.title }))).concat(utilityLinks.map(link => ({ ...link, section: 'Personal space' }))).map(item => <button key={item.to} type="button" className="a-mobile-drawer__link" onClick={() => openDestination(item.to)}><span>{item.label}</span><ArrowUpRight size={15} /></button>)}
         <button type="button" className="a-mobile-drawer__signout" onClick={() => void signOut()}><LogOut size={15} /> Sign out</button>
