@@ -1838,7 +1838,8 @@ app.use((error, req, res, next) => {
   if (res.headersSent) return next(error);
   const status = Number.isInteger(error.status) && error.status >= 400 && error.status <= 599
     ? error.status : 500;
-  const code = status === 400 || status === 413 ? 'validation_failed'
+  const code = status === 400 ? 'validation_failed'
+    : status === 413 ? 'payload_too_large'
     : status === 401 ? 'unauthenticated'
     : status === 403 ? 'forbidden'
     : status === 404 ? 'not_found'
