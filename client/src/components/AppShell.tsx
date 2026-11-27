@@ -22,21 +22,27 @@ import { useSpotlightGrid } from './fx/useSpotlightGrid';
 const MotionNavLink = motion.create(NavLink);
 
 const rooms = [
-  { id: 'home', label: 'Home', to: '/residence', icon: House, paths: ['/residence'] },
+  { id: 'residence', label: 'Residence', to: '/residence', icon: House, paths: ['/residence'] },
   { id: 'actions', label: 'Actions', to: '/actions', icon: ListChecks, paths: ['/actions'] },
   { id: 'goals', label: 'Goals', to: '/goals', icon: Target, paths: ['/goals'] },
-  { id: 'focus', label: 'Focus', to: '/focus', icon: Timer, paths: ['/focus'] },
+  { id: 'calendar', label: 'Calendar', to: '/calendar', icon: CalendarDays, paths: ['/calendar'] },
+  { id: 'habits', label: 'Habits', to: '/habits', icon: Heart, paths: ['/habits'] },
+  { id: 'learning', label: 'Learning Library', to: '/learning-library', icon: GraduationCap, paths: ['/learning-library'] },
   { id: 'growth', label: 'Growth', to: '/growth', icon: TrendingUp, paths: ['/growth'] },
-  { id: 'calendar', label: 'Calendar', to: '/calendar', icon: CalendarDays, paths: ['/calendar'] }
+  { id: 'values', label: 'Values', to: '/values', icon: MoonStar, paths: ['/values'] }
 ];
-
+const quranDestination = { id: 'quran', label: 'Qur’an', to: '/quran', icon: BookOpen, paths: ['/quran'] };
+const navigationGroups = [
+  { label: 'HOME', items: [rooms[0]] },
+  { label: 'PLAN', items: [rooms[1], rooms[2], rooms[3]] },
+  { label: 'PRACTICE', items: [rooms[4], rooms[5]] },
+  { label: 'REFLECT', items: [rooms[6], rooms[7]] }
+];
 const commandDestinations = [
-  { label: 'Faith & Spirituality', detail: 'Qur’an, daily practice and spiritual reflection', to: '/values', icon: MoonStar },
-  { label: 'Habits & Self-Control', detail: 'Build routines and personal commitments', to: '/habits', icon: Heart },
-  { label: 'Education & Learning', detail: 'Learning paths, lessons and private library', to: '/learning-library', icon: GraduationCap },
-  { label: 'Projects & Milestones', detail: 'Connect meaningful work to your goals', to: '/goals', icon: Target },
-  { label: 'Reviews & Insights', detail: 'Reflect on evidence and patterns over time', to: '/growth', icon: TrendingUp },
-  { label: 'Workspace history', detail: 'Recovery points, backups and restore', to: '/history', icon: HistoryIcon }
+  ...rooms,
+  quranDestination,
+  { id: 'focus', label: 'Focus', detail: 'Start or resume a focus session', to: '/focus', icon: Timer, paths: ['/focus'] },
+  { id: 'history', label: 'Workspace history', detail: 'Recovery points, backups and restore', to: '/history', icon: HistoryIcon, paths: ['/history'] }
 ];
 
 type QuickPrayer = { prayer: string; completed: number; on_time: number };
@@ -132,10 +138,7 @@ export function AppShell() {
     } catch (error) { setQuickTaskError(error instanceof Error ? error.message : 'Could not save task.'); }
     finally { setQuickTaskSaving(false); }
   }
-  const commandItems = useMemo(() => [
-    ...rooms.map((item,index) => ({label:item.label,detail:'Open room',to:item.to,shortcut:'⌘ '+(index+1),icon:item.icon})),
-    ...commandDestinations.map(item => ({...item,shortcut:''}))
-  ].filter(item => (item.label+' '+item.detail).toLowerCase().includes(commandQuery.toLowerCase())),[commandQuery]);
+  const commandItems = useMemo(() => commandDestinations.map((item,index) => ({...item,detail:item.detail || 'Open module',shortcut:index < 9 ? 'g '+(index+1) : ''})).filter(item => (item.label+' '+item.detail).toLowerCase().includes(commandQuery.toLowerCase())),[commandQuery]);
   const location = useLocation();
   const entrancePreset = useEntrancePreset(location.pathname);
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Record<string, string>>('/settings') });
@@ -179,7 +182,7 @@ export function AppShell() {
   let selectedLifeAreas: string[] = [];
   try { selectedLifeAreas = settings.data?.life_areas ? JSON.parse(settings.data.life_areas).filter((id: string) => !!lifeAreaNames[id]) : Object.keys(lifeAreaNames); } catch { selectedLifeAreas = Object.keys(lifeAreaNames); }
   // The six core pillars are always available; preferences only control secondary views.
-  const current = rooms.find(item => item.paths.includes(location.pathname));
+  const current = commandDestinations.find(item => item.paths?.includes(location.pathname));
   useEffect(() => {
     if (focusActive && focusTimer.kind !== 'break') {
       const activeLabel = focusContext !== 'Focus session' ? focusContext : current?.label || 'Focus Room';
@@ -198,24 +201,23 @@ export function AppShell() {
       <button type="button" className="sidebar-collapse-toggle" aria-label={sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'} aria-pressed={sidebarCollapsed} onClick={() => setSidebarCollapsed(value => !value)}>{sidebarCollapsed ? <PanelLeftOpen size={16}/> : <PanelLeftClose size={16}/>}<span>{sidebarCollapsed ? 'Expand' : 'Collapse'}</span></button>
       <div className="sidebar-caption">YOUR PRIVATE WORKSPACE</div>
       <nav className="primary-nav" aria-label="Primary navigation">
-        <div className="nav-group">
-          <div className="nav-group__label">YOUR LIFE</div>
-          {rooms.map((item,index) => {
+        {navigationGroups.map(group => <div className="nav-group" key={group.label}>
+          <div className="nav-group__label">{group.label}</div>
+          {group.items.map((item,index) => {
             const Icon = item.icon;
             const active = item.paths.includes(location.pathname);
-            return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={'nav-link room-nav-link ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>⌘ {index+1}</kbd></MotionNavLink>;
+            const shortcutIndex = rooms.findIndex(room => room.id === item.id) + 1;
+            return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} data-module={item.id} title={sidebarCollapsed ? item.label : undefined} className={'nav-link room-nav-link atlas-nav-item ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>g {shortcutIndex}</kbd></MotionNavLink>;
           })}
-        </div>
+        </div>)}
         <div className="nav-group nav-group--specialist">
-          <div className="nav-group__label">PERSONAL TOOLS</div>
-          <MotionNavLink to="/quran" end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} className={'nav-link room-nav-link ' + (location.pathname === '/quran' ? 'nav-link--active' : '')}>
+          <div className="nav-group__label">QUR’AN</div>
+          <MotionNavLink to="/quran" end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} data-module="quran" title={sidebarCollapsed ? 'Qur’an' : undefined} className={'nav-link room-nav-link atlas-nav-item ' + (location.pathname === '/quran' ? 'nav-link--active' : '')}>
             {location.pathname === '/quran' && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}
-            <BookOpen size={17} strokeWidth={1.8}/><span>Qur’an</span>
+            <BookOpen size={17} strokeWidth={1.8}/><span>Qur’an</span><kbd>g 9</kbd>
           </MotionNavLink>
-          <button type="button" className="nav-link room-nav-link" onClick={() => setMobileOpen(true)}><SlidersHorizontal size={17}/><span>More personal tools</span></button>
         </div>
-      </nav>
-      <div className="sidebar-bottom">
+      </nav>      <div className="sidebar-bottom">
         <NavLink to="/history" className={({ isActive }) => 'nav-link nav-link--settings ' + (isActive ? 'nav-link--active' : '')} onClick={() => setMobileOpen(false)}><HistoryIcon size={17} /><span>Workspace history</span></NavLink>
         <NavLink to="/settings" className={({ isActive }) => 'nav-link nav-link--settings ' + (isActive ? 'nav-link--active' : '')} onClick={() => setMobileOpen(false)}><SlidersHorizontal size={17} /><span>Settings</span></NavLink>
         {role === 'admin' && <NavLink to="/admin" className={({ isActive }) => 'nav-link nav-link--settings ' + (isActive ? 'nav-link--active' : '')} onClick={() => setMobileOpen(false)}><Settings size={17} /><span>Administration</span></NavLink>}
