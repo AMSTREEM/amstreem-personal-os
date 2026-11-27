@@ -6,7 +6,7 @@ const { replayWorkspaceMutation } = require('./workspace-replay');
 const Database = require('better-sqlite3');
 const { restoreBackup, createBackupEnvelope, summarizeBackup } = require('./workspace-backup');
 const { AsyncLocalStorage } = require('node:async_hooks');
-const { problemDetails, BootstrapResponseSchema } = require('./packages/contracts');
+const { problemDetails, BootstrapResponseSchema, ApiJsonResponseSchema } = require('./packages/contracts');
 const app = express();
 const { apiRequestContract } = require('./server/api-request-contract');
 for (const method of ['get', 'post', 'put', 'patch', 'delete', 'head', 'options']) {
@@ -29,6 +29,23 @@ app.use((req, res, next) => {
   res.json = body => {
     const apiPath = req.path.startsWith('/api/');
     const protectedQuranPath = req.path.startsWith('/api/quran/');
+    if (apiPath && !protectedQuranPath && res.statusCode < 400 && body !== undefined) {
+      const routePath = typeof req.route?.path === 'string' ? req.route.path : '';
+      const responseSchema = routePath === '/api/bootstrap' ? BootstrapResponseSchema : ApiJsonResponseSchema;
+      const parsed = responseSchema.safeParse(body);
+      if (!parsed.success) {
+        console.error('API response contract violation:', req.method, routePath, parsed.error.issues);
+        res.statusCode = 500;
+        body = problemDetails({
+          status: 500, code: 'internal', title: 'Internal server error',
+          detail: 'The API response did not match its shared response contract.',
+          requestId, instance: req.originalUrl
+        });
+        res.type('application/problem+json');
+      } else {
+        body = parsed.data;
+      }
+    }
     if (apiPath && !protectedQuranPath && res.statusCode >= 400 &&
         body && typeof body === 'object' && !Array.isArray(body) && !(body.type && body.title && body.status && body.code)) {
       const status = res.statusCode;
