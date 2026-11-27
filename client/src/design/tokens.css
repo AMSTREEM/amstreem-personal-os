@@ -31,8 +31,8 @@
   --color-atlas-line: var(--a-line); --color-atlas-line-strong: var(--a-line-strong); --color-atlas-text: var(--a-text); --color-atlas-muted: var(--a-text-muted); --color-atlas-faint: var(--a-text-faint);
   --color-atlas-success: var(--a-success); --color-atlas-warning: var(--a-warning); --color-atlas-danger: var(--a-danger); --color-atlas-info: var(--a-info);
   --color-room: var(--a-room); --color-room-soft: var(--a-room-soft); --color-room-ink: var(--a-room-ink);
-  --font-atlas-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-atlas-display: 'Fraunces', ui-serif, Georgia, serif;
+  --font-atlas-sans: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-atlas-display: 'Fraunces Variable', ui-serif, Georgia, serif;
   --font-atlas-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
   --radius-a-sm: 8px; --radius-a-md: 12px; --radius-a-lg: 16px; --radius-a-xl: 24px;
   --shadow-a-1: var(--a-shadow-1); --shadow-a-2: var(--a-shadow-2); --shadow-a-3: var(--a-shadow-3);
