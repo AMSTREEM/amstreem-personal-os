@@ -227,3 +227,12 @@ test('shared API problem helper uses a stable problem-details envelope', () => {
   assert.equal(response.body.type, 'about:blank');
   assert.equal(response.body.instance, '/api/example/1');
 });
+
+
+test('workspace history restore validates numeric IDs before handler without committing invalid requests', () => {
+  const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
+  const route = server.slice(server.indexOf("app.post('/api/history/:id/restore'"), server.indexOf("app.post('/api/history/:id/restore'") + 500);
+  assert.match(route, /req\.skipWorkspaceCommit = true/);
+  assert.match(route, /validateRequest\(require\('zod'\)\.z\.object\(\{ id: positiveIdSchema \}\), 'params'\)/);
+  assert.match(route, /req\.validated\.params\.id/);
+});
