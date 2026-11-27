@@ -4,7 +4,7 @@ import type { FormEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, json } from '../lib/api';
-import { ArrowRight, BookOpen, CalendarDays, Check, Compass, GraduationCap, Heart, History as HistoryIcon, House, ListChecks, LogOut, MoonStar, Pause, Play, Plus, Search, Settings, SlidersHorizontal, Target, Timer, TrendingUp, X, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, CalendarDays, Check, Compass, GraduationCap, Heart, History as HistoryIcon, House, ListChecks, LogOut, MoonStar, Pause, Play, Plus, Search, Settings, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Target, Timer, TrendingUp, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
 import { MobileInstallPrompt } from './MobileInstallPrompt';
@@ -65,6 +65,16 @@ export function AppShell() {
   const reduceMotion = useReducedMotion();
   const [booting, setBooting] = useState(true);
   useEffect(() => { const timeout = window.setTimeout(() => setBooting(false), 380); return () => window.clearTimeout(timeout); }, []);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      const saved = localStorage.getItem('atlas-sidebar-collapsed');
+      if (saved !== null) return saved === 'true';
+      return window.matchMedia('(min-width: 768px) and (max-width: 1023px)').matches;
+    } catch { return false; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('atlas-sidebar-collapsed', String(sidebarCollapsed)); } catch {}
+  }, [sidebarCollapsed]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
@@ -183,8 +193,9 @@ export function AppShell() {
     <CursorAura/><SparkBurst/><EnergyVortex/>
     <MobileInstallPrompt />
     <AnimatePresence initial={false}>{tourOpen && <AtlasWalkthrough onClose={closeTour} onOpenCommand={() => { setCommandOpen(true); setCommandQuery(''); }} />}</AnimatePresence>
-    <motion.aside className={'sidebar ' + (mobileOpen ? 'sidebar--open' : '')} initial={reduceMotion ? false : { x: -12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
+    <motion.aside className={'sidebar ' + (mobileOpen ? 'sidebar--open' : '') + (sidebarCollapsed ? ' sidebar--collapsed' : ' sidebar--expanded')} initial={reduceMotion ? false : { x: -12, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={reduceMotion ? { duration: 0 } : { duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
       <NavLink to="/residence" className="sidebar-brand" onClick={() => setMobileOpen(false)}><img className="brand-symbol" src="/assets/brand/amstreem-symbol.svg" alt="" /><span><b>AMSTREEM</b><small>ATLAS</small></span></NavLink>
+      <button type="button" className="sidebar-collapse-toggle" aria-label={sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'} aria-pressed={sidebarCollapsed} onClick={() => setSidebarCollapsed(value => !value)}>{sidebarCollapsed ? <PanelLeftOpen size={16}/> : <PanelLeftClose size={16}/>}<span>{sidebarCollapsed ? 'Expand' : 'Collapse'}</span></button>
       <div className="sidebar-caption">YOUR PRIVATE WORKSPACE</div>
       <nav className="primary-nav" aria-label="Primary navigation">
         <div className="nav-group">
@@ -262,10 +273,10 @@ export function AppShell() {
         <MagneticButton className="atlas-dock-action" aria-label="Open Daily Check-In" onClick={() => { navigate('/residence'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></MagneticButton>
       </motion.nav>
       <nav className="atlas-mobile-dock" aria-label="Primary navigation">
-        <NavLink to="/residence" end className={({isActive}) => 'atlas-mobile-dock__item ' + (isActive ? 'is-active' : '')}><House size={18}/><span>Today</span></NavLink>
-        <NavLink to="/quran" className={({isActive}) => 'atlas-mobile-dock__item atlas-mobile-dock__quran ' + (isActive ? 'is-active' : '')} onClick={() => setMobileOpen(false)}><BookOpen size={18}/><span>Qur’an</span></NavLink>
-        <NavLink to="/focus" className={({isActive}) => 'atlas-mobile-dock__item ' + (isActive || location.pathname === '/execution' ? 'is-active' : '')}><Compass size={18}/><span>Focus</span></NavLink>
-        <NavLink to="/goals" className={({isActive}) => 'atlas-mobile-dock__item ' + (isActive ? 'is-active' : '')}><Target size={18}/><span>Goals</span></NavLink>
+        <NavLink to="/residence" end className={({isActive}) => 'atlas-mobile-dock__item ' + (isActive ? 'is-active' : '')}><House size={18}/><span>Residence</span></NavLink>
+        <NavLink to="/actions" className={({isActive}) => 'atlas-mobile-dock__item ' + (isActive || location.pathname === '/focus' ? 'is-active' : '')}><ListChecks size={18}/><span>Actions</span></NavLink>
+        <button type="button" className="atlas-mobile-dock__item atlas-mobile-dock__capture" aria-label="Quick capture" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Plus size={20}/><span>Capture</span></button>
+        <NavLink to="/calendar" className={({isActive}) => 'atlas-mobile-dock__item ' + (isActive ? 'is-active' : '')}><CalendarDays size={18}/><span>Calendar</span></NavLink>
         <button type="button" className="atlas-mobile-dock__item" onClick={() => setMobileOpen(true)} aria-expanded={mobileOpen}><SlidersHorizontal size={18}/><span>More</span></button>
       </nav>
       <footer className="app-footer"><span>AMSTREEM ATLAS</span><span>Make room for what matters.</span></footer>
