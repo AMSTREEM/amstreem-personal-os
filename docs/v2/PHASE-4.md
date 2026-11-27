@@ -1,6 +1,6 @@
 # Atlas v2 — Phase 4: route-by-route redesign
 
-Status: **in progress — Residence and Daily Rhythm redesigned; verification running**.
+Status: **in progress — Residence and Daily Rhythm redesigned; automated gates passed**.
 
 ## Residence redesign
 
@@ -31,9 +31,13 @@ A calm, editorial workspace: clear hierarchy, intentional negative space, a focu
 
 The `/quran` route remains mounted through the original `AppShell` and `QuranPage`. No Qur'an files, frozen styles, persistence keys, APIs, assets or schema are intentionally modified.
 
-## Verification pending
+## Verification
 
-The new commits have triggered CI. Do not mark this route complete until frozen-integrity, contrast, typecheck, production build, tests and dependency audit all pass. Authenticated visual review remains outstanding.
+- Atlas staging checks passed: [run 46043099234](https://github.com/AMSTREEM/amstreem-personal-os/actions/runs/46043099234).
+- Personal OS checks passed: [run 46043099218](https://github.com/AMSTREEM/amstreem-personal-os/actions/runs/46043099218).
+- Frozen Qur'an integrity, WCAG theme contrast, TypeScript, production build, full test suite and dependency audit all passed.
+- Automated route, interaction, scoped-style and Qur'an-boundary tests passed.
+- Authenticated visual review remains outstanding.
 
 ## Remaining Phase 4 routes
 
