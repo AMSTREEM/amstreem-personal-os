@@ -1,6 +1,6 @@
 function apiProblemResponses() {
   return (req, res, next) => {
-    if (/^\\/quran(?:\\/|$)/.test(req.path)) return next();
+    if (/^\/quran(?:\/|$)/.test(req.path)) return next();
     const originalJson = res.json.bind(res);
     res.json = body => {
       if (res.statusCode < 400 || !body || typeof body !== 'object' || Array.isArray(body) || body.type) {
