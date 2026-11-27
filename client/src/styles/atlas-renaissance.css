@@ -1,21 +1,23 @@
+@import './atlas-tokens.css';
+
 /* ATLAS RENAISSANCE — a new visual system for the workspace.
    Deliberately scoped away from the Qur'an reader. */
 .app-frame.atlas-renaissance {
-  --bg: #f3f1e9;
-  --sidebar: #f8f7f1;
-  --surface: #fbfaf6;
-  --surface-raised: #eeece3;
-  --line: #deddd2;
-  --line-soft: #e8e6dc;
-  --text: #20251f;
-  --muted: #656e63;
-  --subtle: #899087;
-  --accent: #b7d36b;
-  --accent-strong: #49643a;
-  --accent-wash: rgba(115, 145, 73, .11);
-  --success: #4f815d;
-  --danger: #b96b5b;
-  --radius: 20px;
+  --bg: var(--atlas-shell-canvas);
+  --sidebar: var(--atlas-shell-sidebar);
+  --surface: var(--atlas-shell-surface);
+  --surface-raised: var(--atlas-shell-surface-raised);
+  --line: var(--atlas-shell-border);
+  --line-soft: var(--atlas-shell-border-subtle);
+  --text: var(--atlas-shell-ink);
+  --muted: var(--atlas-shell-muted);
+  --subtle: var(--atlas-shell-subtle);
+  --accent: var(--atlas-shell-accent);
+  --accent-strong: var(--atlas-shell-accent-strong);
+  --accent-wash: var(--atlas-shell-accent-wash);
+  --success: var(--atlas-shell-positive);
+  --danger: var(--atlas-shell-negative);
+  --radius: var(--atlas-radius-card);
   min-height: 100vh;
   color-scheme: light;
   background:
@@ -25,7 +27,7 @@
   font-family: "DM Sans", "Plus Jakarta Sans", sans-serif;
 }
 .app-frame.atlas-renaissance .sidebar {
-  width: 264px;
+  width: var(--atlas-shell-sidebar-width);
   padding: 30px 19px 20px;
   border-right: 1px solid #e2e0d6;
   background: rgba(248,247,241,.94);
@@ -70,13 +72,13 @@
 .app-frame.atlas-renaissance .profile-copy small { color: #8a9185; }
 .app-frame.atlas-renaissance .profile-popover { border-color: #e0dfd5; background: #fffefa; box-shadow: 0 18px 42px rgba(39,46,33,.12); }
 .app-frame.atlas-renaissance .profile-popover button:hover { background: #f0f1e9; color: #283228; }
-.app-frame.atlas-renaissance .main-area { margin-left: 264px; background: transparent; }
+.app-frame.atlas-renaissance .main-area { margin-left: var(--atlas-shell-sidebar-width); background: transparent; }
 .app-frame.atlas-renaissance .atlas-workspace-boot { min-height: 100vh; }
 .app-frame.atlas-renaissance .topbar {
   position: sticky;
   top: 0;
   z-index: 20;
-  height: 76px;
+  height: var(--atlas-shell-topbar-height);
   padding: 0 clamp(28px,4.5vw,68px);
   border: 0;
   border-bottom: 1px solid rgba(218,218,207,.75);
@@ -103,7 +105,7 @@
 .app-frame.atlas-renaissance .privacy-indicator { color: #8a9385; font-size: 8px; letter-spacing: .12em; }
 .app-frame.atlas-renaissance .privacy-indicator span { background: #6f9b5a; box-shadow: 0 0 0 4px rgba(111,155,90,.11); }
 .app-frame.atlas-renaissance .topbar-date { color: #7d8578; font-size: 10px; }
-.app-frame.atlas-renaissance .page-container { width: min(100%,1500px); padding: 38px clamp(28px,4.5vw,68px) 110px; }
+.app-frame.atlas-renaissance .page-container { width: min(100%,var(--atlas-shell-content-max)); padding: 38px var(--atlas-shell-page-gutter) 110px; }
 .app-frame.atlas-renaissance .module-subnav { gap: 5px; margin-bottom: 30px; padding-bottom: 13px; border-color: #e3e1d7; }
 .app-frame.atlas-renaissance .module-subnav__link { min-height: 36px; padding: 0 14px; border-radius: 10px; color: #81887b; font-size: 10px; }
 .app-frame.atlas-renaissance .module-subnav__link:hover { background: #eae9df; color: #354332; }
@@ -539,3 +541,27 @@
 .app-frame.atlas-renaissance .stack > * { min-width:0; }
 
 body:has(.app-frame.atlas-renaissance) { background:#f3f1e9; }
+
+/* Stage 3 keyboard access: keep skip navigation invisible until focused. */
+.app-frame.atlas-renaissance .atlas-skip-link {
+  position: fixed;
+  z-index: 1000;
+  top: 12px;
+  left: 12px;
+  transform: translateY(-160%);
+  padding: 11px 15px;
+  border: 1px solid var(--atlas-shell-border);
+  border-radius: var(--atlas-radius-control);
+  background: var(--atlas-shell-surface);
+  color: var(--atlas-shell-ink);
+  box-shadow: var(--atlas-shadow-floating);
+  font-size: 12px;
+  font-weight: 700;
+  transition: transform var(--atlas-motion-fast);
+}
+.app-frame.atlas-renaissance .atlas-skip-link:focus { transform: translateY(0); }
+.app-frame.atlas-renaissance #atlas-main-content:focus { outline: none; }
+@media (max-width: 767px) {
+  .app-frame.atlas-renaissance .sidebar { width: min(84vw, 300px); }
+  .app-frame.atlas-renaissance .main-area { margin-left: 0; }
+}

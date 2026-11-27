@@ -1,0 +1,44 @@
+/* Atlas Stage 3 — semantic tokens for the authenticated workspace shell.
+   These tokens are deliberately scoped away from the specialist Qur’an reader. */
+.app-frame.atlas-renaissance {
+  --atlas-shell-canvas: #f3f1e9;
+  --atlas-shell-sidebar: #f8f7f1;
+  --atlas-shell-surface: #fbfaf6;
+  --atlas-shell-surface-raised: #eeece3;
+  --atlas-shell-border: #deddd2;
+  --atlas-shell-border-subtle: #e8e6dc;
+  --atlas-shell-ink: #20251f;
+  --atlas-shell-muted: #656e63;
+  --atlas-shell-subtle: #899087;
+  --atlas-shell-accent: #b7d36b;
+  --atlas-shell-accent-strong: #49643a;
+  --atlas-shell-accent-wash: rgba(115, 145, 73, .11);
+  --atlas-shell-positive: #4f815d;
+  --atlas-shell-negative: #b96b5b;
+
+  --atlas-shell-sidebar-width: 264px;
+  --atlas-shell-topbar-height: 76px;
+  --atlas-shell-content-max: 1500px;
+  --atlas-shell-page-gutter: clamp(28px, 4.5vw, 68px);
+
+  --atlas-space-1: 4px;
+  --atlas-space-2: 8px;
+  --atlas-space-3: 12px;
+  --atlas-space-4: 16px;
+  --atlas-space-5: 20px;
+  --atlas-space-6: 24px;
+  --atlas-space-8: 32px;
+  --atlas-space-10: 40px;
+
+  --atlas-radius-sm: 8px;
+  --atlas-radius-control: 12px;
+  --atlas-radius-card: 18px;
+  --atlas-radius-panel: 24px;
+  --atlas-radius-pill: 999px;
+
+  --atlas-shadow-sidebar: 8px 0 36px rgba(45, 51, 39, .025);
+  --atlas-shadow-card: 0 10px 30px rgba(45, 51, 39, .025);
+  --atlas-shadow-floating: 0 14px 44px rgba(41, 50, 38, .12);
+  --atlas-motion-fast: 140ms ease;
+  --atlas-motion-standard: 200ms ease;
+}
