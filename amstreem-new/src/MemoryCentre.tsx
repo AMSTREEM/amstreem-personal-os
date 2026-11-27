@@ -124,7 +124,7 @@ export default function MemoryCentre() {
     setAuthBusy(true); setNotice('');
     try {
       if (authMode === 'signup') {
-        const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
+        const { data, error } = await supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: window.location.origin } });
         if (error) throw error;
         setNotice(data.session
           ? 'Your account is ready. You are signed in.'
