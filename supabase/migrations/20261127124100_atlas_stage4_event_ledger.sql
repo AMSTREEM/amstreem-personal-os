@@ -497,6 +497,789 @@ begin
 end;
 $$;
 
+-- Preserve existing unlocks from the workspace snapshot before switching readers.
+insert into public.atlas_achievement_unlocks(user_id,achievement_id,unlocked_at)
+select
+  w.user_id,
+  a.value->>'achievement_id',
+  coalesce(nullif(a.value->>'unlocked_at','')::timestamptz,w.updated_at)
+from public.personal_os_workspaces w
+cross join lateral jsonb_array_elements(
+  case
+    when jsonb_typeof(w.data #> '{tables,achievement_unlocks}') = 'array'
+      then w.data #> '{tables,achievement_unlocks}'
+    else '[]'::jsonb
+  end
+) as a(value)
+join public.atlas_achievement_definitions d on d.id = a.value->>'achievement_id'
+where coalesce(a.value->>'achievement_id','') <> ''
+on conflict (user_id,achievement_id) do nothing;
+
+-- Seed historical, date-stamped activity as imported facts. They contribute to
+-- progress and challenge state but do not award XP. No faith/Qur'an rows are read.
+alter table public.activity_events disable trigger activity_events_prepare_reversal;
+alter table public.activity_events disable trigger activity_events_apply_projection;
+
+insert into public.activity_events(user_id,event_key,type,module,entity_id,occurred_at,local_date,payload,source)
+select w.user_id,
+  'legacy:session:' || (x.value->>'id'),
+  'focus.ended','actions',x.value->>'id',
+  coalesce(nullif(x.value->>'created_at','')::timestamptz,(x.value->>'session_date')::date::timestamptz,w.updated_at),
+  (x.value->>'session_date')::date,
+  jsonb_build_object('minutes',(x.value->>'minutes')::integer),
+  'import'
+from public.personal_os_workspaces w
+cross join lateral jsonb_array_elements(case when jsonb_typeof(w.data #> '{tables,sessions}')='array' then w.data #> '{tables,sessions}' else '[]'::jsonb end) x(value)
+where coalesce(x.value->>'id','') <> ''
+  and coalesce(x.value->>'session_kind','focus')='focus'
+  and coalesce((x.value->>'minutes')::integer,0)>0
+  and (x.value->>'session_date') ~ '^\d{4}-\d{2}-\d{2}
+  p_expected_version bigint,
+  p_data jsonb,
+  p_schema_version integer,
+  p_idempotency_key text,
+  p_request_hash text,
+  p_force_history boolean,
+  p_history_reason text,
+  p_events jsonb
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_result jsonb;
+begin
+  if v_user_id is null then
+    raise exception 'authentication_required' using errcode = '42501';
+  end if;
+  if p_events is null or jsonb_typeof(p_events) <> 'array' then
+    raise exception 'invalid_event_batch' using errcode = '22023';
+  end if;
+  if jsonb_array_length(p_events) > 5000 then
+    raise exception 'event_batch_too_large' using errcode = '22023';
+  end if;
+
+  v_result := public.commit_workspace(
+    p_expected_version,p_data,p_schema_version,p_idempotency_key,
+    p_request_hash,p_force_history,p_history_reason
+  );
+
+  -- A replayed idempotency key means the original transaction already appended
+  -- its events. Do not append a second batch from the retried HTTP request.
+  if not coalesce((v_result->>'replayed')::boolean,false) then
+    insert into public.activity_events(
+      user_id,event_key,type,module,entity_id,occurred_at,local_date,payload,source
+    )
+    select
+      v_user_id,e.key,e.type,e.module,e.entity_id,e.occurred_at,e.local_date,e.payload,e.source
+    from jsonb_to_recordset(p_events) as e(
+      key text,type text,module text,entity_id text,occurred_at timestamptz,
+      local_date date,payload jsonb,source text
+    )
+    on conflict (user_id,event_key) do nothing;
+  end if;
+
+  return v_result;
+end;
+$$;
+
+revoke all on function public.commit_workspace_with_events(bigint,jsonb,integer,text,text,boolean,text,jsonb) from public, anon;
+grant execute on function public.commit_workspace_with_events(bigint,jsonb,integer,text,text,boolean,text,jsonb) to authenticated;
+
+create or replace function public.get_progress_totals(
+  p_start date default null,
+  p_end date default null
+)
+returns table(metric text, value bigint)
+language sql
+stable
+security invoker
+set search_path = ''
+as $
+  select p.metric, sum(p.value)::bigint
+    from public.progress_daily p
+   where p.user_id = (select auth.uid())
+     and (p_start is null or p.local_date >= p_start)
+     and (p_end is null or p.local_date < p_end)
+   group by p.metric;
+$;
+revoke all on function public.get_progress_totals(date,date) from public, anon;
+grant execute on function public.get_progress_totals(date,date) to authenticated;
+
+create or replace function public.get_xp_summary()
+returns jsonb
+language sql
+stable
+security invoker
+set search_path = ''
+as $
+  select jsonb_build_object(
+    'totalXp', coalesce(sum(x.points),0),
+    'lastEvent', (
+      select jsonb_build_object(
+        'category', last_x.category,
+        'points', last_x.points,
+        'awarded_at', last_x.awarded_at
+      )
+      from public.xp_ledger last_x
+      where last_x.user_id = (select auth.uid())
+      order by last_x.awarded_at desc, last_x.id desc
+      limit 1
+    )
+  )
+  from public.xp_ledger x
+  where x.user_id = (select auth.uid());
+$;
+revoke all on function public.get_xp_summary() from public, anon;
+grant execute on function public.get_xp_summary() to authenticated;
+
+-- Preserve existing workspace XP exactly; these are legacy awards, not new events.
+insert into public.xp_ledger(
+  user_id,event_key,source_event_key,category,points,local_date,awarded_at,is_legacy
+)
+select
+  w.user_id,
+  'legacy:' || (x.value->>'event_key'),
+  x.value->>'event_key',
+  left(lower(coalesce(x.value->>'category','legacy')),40),
+  (x.value->>'points')::integer,
+  coalesce(
+    ((nullif(x.value->>'awarded_at','')::timestamptz at time zone 'Africa/Lagos')::date),
+    (w.updated_at at time zone 'Africa/Lagos')::date
+  ),
+  coalesce(nullif(x.value->>'awarded_at','')::timestamptz,w.updated_at),
+  true
+from public.personal_os_workspaces w
+cross join lateral jsonb_array_elements(
+  case
+    when jsonb_typeof(w.data #> '{tables,xp_events}') = 'array'
+      then w.data #> '{tables,xp_events}'
+    else '[]'::jsonb
+  end
+) as x(value)
+where coalesce(x.value->>'event_key','') <> ''
+  and coalesce((x.value->>'points')::integer,0) > 0
+on conflict (user_id,event_key) do nothing;
+
+-- Revoke any accidental default exposure of the new tables from anonymous users.
+revoke all on public.activity_events, public.progress_daily, public.xp_ledger,
+  public.atlas_achievement_definitions, public.atlas_achievement_unlocks from anon;
+
+on conflict (user_id,event_key) do nothing;
+
+insert into public.activity_events(user_id,event_key,type,module,entity_id,occurred_at,local_date,payload,source)
+select w.user_id,
+  'legacy:habit:' || (x.value->>'habit_id') || ':' || (x.value->>'log_date'),
+  'habit.checked','habits',x.value->>'habit_id',
+  coalesce(nullif(x.value->>'created_at','')::timestamptz,(x.value->>'log_date')::date::timestamptz,w.updated_at),
+  (x.value->>'log_date')::date,
+  jsonb_build_object('logDate',x.value->>'log_date'),
+  'import'
+from public.personal_os_workspaces w
+cross join lateral jsonb_array_elements(case when jsonb_typeof(w.data #> '{tables,habit_logs}')='array' then w.data #> '{tables,habit_logs}' else '[]'::jsonb end) x(value)
+where coalesce(x.value->>'habit_id','') <> ''
+  and (x.value->>'log_date') ~ '^\d{4}-\d{2}-\d{2}
+  p_expected_version bigint,
+  p_data jsonb,
+  p_schema_version integer,
+  p_idempotency_key text,
+  p_request_hash text,
+  p_force_history boolean,
+  p_history_reason text,
+  p_events jsonb
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_result jsonb;
+begin
+  if v_user_id is null then
+    raise exception 'authentication_required' using errcode = '42501';
+  end if;
+  if p_events is null or jsonb_typeof(p_events) <> 'array' then
+    raise exception 'invalid_event_batch' using errcode = '22023';
+  end if;
+  if jsonb_array_length(p_events) > 5000 then
+    raise exception 'event_batch_too_large' using errcode = '22023';
+  end if;
+
+  v_result := public.commit_workspace(
+    p_expected_version,p_data,p_schema_version,p_idempotency_key,
+    p_request_hash,p_force_history,p_history_reason
+  );
+
+  -- A replayed idempotency key means the original transaction already appended
+  -- its events. Do not append a second batch from the retried HTTP request.
+  if not coalesce((v_result->>'replayed')::boolean,false) then
+    insert into public.activity_events(
+      user_id,event_key,type,module,entity_id,occurred_at,local_date,payload,source
+    )
+    select
+      v_user_id,e.key,e.type,e.module,e.entity_id,e.occurred_at,e.local_date,e.payload,e.source
+    from jsonb_to_recordset(p_events) as e(
+      key text,type text,module text,entity_id text,occurred_at timestamptz,
+      local_date date,payload jsonb,source text
+    )
+    on conflict (user_id,event_key) do nothing;
+  end if;
+
+  return v_result;
+end;
+$$;
+
+revoke all on function public.commit_workspace_with_events(bigint,jsonb,integer,text,text,boolean,text,jsonb) from public, anon;
+grant execute on function public.commit_workspace_with_events(bigint,jsonb,integer,text,text,boolean,text,jsonb) to authenticated;
+
+create or replace function public.get_progress_totals(
+  p_start date default null,
+  p_end date default null
+)
+returns table(metric text, value bigint)
+language sql
+stable
+security invoker
+set search_path = ''
+as $
+  select p.metric, sum(p.value)::bigint
+    from public.progress_daily p
+   where p.user_id = (select auth.uid())
+     and (p_start is null or p.local_date >= p_start)
+     and (p_end is null or p.local_date < p_end)
+   group by p.metric;
+$;
+revoke all on function public.get_progress_totals(date,date) from public, anon;
+grant execute on function public.get_progress_totals(date,date) to authenticated;
+
+create or replace function public.get_xp_summary()
+returns jsonb
+language sql
+stable
+security invoker
+set search_path = ''
+as $
+  select jsonb_build_object(
+    'totalXp', coalesce(sum(x.points),0),
+    'lastEvent', (
+      select jsonb_build_object(
+        'category', last_x.category,
+        'points', last_x.points,
+        'awarded_at', last_x.awarded_at
+      )
+      from public.xp_ledger last_x
+      where last_x.user_id = (select auth.uid())
+      order by last_x.awarded_at desc, last_x.id desc
+      limit 1
+    )
+  )
+  from public.xp_ledger x
+  where x.user_id = (select auth.uid());
+$;
+revoke all on function public.get_xp_summary() from public, anon;
+grant execute on function public.get_xp_summary() to authenticated;
+
+-- Preserve existing workspace XP exactly; these are legacy awards, not new events.
+insert into public.xp_ledger(
+  user_id,event_key,source_event_key,category,points,local_date,awarded_at,is_legacy
+)
+select
+  w.user_id,
+  'legacy:' || (x.value->>'event_key'),
+  x.value->>'event_key',
+  left(lower(coalesce(x.value->>'category','legacy')),40),
+  (x.value->>'points')::integer,
+  coalesce(
+    ((nullif(x.value->>'awarded_at','')::timestamptz at time zone 'Africa/Lagos')::date),
+    (w.updated_at at time zone 'Africa/Lagos')::date
+  ),
+  coalesce(nullif(x.value->>'awarded_at','')::timestamptz,w.updated_at),
+  true
+from public.personal_os_workspaces w
+cross join lateral jsonb_array_elements(
+  case
+    when jsonb_typeof(w.data #> '{tables,xp_events}') = 'array'
+      then w.data #> '{tables,xp_events}'
+    else '[]'::jsonb
+  end
+) as x(value)
+where coalesce(x.value->>'event_key','') <> ''
+  and coalesce((x.value->>'points')::integer,0) > 0
+on conflict (user_id,event_key) do nothing;
+
+-- Revoke any accidental default exposure of the new tables from anonymous users.
+revoke all on public.activity_events, public.progress_daily, public.xp_ledger,
+  public.atlas_achievement_definitions, public.atlas_achievement_unlocks from anon;
+
+on conflict (user_id,event_key) do nothing;
+
+insert into public.activity_events(user_id,event_key,type,module,entity_id,occurred_at,local_date,payload,source)
+select w.user_id,
+  'legacy:study:' || (x.value->>'id'),
+  'learning.study_logged','learning',x.value->>'lesson_id',
+  coalesce(nullif(x.value->>'created_at','')::timestamptz,(x.value->>'log_date')::date::timestamptz,w.updated_at),
+  (x.value->>'log_date')::date,
+  jsonb_build_object('minutes',(x.value->>'minutes')::integer),
+  'import'
+from public.personal_os_workspaces w
+cross join lateral jsonb_array_elements(case when jsonb_typeof(w.data #> '{tables,learning_study_logs}')='array' then w.data #> '{tables,learning_study_logs}' else '[]'::jsonb end) x(value)
+where coalesce(x.value->>'id','') <> ''
+  and coalesce((x.value->>'minutes')::integer,0)>0
+  and (x.value->>'log_date') ~ '^\d{4}-\d{2}-\d{2}
+  p_expected_version bigint,
+  p_data jsonb,
+  p_schema_version integer,
+  p_idempotency_key text,
+  p_request_hash text,
+  p_force_history boolean,
+  p_history_reason text,
+  p_events jsonb
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_result jsonb;
+begin
+  if v_user_id is null then
+    raise exception 'authentication_required' using errcode = '42501';
+  end if;
+  if p_events is null or jsonb_typeof(p_events) <> 'array' then
+    raise exception 'invalid_event_batch' using errcode = '22023';
+  end if;
+  if jsonb_array_length(p_events) > 5000 then
+    raise exception 'event_batch_too_large' using errcode = '22023';
+  end if;
+
+  v_result := public.commit_workspace(
+    p_expected_version,p_data,p_schema_version,p_idempotency_key,
+    p_request_hash,p_force_history,p_history_reason
+  );
+
+  -- A replayed idempotency key means the original transaction already appended
+  -- its events. Do not append a second batch from the retried HTTP request.
+  if not coalesce((v_result->>'replayed')::boolean,false) then
+    insert into public.activity_events(
+      user_id,event_key,type,module,entity_id,occurred_at,local_date,payload,source
+    )
+    select
+      v_user_id,e.key,e.type,e.module,e.entity_id,e.occurred_at,e.local_date,e.payload,e.source
+    from jsonb_to_recordset(p_events) as e(
+      key text,type text,module text,entity_id text,occurred_at timestamptz,
+      local_date date,payload jsonb,source text
+    )
+    on conflict (user_id,event_key) do nothing;
+  end if;
+
+  return v_result;
+end;
+$$;
+
+revoke all on function public.commit_workspace_with_events(bigint,jsonb,integer,text,text,boolean,text,jsonb) from public, anon;
+grant execute on function public.commit_workspace_with_events(bigint,jsonb,integer,text,text,boolean,text,jsonb) to authenticated;
+
+create or replace function public.get_progress_totals(
+  p_start date default null,
+  p_end date default null
+)
+returns table(metric text, value bigint)
+language sql
+stable
+security invoker
+set search_path = ''
+as $
+  select p.metric, sum(p.value)::bigint
+    from public.progress_daily p
+   where p.user_id = (select auth.uid())
+     and (p_start is null or p.local_date >= p_start)
+     and (p_end is null or p.local_date < p_end)
+   group by p.metric;
+$;
+revoke all on function public.get_progress_totals(date,date) from public, anon;
+grant execute on function public.get_progress_totals(date,date) to authenticated;
+
+create or replace function public.get_xp_summary()
+returns jsonb
+language sql
+stable
+security invoker
+set search_path = ''
+as $
+  select jsonb_build_object(
+    'totalXp', coalesce(sum(x.points),0),
+    'lastEvent', (
+      select jsonb_build_object(
+        'category', last_x.category,
+        'points', last_x.points,
+        'awarded_at', last_x.awarded_at
+      )
+      from public.xp_ledger last_x
+      where last_x.user_id = (select auth.uid())
+      order by last_x.awarded_at desc, last_x.id desc
+      limit 1
+    )
+  )
+  from public.xp_ledger x
+  where x.user_id = (select auth.uid());
+$;
+revoke all on function public.get_xp_summary() from public, anon;
+grant execute on function public.get_xp_summary() to authenticated;
+
+-- Preserve existing workspace XP exactly; these are legacy awards, not new events.
+insert into public.xp_ledger(
+  user_id,event_key,source_event_key,category,points,local_date,awarded_at,is_legacy
+)
+select
+  w.user_id,
+  'legacy:' || (x.value->>'event_key'),
+  x.value->>'event_key',
+  left(lower(coalesce(x.value->>'category','legacy')),40),
+  (x.value->>'points')::integer,
+  coalesce(
+    ((nullif(x.value->>'awarded_at','')::timestamptz at time zone 'Africa/Lagos')::date),
+    (w.updated_at at time zone 'Africa/Lagos')::date
+  ),
+  coalesce(nullif(x.value->>'awarded_at','')::timestamptz,w.updated_at),
+  true
+from public.personal_os_workspaces w
+cross join lateral jsonb_array_elements(
+  case
+    when jsonb_typeof(w.data #> '{tables,xp_events}') = 'array'
+      then w.data #> '{tables,xp_events}'
+    else '[]'::jsonb
+  end
+) as x(value)
+where coalesce(x.value->>'event_key','') <> ''
+  and coalesce((x.value->>'points')::integer,0) > 0
+on conflict (user_id,event_key) do nothing;
+
+-- Revoke any accidental default exposure of the new tables from anonymous users.
+revoke all on public.activity_events, public.progress_daily, public.xp_ledger,
+  public.atlas_achievement_definitions, public.atlas_achievement_unlocks from anon;
+
+on conflict (user_id,event_key) do nothing;
+
+insert into public.activity_events(user_id,event_key,type,module,entity_id,occurred_at,local_date,payload,source)
+select w.user_id,
+  'legacy:practice:' || (x.value->>'id'),
+  'practice.logged','values',x.value->>'id',
+  coalesce(nullif(x.value->>'created_at','')::timestamptz,(x.value->>'record_date')::date::timestamptz,w.updated_at),
+  (x.value->>'record_date')::date,
+  jsonb_build_object('practiceType',x.value->>'record_type'),
+  'import'
+from public.personal_os_workspaces w
+cross join lateral jsonb_array_elements(case when jsonb_typeof(w.data #> '{tables,rhythm_records}')='array' then w.data #> '{tables,rhythm_records}' else '[]'::jsonb end) x(value)
+where coalesce(x.value->>'id','') <> ''
+  and x.value->>'tradition'='general'
+  and x.value->>'status'='completed'
+  and x.value->>'record_type' = any(array['daily_intention','wisdom_note','evening_reflection']::text[])
+  and (x.value->>'record_date') ~ '^\d{4}-\d{2}-\d{2}
+  p_expected_version bigint,
+  p_data jsonb,
+  p_schema_version integer,
+  p_idempotency_key text,
+  p_request_hash text,
+  p_force_history boolean,
+  p_history_reason text,
+  p_events jsonb
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_result jsonb;
+begin
+  if v_user_id is null then
+    raise exception 'authentication_required' using errcode = '42501';
+  end if;
+  if p_events is null or jsonb_typeof(p_events) <> 'array' then
+    raise exception 'invalid_event_batch' using errcode = '22023';
+  end if;
+  if jsonb_array_length(p_events) > 5000 then
+    raise exception 'event_batch_too_large' using errcode = '22023';
+  end if;
+
+  v_result := public.commit_workspace(
+    p_expected_version,p_data,p_schema_version,p_idempotency_key,
+    p_request_hash,p_force_history,p_history_reason
+  );
+
+  -- A replayed idempotency key means the original transaction already appended
+  -- its events. Do not append a second batch from the retried HTTP request.
+  if not coalesce((v_result->>'replayed')::boolean,false) then
+    insert into public.activity_events(
+      user_id,event_key,type,module,entity_id,occurred_at,local_date,payload,source
+    )
+    select
+      v_user_id,e.key,e.type,e.module,e.entity_id,e.occurred_at,e.local_date,e.payload,e.source
+    from jsonb_to_recordset(p_events) as e(
+      key text,type text,module text,entity_id text,occurred_at timestamptz,
+      local_date date,payload jsonb,source text
+    )
+    on conflict (user_id,event_key) do nothing;
+  end if;
+
+  return v_result;
+end;
+$$;
+
+revoke all on function public.commit_workspace_with_events(bigint,jsonb,integer,text,text,boolean,text,jsonb) from public, anon;
+grant execute on function public.commit_workspace_with_events(bigint,jsonb,integer,text,text,boolean,text,jsonb) to authenticated;
+
+create or replace function public.get_progress_totals(
+  p_start date default null,
+  p_end date default null
+)
+returns table(metric text, value bigint)
+language sql
+stable
+security invoker
+set search_path = ''
+as $
+  select p.metric, sum(p.value)::bigint
+    from public.progress_daily p
+   where p.user_id = (select auth.uid())
+     and (p_start is null or p.local_date >= p_start)
+     and (p_end is null or p.local_date < p_end)
+   group by p.metric;
+$;
+revoke all on function public.get_progress_totals(date,date) from public, anon;
+grant execute on function public.get_progress_totals(date,date) to authenticated;
+
+create or replace function public.get_xp_summary()
+returns jsonb
+language sql
+stable
+security invoker
+set search_path = ''
+as $
+  select jsonb_build_object(
+    'totalXp', coalesce(sum(x.points),0),
+    'lastEvent', (
+      select jsonb_build_object(
+        'category', last_x.category,
+        'points', last_x.points,
+        'awarded_at', last_x.awarded_at
+      )
+      from public.xp_ledger last_x
+      where last_x.user_id = (select auth.uid())
+      order by last_x.awarded_at desc, last_x.id desc
+      limit 1
+    )
+  )
+  from public.xp_ledger x
+  where x.user_id = (select auth.uid());
+$;
+revoke all on function public.get_xp_summary() from public, anon;
+grant execute on function public.get_xp_summary() to authenticated;
+
+-- Preserve existing workspace XP exactly; these are legacy awards, not new events.
+insert into public.xp_ledger(
+  user_id,event_key,source_event_key,category,points,local_date,awarded_at,is_legacy
+)
+select
+  w.user_id,
+  'legacy:' || (x.value->>'event_key'),
+  x.value->>'event_key',
+  left(lower(coalesce(x.value->>'category','legacy')),40),
+  (x.value->>'points')::integer,
+  coalesce(
+    ((nullif(x.value->>'awarded_at','')::timestamptz at time zone 'Africa/Lagos')::date),
+    (w.updated_at at time zone 'Africa/Lagos')::date
+  ),
+  coalesce(nullif(x.value->>'awarded_at','')::timestamptz,w.updated_at),
+  true
+from public.personal_os_workspaces w
+cross join lateral jsonb_array_elements(
+  case
+    when jsonb_typeof(w.data #> '{tables,xp_events}') = 'array'
+      then w.data #> '{tables,xp_events}'
+    else '[]'::jsonb
+  end
+) as x(value)
+where coalesce(x.value->>'event_key','') <> ''
+  and coalesce((x.value->>'points')::integer,0) > 0
+on conflict (user_id,event_key) do nothing;
+
+-- Revoke any accidental default exposure of the new tables from anonymous users.
+revoke all on public.activity_events, public.progress_daily, public.xp_ledger,
+  public.atlas_achievement_definitions, public.atlas_achievement_unlocks from anon;
+
+on conflict (user_id,event_key) do nothing;
+
+insert into public.activity_events(user_id,event_key,type,module,entity_id,occurred_at,local_date,payload,source)
+select w.user_id,
+  'legacy:review:' || (x.value->>'period_type') || ':' || (x.value->>'period_start'),
+  'review.submitted','growth',(x.value->>'period_type') || ':' || (x.value->>'period_start'),
+  coalesce(nullif(x.value->>'updated_at','')::timestamptz,(x.value->>'period_start')::date::timestamptz,w.updated_at),
+  coalesce((nullif(x.value->>'updated_at','')::timestamptz at time zone 'Africa/Lagos')::date,(x.value->>'period_start')::date),
+  jsonb_build_object('periodType',x.value->>'period_type','periodStart',x.value->>'period_start'),
+  'import'
+from public.personal_os_workspaces w
+cross join lateral jsonb_array_elements(case when jsonb_typeof(w.data #> '{tables,reviews}')='array' then w.data #> '{tables,reviews}' else '[]'::jsonb end) x(value)
+where x.value->>'period_type' = any(array['daily','weekly']::text[])
+  and coalesce(x.value->>'shutdown_complete','0') = any(array['1','true','t']::text[])
+  and (x.value->>'period_start') ~ '^\d{4}-\d{2}-\d{2}
+  p_expected_version bigint,
+  p_data jsonb,
+  p_schema_version integer,
+  p_idempotency_key text,
+  p_request_hash text,
+  p_force_history boolean,
+  p_history_reason text,
+  p_events jsonb
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = ''
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_result jsonb;
+begin
+  if v_user_id is null then
+    raise exception 'authentication_required' using errcode = '42501';
+  end if;
+  if p_events is null or jsonb_typeof(p_events) <> 'array' then
+    raise exception 'invalid_event_batch' using errcode = '22023';
+  end if;
+  if jsonb_array_length(p_events) > 5000 then
+    raise exception 'event_batch_too_large' using errcode = '22023';
+  end if;
+
+  v_result := public.commit_workspace(
+    p_expected_version,p_data,p_schema_version,p_idempotency_key,
+    p_request_hash,p_force_history,p_history_reason
+  );
+
+  -- A replayed idempotency key means the original transaction already appended
+  -- its events. Do not append a second batch from the retried HTTP request.
+  if not coalesce((v_result->>'replayed')::boolean,false) then
+    insert into public.activity_events(
+      user_id,event_key,type,module,entity_id,occurred_at,local_date,payload,source
+    )
+    select
+      v_user_id,e.key,e.type,e.module,e.entity_id,e.occurred_at,e.local_date,e.payload,e.source
+    from jsonb_to_recordset(p_events) as e(
+      key text,type text,module text,entity_id text,occurred_at timestamptz,
+      local_date date,payload jsonb,source text
+    )
+    on conflict (user_id,event_key) do nothing;
+  end if;
+
+  return v_result;
+end;
+$$;
+
+revoke all on function public.commit_workspace_with_events(bigint,jsonb,integer,text,text,boolean,text,jsonb) from public, anon;
+grant execute on function public.commit_workspace_with_events(bigint,jsonb,integer,text,text,boolean,text,jsonb) to authenticated;
+
+create or replace function public.get_progress_totals(
+  p_start date default null,
+  p_end date default null
+)
+returns table(metric text, value bigint)
+language sql
+stable
+security invoker
+set search_path = ''
+as $
+  select p.metric, sum(p.value)::bigint
+    from public.progress_daily p
+   where p.user_id = (select auth.uid())
+     and (p_start is null or p.local_date >= p_start)
+     and (p_end is null or p.local_date < p_end)
+   group by p.metric;
+$;
+revoke all on function public.get_progress_totals(date,date) from public, anon;
+grant execute on function public.get_progress_totals(date,date) to authenticated;
+
+create or replace function public.get_xp_summary()
+returns jsonb
+language sql
+stable
+security invoker
+set search_path = ''
+as $
+  select jsonb_build_object(
+    'totalXp', coalesce(sum(x.points),0),
+    'lastEvent', (
+      select jsonb_build_object(
+        'category', last_x.category,
+        'points', last_x.points,
+        'awarded_at', last_x.awarded_at
+      )
+      from public.xp_ledger last_x
+      where last_x.user_id = (select auth.uid())
+      order by last_x.awarded_at desc, last_x.id desc
+      limit 1
+    )
+  )
+  from public.xp_ledger x
+  where x.user_id = (select auth.uid());
+$;
+revoke all on function public.get_xp_summary() from public, anon;
+grant execute on function public.get_xp_summary() to authenticated;
+
+-- Preserve existing workspace XP exactly; these are legacy awards, not new events.
+insert into public.xp_ledger(
+  user_id,event_key,source_event_key,category,points,local_date,awarded_at,is_legacy
+)
+select
+  w.user_id,
+  'legacy:' || (x.value->>'event_key'),
+  x.value->>'event_key',
+  left(lower(coalesce(x.value->>'category','legacy')),40),
+  (x.value->>'points')::integer,
+  coalesce(
+    ((nullif(x.value->>'awarded_at','')::timestamptz at time zone 'Africa/Lagos')::date),
+    (w.updated_at at time zone 'Africa/Lagos')::date
+  ),
+  coalesce(nullif(x.value->>'awarded_at','')::timestamptz,w.updated_at),
+  true
+from public.personal_os_workspaces w
+cross join lateral jsonb_array_elements(
+  case
+    when jsonb_typeof(w.data #> '{tables,xp_events}') = 'array'
+      then w.data #> '{tables,xp_events}'
+    else '[]'::jsonb
+  end
+) as x(value)
+where coalesce(x.value->>'event_key','') <> ''
+  and coalesce((x.value->>'points')::integer,0) > 0
+on conflict (user_id,event_key) do nothing;
+
+-- Revoke any accidental default exposure of the new tables from anonymous users.
+revoke all on public.activity_events, public.progress_daily, public.xp_ledger,
+  public.atlas_achievement_definitions, public.atlas_achievement_unlocks from anon;
+
+on conflict (user_id,event_key) do nothing;
+
+alter table public.activity_events enable trigger activity_events_prepare_reversal;
+alter table public.activity_events enable trigger activity_events_apply_projection;
+
+do $
+declare
+  workspace record;
+begin
+  for workspace in select distinct user_id from public.activity_events loop
+    perform atlas_private.rebuild_progress_daily(workspace.user_id);
+  end loop;
+end;
+$;
+
 create or replace function public.commit_workspace_with_events(
   p_expected_version bigint,
   p_data jsonb,
