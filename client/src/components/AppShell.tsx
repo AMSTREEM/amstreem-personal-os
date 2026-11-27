@@ -289,10 +289,10 @@ export function AppShell() {
         <MagneticButton className="atlas-dock-action" aria-label="Open Daily Check-In" onClick={() => { navigate('/residence'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></MagneticButton>
       </motion.nav>
       <nav className="atlas-mobile-dock" aria-label="Primary navigation">
-        <NavLink to="/residence" end className={({isActive}) => 'atlas-mobile-dock__item ' + (isActive ? 'is-active' : '')}><House size={18}/><span>Residence</span></NavLink>
-        <NavLink to="/actions" className={({isActive}) => 'atlas-mobile-dock__item ' + (isActive || location.pathname === '/focus' ? 'is-active' : '')}><ListChecks size={18}/><span>Actions</span></NavLink>
+        <MotionNavLink to="/residence" end data-module="residence" className={({isActive}) => 'atlas-mobile-dock__item atlas-nav-item ' + (isActive ? 'is-active' : '')} whileTap={{ scale: 0.96 }}><House size={18}/><span>Residence</span>{location.pathname === '/residence' && <motion.span className="atlas-mobile-dock__indicator" layoutId="atlas-mobile-dock-indicator"/>}</MotionNavLink>
+        <MotionNavLink to="/actions" data-module="actions" className={({isActive}) => 'atlas-mobile-dock__item atlas-nav-item ' + (isActive || location.pathname === '/focus' ? 'is-active' : '')} whileTap={{ scale: 0.96 }}><ListChecks size={18}/><span>Actions</span>{(location.pathname === '/actions' || location.pathname === '/focus') && <motion.span className="atlas-mobile-dock__indicator" layoutId="atlas-mobile-dock-indicator"/>}</MotionNavLink>
         <button type="button" className="atlas-mobile-dock__item atlas-mobile-dock__capture" aria-label="Quick capture" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Plus size={20}/><span>Capture</span></button>
-        <NavLink to="/calendar" className={({isActive}) => 'atlas-mobile-dock__item ' + (isActive ? 'is-active' : '')}><CalendarDays size={18}/><span>Calendar</span></NavLink>
+        <MotionNavLink to="/calendar" data-module="calendar" className={({isActive}) => 'atlas-mobile-dock__item atlas-nav-item ' + (isActive ? 'is-active' : '')} whileTap={{ scale: 0.96 }}><CalendarDays size={18}/><span>Calendar</span>{location.pathname === '/calendar' && <motion.span className="atlas-mobile-dock__indicator" layoutId="atlas-mobile-dock-indicator"/>}</MotionNavLink>
         <button type="button" className="atlas-mobile-dock__item" onClick={() => setMobileOpen(true)} aria-expanded={mobileOpen}><SlidersHorizontal size={18}/><span>More</span></button>
       </nav>
       <footer className="app-footer"><span>AMSTREEM ATLAS</span><span>Make room for what matters.</span></footer>
