@@ -6,9 +6,49 @@ const { replayWorkspaceMutation } = require('./workspace-replay');
 const Database = require('better-sqlite3');
 const { restoreBackup, createBackupEnvelope, summarizeBackup } = require('./workspace-backup');
 const { AsyncLocalStorage } = require('node:async_hooks');
+const { problemDetails, BootstrapResponseSchema } = require('./packages/contracts');
 const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
+app.use((req, res, next) => {
+  const requestId = crypto.randomUUID();
+  req.requestId = requestId;
+  res.setHeader('X-Request-Id', requestId);
+  const sendJson = res.json.bind(res);
+  res.json = body => {
+    const apiPath = req.path.startsWith('/api/');
+    const protectedQuranPath = req.path.startsWith('/api/quran/');
+    if (apiPath && !protectedQuranPath && res.statusCode >= 400 &&
+        body && typeof body === 'object' && !Array.isArray(body) && !body.type) {
+      const status = res.statusCode;
+      const code = status === 401 ? 'unauthenticated'
+        : status === 403 ? 'forbidden'
+        : status === 404 ? 'not_found'
+        : status === 409 ? 'conflict'
+        : status === 429 ? 'rate_limited'
+        : status === 413 ? 'payload_too_large'
+        : status === 400 || status === 422 ? 'validation_failed'
+        : 'internal';
+      const title = ({
+        unauthenticated: 'Authentication required',
+        forbidden: 'Forbidden',
+        not_found: 'Not found',
+        conflict: 'Conflict',
+        rate_limited: 'Too many requests',
+        payload_too_large: 'Payload too large',
+        validation_failed: 'Request validation failed',
+        internal: 'Internal server error'
+      })[code];
+      const detail = typeof body.error === 'string' ? body.error
+        : typeof body.err === 'string' ? body.err
+        : typeof body.message === 'string' ? body.message : undefined;
+      body = problemDetails({ status, code, title, detail, requestId, instance: req.originalUrl });
+      res.type('application/problem+json');
+    }
+    return sendJson(body);
+  };
+  next();
+});
 const PORT = process.env.PORT || 3000;
 const fileSupabaseConfig = require('./supabase-config.json');
 const supabaseConfig = {
@@ -959,6 +999,16 @@ function currentDb() {
 }
 const db = new Proxy({}, { get(_target, prop) { const active = currentDb(); const value = active[prop]; return typeof value === 'function' ? value.bind(active) : value; } });
 // Keep ordinary API payloads small; allow larger JSON only for explicit backup imports.
+app.use((req, res, next) => {
+  const pathname = String(req.url || '').split('?')[0];
+  if (pathname === '/api/v1/quran' || pathname.startsWith('/api/v1/quran/')) {
+    return res.status(404).json({ error: 'Qur’an endpoints retain their existing unversioned paths.' });
+  }
+  if (pathname === '/api/v1' || pathname.startsWith('/api/v1/')) {
+    req.url = req.url.replace(/^\/api\/v1(?=\/|$)/, '/api');
+  }
+  next();
+});
 app.use('/api/import', express.json({ limit: '10mb' }));
 app.use(express.json({ limit: '1mb' }));
 app.get('/supabase-config.js', (req, res) => {
@@ -1252,6 +1302,28 @@ app.use('/api', async (req, res, next) => {
   }
 });
 app.get('/api/session', (req, res) => res.json({ user: { id: req.user.id, email: req.user.email, name: req.user.user_metadata?.full_name || '', username: req.user.user_metadata?.username || '' }, role: req.user.id === ownerUserId ? 'admin' : 'user' }));
+app.get('/api/bootstrap', (req, res) => {
+  const settings = Object.fromEntries(all('SELECT key,value FROM settings').map(row => [row.key, row.value]));
+  const payload = {
+    user: {
+      id: req.user.id,
+      email: req.user.email || null,
+      name: req.user.user_metadata?.full_name || '',
+      username: req.user.user_metadata?.username || ''
+    },
+    role: req.user.id === ownerUserId ? 'admin' : 'user',
+    today: dateKey(),
+    settings,
+    navigationBadges: {}
+  };
+  const parsed = BootstrapResponseSchema.safeParse(payload);
+  if (!parsed.success) {
+    console.error('Bootstrap contract violation:', parsed.error.issues);
+    return res.status(500).json({ error: 'Atlas could not prepare your workspace bootstrap.' });
+  }
+  return res.json(parsed.data);
+});
+
 
 const schemaSql = `
 CREATE TABLE IF NOT EXISTS projects (id INTEGER PRIMARY KEY AUTOINCREMENT, goal_id INTEGER REFERENCES goals(id) ON DELETE SET NULL, title TEXT NOT NULL, description TEXT DEFAULT '', status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','completed','archived')), target_date TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP);

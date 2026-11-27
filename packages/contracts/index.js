@@ -72,6 +72,19 @@ const CursorPageQuerySchema = z.object({
   cursor: z.string().max(512).optional()
 }).strict();
 
+const BootstrapResponseSchema = z.object({
+  user: z.object({
+    id: z.string().min(1),
+    email: z.string().email().nullable(),
+    name: z.string(),
+    username: z.string()
+  }).strict(),
+  role: z.enum(['user', 'admin']),
+  today: DateOnlySchema,
+  settings: z.record(z.string(), z.string()),
+  navigationBadges: z.record(z.string(), z.number().int().nonnegative())
+}).strict();
+
 function problemDetails({ status, code, title, detail, requestId, instance, errors }) {
   return ProblemDetailsSchema.parse({
     type: `https://amstreem.app/problems/${code}`,
@@ -100,6 +113,7 @@ module.exports = {
   ProblemDetailsSchema,
   AtlasEventSchema,
   ModuleManifestSchema,
+  BootstrapResponseSchema,
   CursorPageQuerySchema,
   problemDetails,
   validate
