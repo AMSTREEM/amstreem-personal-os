@@ -1152,11 +1152,13 @@ app.post('/api/auth/username-login', rateLimit({ max: 8, windowMs: 60_000, prefi
 });
 // Versioned aliases share the exact same handlers and authentication path as legacy /api routes.
 // Qur'an endpoints remain on their protected legacy contract until separately versioned.
-app.use('/api/v1', (req, res, next) => {
-  if (/^\\/quran(?:\\/|$)/.test(req.path)) {
+app.use((req, res, next) => {
+  if (req.path !== '/api/v1' && !req.path.startsWith('/api/v1/')) return next();
+  const versionedPath = req.path.slice('/api/v1'.length);
+  if (versionedPath === '/quran' || versionedPath.startsWith('/quran/')) {
     return sendProblem(res, { status: 404, title: 'Not Found', detail: 'The Qur’an API is not available under /api/v1.', code: 'versioned_route_unavailable', instance: req.originalUrl });
   }
-  req.url = '/api' + req.url;
+  req.url = '/api' + req.url.slice('/api/v1'.length);
   next();
 });
 
