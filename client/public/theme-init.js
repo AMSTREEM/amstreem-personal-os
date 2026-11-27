@@ -39,13 +39,14 @@
     var config = themes[theme];
     var root = document.documentElement;
     root.setAttribute('data-a-theme', theme);
-    var legacyTheme = legacyConfig ? legacyStored : config.legacy;
-    var legacyScheme = legacyConfig ? legacyConfig.scheme : config.scheme;
-    var legacyColor = legacyConfig ? legacyConfig.color : config.color;
-    root.setAttribute('data-theme', legacyTheme);
-    root.style.colorScheme = legacyScheme;
-    root.style.backgroundColor = legacyColor;
-    var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', legacyColor);
+    // Keep the legacy theme contract unchanged outside the v2 shell. A v2-only
+    // preference may set data-a-theme, but must not silently select a legacy theme.
+    if (legacyConfig) {
+      root.setAttribute('data-theme', legacyStored);
+      root.style.colorScheme = legacyConfig.scheme;
+      root.style.backgroundColor = legacyConfig.color;
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', legacyConfig.color);
+    }
   } catch (_) {}
 })();
