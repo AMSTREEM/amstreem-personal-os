@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('node:fs');
+const crypto = require('node:crypto');
 const Database = require('better-sqlite3');
 const { restoreBackup } = require('./workspace-backup');
 const { AsyncLocalStorage } = require('node:async_hooks');
@@ -1022,11 +1023,12 @@ async function acquireUserLock(userId) {
   return () => { release(); if (userLocks.get(userId) === tail) userLocks.delete(userId); };
 }
 async function readWorkspaceSnapshot(userId, token) {
-  const url = `${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=data&user_id=eq.${encodeURIComponent(userId)}`;
+  const url = `${supabaseConfig.url}/rest/v1/personal_os_workspaces?select=data,version,schema_version&user_id=eq.${encodeURIComponent(userId)}`;
   const response = await fetch(url, { headers: { apikey: supabaseConfig.publishableKey, Authorization: `Bearer ${token}` } });
   if (!response.ok) throw new Error('Could not load your saved workspace from Supabase.');
   const rows = await response.json();
-  return rows[0]?.data || null;
+  const row = rows[0];
+  return row ? { data: row.data, version: Number(row.version) || 1, schemaVersion: Number(row.schema_version) || 3 } : { data: null, version: 0, schemaVersion: 3 };
 }
 function createWorkspaceDatabase(snapshot) {
   const workspaceDb = new Database(':memory:');
@@ -1079,18 +1081,36 @@ function serializeWorkspaceDatabase(workspaceDb) {
   for (const table of workspaceTables) tables[table] = workspaceDb.prepare(`SELECT * FROM ${table}`).all();
   return { format: 'personal-os-sqlite-snapshot-v3', schemaVersion: 3, tables };
 }
-async function writeWorkspaceSnapshot(userId, token, workspaceDb) {
-  const response = await fetch(`${supabaseConfig.url}/rest/v1/personal_os_workspaces`, {
+async function writeWorkspaceSnapshot(userId, token, workspaceDb, expectedVersion, requestMeta = {}) {
+  const payload = {
+    p_expected_version: expectedVersion,
+    p_data: serializeWorkspaceDatabase(workspaceDb),
+    p_schema_version: 3,
+    p_idempotency_key: requestMeta.idempotencyKey || null,
+    p_request_hash: requestMeta.requestHash || null,
+    p_force_history: Boolean(requestMeta.forceHistory),
+    p_history_reason: requestMeta.historyReason || 'scheduled'
+  };
+  const response = await fetch(`${supabaseConfig.url}/rest/v1/rpc/commit_workspace`, {
     method: 'POST',
     headers: {
       apikey: supabaseConfig.publishableKey,
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
-      Prefer: 'resolution=merge-duplicates,return=minimal'
+      Prefer: 'return=representation'
     },
-    body: JSON.stringify({ user_id: userId, data: serializeWorkspaceDatabase(workspaceDb), updated_at: new Date().toISOString() })
+    body: JSON.stringify(payload)
   });
-  if (!response.ok) throw new Error('Supabase rejected the workspace save.');
+  const raw = await response.text();
+  let detail = {};
+  try { detail = raw ? JSON.parse(raw) : {}; } catch { /* keep a generic safe error */ }
+  if (!response.ok) {
+    const error = new Error(detail.message || 'Supabase rejected the workspace save.');
+    if (detail.message === 'version_conflict' || detail.code === 'P0001') error.code = 'VERSION_CONFLICT';
+    if (detail.message === 'idempotency_key_reused') error.code = 'IDEMPOTENCY_KEY_REUSED';
+    throw error;
+  }
+  return typeof detail === 'string' ? JSON.parse(detail) : detail;
 }
 // Username sign-in is resolved server-side so account email addresses are never exposed to the browser.
 app.post('/api/auth/username-login', rateLimit({ max: 8, windowMs: 60_000, prefix: 'username-login' }), async (req, res) => {
@@ -1140,28 +1160,52 @@ app.use('/api', async (req, res, next) => {
       return res.status(429).json({ error: 'Too many requests for this account. Please wait and try again.' });
     }
     release = await acquireUserLock(user.id);
-    const snapshot = await readWorkspaceSnapshot(user.id, token);
-    workspaceDb = createWorkspaceDatabase(snapshot);
-    const context = { userId: user.id, db: workspaceDb };
+    const workspaceState = await readWorkspaceSnapshot(user.id, token);
+    workspaceDb = createWorkspaceDatabase(workspaceState.data);
+    const idempotencyKey = String(req.get('Idempotency-Key') || '').trim();
+    if (idempotencyKey && (idempotencyKey.length < 8 || idempotencyKey.length > 200)) {
+      workspaceDb.close();
+      release?.();
+      return res.status(400).json({ error: 'Idempotency-Key must contain between 8 and 200 characters.' });
+    }
+    const requestHash = idempotencyKey
+      ? crypto.createHash('sha256').update(JSON.stringify({ method: req.method, path: req.originalUrl, body: req.body ?? null })).digest('hex')
+      : null;
+    const context = { userId: user.id, db: workspaceDb, version: workspaceState.version };
     tenantContext.run(context, () => {
       const originalEnd = res.end.bind(res);
       let ending = false;
       res.end = (...args) => {
         if (ending) return res;
         ending = true;
-        if (req.method === 'GET' || req.method === 'HEAD') {
+        if (req.method === 'GET' || req.method === 'HEAD' || res.statusCode >= 400) {
           workspaceDb.close();
           release?.();
           return originalEnd(...args);
         }
-        writeWorkspaceSnapshot(user.id, token, workspaceDb)
-          .then(() => originalEnd(...args))
+        const requestMeta = {
+          idempotencyKey: idempotencyKey || null,
+          requestHash,
+          forceHistory: req.path === '/import',
+          historyReason: req.path === '/import' ? 'pre_import' : 'scheduled'
+        };
+        writeWorkspaceSnapshot(user.id, token, workspaceDb, workspaceState.version, requestMeta)
+          .then(result => {
+            if (result?.version) res.setHeader('X-Workspace-Version', String(result.version));
+            if (result?.replayed) res.setHeader('Idempotency-Replayed', 'true');
+            originalEnd(...args);
+          })
           .catch(error => {
             console.error('Workspace save failed:', error.message);
-            res.statusCode = 503;
+            res.statusCode = error.code === 'VERSION_CONFLICT' ? 409 : error.code === 'IDEMPOTENCY_KEY_REUSED' ? 422 : 503;
             res.removeHeader('Content-Length');
             res.setHeader('Content-Type', 'application/json; charset=utf-8');
-            originalEnd(JSON.stringify({ error: 'Your workspace could not be saved. Please retry.' }));
+            const message = error.code === 'VERSION_CONFLICT'
+              ? 'Another change was saved first. Reload your workspace and retry this action.'
+              : error.code === 'IDEMPOTENCY_KEY_REUSED'
+                ? 'This Idempotency-Key was already used for a different request.'
+                : 'Your workspace could not be saved. Please retry.';
+            originalEnd(JSON.stringify({ error: message, code: error.code || 'WORKSPACE_SAVE_FAILED' }));
           })
           .finally(() => { workspaceDb.close(); release?.(); });
         return res;
