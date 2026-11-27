@@ -7,6 +7,8 @@ const { apiRequestContract } = require('../server/api-request-contract');
 function invoke({ path = '/api/tasks', method = 'POST', body, query = {}, params = {} } = {}) {
   const req = {
     path,
+    method,
+    route: { path },
     body,
     query,
     params,
