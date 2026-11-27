@@ -21,3 +21,6 @@
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
 .delete-capture{display:grid;place-items:center;flex:none;width:30px;height:30px;border:1px solid transparent;border-radius:5px;background:transparent;color:#7e8578;transition:background .2s,color .2s,border-color .2s}.delete-capture:hover{border-color:#59403a;background:#2b211d;color:#e0a18d}.delete-capture:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+.memory-actions{display:flex;align-items:center;gap:8px}.memory-search{display:flex;align-items:center;gap:10px;border:1px solid #30352d;background:#151914;border-radius:6px;padding:0 13px;margin:0 0 13px;color:#8d9386}.memory-search input{flex:1;min-width:0;height:42px;border:0;outline:0;background:transparent;color:#eeece5;font:11px 'DM Sans'}.memory-search input::placeholder{color:#73796e}.memory-search span{font:8px 'DM Mono';color:#777e71;white-space:nowrap}.compact-empty{min-height:180px}.compact-empty .outline-button{margin-top:10px}.thought-item .delete-capture{margin-top:1px}
+@media(max-width:760px){.memory-actions{width:100%;justify-content:flex-end}.memory-search{margin-top:4px}.thought-item{gap:8px;padding:13px}.memory-search input{font-size:12px}}
