@@ -94,7 +94,7 @@ test('event ledger is append-only, account-scoped and has explicit Data API gran
   assert.doesNotMatch(migration, /grant select, insert on public\.activity_events to authenticated/);
   assert.match(migration, /current_user <> 'service_role'/);
   assert.match(migration, /commit_workspace_with_events\(uuid,bigint,jsonb,integer,text,text,boolean,text,jsonb\) to service_role/);
-  assert.match(migration, /grant select on public\.xp_ledger to service_role/);
+  assert.match(migration, /grant select on public\.xp_ledger to authenticated, service_role/);
 });
 
 test('incremental projections can be rebuilt from events and achievement unlocks are idempotent', () => {
