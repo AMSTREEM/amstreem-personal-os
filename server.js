@@ -1754,10 +1754,11 @@ app.post('/api/reviews',(q,s)=>{
 
 app.get('/api/settings',(q,s)=>{const values=Object.fromEntries(all('SELECT key,value FROM settings').map(x=>[x.key,x.value]));values.faith_tradition=values.faith_tradition||values.religion||'general';s.json(values);});
 app.patch('/api/settings',(q,s)=>{
- const allowed=['daily_target','display_name','username','north_star','religion','faith_tradition','leaderboard_name','leaderboard_public','theme','features','life_areas','widgets','sidebar_collapsed','hifz_page','hifz_bookmark','murajaah_page','murajaah_bookmark'];
+ const allowed=['daily_target','display_name','username','north_star','religion','faith_tradition','leaderboard_name','leaderboard_public','theme','features','life_areas','widgets','sidebar_collapsed','hifz_page','hifz_bookmark','murajaah_page','murajaah_bookmark','communication_style'];
  const themes=['shadowed-alchemist','nocturnal-amethyst','abyssal-trench','whispering-woods','crimson-velvet','light-porcelain','light-sandstone','light-sage','light-lavender','light-sky'];
  const features=['calendar','deen','faith','selfcontrol','learning','tasks','focus','library','goals','rankings','rituals','values'];
  const lifeAreas=['health','education','career','finance','faith','personal','relationships','lifestyle'];
+ if(q.body.communication_style!==undefined&&!['adaptive','jarvis','companion','advisor'].includes(q.body.communication_style))return s.status(400).json({error:'Choose a valid communication style.'});
  if(q.body.religion!==undefined&&!['islam','christianity','none','prefer_not_to_say'].includes(q.body.religion))return s.status(400).json({error:'Choose a valid religious experience.'});
  if(q.body.faith_tradition!==undefined&&!['islam','christianity','none','prefer_not_to_say','general'].includes(q.body.faith_tradition))return s.status(400).json({error:'Choose a valid faith tradition.'});
  if(q.body.theme!==undefined&&!themes.includes(q.body.theme))return s.status(400).json({error:'Choose a valid colour theme.'});
