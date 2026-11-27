@@ -4,10 +4,13 @@ const fs = require('node:fs');
 const Database = require('better-sqlite3');
 const { restoreBackup } = require('./workspace-backup');
 const { AsyncLocalStorage } = require('node:async_hooks');
+const { resolveAppEnvironment, checkEnvironmentMarker, requestLogger } = require('./server/runtime-guard');
 const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
+app.use(requestLogger());
 const PORT = process.env.PORT || 3000;
+const APP_ENV = resolveAppEnvironment(process.env);
 const fileSupabaseConfig = require('./supabase-config.json');
 const supabaseConfig = {
   ...fileSupabaseConfig,
@@ -81,7 +84,18 @@ function rateLimit({ max, windowMs = 60_000, prefix = 'ip' }) {
     next();
   };
 }
-app.get('/healthz', (req,res) => res.status(200).json({ ok: true }));
+app.get('/healthz', (_req,res) => res.status(200).json({ ok: true }));
+app.get('/readyz', async (_req,res) => {
+  const readiness = await checkEnvironmentMarker({
+    appEnv: APP_ENV,
+    supabaseUrl: supabaseConfig.url,
+    apiKey: process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+  });
+  if (!readiness.ok) {
+    return res.status(503).json({ ok: false, environment: APP_ENV, checks: { database: false, environment: false } });
+  }
+  return res.status(200).json({ ok: true, environment: APP_ENV, checks: { database: true, environment: true, skipped: Boolean(readiness.skipped) } });
+});
 const QURAN_FONT_FILENAME = 'UthmanicHafs1Ver18.woff2';
 const quranFontPath = path.join(__dirname, 'public', 'fonts', QURAN_FONT_FILENAME);
 let quranFontInflight = null;
@@ -1676,4 +1690,49 @@ Promise.all([fetchAlQuranCloudPage(1), fetchAlQuranCloudPage(2)])
     console.info('Direct Tajweed tokens:', coloredAyahs(page1), '/', page1.ayahs.length, 'page 1 ayahs;', coloredAyahs(page2), '/', page2.ayahs.length, 'page 2 ayahs; 2:1 marked characters:', openingMarked);
   })
   .catch(error => console.warn('Quran reading data startup check failed:', error.message));
-app.listen(PORT, '0.0.0.0',()=>console.log(`Amstreem Atlas running on 0.0.0.0:${PORT}`));
+async function startServer() {
+  const readiness = await checkEnvironmentMarker({
+    appEnv: APP_ENV,
+    supabaseUrl: supabaseConfig.url,
+    apiKey: process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+  });
+  if (!readiness.ok) {
+    throw new Error(`Environment guard failed (${readiness.reason || 'unknown'}). Refusing to start.`);
+  }
+
+  const httpServer = app.listen(PORT, '0.0.0.0', () => {
+    console.info(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', event: 'server.started', environment: APP_ENV, port: Number(PORT) }));
+  });
+  let shuttingDown = false;
+  const shutdown = signal => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.info(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', event: 'server.shutdown_started', signal }));
+    const forceTimer = setTimeout(() => {
+      console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', event: 'server.shutdown_timeout', signal }));
+      process.exit(1);
+    }, 25_000);
+    forceTimer.unref();
+    httpServer.close(error => {
+      clearTimeout(forceTimer);
+      try { if (db?.open) db.close(); } catch (closeError) {
+        console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', event: 'database.close_failed', message: closeError.message }));
+      }
+      if (error) {
+        console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', event: 'server.shutdown_failed', message: error.message }));
+        process.exitCode = 1;
+      } else {
+        console.info(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', event: 'server.shutdown_complete', signal }));
+        process.exitCode = 0;
+      }
+    });
+  };
+  process.once('SIGTERM', () => shutdown('SIGTERM'));
+  process.once('SIGINT', () => shutdown('SIGINT'));
+  return httpServer;
+}
+
+startServer().catch(error => {
+  console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', event: 'server.startup_failed', environment: APP_ENV, message: error.message }));
+  process.exitCode = 1;
+});
