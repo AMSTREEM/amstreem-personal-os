@@ -381,6 +381,8 @@ test('Atlas module accent colours meet WCAG AA text contrast in dark and light c
   const light = ['#0E7490','#C2410C','#6D28D9','#1D4ED8','#3F6212','#A21CAF','#BE123C','#854D0E','#047857'];
   for (const colour of dark) assert.ok(ratio(colour, '#0A0E13') >= 4.5, `Dark accent ${colour} fails WCAG AA`);
   for (const colour of light) assert.ok(ratio(colour, '#F6F4EF') >= 4.5, `Light accent ${colour} fails WCAG AA`);
+  assert.ok(ratio('#22D3EE', '#0A0E13') >= 4.5, 'Dark brand fails WCAG AA');
+  assert.ok(ratio('#0E7490', '#F6F4EF') >= 4.5, 'Light brand fails WCAG AA');
 });
 
 
