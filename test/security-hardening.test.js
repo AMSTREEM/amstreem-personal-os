@@ -111,8 +111,8 @@ test('Self-Control consistency uses dated records and positive habit check-ins, 
   assert.match(server, /return \{\.\.\.habit,streak\}/);
   assert.match(selfControl, /verified clean check-ins/);
   assert.match(rituals, /invalidateQueries\(\{ queryKey: \['self-control'\] \}\)/);
-  assert.match(shell, /label: 'Faith & Spirituality'/);
-  assert.match(shell, /Faith & Spirituality/);
+  assert.match(shell, /label: 'Values'/);
+  assert.match(shell, /faithTabLabel/);
   assert.match(shell, /Daily Reflection/);
 });
 
