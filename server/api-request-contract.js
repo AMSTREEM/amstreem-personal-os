@@ -24,6 +24,24 @@ function optionalUnknownShape(keys) {
   return Object.fromEntries(keys.map(key => [key, z.unknown().optional()]));
 }
 
+const legacyImportKeys = [
+  'goals', 'projects', 'project_milestones', 'tasks', 'modules', 'learning_paths',
+  'learning_lessons', 'learning_resources', 'learning_study_logs', 'sessions',
+  'calendar_events', 'notes', 'reviews', 'habits', 'habit_logs', 'prayer_logs',
+  'quran_logs', 'tahajjud_logs', 'faith_logs', 'self_control_logs',
+  'self_control_trackers', 'self_control_entries', 'rhythm_records',
+  'reading_items', 'settings', 'email_events', 'login_events', 'xp_events',
+  'achievement_unlocks', 'weekly_challenges', 'feedback_logs', 'exportedAt'
+];
+const BackupEnvelopeSchema = z.object({
+  format: z.literal('atlas-backup'),
+  schemaVersion: z.number().int().min(1).max(3),
+  exportedAt: z.string().optional(),
+  appVersion: z.string().optional(),
+  checksum: z.string().regex(/^[a-f0-9]{64}$/),
+  data: z.record(z.string(), z.unknown())
+}).strict();
+const LegacyBackupSchema = z.object(optionalUnknownShape(legacyImportKeys)).strict();
 const BodySchema = z.object(optionalUnknownShape(bodyKeys)).strict();
 const QuerySchema = z.object(optionalUnknownShape(queryKeys)).strict();
 const ParamsSchema = z.object(optionalUnknownShape(paramKeys)).strict();
@@ -41,7 +59,10 @@ function apiRequestContract(req, res, next) {
   if (!req.path.startsWith('/api/') || req.path.startsWith('/api/quran/')) return next();
 
   const checks = [
-    ['body', req.body, BodySchema],
+    ['body', req.body,
+      req.path === '/api/import' || req.path === '/api/import/preview'
+        ? z.union([BackupEnvelopeSchema, LegacyBackupSchema])
+        : BodySchema],
     ['query', req.query, QuerySchema],
     ['params', req.params, ParamsSchema]
   ];
