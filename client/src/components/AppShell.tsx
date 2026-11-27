@@ -176,7 +176,15 @@ export function AppShell() {
     const theme = settings.data?.theme;
     if (!theme) return;
     localStorage.setItem('atlas_theme', theme);
+    const atlasThemeByLegacy: Record<string, 'obsidian' | 'dusk' | 'ivory' | 'sahara'> = {
+      'shadowed-alchemist': 'obsidian', 'abyssal-trench': 'obsidian', 'whispering-woods': 'obsidian',
+      'nocturnal-amethyst': 'dusk', 'crimson-velvet': 'dusk',
+      'light-porcelain': 'ivory', 'light-sage': 'ivory', 'light-lavender': 'ivory', 'light-sky': 'ivory',
+      'light-sandstone': 'sahara'
+    };
     const root = document.documentElement;
+    root.setAttribute('data-a-theme', atlasThemeByLegacy[theme] || (theme.startsWith('light-') ? 'ivory' : 'obsidian'));
+    localStorage.setItem('atlas.theme', atlasThemeByLegacy[theme] || (theme.startsWith('light-') ? 'ivory' : 'obsidian'));
     root.setAttribute('data-theme', theme);
     root.style.colorScheme = theme.startsWith('light-') ? 'light' : 'dark';
     const backgrounds: Record<string, string> = {
