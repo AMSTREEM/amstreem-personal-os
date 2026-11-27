@@ -1665,10 +1665,11 @@ app.post('/api/achievements/sync',async(req,res)=>{
  try{
   const state=await loadAchievementState(req);
   const unseen=state.achievements.filter(item=>item.unlocked&&!one('SELECT achievement_id FROM achievement_unlocks WHERE achievement_id=?',item.id));
+  const newUnlocks=unseen.map(item=>({...item,unlockedAt:item.unlockedAt||new Date().toISOString()}));
   const insert=db.prepare('INSERT OR IGNORE INTO achievement_unlocks(achievement_id,unlocked_at) VALUES(?,?)');
-  const mark=db.transaction(()=>unseen.forEach(item=>insert.run(item.id,item.unlockedAt||new Date().toISOString())));
+  const mark=db.transaction(()=>newUnlocks.forEach(item=>insert.run(item.id,item.unlockedAt)));
   mark();
-  res.json({...state,newUnlocks:unseen});
+  res.json({...state,newUnlocks});
  }catch(error){console.error('Achievement sync:',error.message);res.status(503).json({error:'Achievements could not be synchronized. Please retry.'});}
 });
 app.get('/api/progress',async(req,res)=>{
