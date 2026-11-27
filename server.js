@@ -1207,7 +1207,7 @@ app.use('/api', async (req, res, next) => {
       res.end = (...args) => {
         if (ending) return res;
         ending = true;
-        if (req.method === 'GET' || req.method === 'HEAD' || res.statusCode >= 400) {
+        if (req.method === 'GET' || req.method === 'HEAD' || req.path === '/import/preview' || res.statusCode >= 400) {
           workspaceDb.close();
           release?.();
           return originalEnd(...args);
@@ -1722,6 +1722,19 @@ app.post('/api/calendar/events',(q,s)=>{const title=String(q.body.title||'').tri
 app.patch('/api/calendar/events/:id',(q,s)=>{const e=one('SELECT * FROM calendar_events WHERE id=?',q.params.id);if(!e)return s.status(404).json({error:'Calendar event not found.'});const title=String(q.body.title??e.title).trim(),startAt=String(q.body.start_at??e.start_at),taskId=q.body.task_id===undefined?e.task_id:(q.body.task_id||null),projectId=q.body.project_id===undefined?e.project_id:(q.body.project_id||null);if(!title||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(startAt))return s.status(400).json({error:'Check the event title and start time.'});if(taskId&&!one('SELECT id FROM tasks WHERE id=?',taskId))return s.status(400).json({error:'Choose an existing task.'});if(projectId&&!one('SELECT id FROM projects WHERE id=?',projectId))return s.status(400).json({error:'Choose an existing project.'});db.prepare('UPDATE calendar_events SET title=?,description=?,start_at=?,end_at=?,all_day=?,task_id=?,project_id=? WHERE id=?').run(title,q.body.description??e.description,startAt,q.body.end_at===undefined?e.end_at:(q.body.end_at||null),q.body.all_day===undefined?e.all_day:(q.body.all_day?1:0),taskId,projectId,e.id);s.json(one('SELECT * FROM calendar_events WHERE id=?',e.id));});
 app.delete('/api/calendar/events/:id',(q,s)=>{db.prepare('DELETE FROM calendar_events WHERE id=?').run(q.params.id);s.json({ok:true});});
 app.get('/api/export',(q,s)=>{s.setHeader('Content-Disposition','attachment; filename="personal-os-backup.json"');const data={exportedAt:new Date().toISOString(),goals:all('SELECT * FROM goals'),projects:all('SELECT * FROM projects'),project_milestones:all('SELECT * FROM project_milestones'),tasks:all('SELECT * FROM tasks'),modules:all('SELECT * FROM modules'),learning_paths:all('SELECT * FROM learning_paths'),learning_lessons:all('SELECT * FROM learning_lessons'),learning_resources:all('SELECT * FROM learning_resources'),learning_study_logs:all('SELECT * FROM learning_study_logs'),sessions:all('SELECT * FROM sessions'),calendar_events:all('SELECT * FROM calendar_events'),notes:all('SELECT * FROM notes'),reading_items:all('SELECT * FROM reading_items'),reviews:all('SELECT * FROM reviews'),habits:all('SELECT * FROM habits'),habit_logs:all('SELECT * FROM habit_logs'),prayer_logs:all('SELECT * FROM prayer_logs'),quran_logs:all('SELECT * FROM quran_logs'),tahajjud_logs:all('SELECT * FROM tahajjud_logs'),faith_logs:all('SELECT * FROM faith_logs'),rhythm_records:all('SELECT * FROM rhythm_records'),self_control_logs:all('SELECT * FROM self_control_logs'),self_control_trackers:all('SELECT * FROM self_control_trackers'),self_control_entries:all('SELECT * FROM self_control_entries'),settings:all('SELECT * FROM settings'),email_events:all('SELECT * FROM email_events'),login_events:all('SELECT * FROM login_events'),xp_events:all('SELECT * FROM xp_events'),achievement_unlocks:all('SELECT * FROM achievement_unlocks'),weekly_challenges:all('SELECT * FROM weekly_challenges'),feedback_logs:all('SELECT * FROM feedback_logs')};s.json(createBackupEnvelope(data));});
+app.post('/api/import/preview',(q,s)=>{
+ let previewDb;
+ try {
+  const summary=summarizeBackup(q.body,workspaceTables);
+  previewDb=createWorkspaceDatabase(serializeWorkspaceDatabase(db));
+  const imported=restoreBackup(previewDb,q.body,workspaceTables);
+  s.json({ok:true,dryRun:true,imported,summary,schemaVersion:3});
+ } catch(error) {
+  s.status(400).json({error:error.message||'The backup could not be validated.'});
+ } finally {
+  previewDb?.close();
+ }
+});
 app.post('/api/import',(q,s)=>{
  try {
   const summary=summarizeBackup(q.body,workspaceTables);
