@@ -9,7 +9,8 @@ const { appendAtlasEvent, appendImportedAtlasEvents, createAtlasEvent, validateI
 
 const migration = [
   '20261127130837_atlas_stage4_event_ledger.sql',
-  '20261127130848_atlas_stage4_commit_and_progress.sql'
+  '20261127130848_atlas_stage4_commit_and_progress.sql',
+  '20261127131004_atlas_stage4_achievement_fk_index.sql'
 ].map(file => fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations', file), 'utf8')).join('\n');
 const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
 
@@ -91,6 +92,7 @@ test('event ledger is append-only, account-scoped and has explicit Data API gran
   assert.match(migration, /revoke all on public\.activity_events from anon, authenticated/);
   assert.match(migration, /grant select on public\.activity_events to authenticated/);
   assert.match(migration, /grant select, insert on public\.activity_events to service_role/);
+  assert.match(migration, /atlas_achievement_unlocks_achievement_id_idx/);
   assert.doesNotMatch(migration, /grant select, insert on public\.activity_events to authenticated/);
   assert.match(migration, /current_user <> 'service_role'/);
   assert.match(migration, /commit_workspace_with_events\(uuid,bigint,jsonb,integer,text,text,boolean,text,jsonb\) to service_role/);
