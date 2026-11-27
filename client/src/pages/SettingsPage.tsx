@@ -57,6 +57,7 @@ export function SettingsPage() {
   const [northStar, setNorthStar] = useState('');
   const [target, setTarget] = useState('80');
   const [theme, setTheme] = useState('shadowed-alchemist');
+  const [communicationStyle, setCommunicationStyle] = useState('adaptive');
   const [features, setFeatures] = useState<string[]>(['calendar','focus','rituals','selfcontrol','learning','library','deen']);
   const [selectedLifeAreas, setSelectedLifeAreas] = useState<string[]>(defaultLifeAreas);
   const [soundFeedback, setSoundFeedback] = useState(() => { try { return localStorage.getItem('atlas-sound-feedback') === 'on'; } catch { return false; } });
@@ -67,13 +68,14 @@ export function SettingsPage() {
       setNorthStar(settings.data.north_star || '');
       setTarget(settings.data.daily_target || '80');
       setTheme(settings.data.theme || 'shadowed-alchemist');
+      setCommunicationStyle(settings.data.communication_style || 'adaptive');
       applyTheme(settings.data.theme || 'shadowed-alchemist');
       try { setFeatures(settings.data.features ? JSON.parse(settings.data.features).map((feature: string) => feature === 'values' ? 'deen' : feature) : ['calendar','focus','rituals','selfcontrol','learning','library','deen']); } catch { setFeatures(['calendar','focus','rituals','selfcontrol','learning','library','deen']); }
       try { const saved = settings.data.life_areas ? JSON.parse(settings.data.life_areas) : defaultLifeAreas; setSelectedLifeAreas(Array.isArray(saved) ? saved.filter((id: string) => lifeAreaOptions.some(area => area.id === id)) : defaultLifeAreas); } catch { setSelectedLifeAreas(defaultLifeAreas); }
     }
   }, [settings.data]);
   const save = useMutation({
-    mutationFn: () => { applyTheme(theme); return api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), theme, features, life_areas: selectedLifeAreas })); },
+    mutationFn: () => { applyTheme(theme); return api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), theme, features, life_areas: selectedLifeAreas, communication_style: communicationStyle })); },
     onSuccess: () => { setMessage('Your preferences have been saved.'); void client.invalidateQueries({ queryKey: ['settings'] }); }
   });
   async function exportData() {
@@ -103,6 +105,21 @@ export function SettingsPage() {
         <Field label="Display name"><TextInput value={name} onChange={event => setName(event.target.value)} placeholder="How Atlas should address you" /></Field>
         <Field label="North star"><TextInput value={northStar} onChange={event => setNorthStar(event.target.value)} placeholder="What are you orienting your effort around?" /></Field>
         <Field label="Your life areas"><p className="field__hint">Choose the parts of life you want Atlas to help you improve. Your selection can change whenever your priorities do.</p><div className="settings-module-grid">{lifeAreaOptions.map(area => <label className="settings-module-choice" key={area.id}><input type="checkbox" checked={selectedLifeAreas.includes(area.id)} onChange={event => setSelectedLifeAreas(current => event.target.checked ? [...current, area.id] : current.filter(id => id !== area.id))} /><span><b>{area.name}</b><small>{area.desc}</small></span></label>)}</div><p className="field__hint">{selectedLifeAreas.length} of {lifeAreaOptions.length} areas selected. Select at least one area.</p></Field>
+        <Field label="How Atlas communicates">
+          <p className="field__hint">Atlas can combine three roles and shift emphasis with the situation. Your preference guides its tone; it does not grant permission to take actions.</p>
+          <div className="settings-module-grid">
+            {[
+              { id: 'adaptive', name: 'Adaptive combination', desc: 'A composed, capable assistant; approachable when you need support; analytical and candid when decisions need scrutiny.' },
+              { id: 'jarvis', name: 'Personal Jarvis', desc: 'Composed, precise, proactive and focused on getting things done.' },
+              { id: 'companion', name: 'Personal companion', desc: 'Warm, conversational, patient and supportive.' },
+              { id: 'advisor', name: 'Strategic advisor', desc: 'Insightful, evidence-led, direct and willing to challenge assumptions.' }
+            ].map(option => <label className="settings-module-choice" key={option.id}>
+              <input type="radio" name="communication-style" value={option.id} checked={communicationStyle === option.id} onChange={() => setCommunicationStyle(option.id)} />
+              <span><b>{option.name}</b><small>{option.desc}</small></span>
+            </label>)}
+          </div>
+          {communicationStyle === 'adaptive' && <p className="field__hint">Adaptive combination is selected: Atlas should read the context instead of repeating a fixed script.</p>}
+        </Field>
         <Field label="Daily focus intention (minutes)"><TextInput type="number" min="10" max="600" value={target} onChange={event => setTarget(event.target.value)} /></Field>
         <Field label="Optional workspace views"><p className="field__hint">Your six core pillars always stay available. Turn secondary views on or off as your workspace needs change.</p><div className="settings-module-grid">{[{id:'calendar',name:'Calendar',desc:'A calendar view inside Projects & Tasks.'},{id:'library',name:'Personal Library',desc:'A library tab inside Learning Studio.'}].map(module => <label className="settings-module-choice" key={module.id}><input type="checkbox" checked={features.includes(module.id)} onChange={event => setFeatures(current => event.target.checked ? [...current,module.id] : current.filter(id => id !== module.id))} /><span><b>{module.name}</b><small>{module.desc}</small></span></label>)}</div></Field>
         <Field label="Micro-feedback"><label className="settings-module-choice"><input type="checkbox" checked={soundFeedback} onChange={event => { const enabled = event.target.checked; setSoundFeedback(enabled); try { localStorage.setItem('atlas-sound-feedback', enabled ? 'on' : 'off'); } catch { /* Optional audio. */ } if (enabled) primeAtlasAudio(); }} /><span><b>Subtle sound cues</b><small>Quiet 15ms ticks for task and prayer check-offs, plus a soft Focus completion chime. Off by default.</small></span></label></Field>
