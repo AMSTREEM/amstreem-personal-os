@@ -6,6 +6,7 @@ const { restoreBackup } = require('./workspace-backup');
 const { AsyncLocalStorage } = require('node:async_hooks');
 const crypto = require('node:crypto');
 const { commitWorkspaceSnapshot, createWorkspaceRequestHash } = require('./server/workspace-persistence');
+const { positiveIdSchema, validateRequest } = require('./server/api-contracts');
 const { resolveAppEnvironment, checkEnvironmentMarker, requestLogger } = require('./server/runtime-guard');
 const app = express();
 app.disable('x-powered-by');
@@ -1276,11 +1277,10 @@ app.post('/api/history/snapshot', async (req, res) => {
   }
 });
 
-app.post('/api/history/:id/restore', async (req, res) => {
+app.post('/api/history/:id/restore', validateRequest(require('zod').z.object({ id: positiveIdSchema }), 'params'), async (req, res) => {
   req.skipWorkspaceCommit = true;
   try {
-    const historyId = Number(req.params.id);
-    if (!Number.isSafeInteger(historyId) || historyId < 1) return res.status(400).json({ error: 'Choose a valid history point.' });
+    const historyId = req.validated.params.id;
     if (!req.workspaceState) return res.status(503).json({ error: 'Workspace is not ready to restore.' });
     const rows = await atlasRest(req, `personal_os_workspace_history?select=id,version,schema_version,snapshot,reason,created_at&id=eq.${historyId}&limit=1`);
     const point = rows?.[0];
