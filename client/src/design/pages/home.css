@@ -88,3 +88,9 @@
   .atlas-v2 .atlas-dashboard__hero { min-height: 300px; }
   .atlas-v2 .atlas-dashboard__hero-art { opacity: .5; }
 }
+
+.atlas-v2 .atlas-dashboard__intro h1,
+.atlas-v2 .atlas-dashboard__hero h2,
+.atlas-v2 .atlas-dashboard__section-head h2,
+.atlas-v2 .atlas-dashboard__direction h3,
+.atlas-v2 .atlas-dashboard__signals-heading h2 { font-family: 'Fraunces', Georgia, serif; font-weight: 500; letter-spacing: -.045em; }
