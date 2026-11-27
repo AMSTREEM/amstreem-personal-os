@@ -271,7 +271,7 @@ test('Room 3 has a dedicated Focus Room with safe context handoffs and a persist
   assert.match(app, /path="\/actions" element={<FocusWorkspace \/>}/);
   assert.match(app, /path="\/focus" element={<FocusWorkspace \/>}/);
   assert.match(shell, /paths: \['\/focus'\]/);
-  assert.match(shell, /label: 'Focus', to: '\/focus'/);
+  assert.match(shell, /label: 'Focus', detail: 'Start or resume a focus session', to: '\/focus'/);
   assert.match(shell, /navigate\('\/focus'\)/);
   assert.match(shell, /className="atlas-command-dock"/);
   assert.match(workspace, /!isFocusRoute && <section className="execution-projects-panel">/);
