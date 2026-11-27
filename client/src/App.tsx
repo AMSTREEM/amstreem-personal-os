@@ -18,7 +18,6 @@ const CalendarV2Page = lazy(() => import('./pages/CalendarV2Page').then(module =
 const BlueprintPage = lazy(() => import('./pages/BlueprintPage').then(module => ({ default: module.BlueprintPage })));
 const GoalsPage = lazy(() => import('./pages/GoalsPage').then(module => ({ default: module.GoalsPage })));
 const FocusWorkspace = lazy(() => import('./components/FocusWorkspace').then(module => ({ default: module.FocusWorkspace })));
-const CalendarPage = lazy(() => import('./pages/CalendarPage').then(module => ({ default: module.CalendarPage })));
 const ValuesPage = lazy(() => import('./pages/ValuesPage').then(module => ({ default: module.ValuesPage })));
 const HabitsSelfControlView = lazy(() => import('./pages/ConsolidatedViews').then(module => ({ default: module.HabitsSelfControlView })));
 const LearningLibraryView = lazy(() => import('./pages/ConsolidatedViews').then(module => ({ default: module.LearningLibraryView })));
