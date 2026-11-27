@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, json } from '../lib/api';
+import { getAtlasRouteMeta } from '../app/routes';
 import { queryKeys } from '../lib/queryKeys';
 import { ArrowRight, BookOpen, CalendarDays, Check, Compass, GraduationCap, Heart, House, ListChecks, LogOut, MoonStar, Pause, Play, Plus, Search, Settings, SlidersHorizontal, Target, Timer, TrendingUp, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
@@ -200,8 +201,10 @@ export function AppShell() {
   let selectedLifeAreas: string[] = [];
   try { selectedLifeAreas = settings.data?.life_areas ? JSON.parse(settings.data.life_areas).filter((id: string) => !!lifeAreaNames[id]) : Object.keys(lifeAreaNames); } catch { selectedLifeAreas = Object.keys(lifeAreaNames); }
   // The six core pillars are always available; preferences only control secondary views.
+  const routeMeta = getAtlasRouteMeta(location.pathname);
+  const isQuranRoute = routeMeta.frozen === true;
   const current = rooms.find(item => item.paths.includes(location.pathname));
-  const activeTabs = location.pathname === '/quran' ? [] : (current?.tabs || []);
+  const activeTabs = isQuranRoute ? [] : (current?.tabs || []);
   const activeView = activeTabs.find(tab => tab.paths.includes(location.pathname));
   useEffect(() => {
     if (focusActive && focusTimer.kind !== 'break') {
@@ -212,7 +215,7 @@ export function AppShell() {
   }, [focusActive, focusTimer.kind, focusClock, focusContext, current?.label]);
   const faithTabLabel = quickReligion === 'islam' ? 'Deen' : quickReligion === 'christianity' ? 'Faith & Reflection' : 'Daily Reflection';
 
-  return <div data-room={location.pathname === "/quran" ? "none" : current?.id === "execution" ? "execute" : current?.id || "none"} className={(location.pathname === "/quran" ? "app-frame atlas-quran-mode" : "atlas-v2 app-frame atlas-renaissance") + (booting ? " atlas-booting" : "")}>
+  return <div data-room={routeMeta.room || "none"} className={(isQuranRoute ? "app-frame atlas-quran-mode" : "atlas-v2 app-frame atlas-renaissance") + (booting ? " atlas-booting" : "")}>
     <SparkBurst />
     <MobileInstallPrompt />
     <AnimatePresence initial={false}>{tourOpen && <AtlasWalkthrough onClose={closeTour} onOpenCommand={() => { setCommandOpen(true); setCommandQuery(''); }} />}</AnimatePresence>
@@ -262,7 +265,7 @@ export function AppShell() {
         <EntrancePresetContext.Provider value={entrancePreset}>
           <motion.div
             key={location.pathname}
-            className={"room-view-transition " + (location.pathname === '/residence' ? 'a-route-v2' : '')}
+            className={"room-view-transition " + (routeMeta.v2 ? 'a-route-v2 atlas-v2' : '')}
             initial={false}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0 }}
