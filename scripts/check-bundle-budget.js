@@ -15,7 +15,7 @@ if (!fs.existsSync(manifestPath)) {
 
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const entry = Object.entries(manifest).find(([key, item]) =>
-  item.isEntry && (key.endsWith('main.tsx') || item.src?.endsWith('main.tsx'))
+  item.isEntry && (key === 'index.html' || item.src?.endsWith('index.html'))
 );
 if (!entry) {
   console.error('Bundle budget check: main.tsx entry was not found.');
