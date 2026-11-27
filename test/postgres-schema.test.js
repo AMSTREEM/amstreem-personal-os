@@ -487,3 +487,20 @@ test('web shell builds all eight modules from manifests and keeps Qur’an as a 
   assert.match(shell, /design\/module-registry/);
   assert.match(shell, /navigationGroups\.map/);
 });
+
+
+test('Atlas route code is lazy-loaded and gzip budgets are enforced on every build', () => {
+  const app = fs.readFileSync(path.join(__dirname, '..', 'client/src/App.tsx'), 'utf8');
+  const auth = fs.readFileSync(path.join(__dirname, '..', 'client/src/auth/AuthProvider.tsx'), 'utf8');
+  const main = fs.readFileSync(path.join(__dirname, '..', 'client/src/main.tsx'), 'utf8');
+  const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
+  const budget = fs.readFileSync(path.join(__dirname, '..', 'scripts/check-bundle-budget.js'), 'utf8');
+  assert.match(app, /const QuranPage = lazy/);
+  assert.match(app, /const AppShell = lazy/);
+  assert.match(app, /const AuthPage = lazy/);
+  assert.match(auth, /await import\('\.\.\/lib\/supabase'\)/);
+  assert.doesNotMatch(main, /MotionConfig/);
+  assert.equal(packageJson.scripts.postbuild, 'node scripts/check-bundle-budget.js');
+  assert.match(budget, /180 \* 1024/);
+  assert.match(budget, /120 \* 1024/);
+});
