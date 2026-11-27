@@ -3,6 +3,13 @@ import type { Session } from '@supabase/supabase-js';
 import { initialAuthFlowType, isInvalidRefreshTokenError, supabase } from '../lib/supabase';
 
 type UserProfile = { id: string; email: string; name: string; username: string };
+type BootstrapResponse = {
+  user: UserProfile;
+  role: 'user' | 'admin';
+  today: string;
+  settings: Record<string, string>;
+  navigationBadges: Record<string, number>;
+};
 type AuthState = {
   session: Session | null;
   user: UserProfile | null;
@@ -33,9 +40,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hydrate = useCallback(async (next: Session | null) => {
     if (!next) { setUser(null); setRole(null); return; }
     try {
-      const response = await fetch('/api/session', { headers: { Authorization: 'Bearer ' + next.access_token } });
+      const response = await fetch('/api/v1/bootstrap', { headers: { Authorization: 'Bearer ' + next.access_token } });
       if (!response.ok) throw new Error('Session profile unavailable.');
-      const result = await response.json();
+      const result = await response.json() as BootstrapResponse;
       setUser({ id: result.user.id, email: result.user.email || '', name: result.user.name || '', username: result.user.username || '' });
       setRole(result.role || 'user');
     } catch {
@@ -93,13 +100,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await hydrate(data.session);
       return;
     }
-    const response = await fetch('/api/auth/username-login', {
+    const response = await fetch('/api/v1/auth/username-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: identifier, password })
     });
     const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error || 'Invalid username or password.');
+    if (!response.ok) throw new Error(payload.detail || payload.error || 'Invalid username or password.');
     const { data, error } = await supabase.auth.setSession({ access_token: payload.access_token, refresh_token: payload.refresh_token });
     if (error) throw error;
     await hydrate(data.session);
