@@ -34,7 +34,27 @@ export function ExecutionV2Page(){
      {add.isError&&<p className="a-execution__error" role="alert">{add.error.message}</p>}
      <div className="a-execution__tools"><div className="a-execution__filters" aria-label="Filter actions"><button className={filter==='open'?'is-active':''} onClick={()=>setFilter('open')}>Open <b>{open.length}</b></button><button className={filter==='all'?'is-active':''} onClick={()=>setFilter('all')}>All</button><button className={filter==='done'?'is-active':''} onClick={()=>setFilter('done')}>Completed <b>{completed.length}</b></button></div><label className="a-execution__search"><Search size={14}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Find an action" aria-label="Find an action"/>{query&&<button type="button" onClick={()=>setQuery('')} aria-label="Clear search"><X size={13}/></button>}</label></div>
      <div className="a-execution__project-filter"><button className={project==='all'?'is-active':''} onClick={()=>setProject('all')}>Everywhere</button>{projects.map(p=><button key={p.id} className={project===String(p.id)?'is-active':''} onClick={()=>setProject(String(p.id))}>{p.title}</button>)}<button className={project==='none'?'is-active':''} onClick={()=>setProject('none')}>Unassigned</button></div>
-     <div className="a-execution__list">{tasksQ.isLoading?<><AtlasSkeleton/><AtlasSkeleton/><AtlasSkeleton/></>:visible.length?visible.map(task=><article className={'a-execution__task '+(task.done?'is-done':'')} key={task.id}><button className="a-execution__check" aria-label={task.done?'Reopen '+task.title:'Complete '+task.title} disabled={toggle.isPending} onClick={()=>toggle.mutate(task)}>{task.done?<Check size={15}/>:<Circle size={16}/>}</button><div className="a-execution__task-copy"><strong>{task.title}</strong><span>{task.project_title||task.goal_title||'Personal action'}{task.due_date?' · '+(task.due_date===today()?'Due today':task.due_date):''}</span></div><AtlasBadge tone={task.priority===1?'danger':task.priority===2?'accent':'neutral'}>{priorityName(task.priority)}</AtlasBadge>{!task.done&&<Link className="a-execution__focus-link" to={'/focus?task='+task.id} aria-label={'Focus on '+task.title}><Timer size={15}/></Link>}</article>):<AtlasEmptyState title={filter==='done'?'No completed actions here.':'A little more breathing room.'} description={filter==='done'?'Completed actions will appear here.':'No actions match this view. Capture one when something needs your attention.'/>}</div>
+      <div className="a-execution__list">
+       {tasksQ.isLoading ? (
+        <><AtlasSkeleton/><AtlasSkeleton/><AtlasSkeleton/></>
+       ) : visible.length ? (
+        visible.map(task => (
+         <article className={"a-execution__task "+(task.done?"is-done":"")} key={task.id}>
+          <button className="a-execution__check" aria-label={task.done ? "Reopen "+task.title : "Complete "+task.title} disabled={toggle.isPending} onClick={() => toggle.mutate(task)}>
+           {task.done ? <Check size={15}/> : <Circle size={16}/>}
+          </button>
+          <div className="a-execution__task-copy">
+           <strong>{task.title}</strong>
+           <span>{task.project_title||task.goal_title||"Personal action"}{task.due_date ? " · "+(task.due_date===today()?"Due today":task.due_date) : ""}</span>
+          </div>
+          <AtlasBadge tone={task.priority===1?"danger":task.priority===2?"accent":"neutral"}>{priorityName(task.priority)}</AtlasBadge>
+          {!task.done && <Link className="a-execution__focus-link" to={"/focus?task="+task.id} aria-label={"Focus on "+task.title}><Timer size={15}/></Link>}
+         </article>
+        ))
+       ) : (
+        <AtlasEmptyState title={filter==="done"?"No completed actions here.":"A little more breathing room."} description={filter==="done"?"Completed actions will appear here.":"No actions match this view. Capture one when something needs your attention."}/>
+       )}
+      </div>
     </AtlasCard>
    </main>
    <aside className="a-execution__aside"><AtlasCard padding="lg"><AtlasSectionHeading eyebrow="PROJECTS" title="Work with direction" description="Actions become easier to sustain when they belong to something meaningful."/>
