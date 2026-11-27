@@ -25,11 +25,11 @@
 
 ## Screenshot baseline status
 
-The required six authenticated Qur'an screenshots (390×844, 768×1024 and 1440×900, light and dark), plus the unchanged-app route baselines, have **not** yet been captured. The available repository integration does not provide an authenticated interactive browser session or staging-specific test account credentials. No fabricated screenshots or placeholders are committed. This remains a Phase 0 acceptance item before Phase 1.
+The required six authenticated Qur'an screenshots (390×844, 768×1024 and 1440×900, light and dark), plus the unchanged-app route baselines, have **not** yet been captured. The available repository integration does not provide an authenticated interactive browser session or staging-specific test account credentials. No fabricated screenshots or placeholders are committed. This remains an explicitly documented visual-verification exception. The user selected a clean-slate redesign and agreed to proceed without using the old site's appearance as a design baseline. No pixel-parity claim is made; authenticated Qur'an visual regression capture remains a final-release acceptance item.
 
 ## Baseline gate status
 
 - Existing source-branch CI: passed at baseline commit.
 - New branch frozen gate: introduced in this phase; result recorded after CI runs.
-- Visual baseline: blocked pending authenticated browser capture.
+- Visual baseline: not captured; accepted exception for the clean-slate redesign. See [Phase 1 closure](PHASE-1.md).
 - No application runtime, schema, API, production branch or production service changes are made in Phase 0.
