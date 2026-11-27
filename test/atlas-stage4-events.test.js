@@ -64,6 +64,7 @@ test('backup events retain their original keys but are reclassified as imports',
   assert.equal(context.pendingEvents[0].source, 'import');
   assert.equal(validateImportedAtlasEvents([event()])[0].source, 'import');
   assert.throws(() => validateImportedAtlasEvents([event(), event()]), /duplicate activity event keys/);
+  assert.throws(() => validateImportedAtlasEvents([event({ type: 'task.reopened', payload: { reversesEventKey: 'missing-original-event' } })]), /missing an original activity event/);
 });
 
 test('workspace version commits append events atomically and skip duplicate idempotency replays', () => {
