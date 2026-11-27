@@ -147,10 +147,10 @@ test('Room 3 uses the unified FocusWorkspace route and preserves project/task bo
   const app = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'App.tsx'), 'utf8');
   const shell = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'components', 'AppShell.tsx'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
-  assert.ok(app.includes('path="/actions" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>}'));
+  assert.ok(app.includes('path="/actions" element={<SuspendedPage><ExecutionV2Page /></SuspendedPage>}'));
   assert.ok(app.includes('path="/projects" element={<LegacyRedirect to="/actions" />}'));
-  assert.ok(app.includes('path="/actions" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>}'));
-  assert.ok(app.includes('path="/focus" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>}'));
+  assert.ok(app.includes('path="/actions" element={<SuspendedPage><ExecutionV2Page /></SuspendedPage>}'));
+  assert.ok(app.includes('path="/focus" element={<SuspendedPage><div className="atlas-v2 a-focus-room"><FocusWorkspace /></div></SuspendedPage>}'));
   assert.match(shell, /to: '\/actions'/);
   assert.ok(shell.includes("label: 'Execution & Focus', mobileLabel: 'Focus', to: '/actions'"));
   assert.match(css, /\.execution-heading/);
@@ -268,7 +268,7 @@ test('Room 3 has a dedicated Focus Room with safe context handoffs and a persist
   const learning = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'LearningPage.tsx'), 'utf8');
   const residence = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'pages', 'TodayPage.tsx'), 'utf8');
   const css = fs.readFileSync(path.join(__dirname, '..', 'client', 'src', 'styles.css'), 'utf8');
-  assert.ok(app.includes('path="/actions" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>}'));
+  assert.ok(app.includes('path="/actions" element={<SuspendedPage><ExecutionV2Page /></SuspendedPage>}'));
   assert.ok(app.includes('path="/focus" element={<SuspendedPage><FocusWorkspace /></SuspendedPage>}'));
   assert.ok(shell.includes("paths: ['/actions', '/focus', '/calendar']"));
   assert.ok(shell.includes("label: 'Projects & Tasks', to: '/actions'"));
