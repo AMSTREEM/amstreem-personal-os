@@ -1,5 +1,5 @@
 import {
-  BookOpen, Check, Compass, GraduationCap, Heart, House, ListChecks,
+  Check, Compass, GraduationCap, Heart, House, ListChecks,
   MoonStar, Target, TrendingUp
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
