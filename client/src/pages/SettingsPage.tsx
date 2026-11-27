@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Download, Upload } from 'lucide-react';
 import { primeAtlasAudio } from '../lib/microFeedback';
 import { api, json } from '../lib/api';
-import { applyAtlasContrast, applyAtlasTheme } from '../design/theme';
+import { applyAtlasContrast, applyAtlasMotionPreference, applyAtlasTheme, type AtlasMotionPreference } from '../design/theme';
 import { Button, Card, Field, PageHeader, TextInput } from '../components/ui';
 
 type Settings = Record<string, string>;
@@ -23,7 +23,7 @@ const themes = [
     { id: 'system', name: 'System', note: 'Follow your device appearance', colors: ['#0A0E13','#F6F4EF','#22D3EE','#EAF0F6'] }
   ]},
   { group: 'Dark', items: [
-    { id: 'shadowed-alchemist', name: 'Shadowed Alchemist', note: 'Mysterious balanced', colors: ['#07080A','#0E1014','#CA8A04','#E4E4E7'] },
+    { id: 'shadowed-alchemist', name: 'Shadowed Alchemist', note: 'Mysterious balanced', colors: ['#0A0E13','#10161D','#22D3EE','#EAF0F6'] },
     { id: 'nocturnal-amethyst', name: 'Nocturnal Amethyst', note: 'Mysterious all-purple', colors: ['#050408','#0C0914','#C084FC','#EAE6F5'] },
     { id: 'abyssal-trench', name: 'Abyssal Trench', note: 'Mysterious all-blue', colors: ['#03060C','#080E1A','#38BDF8','#E2E8F0'] },
     { id: 'whispering-woods', name: 'Whispering Woods', note: 'Mysterious all-green', colors: ['#030806','#08120E','#6EE7B7','#E2F1EC'] },
@@ -50,7 +50,9 @@ export function SettingsPage() {
   const [selectedLifeAreas, setSelectedLifeAreas] = useState<string[]>(defaultLifeAreas);
   const [soundFeedback, setSoundFeedback] = useState(() => { try { return localStorage.getItem('atlas-sound-feedback') === 'on'; } catch { return false; } });
   const [highContrast, setHighContrast] = useState(() => { try { return localStorage.getItem('atlas-high-contrast') === 'on'; } catch { return false; } });
+  const [motionPreference, setMotionPreference] = useState<AtlasMotionPreference>(() => { try { const value = localStorage.getItem('atlas-motion-preference'); return value === 'reduced' || value === 'full' ? value : 'system'; } catch { return 'system'; } });
   useEffect(() => { applyAtlasContrast(highContrast); }, [highContrast]);
+  useEffect(() => { applyAtlasMotionPreference(motionPreference); }, [motionPreference]);
   const [message, setMessage] = useState('');
   useEffect(() => {
     if (settings.data) {
@@ -116,6 +118,16 @@ export function SettingsPage() {
         <Field label="Optional workspace views"><p className="field__hint">Your six core pillars always stay available. Turn secondary views on or off as your workspace needs change.</p><div className="settings-module-grid">{[{id:'calendar',name:'Calendar',desc:'A calendar view inside Projects & Tasks.'},{id:'library',name:'Personal Library',desc:'A library tab inside Learning Studio.'}].map(module => <label className="settings-module-choice" key={module.id}><input type="checkbox" checked={features.includes(module.id)} onChange={event => setFeatures(current => event.target.checked ? [...current,module.id] : current.filter(id => id !== module.id))} /><span><b>{module.name}</b><small>{module.desc}</small></span></label>)}</div></Field>
         <Field label="Micro-feedback"><label className="settings-module-choice"><input type="checkbox" checked={soundFeedback} onChange={event => { const enabled = event.target.checked; setSoundFeedback(enabled); try { localStorage.setItem('atlas-sound-feedback', enabled ? 'on' : 'off'); } catch { /* Optional audio. */ } if (enabled) primeAtlasAudio(); }} /><span><b>Subtle sound cues</b><small>Quiet 15ms ticks for task and prayer check-offs, plus a soft Focus completion chime. Off by default.</small></span></label></Field>
         <Field label="Accessibility"><label className="settings-module-choice"><input type="checkbox" checked={highContrast} onChange={event => setHighContrast(event.target.checked)} /><span><b>High-contrast interface</b><small>Strengthen borders and secondary text for easier reading on every Atlas screen.</small></span></label></Field>
+        <Field label="Motion">
+          <label className="settings-module-choice">
+            <span><b>Interface motion</b><small>Choose whether Atlas follows your device or reduces animation. This preference stays on this device.</small></span>
+            <select className="field-input" aria-label="Interface motion preference" value={motionPreference} onChange={event => setMotionPreference(event.target.value as AtlasMotionPreference)}>
+              <option value="system">System</option>
+              <option value="reduced">Reduced</option>
+              <option value="full">Full</option>
+            </select>
+          </label>
+        </Field>
         <Field label="Appearance">
           <div className="theme-picker-groups">
             {themes.map(group => <section className="theme-picker-group" key={group.group}>
