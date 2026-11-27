@@ -24,11 +24,12 @@ Last updated: 2026-11-27
 
 ## Verified checks
 
-- The frozen Qur'an integrity check passed in recent CI runs.
-- The WCAG AA contrast script passed in recent CI runs.
-- TypeScript passed in recent CI runs.
-- The existing test suite passed on commit `04cba70f5df4b80ca44c065ec78ae3d49bcacf0a`.
-- The latest Playwright/contrast/boundary changes are awaiting CI verification; do not treat them as accepted until both Atlas staging checks and Personal OS checks pass.
+- `npm run check:frozen` passed.
+- `npm run check:contrast` passed after expanding coverage to all four text tokens against all four theme surfaces.
+- TypeScript, production build, test suite and `npm audit` passed on head `c553e3c6d728de4bf9512096a79290a3c5b94218`.
+- Atlas staging checks: [45943926549](https://github.com/AMSTREEM/amstreem-personal-os/actions/runs/45943926549) — success.
+- Personal OS checks: [45943926487](https://github.com/AMSTREEM/amstreem-personal-os/actions/runs/45943926487) — success.
+- The authenticated Playwright baseline capture script is committed; actual screenshots remain ungenerated until the local manual sign-in step is completed.
 
 ## Current hard blocker
 
