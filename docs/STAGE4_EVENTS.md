@@ -1,9 +1,11 @@
 # Stage 4 — Events and Shared Services
 
-**Status:** implementation complete; staging migrations applied; all CI checks passed; staging deployment and authenticated QA pending  
+**Status:** merged to `atlas-next`; staging migrations applied; all CI checks passed; Render staging deployment live; authenticated QA pending  
 **Branch:** `atlas-stage4-events`  
 **Base:** `atlas-next`  
 **Release target:** staging only
+**Staging commit:** `a8abdb47ed6fbf6d70a30bb051ab8e08fa81df3a`
+**Render deployment:** `dep-dc4o4odg1s2s73f6pppg` — live 2026-11-27
 **Applied staging migrations:** `20261127130837_atlas_stage4_event_ledger`, `20261127130848_atlas_stage4_commit_and_progress`, `20261127131004_atlas_stage4_achievement_fk_index`
 
 ## Objective
