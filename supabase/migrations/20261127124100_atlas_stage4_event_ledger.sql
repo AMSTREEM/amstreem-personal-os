@@ -705,11 +705,20 @@ security invoker
 set search_path = ''
 as $$
 declare
-  v_user_id uuid := auth.uid();
+  v_user_id uuid := p_user_id;
   v_result jsonb;
 begin
+  if current_user <> 'service_role' then
+    raise exception 'server_only_workspace_commit' using errcode = '42501';
+  end if;
   if v_user_id is null then
     raise exception 'authentication_required' using errcode = '42501';
+  end if;
+  perform set_config('request.jwt.claim.sub',v_user_id::text,true);
+  perform set_config('request.jwt.claim.role','authenticated',true);
+  perform set_config('request.jwt.claims',jsonb_build_object('sub',v_user_id::text,'role','authenticated')::text,true);
+  if auth.uid() is distinct from v_user_id then
+    raise exception 'workspace_owner_mismatch' using errcode = '42501';
   end if;
   if p_events is null or jsonb_typeof(p_events) <> 'array' then
     raise exception 'invalid_event_batch' using errcode = '22023';
@@ -1287,6 +1296,8 @@ begin
   end loop;
 end;
 $;
+
+grant execute on function public.commit_workspace(bigint,jsonb,integer,text,text,boolean,text) to service_role;
 
 grant execute on function public.commit_workspace(bigint,jsonb,integer,text,text,boolean,text) to service_role;
 
