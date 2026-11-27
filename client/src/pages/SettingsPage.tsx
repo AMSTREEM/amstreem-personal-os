@@ -91,6 +91,10 @@ export function SettingsPage() {
     if (!window.confirm('Importing a backup replaces the workspace records represented in that file. Continue only if this is the backup you intend to restore.')) return;
     try {
       const backup = JSON.parse(await file.text());
+      const preview = await api<{ imported: number; summary: Record<string, number> }>('/import/preview', json('POST', backup));
+      const summary = Object.entries(preview.summary).filter(([, count]) => count > 0).map(([table, count]) => `${table}: ${count}`).join('\\n');
+      const confirmed = window.confirm(`Backup validated. ${preview.imported} records will be restored:\\n\\n${summary || 'No records'}\\n\\nThis replaces the corresponding workspace records. Continue?`);
+      if (!confirmed) return;
       await api('/import', json('POST', backup));
       setMessage('Backup imported successfully.');
       await client.invalidateQueries();
