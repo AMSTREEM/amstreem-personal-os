@@ -142,7 +142,7 @@ export function AppShell() {
     try {
       await api('/tasks', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({title:quickTaskTitle.trim(),category:'Personal'}) });
       setQuickTaskTitle(''); setCommandOpen(false);
-      void queryClient.invalidateQueries({queryKey:['tasks']}); void queryClient.invalidateQueries({queryKey:['overview']});
+      void queryClient.invalidateQueries({queryKey: queryKeys.tasks}); void queryClient.invalidateQueries({queryKey: queryKeys.overview});
     } catch (error) { setQuickTaskError(error instanceof Error ? error.message : 'Could not save task.'); }
     finally { setQuickTaskSaving(false); }
   }
