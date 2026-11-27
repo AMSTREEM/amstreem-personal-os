@@ -2,10 +2,10 @@ export const atlasThemes = ['obsidian', 'dusk', 'ivory', 'sahara'] as const;
 export type AtlasTheme = (typeof atlasThemes)[number];
 
 const themeMeta: Record<AtlasTheme, { legacy: string; colorScheme: 'dark' | 'light'; color: string }> = {
-  obsidian: { legacy: 'shadowed-alchemist', colorScheme: 'dark', color: '#0a0c11' },
-  dusk: { legacy: 'nocturnal-amethyst', colorScheme: 'dark', color: '#0e0d1c' },
-  ivory: { legacy: 'light-porcelain', colorScheme: 'light', color: '#fcfaf6' },
-  sahara: { legacy: 'light-sandstone', colorScheme: 'light', color: '#fdf4e7' },
+  obsidian: { legacy: 'shadowed-alchemist', colorScheme: 'dark', color: '#111318' },
+  dusk: { legacy: 'nocturnal-amethyst', colorScheme: 'dark', color: '#171426' },
+  ivory: { legacy: 'light-porcelain', colorScheme: 'light', color: '#F7F6F1' },
+  sahara: { legacy: 'light-sandstone', colorScheme: 'light', color: '#F3EBDD' },
 };
 
 export function isAtlasTheme(value: string | null | undefined): value is AtlasTheme {
@@ -19,8 +19,10 @@ export function applyAtlasTheme(theme: AtlasTheme): void {
   root.setAttribute('data-a-theme', theme);
   root.setAttribute('data-theme', mapping.legacy);
   root.style.colorScheme = mapping.colorScheme;
+  root.style.backgroundColor = mapping.color;
   meta?.setAttribute('content', mapping.color);
   localStorage.setItem('atlas.theme', theme);
+  localStorage.setItem('atlas_theme', mapping.legacy);
 }
 
 export function getInitialAtlasTheme(): AtlasTheme {
