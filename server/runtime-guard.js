@@ -17,13 +17,14 @@ async function checkEnvironmentMarker({
   appEnv,
   supabaseUrl,
   apiKey,
+  probeToken,
   fetchImpl = fetch,
   timeoutMs = 4000
 }) {
   if (appEnv === 'development') {
     return { ok: true, database: true, environment: true, skipped: true };
   }
-  if (!supabaseUrl || !apiKey) {
+  if (!supabaseUrl || !apiKey || !probeToken) {
     return { ok: false, reason: 'configuration_missing' };
   }
 
@@ -32,7 +33,7 @@ async function checkEnvironmentMarker({
     const response = await fetchImpl(endpoint, {
       headers: {
         apikey: apiKey,
-        Authorization: `Bearer ${apiKey}`,
+        'x-atlas-probe-token': probeToken,
         Accept: 'application/json'
       },
       signal: AbortSignal.timeout(timeoutMs)
