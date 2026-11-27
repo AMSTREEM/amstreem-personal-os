@@ -1,7 +1,7 @@
 const { z } = require('zod');
 
 const positiveIdSchema = z.coerce.number().int().positive().safe();
-const dateKeySchema = z.string().regex(/^\\d{4}-\\d{2}-\\d{2}$/, 'Expected YYYY-MM-DD.');
+const dateKeySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Expected YYYY-MM-DD.');
 const paginationQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(25),
   offset: z.coerce.number().int().min(0).max(100000).default(0)
