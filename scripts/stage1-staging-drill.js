@@ -7,7 +7,6 @@ if (new URL(process.env.ATLAS_STAGE1_STAGING_URL).hostname !== 'amstreem-atlas-s
 if (new URL(process.env.SUPABASE_URL).hostname !== 'yllzeblecyqnncgktnjw.supabase.co') throw new Error('The drill only supports the isolated Atlas staging Supabase project.');
 
 const base = process.env.SUPABASE_URL.replace(/\/$/, '');
-const api = process.env.ATLAS_STAGE1_STAGING_URL.replace(/\/$/, '');
 const token = process.env.ATLAS_STAGE1_TEST_TOKEN;
 const userId = process.env.ATLAS_STAGE1_TEST_USER_ID;
 const headers = { apikey: process.env.SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
@@ -40,9 +39,6 @@ async function commit(expected, data, label, forceHistory = false, reason = 'sch
     p_history_reason: reason
   };
   return request(`${base}/rest/v1/rpc/commit_workspace`, { method: 'POST', body: JSON.stringify(body) });
-}
-async function appRequest(path, body, method = 'PATCH') {
-  return request(`${api}${path}`, { method, ...(method === 'GET' ? {} : { body: JSON.stringify(body) }) });
 }
 
 (async () => {
