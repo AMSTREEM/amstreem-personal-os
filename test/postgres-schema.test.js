@@ -29,7 +29,7 @@ test('API persists request-scoped in-memory workspaces through Supabase', () => 
   assert.match(server, /new Database\(':memory:'\)/);
   assert.match(server, /personal_os_workspaces/);
   assert.match(server, /Saved workspace is missing its/);
-  assert.match(server, /writeWorkspaceSnapshot\(user\.id, token, workspaceDb\)/);
+  assert.match(server, /writeWorkspaceSnapshot\(user\.id, token, workspaceDb, workspaceState\.version, baseSnapshot/);
   assert.match(server, /acquireUserLock\(user\.id\)/);
   assert.doesNotMatch(server, /DATA_DIR|owner\.db|amstreem\.db/);
 });
