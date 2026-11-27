@@ -81,7 +81,9 @@ function rateLimit({ max, windowMs = 60_000, prefix = 'ip' }) {
     next();
   };
 }
-app.get('/healthz', (req,res) => res.status(200).json({ ok: true }));
+let serverReady = false;
+app.get('/healthz', (_req, res) => res.status(200).json({ ok: true }));
+app.get('/readyz', (_req, res) => res.status(serverReady ? 200 : 503).json({ ok: serverReady }));
 const QURAN_FONT_FILENAME = 'UthmanicHafs1Ver18.woff2';
 const quranFontPath = path.join(__dirname, 'public', 'fonts', QURAN_FONT_FILENAME);
 let quranFontInflight = null;
@@ -1676,4 +1678,36 @@ Promise.all([fetchAlQuranCloudPage(1), fetchAlQuranCloudPage(2)])
     console.info('Direct Tajweed tokens:', coloredAyahs(page1), '/', page1.ayahs.length, 'page 1 ayahs;', coloredAyahs(page2), '/', page2.ayahs.length, 'page 2 ayahs; 2:1 marked characters:', openingMarked);
   })
   .catch(error => console.warn('Quran reading data startup check failed:', error.message));
-app.listen(PORT, '0.0.0.0',()=>console.log(`Amstreem Atlas running on 0.0.0.0:${PORT}`));
+const httpServer = app.listen(PORT, '0.0.0.0', () => {
+  serverReady = true;
+  console.log(`Amstreem Atlas running on 0.0.0.0:${PORT}`);
+});
+
+let shutdownStarted = false;
+function shutdown(signal) {
+  if (shutdownStarted) return;
+  shutdownStarted = true;
+  serverReady = false;
+  console.info(`Received ${signal}; beginning graceful shutdown.`);
+
+  const forceShutdownTimer = setTimeout(() => {
+    console.error('Graceful shutdown timed out; closing remaining connections.');
+    httpServer.closeAllConnections?.();
+    process.exit(1);
+  }, 10_000);
+  forceShutdownTimer.unref();
+
+  httpServer.close(error => {
+    clearTimeout(forceShutdownTimer);
+    if (error) {
+      console.error('HTTP server shutdown failed:', error);
+      process.exitCode = 1;
+      return;
+    }
+    console.info('HTTP server closed cleanly.');
+  });
+  httpServer.closeIdleConnections?.();
+}
+
+process.once('SIGTERM', () => shutdown('SIGTERM'));
+process.once('SIGINT', () => shutdown('SIGINT'));
