@@ -2,27 +2,11 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Download, Upload } from 'lucide-react';
 import { primeAtlasAudio } from '../lib/microFeedback';
+import { applyAtlasTheme, type AtlasTheme } from '../design/theme';
 import { api, json } from '../lib/api';
 import { Button, Card, Field, PageHeader, TextInput } from '../components/ui';
 
 type Settings = Record<string, string>;
-const themeBackgrounds: Record<string, string> = {
-  'shadowed-alchemist': '#07080A', 'nocturnal-amethyst': '#050408',
-  'abyssal-trench': '#03060C', 'whispering-woods': '#030806',
-  'crimson-velvet': '#080304', 'light-porcelain': '#F5F6F3',
-  'light-sandstone': '#F6F0E7', 'light-sage': '#EFF4EF',
-  'light-lavender': '#F4F1F8', 'light-sky': '#EFF5F9'
-};
-function applyTheme(themeId: string) {
-  if (!themeBackgrounds[themeId]) return;
-  localStorage.setItem('atlas_theme', themeId);
-  const root = document.documentElement;
-  root.setAttribute('data-theme', themeId);
-  root.style.colorScheme = themeId.startsWith('light-') ? 'light' : 'dark';
-  root.style.backgroundColor = themeBackgrounds[themeId];
-  const meta = document.querySelector('meta[name="theme-color"]');
-  meta?.setAttribute('content', themeBackgrounds[themeId]);
-}
 const lifeAreaOptions = [
   { id: 'health', name: 'Health & Fitness', desc: 'Training, nutrition and wellbeing', icon: '◈' },
   { id: 'education', name: 'Education & Learning', desc: 'Studying, reading and new skills', icon: '⌁' },
@@ -36,18 +20,12 @@ const lifeAreaOptions = [
 const defaultLifeAreas = lifeAreaOptions.map(area => area.id);
 const themes = [
   { group: 'Dark', items: [
-    { id: 'shadowed-alchemist', name: 'Shadowed Alchemist', note: 'Mysterious balanced', colors: ['#07080A','#0E1014','#CA8A04','#E4E4E7'] },
-    { id: 'nocturnal-amethyst', name: 'Nocturnal Amethyst', note: 'Mysterious all-purple', colors: ['#050408','#0C0914','#C084FC','#EAE6F5'] },
-    { id: 'abyssal-trench', name: 'Abyssal Trench', note: 'Mysterious all-blue', colors: ['#03060C','#080E1A','#38BDF8','#E2E8F0'] },
-    { id: 'whispering-woods', name: 'Whispering Woods', note: 'Mysterious all-green', colors: ['#030806','#08120E','#6EE7B7','#E2F1EC'] },
-    { id: 'crimson-velvet', name: 'Crimson Velvet', note: 'Dark red and rose', colors: ['#080304','#120709','#FB7185','#F5E6E8'] }
+    { id: 'obsidian', name: 'Obsidian', note: 'Quiet, precise, minimal', colors: ['#111318','#1B1E25','#D6BD83','#F1F0EC'] },
+    { id: 'dusk', name: 'Dusk', note: 'Deep violet atmosphere', colors: ['#171426','#242039','#B9A6E8','#F1EDF9'] }
   ]},
   { group: 'Light', items: [
-    { id: 'light-porcelain', name: 'Porcelain', note: 'Clean neutral', colors: ['#F5F6F3','#FFFFFF','#527A62','#202720'] },
-    { id: 'light-sandstone', name: 'Sandstone', note: 'Warm and grounded', colors: ['#F6F0E7','#FFFCF7','#9A7046','#30271F'] },
-    { id: 'light-sage', name: 'Sage', note: 'Soft green', colors: ['#EFF4EF','#FBFEFB','#43836B','#203128'] },
-    { id: 'light-lavender', name: 'Lavender Mist', note: 'Muted violet', colors: ['#F4F1F8','#FFFDFF','#8062A6','#2B2535'] },
-    { id: 'light-sky', name: 'Sky Glass', note: 'Cool blue', colors: ['#EFF5F9','#FFFFFF','#477DA5','#202D39'] }
+    { id: 'ivory', name: 'Ivory', note: 'Bright, calm, editorial', colors: ['#F7F6F1','#FFFFFF','#8B7752','#242620'] },
+    { id: 'sahara', name: 'Sahara', note: 'Warm, natural, grounded', colors: ['#F3EBDD','#FCF8EF','#A77B4B','#30271F'] }
   ]}
 ];
 export function SettingsPage() {
@@ -56,7 +34,7 @@ export function SettingsPage() {
   const [name, setName] = useState('');
   const [northStar, setNorthStar] = useState('');
   const [target, setTarget] = useState('80');
-  const [theme, setTheme] = useState('shadowed-alchemist');
+  const [theme, setTheme] = useState<AtlasTheme>('obsidian');
   const [features, setFeatures] = useState<string[]>(['calendar','focus','rituals','selfcontrol','learning','library','deen']);
   const [selectedLifeAreas, setSelectedLifeAreas] = useState<string[]>(defaultLifeAreas);
   const [soundFeedback, setSoundFeedback] = useState(() => { try { return localStorage.getItem('atlas-sound-feedback') === 'on'; } catch { return false; } });
@@ -66,14 +44,24 @@ export function SettingsPage() {
       setName(settings.data.display_name || '');
       setNorthStar(settings.data.north_star || '');
       setTarget(settings.data.daily_target || '80');
-      setTheme(settings.data.theme || 'shadowed-alchemist');
-      applyTheme(settings.data.theme || 'shadowed-alchemist');
+      const savedTheme = settings.data.theme || 'obsidian';
+      const legacyThemeMap: Record<string, AtlasTheme> = {
+        'shadowed-alchemist': 'obsidian', 'abyssal-trench': 'obsidian', 'whispering-woods': 'obsidian',
+        'nocturnal-amethyst': 'dusk', 'crimson-velvet': 'dusk',
+        'light-porcelain': 'ivory', 'light-sage': 'ivory', 'light-lavender': 'ivory',
+        'light-sky': 'ivory', 'light-sandstone': 'sahara'
+      };
+      const resolvedTheme: AtlasTheme = ['obsidian','dusk','ivory','sahara'].includes(savedTheme)
+        ? savedTheme as AtlasTheme
+        : legacyThemeMap[savedTheme] || 'obsidian';
+      setTheme(resolvedTheme);
+      applyAtlasTheme(resolvedTheme);
       try { setFeatures(settings.data.features ? JSON.parse(settings.data.features).map((feature: string) => feature === 'values' ? 'deen' : feature) : ['calendar','focus','rituals','selfcontrol','learning','library','deen']); } catch { setFeatures(['calendar','focus','rituals','selfcontrol','learning','library','deen']); }
       try { const saved = settings.data.life_areas ? JSON.parse(settings.data.life_areas) : defaultLifeAreas; setSelectedLifeAreas(Array.isArray(saved) ? saved.filter((id: string) => lifeAreaOptions.some(area => area.id === id)) : defaultLifeAreas); } catch { setSelectedLifeAreas(defaultLifeAreas); }
     }
   }, [settings.data]);
   const save = useMutation({
-    mutationFn: () => { applyTheme(theme); return api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), theme, features, life_areas: selectedLifeAreas })); },
+    mutationFn: () => { applyAtlasTheme(theme); return api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), theme, features, life_areas: selectedLifeAreas })); },
     onSuccess: () => { setMessage('Your preferences have been saved.'); void client.invalidateQueries({ queryKey: ['settings'] }); }
   });
   async function exportData() {
@@ -115,7 +103,7 @@ export function SettingsPage() {
             {themes.map(group => <section className="theme-picker-group" key={group.group}>
               <div className="theme-picker-group__heading">{group.group} palettes <small>{group.items.length} styles</small></div>
               <div className="theme-picker-grid">
-                {group.items.map(item => <button key={item.id} type="button" className="theme-preset" aria-pressed={theme === item.id} onClick={() => { setTheme(item.id); applyTheme(item.id); }}>
+                {group.items.map(item => <button key={item.id} type="button" className="theme-preset" aria-pressed={theme === item.id} onClick={() => { setTheme(item.id as AtlasTheme); applyAtlasTheme(item.id as AtlasTheme); }}>
                   <span className="theme-preset__swatches" aria-hidden="true">{item.colors.map((color, index) => <i key={index} style={{ background: color }} />)}</span>
                   <span className="theme-preset__copy"><b>{item.name}</b><small>{item.note}</small></span>
                   <span className="theme-preset__check">{theme === item.id ? <Check size={14} strokeWidth={2.4}/> : null}</span>
