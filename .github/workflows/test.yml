@@ -2,7 +2,7 @@ name: Personal OS checks
 
 on:
   push:
-    branches: [main, audit-and-hardening, atlas-next, atlas-v2-implementation]
+    branches: [main, audit-and-hardening, atlas-next, atlas-v2-implementation, atlas-stage4-events]
   pull_request:
     branches: [main, audit-and-hardening, atlas-next]
 
