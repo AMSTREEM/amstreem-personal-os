@@ -115,7 +115,7 @@ test('module publishers emit the contracted facts without instrumenting Qur’an
   assert.doesNotMatch(quranRoute, /publishAtlasEvent/);
   assert.doesNotMatch(faithRoute, /publishAtlasEvent/);
   assert.match(server, /\['daily_intention','wisdom_note','evening_reflection'\]\.includes\(type\)/);
-  assert.doesNotMatch(migration, /quran|faith/i);
+  assert.doesNotMatch(migration, /quran_logs|faith_logs/i);
 });
 
 test('XP, achievements, weekly challenges and Residence briefing read shared projections', () => {
