@@ -7252,11 +7252,11 @@ html, body, #root, .app-frame, .main-area, .page-container {
 .sidebar {
   width: var(--atlas-nav-width-expanded, 264px);
   padding-top: 22px;
-  transition: width var(--atlas-duration-slow, 320ms) var(--atlas-ease-standard, cubic-bezier(.2,0,0,1));
+  transition: none;
 }
 .main-area {
   margin-left: var(--atlas-nav-width-expanded, 264px);
-  transition: margin-left var(--atlas-duration-slow, 320ms) var(--atlas-ease-standard, cubic-bezier(.2,0,0,1));
+  transition: none;
 }
 .sidebar-collapse-toggle {
   min-height: 36px;
