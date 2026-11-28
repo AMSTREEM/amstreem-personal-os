@@ -7,7 +7,7 @@ import { api, ApiError, json } from '../lib/api';
 import { enqueueOfflineCapture, flushOfflineCaptures, getOfflineCaptureCount } from '../lib/offlineCaptureQueue';
 import { applyAtlasTheme, watchAtlasSystemTheme } from '../design/theme';
 import { atlasModules as rooms, quranShellEntry as quranDestination, atlasNavigationGroups as navigationGroups, atlasCommandDestinations as commandDestinations, atlasQuickCaptureTypes, atlasSearchSources } from '../design/module-registry';
-import { ArrowRight, BookOpen, CalendarDays, Check, Compass, History as HistoryIcon, House, ListChecks, LogOut, Pause, Play, Plus, Search, Settings, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Timer, X, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, Check, Compass, History as HistoryIcon, LogOut, Pause, Play, Plus, Search, Settings, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Timer, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
 import { AtlasOnboarding } from './AtlasOnboarding';
