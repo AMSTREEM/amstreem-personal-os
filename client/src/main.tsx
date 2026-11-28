@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './auth/AuthProvider';
 import { App } from './App';
+import '@fontsource-variable/inter/wght.css';
 import { PwaUpdatePrompt } from './components/PwaUpdatePrompt';
 import { AtlasMotionProvider } from './design/MotionPreferenceProvider';
 import './styles.css';
