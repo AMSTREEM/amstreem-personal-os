@@ -8,15 +8,16 @@ import LifeWorkspace from './components/LifeWorkspace';
 import TodayBrief from './components/TodayBrief';
 import PlanningWorkspace from './components/PlanningWorkspace';
 import HabitTracker from './components/HabitTracker';
+import PersonalInsights from './components/PersonalInsights';
 import { isSupabaseConfigured, supabase, type MemoryRow } from './lib/supabase';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Bookmark, CalendarDays,
   Check, ChevronDown, CircleHelp, Command, Compass, Feather, Folder,
-  Layers3, Menu, Plus, Search, Send, Sparkles, Sprout, Trash2, X, Download, Pencil
+  Layers3, Lightbulb, Menu, Plus, Search, Send, Sparkles, Sprout, Trash2, X, Download, Pencil
 } from 'lucide-react';
 
 type Note = { id: string; text: string; createdAt: number };
-type Section = 'Today' | 'Intelligence' | 'My world' | 'Projects' | 'Plan' | 'Habits' | 'Activity';
+type Section = 'Today' | 'Intelligence' | 'My world' | 'Projects' | 'Plan' | 'Habits' | 'Insights' | 'Activity';
 
 const navigation: { label: Section; icon: typeof Compass }[] = [
   { label: 'Today', icon: Compass },
@@ -25,6 +26,7 @@ const navigation: { label: Section; icon: typeof Compass }[] = [
   { label: 'Projects', icon: Folder },
   { label: 'Plan', icon: CalendarDays },
   { label: 'Habits', icon: Sprout },
+  { label: 'Insights', icon: Lightbulb },
   { label: 'Activity', icon: Activity },
 ];
 
@@ -141,6 +143,7 @@ function Workspace({ user }: { user: User }) {
     Projects: { eyebrow: 'YOUR DIRECTION, MADE PRACTICAL', title: 'Make room for what matters.', description: 'Connect your bigger goals to projects and the next steps that move them forward.' },
     Plan: { eyebrow: 'A WEEK THAT WORKS WITH YOU', title: 'Give your priorities a place.', description: 'A flexible weekly view of the tasks you have chosen to schedule.' },
     Habits: { eyebrow: 'SMALL ACTIONS, OVER TIME', title: 'Make space for consistency.', description: 'Track the things you choose to practise, without turning your life into a streak or a score.' },
+    Insights: { eyebrow: 'A CLEARER VIEW OF YOUR PATTERNS', title: 'See what is taking shape.', description: 'Useful observations drawn from the things you choose to track.' },
     Activity: { eyebrow: 'YOUR AMSTREEM JOURNEY', title: 'A record, not a scorecard.', description: 'A calm view of what you have chosen to capture here.' },
   };
 
@@ -268,6 +271,7 @@ function Workspace({ user }: { user: User }) {
           {section === 'Projects' && <LifeWorkspace userId={user.id} />}
           {section === 'Plan' && <PlanningWorkspace userId={user.id} onOpenPlans={() => setSection('Projects')} />}
           {section === 'Habits' && <HabitTracker userId={user.id} />}
+          {section === 'Insights' && <PersonalInsights userId={user.id} onOpenProjects={() => setSection('Projects')} onOpenPlan={() => setSection('Plan')} onOpenHabits={() => setSection('Habits')} />}
 
           {section === 'Activity' && (
             <section className="collection-area">
