@@ -4,7 +4,7 @@ const crypto = require('node:crypto');
 const EVENT_MODULES = new Set(['residence','actions','goals','calendar','habits','learning','growth','values']);
 const EVENT_TYPES = new Set(['task.completed','task.reopened','focus.ended','goal.completed','goal.reopened','goal.milestone_reached','goal.milestone_unreached','habit.checked','habit.unchecked','learning.item_completed','learning.item_reopened','learning.study_logged','review.submitted','review.reopened','practice.logged','practice.unlogged','challenge.completed']);
 const SOURCES = new Set(['user','system','import']);
-const DATE_KEY = /^\\d{4}-\\d{2}-\\d{2}$/;
+const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 function createAtlasEvent({ requestKey, type, module, entityId = null, occurredAt = new Date(), localDate, payload = {}, source = 'user' }) {
   if (typeof requestKey !== 'string' || requestKey.length < 8 || requestKey.length > 240) throw new TypeError('A valid request key is required for an Atlas event.');
   if (!EVENT_TYPES.has(type)) throw new TypeError('Unsupported Atlas event type.');
