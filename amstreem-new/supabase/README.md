@@ -25,10 +25,12 @@ The initial table is `amstreem.memories`.
 `schema.sql` is a reference snapshot of the applied foundation. It is not a database reset script.
 
 ## Not active yet
-- The new web app is not yet connected to this database.
-- Account registration/login and cloud sync are not yet enabled in the app.
-- The `amstreem` schema has not yet been added to the project's exposed Data API schemas.
-- Existing browser captures remain local until a user explicitly opts to import them.
+- The frontend now uses Supabase Auth for account registration and login.
+- Authenticated memory CRUD is implemented against `amstreem.memories`.
+- The Render frontend receives only the project URL and publishable key; no service-role key is used in browser code.
+- Add `amstreem` to the project's **Exposed schemas** in Supabase API settings before memory API requests can succeed.
+- Configure the deployed app URL in Supabase Auth URL Configuration / Redirect URLs so email confirmation returns to the app.
+- Existing browser captures remain local until the signed-in user explicitly chooses **Import local captures**.
 
 ## Security
 - Never place a Supabase secret/service-role key in browser code.
