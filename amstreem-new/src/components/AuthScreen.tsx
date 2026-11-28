@@ -17,7 +17,7 @@ export default function AuthScreen({ client }: Props) {
     setBusy(true); setError(''); setMessage('');
     try {
       if (mode === 'signup') {
-        const { data, error: authError } = await client.auth.signUp({ email: email.trim(), password });
+        const { data, error: authError } = await client.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: window.location.origin } });
         if (authError) throw authError;
         if (!data.session) {
           setMessage('Your account is created. Check your email for the confirmation link, then return here to sign in.');
