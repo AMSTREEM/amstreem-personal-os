@@ -12,7 +12,7 @@ test('XP preferences are saved by Settings and enforced by the database projecti
  const goalMigration=fs.readFileSync(path.join(root,'supabase/migrations/20261128044249_atlas_stage4_goal_xp.sql'),'utf8');
  assert.match(server,/xp_enabled_modules/);
  assert.match(server,/xpModules=\['actions','goals','habits','learning','growth','residence'\]/);
- assert.match(server,/v_xp_modules/);
+ assert.match(migration,/v_xp_modules/);
  assert.match(settings,/xp_enabled_modules: xpEnabledModules/);
  assert.match(settings,/id: 'goals', name: 'Goals'/);
  assert.match(migration,/personal_os_workspaces/);
