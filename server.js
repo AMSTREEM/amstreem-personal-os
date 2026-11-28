@@ -1625,14 +1625,24 @@ function currentWeekStart(){
  localDay.setUTCDate(localDay.getUTCDate()-((localDay.getUTCDay()+6)%7));
  return localDay.toISOString().slice(0,10);
 }
-function weeklyChallengeState(challenge,weekStart){
- const metrics={
-  focus_minutes:one("SELECT COALESCE(SUM(minutes),0) n FROM sessions WHERE session_date>=? AND session_date<date(?,'+7 days')",weekStart,weekStart).n,
-  study_minutes:one("SELECT COALESCE(SUM(minutes),0) n FROM learning_study_logs WHERE log_date>=? AND log_date<date(?,'+7 days')",weekStart,weekStart).n,
-  habit_checkins:one("SELECT COUNT(*) n FROM habit_logs WHERE log_date>=? AND log_date<date(?,'+7 days')",weekStart,weekStart).n
- };
+function weekEndDate(weekStart){
+ const end=new Date(weekStart+'T12:00:00Z');end.setUTCDate(end.getUTCDate()+7);return end.toISOString().slice(0,10);
+}
+async function weeklyChallengeState(challenge,weekStart,req){
+ const metrics={focus_minutes:0,study_minutes:0,habit_checkins:0};
+ let source='event-ledger';
+ try{
+  const rows=await atlasRest(req,'progress_daily?select=metric,value&local_date=gte.'+weekStart+'&local_date=lt.'+weekEndDate(weekStart)+'&metric=in.(focus_minutes,study_minutes,habit_checkins)&limit=1000');
+  for(const row of rows||[])if(Object.prototype.hasOwnProperty.call(metrics,row.metric))metrics[row.metric]+=Number(row.value||0);
+ }catch(error){
+  source='legacy-workspace';
+  console.warn('Weekly challenge projection unavailable; using legacy workspace totals:',error.message);
+  metrics.focus_minutes=one("SELECT COALESCE(SUM(minutes),0) n FROM sessions WHERE session_date>=? AND session_date<date(?,'+7 days')",weekStart,weekStart).n;
+  metrics.study_minutes=one("SELECT COALESCE(SUM(minutes),0) n FROM learning_study_logs WHERE log_date>=? AND log_date<date(?,'+7 days')",weekStart,weekStart).n;
+  metrics.habit_checkins=one("SELECT COUNT(*) n FROM habit_logs WHERE log_date>=? AND log_date<date(?,'+7 days')",weekStart,weekStart).n;
+ }
  const value=Number(metrics[challenge.metric]||0),complete=value>=challenge.target;
- return {...challenge,weekStart,value,progress:Math.min(100,Math.round(value/challenge.target*100)),remaining:Math.max(0,challenge.target-value),complete,earned:!!challenge.claimed_at,completedAt:challenge.completed_at};
+ return {...challenge,weekStart,value,progress:Math.min(100,Math.round(value/challenge.target*100)),remaining:Math.max(0,challenge.target-value),complete,earned:!!challenge.claimed_at,completedAt:challenge.completed_at,source};
 }
 function createWeeklyChallenge(weekStart){
  const activeHabits=one('SELECT COUNT(*) n FROM habits WHERE active=1').n;
@@ -1649,26 +1659,26 @@ function createWeeklyChallenge(weekStart){
  db.prepare('INSERT OR IGNORE INTO weekly_challenges(week_start,challenge_id,title,description,metric,target) VALUES(?,?,?,?,?,?)').run(weekStart,chosen.id,chosen.title,chosen.description,chosen.metric,chosen.target);
  return one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
 }
-app.post('/api/weekly-challenge/sync',(req,res)=>{
+app.post('/api/weekly-challenge/sync',async(req,res)=>{
  const weekStart=currentWeekStart();
  let challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
  if(!challenge)challenge=createWeeklyChallenge(weekStart);
- let state=weeklyChallengeState(challenge,weekStart);
+ let state=await weeklyChallengeState(challenge,weekStart,req);
  if(state.complete&&!challenge.claimed_at){
   const completedAt=new Date().toISOString();
   db.prepare('UPDATE weekly_challenges SET completed_at=COALESCE(completed_at,?),claimed_at=? WHERE week_start=?').run(completedAt,completedAt,weekStart);
   awardXp('weekly-challenge:'+weekStart,'Weekly challenge',50);
   publishAtlasEvent(req,{type:'challenge.completed',module:'residence',entityId:weekStart,localDate:dateKey(),payload:{weekStart,challengeId:challenge.challenge_id}});
   challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
-  state=weeklyChallengeState(challenge,weekStart);
+  state=await weeklyChallengeState(challenge,weekStart,req);
   state.justCompleted=true;
  }
  res.json(state);
 });
-app.get('/api/weekly-challenge',(req,res)=>{
+app.get('/api/weekly-challenge',async(req,res)=>{
  const weekStart=currentWeekStart(),challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
  if(!challenge)return res.status(404).json({error:'This week’s challenge has not been created yet.'});
- res.json(weeklyChallengeState(challenge,weekStart));
+ res.json(await weeklyChallengeState(challenge,weekStart,req));
 });
 async function readAtlasAchievementState(req) {
  const [definitions,unlocks,projection]=await Promise.all([
