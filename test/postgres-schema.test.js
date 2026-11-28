@@ -601,12 +601,11 @@ test('mobile launcher includes every registered module and shares one active nav
   assert.match(shell, /mobile-launcher-grid/);
   assert.match(shell, /\[\.\.\.rooms, quranDestination\]/);
   assert.match(shell, /mobile-search-trigger/);
-  const start = shell.indexOf('<nav className="atlas-mobile-dock"');
-  const end = shell.indexOf('</nav>', start);
-  const dock = shell.slice(start, end);
-  const ids = [...dock.matchAll(/layoutId="([^"]+)"/g)].map(match => match[1]);
-  assert.ok(ids.length >= 3);
+  assert.match(shell, /dockModules\.map/);
+  const ids = [...shell.matchAll(/layoutId="([^"]+)"/g)].map(match => match[1]);
+  assert.ok(ids.length >= 2, 'Sidebar and phone dock share the active pill');
   assert.equal(new Set(ids).size, 1);
+  assert.equal(ids[0], 'atlas-navigation-pill');
   assert.match(registry, /quranShellEntry/);
 });
 
