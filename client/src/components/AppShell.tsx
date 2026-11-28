@@ -422,7 +422,7 @@ export function AppShell() {
           <PortalTransition>
           <motion.div
             key={location.pathname}
-            className="room-view-transition"
+            className="room-view-transition" data-module={current?.id || "residence"}
             initial={false}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0 }}
