@@ -203,7 +203,7 @@ export function AppShell() {
       const typing = !!el && (el.isContentEditable || ['INPUT','TEXTAREA','SELECT'].includes(el.tagName));
       const commandKey = event.metaKey || event.ctrlKey;
       if (commandKey && event.key.toLowerCase() === 'k') { event.preventDefault(); setCommandOpen(value => !value); setCommandQuery(''); return; }
-      if (event.key === 'Escape') { setCommandOpen(false); waitingForDestination = false; return; }
+      if (event.key === 'Escape') { setCommandOpen(false); setMobileOpen(false); waitingForDestination = false; return; }
       if (typing || (location.pathname === '/quran' && !commandKey)) return;
       if (!commandKey && event.key.toLowerCase() === 'g') {
         waitingForDestination = true;
