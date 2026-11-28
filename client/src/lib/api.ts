@@ -1,5 +1,12 @@
 import { supabase } from './supabase';
 
+export class ApiError extends Error {
+  constructor(message: string, public readonly code: string | undefined, public readonly status: number) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const { data: { session } } = await supabase.auth.getSession();
   const headers = new Headers(init.headers);
@@ -32,7 +39,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     if (response.status === 409 && payload?.code === 'version_conflict' && retrySafe && attempt < 2) {
       continue;
     }
-    throw new Error(payload?.error || 'Something went wrong. Please try again.');
+    throw new ApiError(payload?.error || 'Something went wrong. Please try again.', payload?.code, response.status);
   }
 
   throw new Error('Your workspace changed repeatedly while saving. Please retry.');
