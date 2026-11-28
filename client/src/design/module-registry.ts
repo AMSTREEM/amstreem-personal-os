@@ -52,3 +52,21 @@ export const atlasCommandDestinations = [
   { id: 'focus', label: 'Focus', detail: 'Start or resume a focus session', to: '/focus', icon: Timer, paths: ['/focus'] },
   { id: 'history', label: 'Workspace history', detail: 'Recovery points, backups and restore', to: '/history', icon: History, paths: ['/history'] }
 ];
+
+export type AtlasSearchSource = {
+  id: string;
+  endpoint: string;
+  route: string;
+  kind: string;
+};
+
+export const atlasSearchSources: AtlasSearchSource[] = [
+  { id: 'actions', endpoint: '/tasks', route: '/actions', kind: 'Task' },
+  { id: 'goals', endpoint: '/goals', route: '/goals', kind: 'Goal' },
+  { id: 'goals', endpoint: '/projects', route: '/goals', kind: 'Project' },
+  { id: 'calendar', endpoint: '/calendar/events', route: '/calendar', kind: 'Event' },
+  { id: 'habits', endpoint: '/habits', route: '/habits', kind: 'Habit' },
+  { id: 'learning', endpoint: '/learning/paths', route: '/learning-library', kind: 'Learning path' },
+  { id: 'learning', endpoint: '/learning/lessons', route: '/learning-library', kind: 'Lesson' },
+  { id: 'learning', endpoint: '/notes', route: '/learning-library', kind: 'Note' }
+];
