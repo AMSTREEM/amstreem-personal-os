@@ -15,12 +15,12 @@ import MemoryHistory from './components/MemoryHistory';
 import { isSupabaseConfigured, supabase, type MemoryRow } from './lib/supabase';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Bookmark, CalendarDays,
-  Check, ChevronDown, CircleHelp, Command, Compass, Feather, Folder,
+  Check, CheckCircle2, ChevronDown, CircleHelp, Command, Compass, Feather, Folder,
   Layers3, Lightbulb, Menu, Plus, Search, Send, Sparkles, Sprout, Trash2, X, Download, Pencil
 } from 'lucide-react';
 
 type MemoryType = MemoryRow['memory_type'];
-type Note = { id: string; text: string; createdAt: number; memoryType: MemoryType; source: MemoryRow['source'] };
+type Note = { id: string; text: string; createdAt: number; reviewedAt: number | null; memoryType: MemoryType; source: MemoryRow['source'] };
 const memoryTypes: { value: MemoryType; label: string }[] = [{ value: 'fact', label: 'Fact' }, { value: 'preference', label: 'Preference' }, { value: 'goal', label: 'Goal' }, { value: 'project', label: 'Project' }, { value: 'experience', label: 'Experience' }, { value: 'other', label: 'Other' }];
 type Section = 'Today' | 'Intelligence' | 'My world' | 'Projects' | 'Plan' | 'Habits' | 'Insights' | 'Activity';
 
@@ -69,7 +69,7 @@ function Workspace({ user }: { user: User }) {
     if (!supabase) return;
     const { data, error } = await supabase.from('memories').select('*').order('updated_at', { ascending: false });
     if (error) { setNotice('Could not refresh your context: ' + error.message); return; }
-    setNotes((data as MemoryRow[]).map(row => ({ id: row.id, text: row.content, createdAt: new Date(row.created_at).getTime(), memoryType: row.memory_type, source: row.source })));
+    setNotes((data as MemoryRow[]).map(row => ({ id: row.id, text: row.content, createdAt: new Date(row.created_at).getTime(), reviewedAt: row.reviewed_at ? new Date(row.reviewed_at).getTime() : null, memoryType: row.memory_type, source: row.source })));
   };
   useEffect(() => {
     let active = true;
@@ -87,6 +87,16 @@ function Workspace({ user }: { user: User }) {
 
   const visibleNotes = notes.filter(note => (memoryFilter === 'all' || note.memoryType === memoryFilter) && note.text.toLocaleLowerCase().includes(searchQuery.trim().toLocaleLowerCase()));
   const startEditing = (note: Note) => { setEditingId(note.id); setEditDraft(note.text); setEditType(note.memoryType); };
+  const confirmMemory = async (id: string) => {
+    if (!supabase) return;
+    const reviewedAt = new Date();
+    const { error } = await supabase.from('memories').update({ reviewed_at: reviewedAt.toISOString() }).eq('id', id);
+    if (error) { setNotice('Could not update the review date. Please try again.'); return; }
+    setNotes(current => current.map(note => note.id === id ? { ...note, reviewedAt: reviewedAt.getTime() } : note));
+    setNotice('Memory confirmed as accurate today.');
+    window.setTimeout(() => setNotice(''), 3200);
+  };
+
   const saveEdit = async () => {
     const value = editDraft.trim();
     if (!value || editingId === null || !supabase) return;
@@ -271,7 +281,7 @@ function Workspace({ user }: { user: User }) {
             <section className="collection-area">
               <div className="collection-header"><div><span className="kicker">YOUR CHOSEN CONTEXT</span><h2>{notes.length ? 'Things you chose to keep.' : 'An open space, ready when you are.'}</h2></div><div className="memory-actions">{localNotes.length > 0 && <button className="outline-button" onClick={importLocal}><Download size={15} /> Import {localNotes.length} local captures</button>}{notes.length > 0 && <button className="outline-button" onClick={exportNotes}><Download size={15} /> Export</button>}<button className="outline-button" onClick={() => { setDraft(''); setCaptureOpen(true); }}><Plus size={16} /> Capture a thought</button></div></div>
               {notes.length > 0 && <><div className="memory-search"><Search size={16} /><input aria-label="Search memories" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search your memories…" /><span>{visibleNotes.length} / {notes.length}</span></div><div className="memory-filters"><button className={memoryFilter === 'all' ? 'active' : ''} onClick={() => setMemoryFilter('all')}>All</button>{memoryTypes.map(type => <button key={type.value} className={memoryFilter === type.value ? 'active' : ''} onClick={() => setMemoryFilter(type.value)}>{type.label}</button>)}</div></>}
-              {notes.length ? visibleNotes.length ? <div className="thought-list">{visibleNotes.map(note => <article className="thought-item" key={note.id}><div className="thought-glyph"><Feather size={17} /></div><div className="thought-body"><div className="thought-meta"><span className="memory-type-tag">{memoryTypes.find(type => type.value === note.memoryType)?.label || 'Other'}</span><span>{note.source === 'user_confirmed' ? 'SHARED WITH AMSTREEM' : note.source === 'imported' ? 'IMPORTED BY YOU' : 'CAPTURED BY YOU'}</span></div><p>{note.text}</p><span>UPDATED · {timeLabel(note.createdAt)}</span></div><MemoryHistory memoryId={note.id} /><button className="delete-capture" onClick={() => startEditing(note)} aria-label="Edit capture"><Pencil size={15} /></button><button className="delete-capture" onClick={() => removeNote(note.id)} aria-label="Delete capture"><Trash2 size={15} /></button></article>)}</div> : <div className="empty-world compact-empty"><h3>No matching captures.</h3><p>Try another word or clear your search.</p><button className="outline-button" onClick={() => setSearchQuery('')}>Clear search</button></div> : <div className="empty-world"><div className="empty-glyph"><Layers3 size={23} /></div><h3>Your world begins with what matters to you.</h3><p>Save a thought, an idea, a question or a detail you want to keep in view.</p><button className="begin-button" onClick={() => { setDraft(''); setCaptureOpen(true); }}>Capture your first thought <ArrowRight size={15} /></button></div>}
+              {notes.length ? visibleNotes.length ? <div className="thought-list">{visibleNotes.map(note => <article className="thought-item" key={note.id}><div className="thought-glyph"><Feather size={17} /></div><div className="thought-body"><div className="thought-meta"><span className="memory-type-tag">{memoryTypes.find(type => type.value === note.memoryType)?.label || 'Other'}</span><span>{note.source === 'user_confirmed' ? 'SHARED WITH AMSTREEM' : note.source === 'imported' ? 'IMPORTED BY YOU' : 'CAPTURED BY YOU'}</span></div><p>{note.text}</p><span>UPDATED · {timeLabel(note.createdAt)}</span><div className="memory-review-row">{note.reviewedAt ? <span className="memory-reviewed-label"><CheckCircle2 size={12} /> CONFIRMED · {timeLabel(note.reviewedAt)}</span> : <span className="memory-unreviewed-label">NOT YET REVIEWED</span>}<button className="memory-confirm-button" onClick={() => void confirmMemory(note.id)}><CheckCircle2 size={13} /> Still accurate</button></div></div><MemoryHistory memoryId={note.id} /><button className="delete-capture" onClick={() => startEditing(note)} aria-label="Edit capture"><Pencil size={15} /></button><button className="delete-capture" onClick={() => removeNote(note.id)} aria-label="Delete capture"><Trash2 size={15} /></button></article>)}</div> : <div className="empty-world compact-empty"><h3>No matching captures.</h3><p>Try another word or clear your search.</p><button className="outline-button" onClick={() => setSearchQuery('')}>Clear search</button></div> : <div className="empty-world"><div className="empty-glyph"><Layers3 size={23} /></div><h3>Your world begins with what matters to you.</h3><p>Save a thought, an idea, a question or a detail you want to keep in view.</p><button className="begin-button" onClick={() => { setDraft(''); setCaptureOpen(true); }}>Capture your first thought <ArrowRight size={15} /></button></div>}
               <ContextConnections userId={user.id} />
               <p className="local-note">Your memories are stored in your Amstreem account. Only you can access your rows. Local captures are kept separate until you explicitly import them.</p>
             </section>
