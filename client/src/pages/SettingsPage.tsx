@@ -28,6 +28,15 @@ const xpModuleOptions = [
 ];
 const defaultXpModules = xpModuleOptions.map(module => module.id);
 const defaultStreakModules = ['habits'];
+const notificationCategoryOptions = [
+  { id: 'tasks', name: 'Actions', desc: 'Task and execution reminders.' },
+  { id: 'goals', name: 'Goals', desc: 'Goal momentum suggestions.' },
+  { id: 'habits', name: 'Habits', desc: 'Habit streak reminders.' },
+  { id: 'learning', name: 'Learning', desc: 'Learning path reminders.' },
+  { id: 'growth', name: 'Growth', desc: 'Reflection and review prompts.' },
+  { id: 'weekly_review', name: 'Weekly review', desc: 'When your weekly review is ready.' },
+  { id: 'system', name: 'Planning', desc: 'Calendar load and system notices.' }
+];
 const themes = [
   { group: 'System', items: [
     { id: 'system', name: 'System', note: 'Follow your device appearance', colors: ['#0A0E13','#F6F4EF','#22D3EE','#EAF0F6'] }
@@ -60,6 +69,9 @@ export function SettingsPage() {
   const [selectedLifeAreas, setSelectedLifeAreas] = useState<string[]>(defaultLifeAreas);
   const [xpEnabledModules, setXpEnabledModules] = useState<string[]>(defaultXpModules);
   const [streaksEnabledModules, setStreaksEnabledModules] = useState<string[]>(defaultStreakModules);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [notificationCategories, setNotificationCategories] = useState<string[]>([]);
+  const [notificationQuietHours, setNotificationQuietHours] = useState({ start: '22:00', end: '08:00' });
   const [soundFeedback, setSoundFeedback] = useState(() => { try { return localStorage.getItem('atlas-sound-feedback') === 'on'; } catch { return false; } });
   const [highContrast, setHighContrast] = useState(() => { try { return localStorage.getItem('atlas-high-contrast') === 'on'; } catch { return false; } });
   const [motionPreference, setMotionPreference] = useState<AtlasMotionPreference>(() => { try { const value = localStorage.getItem('atlas-motion-preference'); return value === 'reduced' || value === 'full' ? value : 'system'; } catch { return 'system'; } });
@@ -79,10 +91,13 @@ export function SettingsPage() {
       try { const saved = settings.data.life_areas ? JSON.parse(settings.data.life_areas) : defaultLifeAreas; setSelectedLifeAreas(Array.isArray(saved) ? saved.filter((id: string) => lifeAreaOptions.some(area => area.id === id)) : defaultLifeAreas); } catch { setSelectedLifeAreas(defaultLifeAreas); }
       try { const saved = settings.data.xp_enabled_modules ? JSON.parse(settings.data.xp_enabled_modules) : defaultXpModules; setXpEnabledModules(Array.isArray(saved) ? saved.filter((id: string) => xpModuleOptions.some(module => module.id === id)) : defaultXpModules); } catch { setXpEnabledModules(defaultXpModules); }
       try { const saved = settings.data.streaks_enabled_modules ? JSON.parse(settings.data.streaks_enabled_modules) : defaultStreakModules; setStreaksEnabledModules(Array.isArray(saved) ? saved.filter((id: string) => id === 'habits') : defaultStreakModules); } catch { setStreaksEnabledModules(defaultStreakModules); }
+      setNotificationsEnabled(settings.data.notifications_enabled === 'true');
+      try { const saved = settings.data.notification_categories ? JSON.parse(settings.data.notification_categories) : []; setNotificationCategories(Array.isArray(saved) ? saved.filter((id: string) => notificationCategoryOptions.some(item => item.id === id)) : []); } catch { setNotificationCategories([]); }
+      try { const saved = settings.data.notification_quiet_hours ? JSON.parse(settings.data.notification_quiet_hours) : { start: '22:00', end: '08:00' }; setNotificationQuietHours({ start: saved.start || '22:00', end: saved.end || '08:00' }); } catch { setNotificationQuietHours({ start: '22:00', end: '08:00' }); }
     }
   }, [settings.data]);
   const save = useMutation({
-    mutationFn: () => { applyAtlasTheme(theme); return api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), timezone, theme, features, life_areas: selectedLifeAreas, communication_style: communicationStyle, xp_enabled_modules: xpEnabledModules, streaks_enabled_modules: streaksEnabledModules })); },
+    mutationFn: () => { applyAtlasTheme(theme); return api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), timezone, theme, features, life_areas: selectedLifeAreas, communication_style: communicationStyle, xp_enabled_modules: xpEnabledModules, streaks_enabled_modules: streaksEnabledModules, notifications_enabled: notificationsEnabled, notification_categories: notificationCategories, notification_quiet_hours: notificationQuietHours })); },
     onSuccess: () => { setMessage('Your preferences have been saved.'); void client.invalidateQueries({ queryKey: ['settings'] }); }
   });
   async function exportData() {
@@ -146,6 +161,25 @@ export function SettingsPage() {
               <span><b>Habits</b><small>Count habit check-in streaks with one weekly recovery day.</small></span>
             </label>
           </div>
+        </Field>
+        <Field label="Notifications">
+          <label className="settings-module-choice">
+            <input type="checkbox" checked={notificationsEnabled} onChange={event => setNotificationsEnabled(event.target.checked)} />
+            <span><b>Enable in-app notifications</b><small>Optional. Atlas limits delivery to three per day and respects quiet hours. Email and push are not enabled yet.</small></span>
+          </label>
+          {notificationsEnabled && <>
+            <p className="field__hint">Choose the categories Atlas may notify you about. Nothing is selected automatically.</p>
+            <div className="settings-module-grid">
+              {notificationCategoryOptions.map(item => <label className="settings-module-choice" key={item.id}>
+                <input type="checkbox" checked={notificationCategories.includes(item.id)} onChange={event => setNotificationCategories(current => event.target.checked ? [...current, item.id] : current.filter(id => id !== item.id))} />
+                <span><b>{item.name}</b><small>{item.desc}</small></span>
+              </label>)}
+            </div>
+            <div className="settings-time-range">
+              <label>Quiet hours start <input type="time" value={notificationQuietHours.start} onChange={event => setNotificationQuietHours(current => ({ ...current, start: event.target.value }))} /></label>
+              <label>Quiet hours end <input type="time" value={notificationQuietHours.end} onChange={event => setNotificationQuietHours(current => ({ ...current, end: event.target.value }))} /></label>
+            </div>
+          </>}
         </Field>
         <Field label="Optional workspace views"><p className="field__hint">Your six core pillars always stay available. Turn secondary views on or off as your workspace needs change.</p><div className="settings-module-grid">{[{id:'calendar',name:'Calendar',desc:'A calendar view inside Projects & Tasks.'},{id:'library',name:'Personal Library',desc:'A library tab inside Learning Studio.'}].map(module => <label className="settings-module-choice" key={module.id}><input type="checkbox" checked={features.includes(module.id)} onChange={event => setFeatures(current => event.target.checked ? [...current,module.id] : current.filter(id => id !== module.id))} /><span><b>{module.name}</b><small>{module.desc}</small></span></label>)}</div></Field>
         <Field label="Micro-feedback"><label className="settings-module-choice"><input type="checkbox" checked={soundFeedback} onChange={event => { const enabled = event.target.checked; setSoundFeedback(enabled); try { localStorage.setItem('atlas-sound-feedback', enabled ? 'on' : 'off'); } catch { /* Optional audio. */ } if (enabled) primeAtlasAudio(); }} /><span><b>Subtle sound cues</b><small>Quiet 15ms ticks for task and prayer check-offs, plus a soft Focus completion chime. Off by default.</small></span></label></Field>
