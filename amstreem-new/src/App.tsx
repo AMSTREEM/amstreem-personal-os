@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import AuthScreen from './components/AuthScreen';
 import IntelligenceScreen from './components/IntelligenceScreen';
+import ContextOverview from './components/ContextOverview';
 import { isSupabaseConfigured, supabase, type MemoryRow } from './lib/supabase';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Bookmark,
@@ -209,6 +210,8 @@ function Workspace({ user }: { user: User }) {
                 </div>
                 <div className="hero-index"><span>01</span><i /> A SPACE THAT EVOLVES WITH YOU</div>
               </section>
+
+              <ContextOverview onOpen={() => setSection("Intelligence")} />
 
               <section className="start-strip">
                 <div className="strip-heading"><span className="kicker">MAKE IT YOURS</span><span className="strip-hint">A few ways to begin</span></div>
