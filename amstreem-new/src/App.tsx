@@ -4,6 +4,7 @@ import AuthScreen from './components/AuthScreen';
 import IntelligenceScreen from './components/IntelligenceScreen';
 import ContextOverview from './components/ContextOverview';
 import IntelligenceChat from './components/IntelligenceChat';
+import LifeWorkspace from './components/LifeWorkspace';
 import { isSupabaseConfigured, supabase, type MemoryRow } from './lib/supabase';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Bookmark,
@@ -132,7 +133,7 @@ function Workspace({ user }: { user: User }) {
     Today: { eyebrow: 'YOUR PERSONAL ENVIRONMENT', title: 'A life, in motion.', description: 'A place to find clarity, keep what matters close, and move forward in your own way.' },
     Intelligence: { eyebrow: 'THINKING SPACE', title: 'Bring the unfinished thought.', description: 'A place for questions, decisions, possibilities and the things you are still working out.' },
     'My world': { eyebrow: 'YOUR PERSONAL CONTEXT', title: 'The things that make up your world.', description: 'Thoughts and details you choose to keep in view. Nothing is assumed; it starts with you.' },
-    Projects: { eyebrow: 'YOUR WORK IN PROGRESS', title: 'Give an idea somewhere to go.', description: 'A home for the things you want to make, explore or bring to life.' },
+    Projects: { eyebrow: 'YOUR DIRECTION, MADE PRACTICAL', title: 'Make room for what matters.', description: 'Connect your bigger goals to projects and the next steps that move them forward.' },
     Activity: { eyebrow: 'YOUR AMSTREEM JOURNEY', title: 'A record, not a scorecard.', description: 'A calm view of what you have chosen to capture here.' },
   };
 
@@ -256,14 +257,7 @@ function Workspace({ user }: { user: User }) {
             </section>
           )}
 
-          {section === 'Projects' && (
-            <section className="workspace-panel project-panel">
-              <div className="project-symbol"><Folder size={22} /></div><span className="kicker">A PLACE FOR POSSIBILITY</span>
-              <h2>Every meaningful thing<br /><em>starts somewhere.</em></h2>
-              <p>Project planning and progress tracking are coming later. For now, capture the idea that you want to give more attention to.</p>
-              <button className="begin-button" onClick={() => { setDraft(''); setCaptureOpen(true); }}>Capture an idea <ArrowUpRight size={16} /></button>
-            </section>
-          )}
+          {section === 'Projects' && <LifeWorkspace userId={user.id} />}
 
           {section === 'Activity' && (
             <section className="collection-area">
