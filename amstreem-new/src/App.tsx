@@ -5,6 +5,7 @@ import IntelligenceScreen from './components/IntelligenceScreen';
 import ContextOverview from './components/ContextOverview';
 import IntelligenceChat from './components/IntelligenceChat';
 import LifeWorkspace from './components/LifeWorkspace';
+import TodayBrief from './components/TodayBrief';
 import { isSupabaseConfigured, supabase, type MemoryRow } from './lib/supabase';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Bookmark,
@@ -213,6 +214,7 @@ function Workspace({ user }: { user: User }) {
                 <div className="hero-index"><span>01</span><i /> A SPACE THAT EVOLVES WITH YOU</div>
               </section>
 
+              <TodayBrief onOpenPlans={() => setSection("Projects")} />
               <ContextOverview onOpen={() => setSection("Intelligence")} />
 
               <section className="start-strip">
