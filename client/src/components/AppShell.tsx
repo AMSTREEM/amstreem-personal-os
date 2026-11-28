@@ -268,7 +268,7 @@ export function AppShell() {
   }, [focusActive, focusTimer.kind, focusClock, focusContext, current?.label]);
   const faithTabLabel = quickReligion === 'islam' ? 'Deen' : quickReligion === 'christianity' ? 'Faith & Reflection' : 'Daily Reflection';
   const activeTabs: { label: string; to: string; feature?: string }[] = [];
-  return <MotionConfig reducedMotion="user"><div className={"app-frame" + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
+  return <MotionConfig reducedMotion="user"><div className={"app-frame" + (location.pathname === '/quran' ? " atlas-quran-shell" : " atlas-standard-shell") + (booting ? " atlas-booting" : "")} onPointerDownCapture={event=>setPortalOrigin(event.clientX,event.clientY)}>
     <CursorAura/><SparkBurst/><EnergyVortex/>
     <MobileInstallPrompt />
     <AnimatePresence initial={false}>{tourOpen && <AtlasWalkthrough onClose={closeTour} onOpenCommand={() => { setCommandOpen(true); setCommandQuery(''); }} />}</AnimatePresence>
