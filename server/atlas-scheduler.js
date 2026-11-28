@@ -160,16 +160,17 @@ function startAtlasScheduler({ supabaseUrl, serviceKey, appEnv, intervalMs = 60_
 
   async function runJob(jobName, runKey, userId, work) {
     let claim;
+    const requestId = crypto.randomUUID();
     try {
       const rows = await admin.rpc('claim_atlas_job_run', {
         p_job_name: jobName,
         p_run_key: runKey,
         p_user_id: userId || null,
-        p_request_id: crypto.randomUUID()
+        p_request_id: requestId
       });
       claim = Array.isArray(rows) ? rows[0] : rows;
     } catch (error) {
-      console.error(JSON.stringify({ event: 'atlas.job.claim_failed', job: jobName, message: error.message }));
+      console.error(JSON.stringify({ event: 'atlas.job.claim_failed', job: jobName, requestId, message: error.message }));
       return null;
     }
     if (!claim?.claimed || !claim.run_id) return null;
@@ -182,9 +183,9 @@ function startAtlasScheduler({ supabaseUrl, serviceKey, appEnv, intervalMs = 60_
     } catch (error) {
       const backoff = Math.min(3600, 30 * (2 ** Math.min(6, Math.max(0, Number(claim.attempts || 1) - 1))));
       try { await finishRun(claim.run_id, 'failed', {}, error, backoff); } catch (finishError) {
-        console.error(JSON.stringify({ event: 'atlas.job.finish_failed', job: jobName, message: finishError.message }));
+        console.error(JSON.stringify({ event: 'atlas.job.finish_failed', job: jobName, requestId, message: finishError.message }));
       }
-      console.error(JSON.stringify({ event: 'atlas.job.failed', job: jobName, durationMs: Date.now() - started, message: error.message }));
+      console.error(JSON.stringify({ event: 'atlas.job.failed', job: jobName, requestId, durationMs: Date.now() - started, message: error.message }));
       return null;
     }
   }
@@ -213,7 +214,7 @@ function startAtlasScheduler({ supabaseUrl, serviceKey, appEnv, intervalMs = 60_
   async function insertInsight(userId, settings, timezone, localDate, insight) {
     await admin.request('atlas_insights?on_conflict=user_id,dedupe_key', {
       method: 'POST',
-      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      headers: { Prefer: 'resolution=ignore-duplicates,return=minimal' },
       body: {
         user_id: userId,
         insight_type: insight.type,
@@ -309,7 +310,7 @@ function startAtlasScheduler({ supabaseUrl, serviceKey, appEnv, intervalMs = 60_
       headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
       body: { user_id: workspace.user_id, week_start: weekStart, review, generated_at: new Date().toISOString() }
     });
-    await insertNotification(workspace.user_id, settings, timezone, weekEnd, 'weekly_review', 'Your weekly review is ready', summary,
+    await insertNotification(workspace.user_id, settings, timezone, addDays(weekEnd, -1), 'weekly_review', 'Your weekly review is ready', summary,
       'weekly-review:' + weekStart, { weekStart });
     return { weekStart, metrics: Object.keys(totals).length };
   }
