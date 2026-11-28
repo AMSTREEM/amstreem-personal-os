@@ -25,4 +25,7 @@ test('module mutations publish deterministic events in the same workspace commit
   assert.ok(server.includes("type:'" + eventType + "'"), 'Missing event publisher for ' + eventType);
  }
  assert.doesNotMatch(server, /type:'quran\./);
+ assert.match(server, /progress_daily\?select=metric,value&local_date=gte\./);
+ assert.match(server, /async function readAtlasAchievementState/);
+ assert.match(server, /type:'challenge.completed'/);
 });
