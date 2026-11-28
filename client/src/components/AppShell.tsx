@@ -46,6 +46,7 @@ export function AppShell() {
   }, []);
   const workspaceRef = useRef<HTMLDivElement>(null);
   const commandPanelRef = useRef<HTMLElement>(null);
+  const mobileDrawerRef = useRef<HTMLElement>(null);
   const bootContentRef = useRef<HTMLDivElement>(null);
   useSpotlightGrid(workspaceRef);
 
@@ -115,6 +116,27 @@ export function AppShell() {
       previousFocus?.focus();
     };
   }, [commandOpen]);
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const panel = mobileDrawerRef.current;
+    if (!panel) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusable = () => Array.from(panel.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled])'));
+    focusable()[0]?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+      const items = focusable();
+      const first = items[0], last = items[items.length - 1];
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      previousFocus?.focus();
+    };
+  }, [mobileOpen]);
   useEffect(() => {
     const userId = session?.user.id;
     if (!userId) { setPendingOfflineCaptures(0); return; }
@@ -361,7 +383,7 @@ export function AppShell() {
         </div>
       </div>
     </motion.aside>
-    {mobileOpen && <><button className="mobile-more-scrim" type="button" aria-label="Close More menu" onClick={() => setMobileOpen(false)} /><motion.aside className="mobile-more-drawer" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 18 }} aria-label="More navigation"><div className="mobile-more-drawer__head"><b>More</b><button type="button" aria-label="Close menu" onClick={() => setMobileOpen(false)}><X size={17}/></button></div><nav className="mobile-launcher">
+    {mobileOpen && <><button className="mobile-more-scrim" type="button" aria-label="Close More menu" onClick={() => setMobileOpen(false)} /><motion.aside ref={mobileDrawerRef} className="mobile-more-drawer" role="dialog" aria-modal="true" initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 18 }} aria-label="More navigation"><div className="mobile-more-drawer__head"><b>More</b><button type="button" aria-label="Close menu" onClick={() => setMobileOpen(false)}><X size={17}/></button></div><nav className="mobile-launcher">
           <div className="mobile-launcher-grid" aria-label="Atlas modules">
             {[...rooms, quranDestination].map(item => { const Icon=item.icon; return <NavLink key={item.id} to={item.to} data-module={item.id} className={({isActive}) => 'mobile-launcher-tile atlas-nav-item ' + (isActive ? 'is-active' : '')} onClick={() => setMobileOpen(false)}><Icon size={21}/><span>{item.label}</span></NavLink>; })}
           </div>
@@ -417,7 +439,7 @@ export function AppShell() {
         {commandQuery.toLowerCase() !== 'shortcuts' && <div className="quick-capture-types" role="group" aria-label="Capture type">
           {atlasQuickCaptureTypes.map(type => <button key={type} type="button" aria-pressed={quickCaptureType === type} onClick={() => setQuickCaptureType(type)}>{type === 'task' ? 'Task' : type === 'note' ? 'Note' : 'Habit'}</button>)}
         </div>}
-        {commandQuery.toLowerCase() !== 'shortcuts' && <form className="command-task-form" onSubmit={captureQuickItem}><Zap size={15}/><input value={quickTaskTitle} onChange={event=>setQuickTaskTitle(event.target.value)} placeholder={quickCaptureType === 'task' ? 'What needs doing?' : quickCaptureType === 'note' ? 'Give this note a title…' : 'Name a habit to build…'} maxLength={quickCaptureType === 'habit' ? 100 : 180}/><button disabled={!quickTaskTitle.trim()||quickTaskSaving}>{quickTaskSaving?'Saving…':'Save ' + quickCaptureType}</button></form>}
+        {commandQuery.toLowerCase() !== 'shortcuts' && <form className="command-task-form" onSubmit={captureQuickItem}><Zap size={15}/><input aria-label={quickCaptureType === 'task' ? 'New task title' : quickCaptureType === 'note' ? 'New note title' : 'New habit name'} value={quickTaskTitle} onChange={event=>setQuickTaskTitle(event.target.value)} placeholder={quickCaptureType === 'task' ? 'What needs doing?' : quickCaptureType === 'note' ? 'Give this note a title…' : 'Name a habit to build…'} maxLength={quickCaptureType === 'habit' ? 100 : 180}/><button disabled={!quickTaskTitle.trim()||quickTaskSaving}>{quickTaskSaving?'Saving…':'Save ' + quickCaptureType}</button></form>}
         {quickTaskError && <p className="command-error">{quickTaskError}</p>}
         <div className="command-actions" aria-label="Quick actions">
           <button type="button" onClick={() => { setQuickCaptureType('task'); setQuickTaskTitle(''); }}>New task</button>
