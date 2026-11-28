@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './auth/AuthProvider';
 import { App } from './App';
 import { PwaUpdatePrompt } from './components/PwaUpdatePrompt';
+import { AtlasMotionProvider } from './design/MotionPreferenceProvider';
 import './styles.css';
 import './design/tokens.css';
 
@@ -18,9 +19,11 @@ const queryClient = new QueryClient({
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <PwaUpdatePrompt />
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter><AuthProvider><App /></AuthProvider></BrowserRouter>
-    </QueryClientProvider>
+    <AtlasMotionProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter><AuthProvider><App /></AuthProvider></BrowserRouter>
+      </QueryClientProvider>
+    </AtlasMotionProvider>
   </React.StrictMode>
 );
 
