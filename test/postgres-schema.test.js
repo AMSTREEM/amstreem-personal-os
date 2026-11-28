@@ -553,3 +553,29 @@ test('offline quick captures are account-scoped, idempotent and replay on reconn
   assert.match(shell, /addEventListener\('visibilitychange'/);
   assert.match(shell, /pendingOfflineCaptures/);
 });
+
+
+test('Atlas command palette exposes module-backed workspace search and useful quick actions', () => {
+  const registry = fs.readFileSync(path.join(__dirname, '..', 'client/src/design/module-registry.ts'), 'utf8');
+  const shell = fs.readFileSync(path.join(__dirname, '..', 'client/src/components/AppShell.tsx'), 'utf8');
+  const styles = fs.readFileSync(path.join(__dirname, '..', 'client/src/styles.css'), 'utf8');
+  for (const endpoint of ['/tasks', '/goals', '/projects', '/habits', '/learning/paths', '/notes']) assert.ok(registry.includes("endpoint: '" + endpoint + "'"));
+  assert.match(shell, /atlasSearchSources\.map/);
+  assert.match(shell, /SEARCH RESULTS/);
+  assert.match(shell, /New task/);
+  assert.match(shell, /Start focus/);
+  assert.match(shell, /Habit check-ins/);
+  assert.match(shell, /commandPanelRef/);
+  assert.match(shell, /event\.key !== 'Tab'/);
+  assert.match(styles, /\.command-actions/);
+});
+
+test('Atlas shell uses the specified 640px phone/tablet breakpoint and 56px desktop top bar', () => {
+  const shell = fs.readFileSync(path.join(__dirname, '..', 'client/src/components/AppShell.tsx'), 'utf8');
+  const styles = fs.readFileSync(path.join(__dirname, '..', 'client/src/styles.css'), 'utf8');
+  assert.match(shell, /min-width: 640px\) and \(max-width: 1023px/);
+  assert.match(styles, /Stage 3 · Architecture breakpoints: phone <640, tablet 640–1023, desktop >=1024/);
+  assert.match(styles, /\.topbar \{ height: 56px; min-height: 56px; \}/);
+  assert.match(styles, /\.sidebar--expanded/);
+  assert.match(styles, /\.atlas-mobile-dock,\.mobile-more-trigger/);
+});
