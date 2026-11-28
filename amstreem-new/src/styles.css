@@ -273,3 +273,61 @@
 .planning-footer>button:hover{color:#eee0b9}
 @media(max-width:1050px){.planning-days{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:760px){.planning-heading h2{font-size:23px}.planning-summary>div{padding:12px 10px}.planning-summary strong{font-size:19px}.planning-summary span{font-size:7px;letter-spacing:.5px}.planning-days{grid-template-columns:repeat(2,minmax(0,1fr))}.planning-weekbar{align-items:flex-start;flex-direction:column}.planning-backlog-grid{grid-template-columns:1fr}.planning-footer{align-items:flex-start;flex-direction:column}.planning-day-list{min-height:68px}}
+
+
+/* Daily routine and time blocks */
+.daily-schedule{display:grid;gap:16px;padding:20px;border:1px solid #30352d;border-radius:8px;background:linear-gradient(135deg,#1b2019,#151914)}
+.daily-schedule-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.daily-schedule-heading h3{font:500 22px Manrope;letter-spacing:-.7px;margin:7px 0}
+.daily-schedule-heading p{font-size:10px;line-height:1.7;color:#92988b;margin:0;max-width:480px}
+.daily-add-button{display:flex;align-items:center;gap:7px;padding:9px 12px;border:1px solid #6f6347;border-radius:4px;background:#27291f;color:#ddc995;font-size:9px;white-space:nowrap}
+.daily-add-button:hover{background:#343326}
+.daily-datebar{display:flex;align-items:center;gap:9px;padding:10px 0;border-top:1px solid #2c3229;border-bottom:1px solid #2c3229}
+.daily-datebar>button{display:grid;place-items:center;width:30px;height:30px;border:1px solid #343a30;border-radius:4px;background:#171b15;color:#bfc2b4}
+.daily-datebar>div{display:flex;align-items:center;gap:9px;flex:1;color:#d6bd83}
+.daily-datebar>div strong{font:500 12px Manrope;color:#e4e1d6}
+.daily-datebar>div span{font-size:9px;color:#82897c}
+.daily-datebar>input{width:34px;height:30px;opacity:.8;color-scheme:dark}
+.daily-datebar .daily-today-button{width:auto;padding:0 10px;font-size:9px}
+.daily-block-form{display:grid;gap:12px;padding:15px;border:1px solid #3b4034;border-radius:6px;background:#131710}
+.daily-block-form label{display:grid;gap:6px;font-size:9px;color:#aeb3a4}
+.daily-block-form input,.daily-block-form select,.daily-block-form textarea{width:100%;min-width:0;border:1px solid #343a30;border-radius:4px;background:#1b2019;color:#e5e2d7;padding:9px;font:10px Manrope;outline:none}
+.daily-block-form input:focus,.daily-block-form select:focus,.daily-block-form textarea:focus{border-color:#95835a}
+.daily-block-form input::placeholder,.daily-block-form textarea::placeholder{color:#697164}
+.daily-form-row{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:10px}
+.daily-form-actions{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.daily-form-actions span{font-size:8px;color:#788072}
+.daily-form-actions button,.daily-empty button{display:flex;align-items:center;gap:7px;padding:9px 12px;border:1px solid #806f49;border-radius:4px;background:#d6bd83;color:#1a1c15;font-size:9px;font-weight:600}
+.daily-form-actions button:disabled{opacity:.5}
+.daily-summary{display:flex;align-items:center;justify-content:space-between;color:#8d9486;font-size:9px}
+.daily-summary>span:first-child{display:flex;align-items:center;gap:7px}
+.daily-summary>span:last-child{font-family:'DM Mono';color:#c7b47e}
+.daily-timeline{display:grid;gap:0}
+.daily-block{display:grid;grid-template-columns:82px 16px minmax(0,1fr);gap:10px;min-height:66px}
+.daily-block-time{display:grid;align-content:start;gap:4px;padding-top:7px;text-align:right}
+.daily-block-time strong{font:10px 'DM Mono';color:#e2dece}
+.daily-block-time span{font:8px 'DM Mono';color:#858c7e}
+.daily-block-track{position:relative;display:flex;justify-content:center}
+.daily-track-dot{z-index:1;width:9px;height:9px;margin-top:10px;border:2px solid #1a1e17;border-radius:50%;background:#d6bd83;box-shadow:0 0 0 1px #8e7d53}
+.daily-track-line{position:absolute;top:21px;bottom:-2px;width:1px;background:#3a4034}
+.daily-block-content{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:9px;padding:10px 12px;border:1px solid #30372d;border-radius:5px;background:#1a1f18}
+.daily-block-content h4{font:500 12px Manrope;color:#e4e1d6;margin:5px 0 0}
+.daily-block-content p{font-size:9px;line-height:1.6;color:#858c7f;margin:5px 0 0}
+.daily-block-content>button{display:grid;place-items:center;width:25px;height:25px;border:0;border-radius:4px;background:transparent;color:#7f8779}
+.daily-block-content>button:hover{background:#2b211e;color:#d59b87}
+.daily-category{display:inline-block;font:7px 'DM Mono';letter-spacing:.7px;text-transform:uppercase;color:#d6bd83}
+.daily-category.category-study,.daily-category.category-focus{color:#d6bd83}
+.daily-category.category-class{color:#9db4c7}
+.daily-category.category-break,.daily-category.category-rest{color:#9db89a}
+.daily-category.category-personal{color:#c1a8ce}
+.daily-track-dot.category-study,.daily-track-dot.category-focus{background:#d6bd83;box-shadow:0 0 0 1px #8e7d53}
+.daily-track-dot.category-class{background:#9db4c7;box-shadow:0 0 0 1px #607b8e}
+.daily-track-dot.category-break,.daily-track-dot.category-rest{background:#9db89a;box-shadow:0 0 0 1px #647d62}
+.daily-track-dot.category-personal{background:#c1a8ce;box-shadow:0 0 0 1px #806a8c}
+.daily-empty{display:grid;justify-items:center;gap:8px;padding:27px 16px;border:1px dashed #3a4034;border-radius:6px;text-align:center;color:#9b9f91}
+.daily-empty>strong{font:500 13px Manrope;color:#e2dfd3}
+.daily-empty p{max-width:380px;margin:0;font-size:9px;line-height:1.7;color:#858c7e}
+.daily-empty>svg{color:#b9a36e}
+.daily-footnote{padding-top:11px;border-top:1px solid #2c3229;font-size:8px;line-height:1.6;color:#737b6f}
+.daily-notice{font-size:9px;color:#a8c39e}
+@media(max-width:620px){.daily-schedule{padding:14px}.daily-schedule-heading{flex-direction:column}.daily-form-row{grid-template-columns:1fr 1fr}.daily-form-row label:first-child{grid-column:1/-1}.daily-datebar>div{flex-wrap:wrap}.daily-datebar>div span{flex-basis:100%;margin-left:24px}.daily-block{grid-template-columns:66px 14px minmax(0,1fr);gap:7px}.daily-block-content{padding:9px}.daily-form-actions{align-items:flex-start;flex-direction:column}}
