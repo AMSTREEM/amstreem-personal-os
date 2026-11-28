@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import AuthScreen from './components/AuthScreen';
+import IntelligenceScreen from './components/IntelligenceScreen';
 import { isSupabaseConfigured, supabase, type MemoryRow } from './lib/supabase';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Bookmark,
@@ -46,6 +47,12 @@ function Workspace({ user }: { user: User }) {
   const [editDraft, setEditDraft] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [notice, setNotice] = useState('');
+  const refreshNotes = async () => {
+    if (!supabase) return;
+    const { data, error } = await supabase.from('memories').select('*').order('updated_at', { ascending: false });
+    if (error) { setNotice('Could not refresh your context: ' + error.message); return; }
+    setNotes((data as MemoryRow[]).map(row => ({ id: row.id, text: row.content, createdAt: new Date(row.created_at).getTime() })));
+  };
   useEffect(() => {
     let active = true;
     const load = async () => {
@@ -230,18 +237,7 @@ function Workspace({ user }: { user: User }) {
           )}
 
           {section === 'Intelligence' && (
-            <section className="workspace-panel intelligence-panel">
-              <div className="workspace-orb"><div className="workspace-orb-inner"><Atom size={25} /></div></div>
-              <div className="workspace-content">
-                <span className="kicker">A THOUGHT CAN START ANYWHERE</span>
-                <h2>Let's give it some room.</h2>
-                <p>The real conversational intelligence is still being built. For now, you can capture a thought and carry it into your personal space.</p>
-                <div className="capture-composer">
-                  <textarea value={draft} onChange={e => setDraft(e.target.value)} placeholder="I've been thinking about…" rows={3} />
-                  <div className="composer-footer"><span>Only saved when you choose to capture it.</span><button onClick={capture} disabled={!draft.trim()}>Keep this thought <ArrowUpRight size={15} /></button></div>
-                </div>
-              </div>
-            </section>
+            <IntelligenceScreen userId={user.id} onSaved={refreshNotes} />
           )}
 
           {section === 'My world' && (
@@ -273,7 +269,7 @@ function Workspace({ user }: { user: User }) {
         </div>
       </main>
 
-      {editingId !== null && <div className="modal-layer" onMouseDown={e => { if (e.target === e.currentTarget) setEditingId(null); }}><section className="capture-modal"><button className="modal-x" onClick={() => setEditingId(null)} aria-label="Close"><X size={18} /></button><div className="modal-symbol"><Pencil size={18} /></div><span className="kicker">EDIT YOUR CAPTURE</span><h2>Keep it <em>accurate.</em></h2><textarea autoFocus rows={5} value={editDraft} onChange={e => setEditDraft(e.target.value)} /><div className="modal-bottom"><span>Changes stay on this device.</span><button onClick={saveEdit} disabled={!editDraft.trim()}>Save changes <Check size={15} /></button></div></section></div>}
+      {editingId !== null && <div className="modal-layer" onMouseDown={e => { if (e.target === e.currentTarget) setEditingId(null); }}><section className="capture-modal"><button className="modal-x" onClick={() => setEditingId(null)} aria-label="Close"><X size={18} /></button><div className="modal-symbol"><Pencil size={18} /></div><span className="kicker">EDIT YOUR CAPTURE</span><h2>Keep it <em>accurate.</em></h2><textarea autoFocus rows={5} value={editDraft} onChange={e => setEditDraft(e.target.value)} /><div className="modal-bottom"><span>Changes sync to your Amstreem account.</span><button onClick={saveEdit} disabled={!editDraft.trim()}>Save changes <Check size={15} /></button></div></section></div>}
       {captureOpen && <div className="modal-layer" onMouseDown={e => { if (e.target === e.currentTarget) setCaptureOpen(false); }}>
         <section className="capture-modal">
           <button className="modal-x" onClick={() => setCaptureOpen(false)} aria-label="Close"><X size={18} /></button>
