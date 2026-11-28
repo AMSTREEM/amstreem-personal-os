@@ -18,7 +18,6 @@ const toDateKey = (date: Date) => {
   const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
 };
-const fromDateKey = (key: string) => new Date(key + 'T12:00:00');
 const dateLabel = (date: Date, options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(undefined, options).format(date);
 
 export default function PlanningWorkspace({ onOpenPlans }: { onOpenPlans: () => void }) {
