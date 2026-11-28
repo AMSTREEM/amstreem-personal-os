@@ -35,6 +35,7 @@ type SelfControlSummary = { summary: { id: number; name: string; symbol: string;
 type StoredTimer = { remaining: number; deadline: number | null; taskId?: string; lessonId?: string; projectId?: string };
 type FocusSession = { session_date: string; minutes: number; focus: string };
 type AtlasProgress = { totalXp: number; atlas?: { daily: { module: string; metric: string; value: number; local_date: string }[] } };
+type WeeklyChallenge = { challenge_id: string; title: string; description: string; metric: string; target: number; value: number; progress: number; remaining: number; complete: boolean; earned: boolean; source: string; justCompleted?: boolean };
 const TIMER_KEY = 'atlas-focus-timer-v1';
 const faithPractices = ['bible', 'prayer', 'reflection', 'worship', 'service'];
 const lifeAreaCards = [
@@ -118,6 +119,8 @@ export function TodayPage() {
   const overview = useQuery({ queryKey: ['overview'], queryFn: () => api<Overview>('/overview') });
   const atlasProgress = useQuery({ queryKey: ['progress'], queryFn: () => api<AtlasProgress>('/progress') });
   const atlasMetric = (metric: string) => atlasProgress.data?.atlas?.daily.find(item => item.metric === metric)?.value || 0;
+  const weeklyChallengeSync = useMutation({ mutationFn: () => api<WeeklyChallenge>('/weekly-challenge/sync', json('POST', {})) });
+  useEffect(() => { weeklyChallengeSync.mutate(); }, [today]);
   const focusSessions = useQuery({ queryKey: ['sessions'], queryFn: () => api<FocusSession[]>('/sessions') });
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => api<Task[]>('/tasks') });
   const habits = useQuery({ queryKey: ['habits', today], queryFn: () => api<Habit[]>('/habits?date=' + today) });
@@ -353,6 +356,18 @@ export function TodayPage() {
       </section>
     </Card>
 
+    {weeklyChallengeSync.data && <Card className="residence-challenge-card">
+      <section className="residence-challenge" aria-label="Weekly challenge">
+        <div className="residence-challenge__copy">
+          <span className="eyebrow">THIS WEEK · SHARED CHALLENGE</span>
+          <h2>{weeklyChallengeSync.data.title}</h2>
+          <p>{weeklyChallengeSync.data.description}</p>
+          <div className="residence-challenge__progress-copy"><span>{weeklyChallengeSync.data.value} / {weeklyChallengeSync.data.target} {weeklyChallengeSync.data.metric === 'focus_minutes' || weeklyChallengeSync.data.metric === 'study_minutes' ? 'minutes' : 'check-ins'}</span><b>{weeklyChallengeSync.data.progress}%</b></div>
+          <div className="residence-challenge__track" role="progressbar" aria-label="Weekly challenge progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={weeklyChallengeSync.data.progress}><span style={{ width: Math.max(0, Math.min(100, weeklyChallengeSync.data.progress)) + '%' }} /></div>
+        </div>
+        <div className="residence-challenge__status">{weeklyChallengeSync.data.complete ? 'Complete' : weeklyChallengeSync.data.remaining + ' to go'}</div>
+      </section>
+    </Card>}
     <div className="residence-stat-grid">
       <Card className="residence-stat atlas-spotlight"><span className="eyebrow">FOCUS TODAY</span><strong><AnimatedMetric value={overview.data?.todayMin ?? 0} format="minutes" /></strong><small>{focusPercent}% of your {target}m intention</small></Card>
       <Card className="residence-stat"><span className="eyebrow">OPEN PRIORITIES</span><strong>{openTasks.length}</strong><small>{todayTasks.filter(task => !task.done).length} due today</small></Card>
