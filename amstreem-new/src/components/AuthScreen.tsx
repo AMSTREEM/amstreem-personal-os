@@ -1,8 +1,8 @@
 import { FormEvent, useState } from 'react';
 import { ArrowUpRight, LockKeyhole, Mail, Sparkles } from 'lucide-react';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { supabase } from '../lib/supabase';
 
-type Props = { client: SupabaseClient; };
+type Props = { client: NonNullable<typeof supabase>; };
 
 export default function AuthScreen({ client }: Props) {
   const [mode, setMode] = useState<'signin' | 'signup'>('signup');
