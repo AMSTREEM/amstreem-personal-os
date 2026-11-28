@@ -6,21 +6,23 @@ import ContextOverview from './components/ContextOverview';
 import IntelligenceChat from './components/IntelligenceChat';
 import LifeWorkspace from './components/LifeWorkspace';
 import TodayBrief from './components/TodayBrief';
+import PlanningWorkspace from './components/PlanningWorkspace';
 import { isSupabaseConfigured, supabase, type MemoryRow } from './lib/supabase';
 import {
-  Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Bookmark,
+  Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Bookmark, CalendarDays,
   Check, ChevronDown, CircleHelp, Command, Compass, Feather, Folder,
   Layers3, Menu, Plus, Search, Send, Sparkles, Trash2, X, Download, Pencil
 } from 'lucide-react';
 
 type Note = { id: string; text: string; createdAt: number };
-type Section = 'Today' | 'Intelligence' | 'My world' | 'Projects' | 'Activity';
+type Section = 'Today' | 'Intelligence' | 'My world' | 'Projects' | 'Plan' | 'Activity';
 
 const navigation: { label: Section; icon: typeof Compass }[] = [
   { label: 'Today', icon: Compass },
   { label: 'Intelligence', icon: Atom },
   { label: 'My world', icon: Layers3 },
   { label: 'Projects', icon: Folder },
+  { label: 'Plan', icon: CalendarDays },
   { label: 'Activity', icon: Activity },
 ];
 
@@ -135,6 +137,7 @@ function Workspace({ user }: { user: User }) {
     Intelligence: { eyebrow: 'THINKING SPACE', title: 'Bring the unfinished thought.', description: 'A place for questions, decisions, possibilities and the things you are still working out.' },
     'My world': { eyebrow: 'YOUR PERSONAL CONTEXT', title: 'The things that make up your world.', description: 'Thoughts and details you choose to keep in view. Nothing is assumed; it starts with you.' },
     Projects: { eyebrow: 'YOUR DIRECTION, MADE PRACTICAL', title: 'Make room for what matters.', description: 'Connect your bigger goals to projects and the next steps that move them forward.' },
+    Plan: { eyebrow: 'A WEEK THAT WORKS WITH YOU', title: 'Give your priorities a place.', description: 'A flexible weekly view of the tasks you have chosen to schedule.' },
     Activity: { eyebrow: 'YOUR AMSTREEM JOURNEY', title: 'A record, not a scorecard.', description: 'A calm view of what you have chosen to capture here.' },
   };
 
@@ -260,6 +263,7 @@ function Workspace({ user }: { user: User }) {
           )}
 
           {section === 'Projects' && <LifeWorkspace userId={user.id} />}
+          {section === 'Plan' && <PlanningWorkspace onOpenPlans={() => setSection('Projects')} />}
 
           {section === 'Activity' && (
             <section className="collection-area">
