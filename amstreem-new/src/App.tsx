@@ -15,6 +15,7 @@ const MemoryHistory = lazy(() => import('./components/MemoryHistory'));
 const PersonalTimeline = lazy(() => import('./components/PersonalTimeline'));
 const PrivacySettings = lazy(() => import('./components/PrivacySettings'));
 const ActionCenter = lazy(() => import('./components/ActionCenter'));
+const IntelligenceActionBridge = lazy(() => import('./components/IntelligenceActionBridge'));
 import { isSupabaseConfigured, supabase, type MemoryRow } from './lib/supabase';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Bookmark, CalendarDays,
@@ -281,6 +282,7 @@ function Workspace({ user }: { user: User }) {
           {section === 'Intelligence' && (
             <>
               <IntelligenceChat />
+              <IntelligenceActionBridge userId={user.id} />
               <IntelligenceScreen userId={user.id} onSaved={refreshNotes} />
             </>
           )}
