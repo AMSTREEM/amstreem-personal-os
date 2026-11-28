@@ -26,4 +26,5 @@ export type MemoryRow = {
   created_at: string;
   updated_at: string;
   reviewed_at: string | null;
+  reviewed_at: string | null;
 };
