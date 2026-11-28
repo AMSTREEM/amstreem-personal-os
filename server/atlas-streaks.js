@@ -10,7 +10,7 @@ function weekStartFor(dateKey) {
 function calculateHabitStreak(checkedDates, throughDate) {
   const checked = checkedDates instanceof Set ? checkedDates : new Set(checkedDates || []);
   const cursor = new Date(throughDate + 'T12:00:00Z');
-  if (Number.isNaN(cursor.getTime())) throw new TypeError('A valid YYYY-MM-DD date is required.');
+  if (Number.isNaN(cursor.getTime()) || cursor.toISOString().slice(0, 10) !== throughDate) throw new TypeError('A real YYYY-MM-DD date is required.');
   if (!checked.has(throughDate)) cursor.setUTCDate(cursor.getUTCDate() - 1);
   const recoveryWeeks = new Set();
   let streak = 0;
