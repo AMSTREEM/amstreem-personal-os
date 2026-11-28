@@ -589,7 +589,7 @@ test('offline replay reuses the original idempotency key and safely treats a com
   assert.match(shell, /Idempotency-Key': idempotencyKey/);
   assert.match(shell, /enqueueOfflineCapture\(session\.user\.id, endpoint, payload, idempotencyKey\)/);
   assert.match(shell, /error instanceof ApiError && error\.code === 'idempotency_replayed'/);
-  assert.match(queue, /idempotencyKey\)/);
+  assert.match(queue, /idempotencyKey = crypto\.randomUUID\(\)/);
   assert.match(api, /export class ApiError/);
   assert.match(api, /new ApiError\(payload\?\.error/);
 });
