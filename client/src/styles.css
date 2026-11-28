@@ -7946,3 +7946,15 @@ html, body { background: var(--atlas-bg); color: var(--atlas-text-1); }
 
 /* Stage 4: concise, projection-backed Residence activity line. */
 .residence-pulse__ledger { display: block; margin-top: 0.35rem; color: var(--text-2, #a9b6c4); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.015em; line-height: 1.5; }
+
+
+/* Stage 4: shared, projection-backed weekly challenge. */
+.residence-challenge { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
+.residence-challenge__copy { min-width: 0; flex: 1; }
+.residence-challenge__copy h2 { margin: 0.45rem 0 0.25rem; font-size: 1.05rem; }
+.residence-challenge__copy p { margin: 0; color: var(--text-2, #a9b6c4); font-size: 0.82rem; }
+.residence-challenge__progress-copy { display: flex; justify-content: space-between; gap: 1rem; margin-top: 0.9rem; font-size: 0.75rem; color: var(--text-2, #a9b6c4); }
+.residence-challenge__track { height: 6px; margin-top: 0.4rem; overflow: hidden; border-radius: 99px; background: var(--surface-3, #1d2733); }
+.residence-challenge__track span { display: block; height: 100%; border-radius: inherit; background: var(--accent, #22d3ee); transition: width 180ms ease; }
+.residence-challenge__status { flex: 0 0 auto; padding: 0.45rem 0.7rem; border: 1px solid var(--border, #243140); border-radius: 999px; font-size: 0.72rem; color: var(--text-1, #eaf0f6); }
+@media (max-width: 640px) { .residence-challenge { align-items: flex-start; flex-direction: column; gap: 0.8rem; } }
