@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, CalendarClock, Check, Circle, Flag, Goal, ListTodo, RefreshCw } from 'lucide-react';
+import { ArrowRight, CalendarClock, Check, Circle, Flag, Goal, ListTodo, RefreshCw, Clock3, Sprout } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 type Item = {
@@ -7,35 +7,55 @@ type Item = {
   status: 'active' | 'completed' | 'archived'; priority: 'low' | 'normal' | 'high';
   due_date: string | null; parent_id: string | null;
 };
+type ScheduleEntry = { id:string; title:string; start_time:string; end_time:string; recurring:boolean };
+type Habit = { id:string; title:string; weekdays:number[] };
+type HabitEntry = { habit_id:string };
 
 const localDate = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const year = date.getFullYear(); const month = String(date.getMonth() + 1).padStart(2, '0'); const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
-
 const labelDate = (value: string) => new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric' }).format(new Date(value + 'T12:00:00'));
+const timeLabel = (value:string) => new Intl.DateTimeFormat(undefined,{hour:'numeric',minute:'2-digit'}).format(new Date('2000-01-01T'+value.slice(0,5)+':00'));
 
 export default function TodayBrief({ onOpenPlans }: { onOpenPlans: () => void }) {
   const [items, setItems] = useState<Item[]>([]);
+  const [schedule, setSchedule] = useState<ScheduleEntry[]>([]);
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [habitEntries, setHabitEntries] = useState<HabitEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const today = localDate(new Date());
+  const weekday = new Date().getDay();
 
   const load = async () => {
     if (!supabase) { setLoading(false); return; }
     setLoading(true);
-    const { data, error: queryError } = await supabase.from('life_items').select('id,kind,title,status,priority,due_date,parent_id').neq('status', 'archived');
-    if (queryError) setError('Your plans could not be loaded: ' + queryError.message);
-    else { setItems((data || []) as Item[]); setError(''); }
+    const [lifeResult, blockResult, routineResult, habitResult, entryResult] = await Promise.all([
+      supabase.from('life_items').select('id,kind,title,status,priority,due_date,parent_id').neq('status', 'archived'),
+      supabase.from('time_blocks').select('id,title,start_time,end_time').eq('block_date', today).order('start_time'),
+      supabase.from('routine_templates').select('id,title,start_time,end_time,weekdays').eq('active', true),
+      supabase.from('habits').select('id,title,weekdays').eq('active', true),
+      supabase.from('habit_entries').select('habit_id').eq('entry_date', today),
+    ]);
+    const firstError = lifeResult.error || blockResult.error || routineResult.error || habitResult.error || entryResult.error;
+    if (firstError) setError('Some parts of your day could not be loaded: ' + firstError.message);
+    else {
+      setItems((lifeResult.data || []) as Item[]);
+      const blocks = (blockResult.data || []).map((b:any)=>({...b,recurring:false}));
+      const routines = (routineResult.data || []).filter((r:any)=>r.weekdays.includes(weekday)).map((r:any)=>({...r,recurring:true}));
+      setSchedule([...blocks,...routines].sort((a,b)=>a.start_time.localeCompare(b.start_time)) as ScheduleEntry[]);
+      setHabits((habitResult.data || []) as Habit[]);
+      setHabitEntries((entryResult.data || []) as HabitEntry[]);
+      setError('');
+    }
     setLoading(false);
   };
 
   useEffect(() => { void load(); }, []);
 
-  const today = localDate(new Date());
-  const weekEndDate = new Date();
-  weekEndDate.setDate(weekEndDate.getDate() + 7);
+  const weekEndDate = new Date(); weekEndDate.setDate(weekEndDate.getDate() + 7);
   const weekEnd = localDate(weekEndDate);
   const activeTasks = items.filter(item => item.kind === 'task' && item.status === 'active');
   const overdue = activeTasks.filter(item => item.due_date && item.due_date < today).sort((a,b) => a.due_date!.localeCompare(b.due_date!));
@@ -46,6 +66,9 @@ export default function TodayBrief({ onOpenPlans }: { onOpenPlans: () => void })
   const goals = items.filter(item => item.kind === 'goal' && item.status === 'active');
   const projects = items.filter(item => item.kind === 'project' && item.status === 'active');
   const completedTasks = items.filter(item => item.kind === 'task' && item.status === 'completed').length;
+  const plannedHabits = habits.filter(habit=>habit.weekdays.includes(weekday));
+  const completedHabitIds = new Set(habitEntries.map(entry=>entry.habit_id));
+  const nextBlock = schedule.find(block=>block.end_time.slice(0,5)>new Date().toTimeString().slice(0,5));
 
   const markDone = async (item: Item) => {
     if (!supabase) return;
@@ -70,6 +93,19 @@ export default function TodayBrief({ onOpenPlans }: { onOpenPlans: () => void })
             <div><Flag size={16}/><strong>{projects.length}</strong><span>PROJECTS</span></div>
             <div><ListTodo size={16}/><strong>{activeTasks.length}</strong><span>OPEN TASKS</span></div>
             <div><Check size={16}/><strong>{completedTasks}</strong><span>DONE SO FAR</span></div>
+          </div>
+          <div className="today-rhythm">
+            <div className="today-rhythm-head"><div><span className="kicker">YOUR DAY, IN CONTEXT</span><h3>Today's rhythm</h3></div><span>{schedule.length} planned blocks</span></div>
+            <div className="today-rhythm-grid">
+              <div className="today-rhythm-column"><div className="today-rhythm-label"><Clock3 size={13}/> SCHEDULE</div>
+                {schedule.length ? schedule.slice(0,4).map(block=><div className="today-rhythm-item" key={block.id}><strong>{block.title}</strong><span>{timeLabel(block.start_time)} – {timeLabel(block.end_time)}{block.recurring?' · ROUTINE':''}</span></div>):<p className="today-rhythm-empty">No time blocks or routines planned today.</p>}
+                {nextBlock&&<p className="today-rhythm-next">Next upcoming: <strong>{nextBlock.title}</strong></p>}
+              </div>
+              <div className="today-rhythm-column"><div className="today-rhythm-label"><Sprout size={13}/> HABITS</div>
+                {plannedHabits.length ? <><div className="today-habit-count"><strong>{plannedHabits.filter(h=>completedHabitIds.has(h.id)).length}</strong><span>of {plannedHabits.length} planned check-ins recorded</span></div><div className="today-habit-list">{plannedHabits.slice(0,4).map(h=><span key={h.id} className={completedHabitIds.has(h.id)?'recorded':''}>{completedHabitIds.has(h.id)?'✓':'○'} {h.title}</span>)}</div></>:<p className="today-rhythm-empty">No habits scheduled for today.</p>}
+              </div>
+            </div>
+            <p className="today-rhythm-note">This shows what you've planned and recorded here—not everything happening in your life.</p>
           </div>
           <div className="today-focus">
             <div className="today-focus-title"><div><span className="kicker">YOUR ATTENTION</span><h3>{sectionTitle}</h3></div><span className="today-count">{focusTasks.length} {focusTasks.length === 1 ? 'NEXT STEP' : 'NEXT STEPS'}</span></div>
