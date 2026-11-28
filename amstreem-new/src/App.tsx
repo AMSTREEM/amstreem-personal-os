@@ -13,17 +13,18 @@ import PersonalInsights from './components/PersonalInsights';
 import CrossFeatureUnderstanding from './components/CrossFeatureUnderstanding';
 import MemoryHistory from './components/MemoryHistory';
 import PersonalTimeline from './components/PersonalTimeline';
+import PrivacySettings from './components/PrivacySettings';
 import { isSupabaseConfigured, supabase, type MemoryRow } from './lib/supabase';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Bookmark, CalendarDays,
   Check, CheckCircle2, ChevronDown, CircleHelp, Command, Compass, Feather, Folder,
-  Layers3, Lightbulb, Menu, Plus, Search, Send, Sparkles, Sprout, Trash2, X, Download, Pencil
+  Layers3, Lightbulb, Menu, Plus, Search, Send, Sparkles, Sprout, Trash2, X, Download, Pencil, Settings2
 } from 'lucide-react';
 
 type MemoryType = MemoryRow['memory_type'];
 type Note = { id: string; text: string; createdAt: number; reviewedAt: number | null; memoryType: MemoryType; source: MemoryRow['source'] };
 const memoryTypes: { value: MemoryType; label: string }[] = [{ value: 'fact', label: 'Fact' }, { value: 'preference', label: 'Preference' }, { value: 'goal', label: 'Goal' }, { value: 'project', label: 'Project' }, { value: 'experience', label: 'Experience' }, { value: 'other', label: 'Other' }];
-type Section = 'Today' | 'Intelligence' | 'My world' | 'Projects' | 'Plan' | 'Habits' | 'Insights' | 'Activity';
+type Section = 'Today' | 'Intelligence' | 'My world' | 'Projects' | 'Plan' | 'Habits' | 'Insights' | 'Activity' | 'Settings';
 
 const navigation: { label: Section; icon: typeof Compass }[] = [
   { label: 'Today', icon: Compass },
@@ -34,6 +35,7 @@ const navigation: { label: Section; icon: typeof Compass }[] = [
   { label: 'Habits', icon: Sprout },
   { label: 'Insights', icon: Lightbulb },
   { label: 'Activity', icon: Activity },
+  { label: 'Settings', icon: Settings2 },
 ];
 
 const timeLabel = (timestamp: number) => new Intl.DateTimeFormat(undefined, {
@@ -164,6 +166,7 @@ function Workspace({ user }: { user: User }) {
     Habits: { eyebrow: 'SMALL ACTIONS, OVER TIME', title: 'Make space for consistency.', description: 'Track the things you choose to practise, without turning your life into a streak or a score.' },
     Insights: { eyebrow: 'A CLEARER VIEW OF YOUR PATTERNS', title: 'See what is taking shape.', description: 'Useful observations drawn from the things you choose to track.' },
     Activity: { eyebrow: 'YOUR AMSTREEM JOURNEY', title: 'A record, not a scorecard.', description: 'A calm view of what you have chosen to capture here.' },
+    Settings: { eyebrow: 'YOUR SPACE, YOUR RULES', title: 'Choose how your space works.', description: 'Review your privacy, understand your data, and keep control of what you have saved.' },
   };
 
   return (
@@ -292,6 +295,8 @@ function Workspace({ user }: { user: User }) {
           {section === 'Plan' && <PlanningWorkspace userId={user.id} onOpenPlans={() => setSection('Projects')} />}
           {section === 'Habits' && <HabitTracker userId={user.id} />}
           {section === 'Insights' && <><PersonalInsights userId={user.id} onOpenProjects={() => setSection('Projects')} onOpenPlan={() => setSection('Plan')} onOpenHabits={() => setSection('Habits')} /><CrossFeatureUnderstanding userId={user.id} /></>}
+
+          {section === 'Settings' && <PrivacySettings userId={user.id} email={user.email} />}
 
           {section === 'Activity' && (
             <section className="collection-area">
