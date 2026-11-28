@@ -7627,3 +7627,34 @@ html, body { background: var(--atlas-bg); color: var(--atlas-text-1); }
   color: var(--atlas-text-2);
 }
 .atlas-update-toast > button:disabled { cursor: wait; opacity: .65; }
+
+/* Stage 3 · Offline quick-capture status. */
+.atlas-offline-queue {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--atlas-border-strong);
+  border-radius: 999px;
+  background: var(--atlas-surface-2);
+  color: var(--atlas-text-2);
+  font-size: 10px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.atlas-mobile-dock__queue-count {
+  position: absolute;
+  top: 3px;
+  right: calc(50% - 25px);
+  min-width: 17px;
+  height: 17px;
+  display: grid;
+  place-items: center;
+  padding: 0 4px;
+  border: 1px solid var(--atlas-border-strong);
+  border-radius: 999px;
+  background: var(--atlas-surface-3);
+  color: var(--atlas-text-1);
+  font-size: 9px;
+  font-weight: 700;
+}
