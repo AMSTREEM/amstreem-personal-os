@@ -158,6 +158,8 @@
   --color-text-2: var(--atlas-text-2);
   --color-text-3: var(--atlas-text-3);
   --color-brand: var(--atlas-brand);
+  --color-module: var(--module);
+  --color-module-text: var(--module-text);
   --color-success: var(--atlas-success);
   --color-warning: var(--atlas-warning);
   --color-danger: var(--atlas-danger);
