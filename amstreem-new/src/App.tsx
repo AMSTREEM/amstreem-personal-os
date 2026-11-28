@@ -263,7 +263,7 @@ function Workspace({ user }: { user: User }) {
           )}
 
           {section === 'Projects' && <LifeWorkspace userId={user.id} />}
-          {section === 'Plan' && <PlanningWorkspace onOpenPlans={() => setSection('Projects')} />}
+          {section === 'Plan' && <PlanningWorkspace userId={user.id} onOpenPlans={() => setSection('Projects')} />}
 
           {section === 'Activity' && (
             <section className="collection-area">
