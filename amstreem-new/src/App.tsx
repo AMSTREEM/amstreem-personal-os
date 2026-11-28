@@ -115,7 +115,7 @@ function Workspace({ user }: { user: User }) {
     window.localStorage.removeItem('amstreem.captures.v1');
     setLocalNotes([]);
     const { data } = await supabase.from('memories').select('*').order('updated_at', { ascending: false });
-    if (data) setNotes((data as MemoryRow[]).map(row => ({ id: row.id, text: row.content, createdAt: new Date(row.created_at).getTime() })));
+    if (data) setNotes((data as MemoryRow[]).map(row => ({ id: row.id, text: row.content, createdAt: new Date(row.created_at).getTime(), memoryType: row.memory_type, source: row.source })));
     setNotice('Your selected local captures are now in your account.');
   };
 
