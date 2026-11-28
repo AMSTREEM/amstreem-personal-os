@@ -70,6 +70,8 @@ function Workspace({ user }: { user: User }) {
   const [captureType, setCaptureType] = useState<MemoryType>('other');
   const [memoryFilter, setMemoryFilter] = useState<MemoryType | 'all'>('all');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
+  const [commandQuery, setCommandQuery] = useState('');
   const [notice, setNotice] = useState('');
   const refreshNotes = async () => {
     if (!supabase) return;
@@ -90,6 +92,19 @@ function Workspace({ user }: { user: User }) {
     void load();
     return () => { active = false; };
   }, [user.id]);
+
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setCommandOpen(open => !open);
+        setCommandQuery('');
+      }
+      if (event.key === 'Escape') setCommandOpen(false);
+    };
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, []);
 
   const visibleNotes = notes.filter(note => (memoryFilter === 'all' || note.memoryType === memoryFilter) && note.text.toLocaleLowerCase().includes(searchQuery.trim().toLocaleLowerCase()));
   const startEditing = (note: Note) => { setEditingId(note.id); setEditDraft(note.text); setEditType(note.memoryType); };
@@ -214,7 +229,7 @@ function Workspace({ user }: { user: User }) {
           </div>
           <div className="topline-right">
             <div className="environment-status"><i /> EARLY EXPERIENCE</div>
-            <button className="help-button" aria-label="Help"><CircleHelp size={17} /></button>
+            <button className="command-trigger" onClick={() => { setCommandQuery(''); setCommandOpen(true); }} aria-label="Open command menu"><Search size={14}/><span>Search or jump to…</span><kbd>⌘ K</kbd></button>
             <div className="top-avatar">A</div>
           </div>
         </header>
@@ -315,7 +330,7 @@ function Workspace({ user }: { user: User }) {
 
 </Suspense>
 
-          <footer className="page-footer"><span>AMSTREEM <i>✳</i> A MORE HUMAN WAY TO MOVE FORWARD</span><span>BUILT TO GROW WITH YOU <i>·</i> 0.2</span></footer>
+          <footer className="page-footer"><span>AMSTREEM <i>✳</i> A MORE HUMAN WAY TO MOVE FORWARD</span><span>BUILT TO GROW WITH YOU <i>·</i> 1.0</span></footer>
         </div>
       </main>
 
@@ -329,6 +344,15 @@ function Workspace({ user }: { user: User }) {
           <textarea autoFocus rows={5} value={draft} onChange={e => setDraft(e.target.value)} placeholder="A thought, an idea, something worth remembering…" />
           <label className="memory-type-select-label">WHAT KIND OF MEMORY IS THIS?<select value={captureType} onChange={e => setCaptureType(e.target.value as MemoryType)}>{memoryTypes.map(type => <option key={type.value} value={type.value}>{type.label}</option>)}</select></label>
           <div className="modal-bottom"><span>Nothing is saved until you choose.</span><button onClick={capture} disabled={!draft.trim()}>Add to my world <ArrowUpRight size={15} /></button></div>
+        </section>
+      </div>}
+      {commandOpen && <div className="command-layer" onMouseDown={event => { if (event.target === event.currentTarget) setCommandOpen(false); }}>
+        <section className="command-panel" role="dialog" aria-modal="true" aria-label="Command menu">
+          <div className="command-search"><Search size={17}/><input autoFocus value={commandQuery} onChange={event => setCommandQuery(event.target.value)} placeholder="Search workspace or jump to a section…" /><kbd>ESC</kbd></div>
+          <div className="command-section-label">NAVIGATION</div>
+          <div className="command-results">{navigation.filter(item => item.label.toLowerCase().includes(commandQuery.trim().toLowerCase())).map(({label,icon:Icon})=><button key={label} onClick={()=>{changeSection(label);setCommandOpen(false);}}><Icon size={16}/><span>{label}</span><ArrowUpRight size={13}/></button>)}
+          {navigation.filter(item => item.label.toLowerCase().includes(commandQuery.trim().toLowerCase())).length===0&&<p>No matching sections. Try another search.</p>}</div>
+          <div className="command-foot"><span>Navigate your workspace</span><span><kbd>CTRL</kbd> + <kbd>K</kbd> to open</span></div>
         </section>
       </div>}
       {notice && <div className="toast"><Check size={15} />{notice}</div>}
