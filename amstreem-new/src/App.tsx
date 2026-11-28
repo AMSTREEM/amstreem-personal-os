@@ -10,6 +10,7 @@ import TodayBrief from './components/TodayBrief';
 import PlanningWorkspace from './components/PlanningWorkspace';
 import HabitTracker from './components/HabitTracker';
 import PersonalInsights from './components/PersonalInsights';
+import CrossFeatureUnderstanding from './components/CrossFeatureUnderstanding';
 import { isSupabaseConfigured, supabase, type MemoryRow } from './lib/supabase';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Bookmark, CalendarDays,
@@ -278,7 +279,7 @@ function Workspace({ user }: { user: User }) {
           {section === 'Projects' && <LifeWorkspace userId={user.id} />}
           {section === 'Plan' && <PlanningWorkspace userId={user.id} onOpenPlans={() => setSection('Projects')} />}
           {section === 'Habits' && <HabitTracker userId={user.id} />}
-          {section === 'Insights' && <PersonalInsights userId={user.id} onOpenProjects={() => setSection('Projects')} onOpenPlan={() => setSection('Plan')} onOpenHabits={() => setSection('Habits')} />}
+          {section === 'Insights' && <><PersonalInsights userId={user.id} onOpenProjects={() => setSection('Projects')} onOpenPlan={() => setSection('Plan')} onOpenHabits={() => setSection('Habits')} /><CrossFeatureUnderstanding userId={user.id} /></>}
 
           {section === 'Activity' && (
             <section className="collection-area">
