@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, json } from '../lib/api';
+import { api, ApiError, json } from '../lib/api';
 import { enqueueOfflineCapture, flushOfflineCaptures, getOfflineCaptureCount } from '../lib/offlineCaptureQueue';
 import { applyAtlasTheme, watchAtlasSystemTheme } from '../design/theme';
 import { atlasModules as rooms, quranShellEntry as quranDestination, atlasNavigationGroups as navigationGroups, atlasCommandDestinations as commandDestinations, atlasQuickCaptureTypes, atlasSearchSources } from '../design/module-registry';
@@ -107,11 +107,18 @@ export function AppShell() {
     const syncQueue = async () => {
       if (!navigator.onLine) { refreshCount(); return; }
       try {
-        const result = await flushOfflineCaptures(userId, capture => api(capture.endpoint, {
-          method: 'POST',
-          headers: { 'Idempotency-Key': capture.idempotencyKey },
-          body: JSON.stringify(capture.payload)
-        }));
+        const result = await flushOfflineCaptures(userId, async capture => {
+          try {
+            return await api(capture.endpoint, {
+              method: 'POST',
+              headers: { 'Idempotency-Key': capture.idempotencyKey },
+              body: JSON.stringify(capture.payload)
+            });
+          } catch (error) {
+            if (error instanceof ApiError && error.code === 'idempotency_replayed') return;
+            throw error;
+          }
+        });
         setPendingOfflineCaptures(result.remaining);
         if (result.sent > 0) {
           for (const key of [['tasks'], ['overview'], ['notes'], ['habits']]) void queryClient.invalidateQueries({ queryKey: key });
@@ -203,14 +210,15 @@ export function AppShell() {
     setQuickTaskSaving(true); setQuickTaskError('');
     const endpoint = quickCaptureType === 'task' ? '/tasks' : quickCaptureType === 'note' ? '/notes' : '/habits';
     const payload = quickCaptureType === 'task' ? { title, category: 'Personal' } : quickCaptureType === 'note' ? { title, body: '' } : { title, emoji: '✦' };
+    const idempotencyKey = crypto.randomUUID();
     try {
-      await api(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      await api(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(payload) });
       setQuickTaskTitle(''); setQuickTaskError(''); setCommandOpen(false);
       for (const key of [['tasks'], ['overview'], ['notes'], ['habits']]) void queryClient.invalidateQueries({ queryKey: key });
     } catch (error) {
       if ((error instanceof TypeError || !navigator.onLine) && session?.user.id) {
         try {
-          const count = enqueueOfflineCapture(session.user.id, endpoint, payload);
+          const count = enqueueOfflineCapture(session.user.id, endpoint, payload, idempotencyKey);
           setPendingOfflineCaptures(count);
           setQuickTaskTitle('');
           setQuickTaskError('');
