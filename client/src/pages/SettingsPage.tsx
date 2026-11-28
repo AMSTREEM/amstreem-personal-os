@@ -18,6 +18,14 @@ const lifeAreaOptions = [
   { id: 'lifestyle', name: 'Lifestyle & Organisation', desc: 'Routines, time and daily life', icon: '⌂' }
 ];
 const defaultLifeAreas = lifeAreaOptions.map(area => area.id);
+const xpModuleOptions = [
+  { id: 'actions', name: 'Actions', desc: 'Tasks and focus sessions.' },
+  { id: 'habits', name: 'Habits', desc: 'Habit check-ins.' },
+  { id: 'learning', name: 'Learning', desc: 'Completed learning items.' },
+  { id: 'growth', name: 'Growth', desc: 'Submitted reviews.' },
+  { id: 'residence', name: 'Residence', desc: 'Weekly challenge completion.' }
+];
+const defaultXpModules = xpModuleOptions.map(module => module.id);
 const themes = [
   { group: 'System', items: [
     { id: 'system', name: 'System', note: 'Follow your device appearance', colors: ['#0A0E13','#F6F4EF','#22D3EE','#EAF0F6'] }
@@ -48,6 +56,7 @@ export function SettingsPage() {
   const [communicationStyle, setCommunicationStyle] = useState('adaptive');
   const [features, setFeatures] = useState<string[]>(['calendar','focus','rituals','selfcontrol','learning','library','deen']);
   const [selectedLifeAreas, setSelectedLifeAreas] = useState<string[]>(defaultLifeAreas);
+  const [xpEnabledModules, setXpEnabledModules] = useState<string[]>(defaultXpModules);
   const [soundFeedback, setSoundFeedback] = useState(() => { try { return localStorage.getItem('atlas-sound-feedback') === 'on'; } catch { return false; } });
   const [highContrast, setHighContrast] = useState(() => { try { return localStorage.getItem('atlas-high-contrast') === 'on'; } catch { return false; } });
   const [motionPreference, setMotionPreference] = useState<AtlasMotionPreference>(() => { try { const value = localStorage.getItem('atlas-motion-preference'); return value === 'reduced' || value === 'full' ? value : 'system'; } catch { return 'system'; } });
@@ -65,10 +74,11 @@ export function SettingsPage() {
       applyAtlasTheme(settings.data.theme || 'shadowed-alchemist');
       try { setFeatures(settings.data.features ? JSON.parse(settings.data.features).map((feature: string) => feature === 'values' ? 'deen' : feature) : ['calendar','focus','rituals','selfcontrol','learning','library','deen']); } catch { setFeatures(['calendar','focus','rituals','selfcontrol','learning','library','deen']); }
       try { const saved = settings.data.life_areas ? JSON.parse(settings.data.life_areas) : defaultLifeAreas; setSelectedLifeAreas(Array.isArray(saved) ? saved.filter((id: string) => lifeAreaOptions.some(area => area.id === id)) : defaultLifeAreas); } catch { setSelectedLifeAreas(defaultLifeAreas); }
+      try { const saved = settings.data.xp_enabled_modules ? JSON.parse(settings.data.xp_enabled_modules) : defaultXpModules; setXpEnabledModules(Array.isArray(saved) ? saved.filter((id: string) => xpModuleOptions.some(module => module.id === id)) : defaultXpModules); } catch { setXpEnabledModules(defaultXpModules); }
     }
   }, [settings.data]);
   const save = useMutation({
-    mutationFn: () => { applyAtlasTheme(theme); return api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), timezone, theme, features, life_areas: selectedLifeAreas, communication_style: communicationStyle })); },
+    mutationFn: () => { applyAtlasTheme(theme); return api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), timezone, theme, features, life_areas: selectedLifeAreas, communication_style: communicationStyle, xp_enabled_modules: xpEnabledModules })); },
     onSuccess: () => { setMessage('Your preferences have been saved.'); void client.invalidateQueries({ queryKey: ['settings'] }); }
   });
   async function exportData() {
@@ -115,6 +125,15 @@ export function SettingsPage() {
         </Field>
         <Field label="Daily focus intention (minutes)"><TextInput type="number" min="10" max="600" value={target} onChange={event => setTarget(event.target.value)} /></Field>
         <Field label="Time zone"><p className="field__hint">Atlas uses this IANA time zone to decide when your day begins and ends.</p><TextInput value={timezone} onChange={event => setTimezone(event.target.value)} placeholder="Africa/Lagos" /></Field>
+        <Field label="Progress & XP">
+          <p className="field__hint">XP is optional. Turn it off for any module without disabling progress, achievements or your underlying records.</p>
+          <div className="settings-module-grid">
+            {xpModuleOptions.map(module => <label className="settings-module-choice" key={module.id}>
+              <input type="checkbox" checked={xpEnabledModules.includes(module.id)} onChange={event => setXpEnabledModules(current => event.target.checked ? [...current, module.id] : current.filter(id => id !== module.id))} />
+              <span><b>{module.name}</b><small>{module.desc}</small></span>
+            </label>)}
+          </div>
+        </Field>
         <Field label="Optional workspace views"><p className="field__hint">Your six core pillars always stay available. Turn secondary views on or off as your workspace needs change.</p><div className="settings-module-grid">{[{id:'calendar',name:'Calendar',desc:'A calendar view inside Projects & Tasks.'},{id:'library',name:'Personal Library',desc:'A library tab inside Learning Studio.'}].map(module => <label className="settings-module-choice" key={module.id}><input type="checkbox" checked={features.includes(module.id)} onChange={event => setFeatures(current => event.target.checked ? [...current,module.id] : current.filter(id => id !== module.id))} /><span><b>{module.name}</b><small>{module.desc}</small></span></label>)}</div></Field>
         <Field label="Micro-feedback"><label className="settings-module-choice"><input type="checkbox" checked={soundFeedback} onChange={event => { const enabled = event.target.checked; setSoundFeedback(enabled); try { localStorage.setItem('atlas-sound-feedback', enabled ? 'on' : 'off'); } catch { /* Optional audio. */ } if (enabled) primeAtlasAudio(); }} /><span><b>Subtle sound cues</b><small>Quiet 15ms ticks for task and prayer check-offs, plus a soft Focus completion chime. Off by default.</small></span></label></Field>
         <Field label="Accessibility"><label className="settings-module-choice"><input type="checkbox" checked={highContrast} onChange={event => setHighContrast(event.target.checked)} /><span><b>High-contrast interface</b><small>Strengthen borders and secondary text for easier reading on every Atlas screen.</small></span></label></Field>
