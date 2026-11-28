@@ -109,7 +109,7 @@ test('Self-Control consistency uses dated records and positive habit check-ins, 
   assert.match(consolidated, /workspace==='habits'/);
   assert.match(consolidated, /workspace==='self-control'/);
   assert.match(consolidated, /<RitualsPage embedded \/>/);
-  assert.match(server, /return \{\.\.\.habit,streak\}/);
+  assert.match(server, /streak:calculateHabitStreak/);
   assert.match(selfControl, /verified clean check-ins/);
   assert.match(rituals, /invalidateQueries\(\{ queryKey: \['self-control'\] \}\)/);
   assert.match(moduleRegistry, /label: 'Values'/);
