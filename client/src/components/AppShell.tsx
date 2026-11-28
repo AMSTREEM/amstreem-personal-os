@@ -82,6 +82,36 @@ export function AppShell() {
     try { localStorage.setItem('atlas-phone-dock', JSON.stringify(dockDestinationIds)); } catch {}
   }, [dockDestinationIds]);
   const dockModules = useMemo(() => dockDestinationIds.map(id => rooms.find(room => room.id === id)).filter((item): item is typeof rooms[number] => Boolean(item)), [dockDestinationIds]);
+  const dockCustomizerRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (!dockCustomizerOpen) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const panel = dockCustomizerRef.current;
+    const focusable = () => Array.from(panel?.querySelectorAll<HTMLElement>('button, select, input, a[href], [tabindex]:not([tabindex="-1"])') || []).filter(node => !node.hasAttribute('disabled'));
+    focusable()[0]?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setDockCustomizerOpen(false);
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const items = focusable();
+      if (!items.length) return;
+      if (event.shiftKey && document.activeElement === items[0]) {
+        event.preventDefault();
+        items[items.length - 1].focus();
+      } else if (!event.shiftKey && document.activeElement === items[items.length - 1]) {
+        event.preventDefault();
+        items[0].focus();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      previousFocus?.focus();
+    };
+  }, [dockCustomizerOpen]);
   const updateDockSlot = (slot: number, nextId: string) => {
     setDockDestinationIds(current => current.map((id, index) => index === slot ? nextId : id === nextId ? current[slot] : id));
   };
@@ -421,7 +451,7 @@ export function AppShell() {
     
     <AnimatePresence>
       {dockCustomizerOpen && <motion.div className="atlas-dock-customizer-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={event => { if (event.target === event.currentTarget) setDockCustomizerOpen(false); }}>
-        <motion.section ref={dockCustomizerRef} className="atlas-dock-customizer" role="dialog" aria-modal="true" aria-label="Customize phone navigation" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }}>
+        <motion.section ref={dockCustomizerRef} ref={dockCustomizerRef} className="atlas-dock-customizer" role="dialog" aria-modal="true" aria-label="Customize phone navigation" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }}>
           <header><div><b>Customize your bar</b><small>Choose the three destinations beside Capture and More</small></div><button type="button" aria-label="Close customizer" onClick={() => setDockCustomizerOpen(false)}><X size={18}/></button></header>
           {dockModules.map((item, slot) => <label key={slot} className="atlas-dock-customizer__field"><span>Destination {slot + 1}</span><select value={dockDestinationIds[slot]} onChange={event => updateDockSlot(slot, event.target.value)}>{rooms.map(room => <option key={room.id} value={room.id} disabled={dockDestinationIds.includes(room.id) && dockDestinationIds[slot] !== room.id}>{room.label}</option>)}</select></label>)}
           <button type="button" className="atlas-dock-customizer__done" onClick={() => setDockCustomizerOpen(false)}>Done</button>
