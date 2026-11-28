@@ -10,6 +10,7 @@ const { positiveIdSchema, validateRequest, validateApiEnvelope, sendProblem, onb
 const { apiProblemResponses } = require('./server/api-errors');
 const { createAtlasEvent } = require('./server/atlas-events');
 const { calculateHabitStreak } = require('./server/atlas-streaks');
+const { startAtlasScheduler } = require('./server/atlas-scheduler');
 const { resolveAppEnvironment, checkEnvironmentMarker, requestLogger } = require('./server/runtime-guard');
 const app = express();
 app.disable('x-powered-by');
@@ -1719,6 +1720,44 @@ app.post('/api/achievements/sync',async(req,res)=>{
   res.json({newUnlocks:achievements.filter(x=>eligible.some(e=>e.id===x.id)),achievements,unlocked:achievements.filter(x=>x.unlocked).length,total:achievements.length,recent:achievements.filter(x=>x.unlockedAt).sort((a,b)=>b.unlockedAt.localeCompare(a.unlockedAt)).slice(0,5)});
  }
 });
+app.get('/api/notifications',async(req,res)=>{
+ try{const rows=await atlasRest(req,'atlas_notifications?select=id,category,title,body,data,status,created_at,delivered_at,read_at&status=in.(delivered,read)&channel=eq.in_app&order=created_at.desc&limit=50');res.json(rows||[]);}
+ catch(error){res.status(503).json({error:'Notifications are temporarily unavailable.'});}
+});
+app.get('/api/notifications/unread-count',async(req,res)=>{
+ try{const rows=await atlasRest(req,'atlas_notifications?select=id&status=eq.delivered&channel=eq.in_app&limit=50');res.json({count:(rows||[]).length});}
+ catch(error){res.status(503).json({error:'Notification count is temporarily unavailable.'});}
+});
+app.post('/api/notifications/:id/read',async(req,res)=>{
+ const id=String(req.params.id||'');
+ if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))return res.status(400).json({error:'A valid notification ID is required.'});
+ try{await atlasRest(req,'atlas_notifications?id=eq.'+id+'&status=eq.delivered',{method:'PATCH',body:{status:'read',read_at:new Date().toISOString()}});res.json({ok:true});}
+ catch(error){res.status(503).json({error:'The notification could not be updated.'});}
+});
+app.post('/api/notifications/:id/dismiss',async(req,res)=>{
+ const id=String(req.params.id||'');
+ if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))return res.status(400).json({error:'A valid notification ID is required.'});
+ try{await atlasRest(req,'atlas_notifications?id=eq.'+id+'&status=in.(delivered,read)',{method:'PATCH',body:{status:'dismissed'}});res.json({ok:true});}
+ catch(error){res.status(503).json({error:'The notification could not be dismissed.'});}
+});
+app.get('/api/insights',async(req,res)=>{
+ try{const rows=await atlasRest(req,'atlas_insights?select=id,insight_type,title,summary,explanation,evidence,priority,created_at,expires_at&status=eq.active&order=created_at.desc&limit=50');res.json(rows||[]);}
+ catch(error){res.status(503).json({error:'Insights are temporarily unavailable.'});}
+});
+app.post('/api/insights/:id/dismiss',async(req,res)=>{
+ const id=String(req.params.id||'');
+ if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))return res.status(400).json({error:'A valid insight ID is required.'});
+ try{await atlasRest(req,'atlas_insights?id=eq.'+id+'&status=eq.active',{method:'PATCH',body:{status:'dismissed',dismissed_at:new Date().toISOString()}});res.json({ok:true});}
+ catch(error){res.status(503).json({error:'The insight could not be dismissed.'});}
+});
+app.get('/api/briefing',async(req,res)=>{
+ try{const rows=await atlasRest(req,'atlas_briefings?select=briefing,generated_at&local_date=eq.'+dateKey()+'&limit=1');res.json(rows?.[0]||null);}
+ catch(error){res.status(503).json({error:'The daily briefing is temporarily unavailable.'});}
+});
+app.get('/api/weekly-review/latest',async(req,res)=>{
+ try{const rows=await atlasRest(req,'atlas_weekly_reviews?select=week_start,review,generated_at&order=week_start.desc&limit=1');res.json(rows?.[0]||null);}
+ catch(error){res.status(503).json({error:'The weekly review is temporarily unavailable.'});}
+});
 app.get('/api/progress',async(req,res)=>{
  const thresholds=[0,50,150,300,500,800,1200,1700,2300,3000,4000,5200,6600,8200,10000];
  const titles=['Newcomer','Starter','Builder','Pathfinder','Maker','Strategist','Specialist','Architect','Vanguard','Atlas'];
@@ -1991,11 +2030,13 @@ async function startServer() {
   const httpServer = app.listen(PORT, '0.0.0.0', () => {
     console.info(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', event: 'server.started', environment: APP_ENV, port: Number(PORT) }));
   });
+  const stopAtlasScheduler = startAtlasScheduler({ supabaseUrl: supabaseConfig.url, serviceKey: process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY, appEnv: APP_ENV });
   let shuttingDown = false;
   const shutdown = signal => {
     if (shuttingDown) return;
     shuttingDown = true;
     console.info(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', event: 'server.shutdown_started', signal }));
+    stopAtlasScheduler();
     const forceTimer = setTimeout(() => {
       console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', event: 'server.shutdown_timeout', signal }));
       process.exit(1);
