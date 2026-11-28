@@ -618,4 +618,5 @@ test('mobile More launcher behaves as an accessible modal drawer with focus rest
   assert.ok(shell.includes('}, [mobileOpen]);'));
   assert.ok(shell.includes('previousFocus?.focus();'));
   assert.ok(shell.includes('aria-label={quickCaptureType ==='));
+  assert.ok(shell.includes("if (event.key === 'Escape') { setCommandOpen(false); setMobileOpen(false);"));
 });
