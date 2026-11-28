@@ -18,6 +18,8 @@ test('habit streak starts from yesterday when today is not checked yet', () => {
  assert.equal(calculateHabitStreak(['2026-11-27','2026-11-26'],'2026-11-28'),2);
 });
 
+test('habit streak rejects impossible calendar dates', () => { assert.throws(() => calculateHabitStreak([], '2026-02-31'), /YYYY-MM-DD/); });
+
 test('habit streak is zero when there are no recent check-ins', () => {
  assert.equal(calculateHabitStreak([],'2026-11-28'),0);
 });
