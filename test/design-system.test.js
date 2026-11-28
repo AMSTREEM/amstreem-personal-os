@@ -38,15 +38,15 @@ function contrast(a, b) {
 test('Atlas design tokens define the agreed dark and light foundations', () => {
   const dark = cssBlock(tokens, ':root {');
   const light = cssBlock(tokens, ':root[data-theme^="light-"]');
-  assert.match(dark, /--atlas-brand:\\s*#22D3EE/);
-  assert.match(dark, /--atlas-surface-3:\\s*#1D2733/);
-  assert.match(dark, /--atlas-border-strong:\\s*#34465A/);
-  assert.match(dark, /--atlas-text-1:\\s*var\\(--text, #EAF0F6\\)/);
-  assert.match(light, /--atlas-brand:\\s*#0891B2/);
-  assert.match(light, /--atlas-surface-3:\\s*#E7E3DA/);
-  assert.match(light, /--atlas-border-strong:\\s*#C4BEB0/);
-  assert.match(tokens, /--atlas-space-11:\\s*64px/);
-  assert.match(tokens, /--atlas-duration-slow:\\s*320ms/);
+  assert.match(dark, /--atlas-brand:\s*#22D3EE/);
+  assert.match(dark, /--atlas-surface-3:\s*#1D2733/);
+  assert.match(dark, /--atlas-border-strong:\s*#34465A/);
+  assert.match(dark, /--atlas-text-1:\s*var\\(--text, #EAF0F6\\)/);
+  assert.match(light, /--atlas-brand:\s*#0891B2/);
+  assert.match(light, /--atlas-surface-3:\s*#E7E3DA/);
+  assert.match(light, /--atlas-border-strong:\s*#C4BEB0/);
+  assert.match(tokens, /--atlas-space-11:\s*64px/);
+  assert.match(tokens, /--atlas-duration-slow:\s*320ms/);
 });
 
 test('every module accent meets WCAG AA contrast for its text colour', () => {
@@ -81,7 +81,7 @@ test('protected Qur’an source files retain their recorded baseline hashes', ()
   };
   for (const [relative, expectedHash] of Object.entries(expected)) {
     const content = fs.readFileSync(path.join(root, relative));
-    const header = Buffer.from('blob ' + content.length + '\\0');
+    const header = Buffer.from('blob ' + content.length + '\0');
     const actual = createHash('sha1').update(Buffer.concat([header, content])).digest('hex');
     assert.equal(actual, expectedHash, 'Protected reader baseline changed: ' + relative);
   }
