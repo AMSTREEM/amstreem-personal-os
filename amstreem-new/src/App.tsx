@@ -241,8 +241,8 @@ function Workspace({ user }: { user: User }) {
           )}
 
           {section === 'Intelligence' && (
-            <IntelligenceScreen userId={user.id} onSaved={refreshNotes} />
             <IntelligenceChat />
+            <IntelligenceScreen userId={user.id} onSaved={refreshNotes} />
           )}
 
           {section === 'My world' && (
