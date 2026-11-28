@@ -51,7 +51,7 @@ function Workspace({ user }: { user: User }) {
       if (!Array.isArray(parsed)) return [];
       return parsed.filter((item): item is { id: number; text: string; createdAt: number } =>
         item && typeof item.id === 'number' && typeof item.text === 'string' && typeof item.createdAt === 'number'
-      ).map(item => ({ ...item, id: String(item.id), memoryType: 'other' as MemoryType, source: 'user_created' as const }));
+      ).map(item => ({ ...item, id: String(item.id), reviewedAt: null, memoryType: 'other' as MemoryType, source: 'user_created' as const }));
     } catch {
       return [];
     }
@@ -79,7 +79,7 @@ function Workspace({ user }: { user: User }) {
       const { data, error } = await client.from('memories').select('*').order('updated_at', { ascending: false });
       if (!active) return;
       if (error) { setNotice('Could not load your cloud memories: ' + error.message); return; }
-      setNotes((data as MemoryRow[]).map(row => ({ id: row.id, text: row.content, createdAt: new Date(row.created_at).getTime(), memoryType: row.memory_type, source: row.source })));
+      setNotes((data as MemoryRow[]).map(row => ({ id: row.id, text: row.content, createdAt: new Date(row.created_at).getTime(), reviewedAt: row.reviewed_at ? new Date(row.reviewed_at).getTime() : null, memoryType: row.memory_type, source: row.source })));
     };
     void load();
     return () => { active = false; };
