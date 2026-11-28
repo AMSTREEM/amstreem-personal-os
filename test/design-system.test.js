@@ -82,6 +82,20 @@ test('Qur’an reader source fingerprints remain byte-for-byte protected', () =>
   }
 });
 
+test('phone launcher, customisable destinations and capture sheet meet the shell specification', () => {
+  assert.ok(shell.includes('[...rooms, quranDestination].map'));
+  assert.ok(shell.includes('mobile-launcher-grid'));
+  assert.ok(shell.includes('mobile-search-trigger'));
+  assert.ok(shell.includes('dockDestinationIds'));
+  assert.ok(shell.includes('onContextMenu'));
+  assert.ok(shell.includes('Customize bottom bar'));
+  assert.ok(shell.includes('atlas-dock-customizer'));
+  assert.ok(readerStyles.includes('min-height: calc(64px + env(safe-area-inset-bottom))'));
+  assert.ok(readerStyles.includes('grid-template-columns: repeat(3, minmax(0, 1fr))'));
+  assert.ok(readerStyles.includes('overscroll-behavior: contain'));
+  assert.ok(readerStyles.includes('font-size: 16px'));
+});
+
 test('motion preferences are restored before paint and applied to all motion components', () => {
   assert.match(themeInit, /atlas-motion-preference/);
   assert.match(themeInit, /data-motion/);
