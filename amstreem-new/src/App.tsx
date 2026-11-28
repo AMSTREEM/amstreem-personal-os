@@ -12,6 +12,7 @@ import HabitTracker from './components/HabitTracker';
 import PersonalInsights from './components/PersonalInsights';
 import CrossFeatureUnderstanding from './components/CrossFeatureUnderstanding';
 import MemoryHistory from './components/MemoryHistory';
+import PersonalTimeline from './components/PersonalTimeline';
 import { isSupabaseConfigured, supabase, type MemoryRow } from './lib/supabase';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Bookmark, CalendarDays,
@@ -294,6 +295,7 @@ function Workspace({ user }: { user: User }) {
 
           {section === 'Activity' && (
             <section className="collection-area">
+              <PersonalTimeline userId={user.id} />
               <div className="collection-header"><div><span className="kicker">A QUIET RECORD</span><h2>Your recent captures.</h2></div><span className="activity-count">{notes.length} {notes.length === 1 ? 'entry' : 'entries'}</span></div>
               {notes.length ? <div className="thought-list">{notes.map(note => <article className="thought-item" key={note.id}><div className="thought-glyph"><Activity size={17} /></div><div className="thought-body"><p>{note.text}</p><span>{timeLabel(note.createdAt)}</span></div><button className="delete-capture" onClick={() => removeNote(note.id)} aria-label="Delete capture"><Trash2 size={15} /></button></article>)}</div> : <div className="empty-world"><div className="empty-glyph"><Activity size={23} /></div><h3>Nothing to catch up on.</h3><p>This space will reflect the things you choose to do here. No streaks, scores or pressure.</p></div>}
             </section>
