@@ -34,6 +34,7 @@ type CalendarSummary = { streaks: Record<string, { current: number; best: number
 type SelfControlSummary = { summary: { id: number; name: string; symbol: string; streak: number; longest_days: number; last_slip: string | null }[] };
 type StoredTimer = { remaining: number; deadline: number | null; taskId?: string; lessonId?: string; projectId?: string };
 type FocusSession = { session_date: string; minutes: number; focus: string };
+type AtlasProgress = { totalXp: number; atlas?: { daily: { module: string; metric: string; value: number; local_date: string }[] } };
 const TIMER_KEY = 'atlas-focus-timer-v1';
 const faithPractices = ['bible', 'prayer', 'reflection', 'worship', 'service'];
 const lifeAreaCards = [
@@ -115,6 +116,8 @@ export function TodayPage() {
   const yesterdayKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos', year: 'numeric', month: '2-digit', day: '2-digit' }).format(yesterdayDate);
   const yesterdayReview = dailyReviews.data?.find(item => item.period_start === yesterdayKey);
   const overview = useQuery({ queryKey: ['overview'], queryFn: () => api<Overview>('/overview') });
+  const atlasProgress = useQuery({ queryKey: ['progress'], queryFn: () => api<AtlasProgress>('/progress') });
+  const atlasMetric = (metric: string) => atlasProgress.data?.atlas?.daily.find(item => item.metric === metric)?.value || 0;
   const focusSessions = useQuery({ queryKey: ['sessions'], queryFn: () => api<FocusSession[]>('/sessions') });
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => api<Task[]>('/tasks') });
   const habits = useQuery({ queryKey: ['habits', today], queryFn: () => api<Habit[]>('/habits?date=' + today) });
@@ -335,7 +338,7 @@ export function TodayPage() {
         <div className="residence-pulse__top">
           <div className="residence-pulse__main">
             <div className="residence-pulse__heading"><span className="eyebrow">TODAY'S ACTIVITY PULSE</span><span className="residence-pulse__date">{today}</span></div>
-            <div className="residence-pulse__score"><span>Progress is personal.</span></div>
+            <div className="residence-pulse__score"><span>Progress is personal.</span><small className="residence-pulse__ledger">{(atlasProgress.data?.totalXp ?? 0).toLocaleString()} XP · {atlasMetric('tasks_completed')} tasks · {atlasMetric('focus_minutes')} focus min · {atlasMetric('habit_checkins')} rituals</small></div>
             <p>These are separate activity signals, not a combined life score. Use them to understand your day without reducing every area of life to one number.</p>
           </div>
           <div className="residence-pulse__core" aria-hidden="true"><FerrofluidCore active={focusRunning || prioritiesCompleted}/></div>
