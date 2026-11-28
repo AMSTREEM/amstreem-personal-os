@@ -37,14 +37,14 @@ export function getOfflineCaptureCount(userId: string): number {
   catch { return 0; }
 }
 
-export function enqueueOfflineCapture(userId: string, endpoint: string, payload: Record<string, unknown>): number {
+export function enqueueOfflineCapture(userId: string, endpoint: string, payload: Record<string, unknown>, idempotencyKey = crypto.randomUUID()): number {
   if (!userId) throw new Error('A signed-in account is required to queue a capture.');
   const queue = readQueue(userId);
   queue.push({
     id: crypto.randomUUID(),
     endpoint,
     payload,
-    idempotencyKey: crypto.randomUUID(),
+    idempotencyKey,
     queuedAt: new Date().toISOString()
   });
   writeQueue(userId, queue);
