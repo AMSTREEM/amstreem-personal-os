@@ -52,7 +52,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const { data: memories, error: memoryError } = await userClient
-    .from("memories")
+    .schema("amstreem").from("memories")
     .select("content, memory_type, source, updated_at")
     .order("updated_at", { ascending: false })
     .limit(30);
