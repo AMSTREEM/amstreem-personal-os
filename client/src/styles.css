@@ -8526,3 +8526,365 @@ html, body { background: var(--atlas-bg); color: var(--atlas-text-1); }
   .atlas-standard-shell .room4-resource:hover,
   .atlas-standard-shell .calendar-cell:hover { transform: none; }
 }
+
+
+/* ──────────────────────────────────────────────────────────────────────────
+   ATLAS / DEEP FIELD — a spatial instrument layer for the standard workspace
+   Deliberately isolated from .atlas-quran-shell.
+   ────────────────────────────────────────────────────────────────────────── */
+.atlas-standard-shell {
+  --atlas-glow: color-mix(in srgb,var(--accent) 25%,transparent);
+  --atlas-line-glow: color-mix(in srgb,var(--accent-strong) 36%,var(--line));
+  --atlas-ease: cubic-bezier(.2,.78,.18,1);
+}
+.atlas-standard-shell .main-area { isolation:isolate; }
+.atlas-standard-shell .atlas-workspace-boot { position:relative; isolation:isolate; }
+.atlas-standard-shell .atlas-workspace-boot::before {
+  position:fixed; z-index:-1; inset:0; pointer-events:none; content:"";
+  background:
+    radial-gradient(ellipse at 78% 8%,rgba(94,164,133,.075),transparent 34%),
+    radial-gradient(ellipse at 12% 76%,rgba(92,123,166,.045),transparent 35%);
+  animation:atlas-field-breathe 18s ease-in-out infinite alternate;
+}
+.atlas-standard-shell .page-container { position:relative; }
+.atlas-standard-shell .page-container::after {
+  position:absolute; z-index:-1; top:0; right:2%; width:min(38vw,480px); height:1px;
+  content:""; opacity:.55; pointer-events:none;
+  background:linear-gradient(90deg,transparent,var(--atlas-line-glow),transparent);
+  filter:drop-shadow(0 0 9px var(--atlas-glow));
+}
+.atlas-standard-shell .page-header h1 {
+  text-wrap:balance;
+  background:linear-gradient(110deg,var(--text) 5%,color-mix(in srgb,var(--text) 78%,var(--accent-strong)) 58%,var(--text));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.atlas-standard-shell .page-header .eyebrow,
+.atlas-standard-shell .module-kicker {
+  display:inline-flex; align-items:center; gap:9px;
+}
+.atlas-standard-shell .page-header .eyebrow::before,
+.atlas-standard-shell .module-kicker::before {
+  width:17px; height:1px; content:""; background:var(--accent-strong);
+  box-shadow:0 0 9px var(--atlas-glow);
+}
+.atlas-standard-shell .page-container > .stack { animation:atlas-arrive .68s var(--atlas-ease) both; }
+.atlas-standard-shell .page-container > .stack > * { animation:atlas-rise .65s var(--atlas-ease) both; }
+.atlas-standard-shell .page-container > .stack > *:nth-child(2) { animation-delay:.055s; }
+.atlas-standard-shell .page-container > .stack > *:nth-child(3) { animation-delay:.11s; }
+.atlas-standard-shell .page-container > .stack > *:nth-child(4) { animation-delay:.16s; }
+
+/* Residence: a live command deck, not a static dashboard. */
+.atlas-standard-shell .residence-band--orientation {
+  isolation:isolate; overflow:hidden;
+  background:
+    radial-gradient(ellipse at 82% 4%,rgba(112,190,156,.19),transparent 38%),
+    radial-gradient(ellipse at 4% 100%,rgba(87,126,151,.11),transparent 42%),
+    linear-gradient(132deg,color-mix(in srgb,var(--surface) 88%,#0b1712),var(--surface-raised));
+}
+.atlas-standard-shell .residence-band--orientation::before {
+  position:absolute; z-index:-1; width:clamp(250px,34vw,460px); aspect-ratio:1;
+  right:-7%; top:-57%; border:1px solid rgba(151,207,181,.16); border-radius:50%;
+  content:""; box-shadow:0 0 0 26px rgba(151,207,181,.025),0 0 0 62px rgba(151,207,181,.018),inset 0 0 50px rgba(151,207,181,.035);
+  animation:atlas-orbit 42s linear infinite;
+}
+.atlas-standard-shell .residence-band--orientation::after {
+  position:absolute; z-index:-1; inset:0; content:""; pointer-events:none; opacity:.2;
+  background-image:linear-gradient(rgba(151,207,181,.11) 1px,transparent 1px),linear-gradient(90deg,rgba(151,207,181,.11) 1px,transparent 1px);
+  background-size:42px 42px; mask-image:linear-gradient(115deg,transparent 12%,#000 85%);
+}
+.atlas-standard-shell .residence-rhythm {
+  isolation:isolate; overflow:hidden;
+  background:linear-gradient(120deg,rgba(10,20,15,.92),rgba(17,32,25,.82));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 28px 80px rgba(0,0,0,.2),0 0 55px rgba(116,190,164,.055);
+}
+.atlas-standard-shell .residence-rhythm::before {
+  position:absolute; z-index:-1; inset:-70% auto -70% -30%; width:48%;
+  content:""; transform:rotate(22deg);
+  background:linear-gradient(90deg,transparent,rgba(178,224,197,.065),transparent);
+  animation:atlas-scan 11s ease-in-out infinite;
+}
+.atlas-standard-shell .residence-rhythm::after {
+  border:1px solid rgba(151,207,181,.12);
+  box-shadow:0 0 0 17px rgba(151,207,181,.018),0 0 0 36px rgba(151,207,181,.012),0 0 65px rgba(151,207,181,.07);
+}
+.atlas-standard-shell .residence-rhythm-title-mask { position:relative; }
+.atlas-standard-shell .residence-rhythm-title-mask h2 {
+  font-size:clamp(31px,4.3vw,54px); line-height:.98; letter-spacing:-.075em;
+  text-shadow:0 8px 36px rgba(0,0,0,.2);
+}
+.atlas-standard-shell .residence-day-ribbon {
+  position:relative; overflow:hidden; backdrop-filter:blur(14px);
+}
+.atlas-standard-shell .residence-day-ribbon__track { position:relative; overflow:hidden; }
+.atlas-standard-shell .residence-day-ribbon__elapsed {
+  box-shadow:0 0 15px rgba(151,207,181,.34);
+}
+.atlas-standard-shell .residence-day-ribbon__now {
+  filter:drop-shadow(0 0 7px rgba(183,229,202,.8));
+  animation:atlas-pulse 2.4s ease-in-out infinite;
+}
+.atlas-standard-shell .residence-pulse-card {
+  position:relative; isolation:isolate; overflow:hidden;
+}
+.atlas-standard-shell .residence-pulse-card::after {
+  position:absolute; z-index:-1; right:-45px; top:-95px; width:220px; aspect-ratio:1;
+  border:1px solid var(--atlas-line-glow); border-radius:50%; content:"";
+  box-shadow:0 0 0 18px rgba(151,207,181,.025),0 0 0 40px rgba(151,207,181,.018);
+}
+.atlas-standard-shell .residence-pulse__core {
+  filter:drop-shadow(0 0 22px var(--atlas-glow));
+}
+.atlas-standard-shell .residence-dimension {
+  position:relative; overflow:hidden;
+  transition:transform .3s var(--atlas-ease),background .3s,border-color .3s;
+}
+.atlas-standard-shell .residence-dimension:hover { transform:translateY(-3px); background:var(--accent-wash); }
+.atlas-standard-shell .residence-dimension__heading::after {
+  height:2px; border-radius:3px; content:""; flex:1;
+  background:linear-gradient(90deg,var(--atlas-line-glow),transparent);
+}
+.atlas-standard-shell .residence-challenge-card {
+  position:relative; overflow:hidden;
+  background:radial-gradient(ellipse at 100% 0%,rgba(151,207,181,.12),transparent 48%),linear-gradient(135deg,var(--surface),var(--surface-raised));
+}
+.atlas-standard-shell .residence-challenge__track { overflow:hidden; }
+.atlas-standard-shell .residence-challenge__track > span {
+  box-shadow:0 0 14px var(--atlas-glow);
+  background-image:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent-strong) 65%,#c2e7d0));
+}
+.atlas-standard-shell .residence-pillar {
+  position:relative; overflow:hidden; isolation:isolate;
+}
+.atlas-standard-shell .residence-pillar::after {
+  position:absolute; z-index:-1; inset:auto -20% -85% 20%; height:130%;
+  border:1px solid var(--atlas-line-glow); border-radius:50%; content:"";
+  opacity:0; transform:scale(.8); transition:opacity .35s,transform .5s var(--atlas-ease);
+}
+.atlas-standard-shell .residence-pillar:hover::after { opacity:.8; transform:scale(1); }
+.atlas-standard-shell .residence-intention-card,
+.atlas-standard-shell .residence-alignment-card,
+.atlas-standard-shell .residence-faith-card,
+.atlas-standard-shell .today-habits-card,
+.atlas-standard-shell .today-tasks-card,
+.atlas-standard-shell .residence-goals-card {
+  position:relative; overflow:hidden;
+}
+.atlas-standard-shell .residence-intention-card::before,
+.atlas-standard-shell .residence-alignment-card::before,
+.atlas-standard-shell .today-habits-card::before,
+.atlas-standard-shell .today-tasks-card::before,
+.atlas-standard-shell .residence-goals-card::before {
+  position:absolute; top:0; left:22px; right:22px; height:1px; content:"";
+  background:linear-gradient(90deg,transparent,var(--atlas-line-glow),transparent);
+}
+.atlas-standard-shell .residence-pinned-row,
+.atlas-standard-shell .today-habit-row,
+.atlas-standard-shell .today-task-row,
+.atlas-standard-shell .residence-goal {
+  transition:transform .22s var(--atlas-ease),background .22s,border-color .22s;
+}
+.atlas-standard-shell .residence-pinned-row:hover,
+.atlas-standard-shell .today-habit-row:hover,
+.atlas-standard-shell .today-task-row:hover,
+.atlas-standard-shell .residence-goal:hover {
+  transform:translateX(3px); background:color-mix(in srgb,var(--accent-wash) 65%,transparent);
+}
+
+/* Goals: orbital cards and milestone rails. */
+.atlas-standard-shell .goals-horizon { position:relative; }
+.atlas-standard-shell .atlas-constellation-target { position:relative; isolation:isolate; }
+.atlas-standard-shell .goal-spatial-wrap { perspective:1100px; }
+.atlas-standard-shell .goal-card {
+  transform-style:preserve-3d;
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(151,207,181,.09),transparent 42%),
+    linear-gradient(145deg,var(--surface),var(--surface-raised));
+}
+.atlas-standard-shell .goal-card::after {
+  position:absolute; right:-48px; bottom:-95px; width:190px; aspect-ratio:1;
+  border:1px solid rgba(151,207,181,.12); border-radius:50%; content:"";
+  box-shadow:0 0 0 18px rgba(151,207,181,.018),0 0 0 38px rgba(151,207,181,.012);
+  pointer-events:none; transition:transform .7s var(--atlas-ease);
+}
+.atlas-standard-shell .goal-card:hover::after { transform:translate(-12px,-13px) scale(1.08); }
+.atlas-standard-shell .goal-focus-metric {
+  font-variant-numeric:tabular-nums; text-shadow:0 0 28px var(--atlas-glow);
+}
+.atlas-standard-shell .goal-progress-track { position:relative; }
+.atlas-standard-shell .goal-progress-track::after {
+  position:absolute; inset:0; content:""; pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);
+  transform:translateX(-110%); animation:atlas-progress-glint 5s ease-in-out infinite;
+}
+.atlas-standard-shell .room4-goal-milestone {
+  position:relative; transition:background .2s,border-color .2s,transform .2s;
+}
+.atlas-standard-shell .room4-goal-milestone:hover { transform:translateX(3px); background:var(--accent-wash); }
+
+/* Calendar: a glass chronometer with precise day selection. */
+.atlas-standard-shell .calendar-workspace-grid { align-items:start; }
+.atlas-standard-shell .calendar-month-card { position:relative; isolation:isolate; }
+.atlas-standard-shell .calendar-month-card::before {
+  position:absolute; z-index:-1; right:-90px; top:-110px; width:260px; aspect-ratio:1;
+  border:1px solid var(--atlas-line-glow); border-radius:50%; content:"";
+  box-shadow:0 0 0 22px rgba(151,207,181,.02),0 0 0 50px rgba(151,207,181,.014);
+}
+.atlas-standard-shell .calendar-cell { position:relative; isolation:isolate; }
+.atlas-standard-shell .calendar-cell:not(.calendar-cell--blank)::after {
+  position:absolute; inset:4px; z-index:-1; border-radius:8px; content:"";
+  background:radial-gradient(circle at 50% 0%,var(--atlas-glow),transparent 75%);
+  opacity:0; transition:opacity .25s;
+}
+.atlas-standard-shell .calendar-cell:hover::after,
+.atlas-standard-shell .calendar-cell--selected::after { opacity:1; }
+.atlas-standard-shell .calendar-dots { filter:drop-shadow(0 0 4px var(--atlas-glow)); }
+.atlas-standard-shell .calendar-day-agenda { position:relative; overflow:hidden; }
+.atlas-standard-shell .calendar-day-agenda::before {
+  position:absolute; left:0; top:20px; bottom:20px; width:2px; content:"";
+  background:linear-gradient(180deg,var(--accent-strong),transparent);
+}
+.atlas-standard-shell .calendar-agenda-list > * { transition:transform .2s var(--atlas-ease),background .2s; }
+.atlas-standard-shell .calendar-agenda-list > *:hover { transform:translateX(4px); background:var(--accent-wash); }
+
+/* Execution: task command centre + focus instrumentation. */
+.atlas-standard-shell .execution-projects-panel,
+.atlas-standard-shell .execution-panel-card,
+.atlas-standard-shell .execution-task-inspector,
+.atlas-standard-shell .execution-focus-panel,
+.atlas-standard-shell .execution-history-card {
+  position:relative; isolation:isolate; overflow:hidden;
+}
+.atlas-standard-shell .execution-projects-panel::before,
+.atlas-standard-shell .execution-focus-panel::before,
+.atlas-standard-shell .execution-history-card::before {
+  position:absolute; top:0; left:24px; right:24px; height:1px; content:"";
+  background:linear-gradient(90deg,transparent,var(--atlas-line-glow),transparent);
+}
+.atlas-standard-shell .execution-project-choice__focus {
+  box-shadow:inset 0 0 0 1px var(--atlas-line-glow),0 8px 24px rgba(0,0,0,.08);
+}
+.atlas-standard-shell .execution-task {
+  position:relative; isolation:isolate;
+}
+.atlas-standard-shell .execution-task::before {
+  position:absolute; left:0; top:15%; bottom:15%; width:2px; border-radius:3px;
+  content:""; background:var(--accent-strong); opacity:0; transform:scaleY(.4);
+  transition:opacity .2s,transform .25s var(--atlas-ease);
+}
+.atlas-standard-shell .execution-task:hover::before { opacity:.8; transform:scaleY(1); }
+.atlas-standard-shell .execution-task-main { transition:transform .2s var(--atlas-ease); }
+.atlas-standard-shell .execution-task:hover .execution-task-main { transform:translateX(3px); }
+.atlas-standard-shell .execution-focus-card {
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(151,207,181,.13),transparent 56%),
+    linear-gradient(145deg,var(--surface),var(--surface-raised));
+}
+.atlas-standard-shell .execution-timer-tilt { perspective:1000px; }
+.atlas-standard-shell .execution-timer-core {
+  filter:drop-shadow(0 0 24px var(--atlas-glow));
+  animation:atlas-core-float 7s ease-in-out infinite;
+}
+.atlas-standard-shell .execution-timer-ring__progress {
+  filter:drop-shadow(0 0 7px var(--atlas-glow));
+}
+.atlas-standard-shell .focus-charge-launch {
+  box-shadow:0 0 0 1px var(--atlas-line-glow),0 10px 35px var(--atlas-glow);
+  transition:transform .25s var(--atlas-ease),box-shadow .25s;
+}
+.atlas-standard-shell .focus-charge-launch:hover {
+  transform:translateY(-3px) scale(1.015);
+  box-shadow:0 0 0 1px var(--atlas-line-glow),0 16px 45px var(--atlas-glow);
+}
+
+/* Settings: control-room panels and tactile theme specimens. */
+.atlas-standard-shell .settings-module-grid { gap:12px; }
+.atlas-standard-shell .settings-module-choice {
+  position:relative; overflow:hidden;
+  border:1px solid var(--line); border-radius:14px;
+  background:linear-gradient(145deg,var(--surface),var(--surface-raised));
+  transition:transform .22s var(--atlas-ease),border-color .22s,box-shadow .22s;
+}
+.atlas-standard-shell .settings-module-choice:hover {
+  transform:translateY(-2px); border-color:var(--atlas-line-glow);
+  box-shadow:0 12px 30px rgba(0,0,0,.07);
+}
+.atlas-standard-shell .settings-module-choice:has(input:checked) {
+  border-color:var(--atlas-line-glow);
+  box-shadow:inset 0 0 0 1px var(--atlas-glow),0 8px 26px var(--atlas-glow);
+}
+.atlas-standard-shell .theme-picker-group {
+  position:relative; padding:18px; border:1px solid var(--line);
+  border-radius:18px; background:linear-gradient(145deg,var(--surface),var(--surface-raised));
+}
+.atlas-standard-shell .theme-preset {
+  overflow:hidden; border-radius:13px;
+  transition:transform .25s var(--atlas-ease),border-color .25s,box-shadow .25s;
+}
+.atlas-standard-shell .theme-preset:hover { transform:translateY(-3px); box-shadow:0 13px 28px rgba(0,0,0,.12); }
+.atlas-standard-shell .theme-preset[aria-pressed="true"] {
+  border-color:var(--accent-strong);
+  box-shadow:0 0 0 1px var(--accent-strong),0 0 25px var(--atlas-glow);
+}
+.atlas-standard-shell .theme-preset__swatches { overflow:hidden; }
+.atlas-standard-shell .theme-preset__swatches > * { transition:transform .35s var(--atlas-ease); }
+.atlas-standard-shell .theme-preset:hover .theme-preset__swatches > * { transform:scale(1.08); }
+.atlas-standard-shell .settings-time-range {
+  border:1px solid var(--line); border-radius:14px;
+  background:color-mix(in srgb,var(--surface-raised) 70%,transparent);
+}
+
+/* Ambient motion: rich by default, fully quiet when requested. */
+@keyframes atlas-field-breathe { from { opacity:.55; transform:scale(1); } to { opacity:1; transform:scale(1.035); } }
+@keyframes atlas-orbit { to { transform:rotate(360deg); } }
+@keyframes atlas-scan { 0%,100% { transform:translateX(0) rotate(22deg); opacity:0; } 18%,78% { opacity:1; } 55% { transform:translateX(280%) rotate(22deg); } }
+@keyframes atlas-pulse { 0%,100% { opacity:.72; transform:scale(.94); } 50% { opacity:1; transform:scale(1.08); } }
+@keyframes atlas-progress-glint { 0%,72%,100% { transform:translateX(-110%); } 88% { transform:translateX(110%); } }
+@keyframes atlas-core-float { 0%,100% { transform:translateY(0) rotateX(0); } 50% { transform:translateY(-5px) rotateX(1.5deg); } }
+@keyframes atlas-arrive { from { opacity:0; filter:blur(5px); } to { opacity:1; filter:blur(0); } }
+@keyframes atlas-rise { from { opacity:0; transform:translateY(13px); } to { opacity:1; transform:translateY(0); } }
+
+:root[data-theme^="light-"] .atlas-standard-shell .residence-band--orientation {
+  background:radial-gradient(ellipse at 82% 4%,rgba(75,143,111,.14),transparent 38%),linear-gradient(132deg,#f8fbf8,#eaf2ec 68%,#f8f5ee);
+}
+:root[data-theme^="light-"] .atlas-standard-shell .residence-rhythm {
+  background:linear-gradient(120deg,#1a2a22,#263b30);
+}
+:root[data-theme^="light-"] .atlas-standard-shell .goal-card,
+:root[data-theme^="light-"] .atlas-standard-shell .calendar-month-card,
+:root[data-theme^="light-"] .atlas-standard-shell .calendar-day-agenda,
+:root[data-theme^="light-"] .atlas-standard-shell .execution-focus-card {
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 18px 45px rgba(40,65,48,.07);
+}
+@media(max-width:760px) {
+  .atlas-standard-shell .page-container > .stack > * { animation-delay:0s !important; }
+  .atlas-standard-shell .residence-band--orientation::before { right:-42%; top:-38%; }
+  .atlas-standard-shell .residence-band--orientation::after { background-size:32px 32px; }
+  .atlas-standard-shell .calendar-workspace-grid { gap:10px; }
+  .atlas-standard-shell .theme-picker-group { padding:13px; }
+  .atlas-standard-shell .execution-focus-card { border-radius:19px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .atlas-standard-shell .atlas-workspace-boot::before,
+  .atlas-standard-shell .residence-band--orientation::before,
+  .atlas-standard-shell .residence-rhythm::before,
+  .atlas-standard-shell .residence-day-ribbon__now,
+  .atlas-standard-shell .goal-progress-track::after,
+  .atlas-standard-shell .execution-timer-core,
+  .atlas-standard-shell .page-container > .stack,
+  .atlas-standard-shell .page-container > .stack > * { animation:none !important; }
+  .atlas-standard-shell .residence-pillar,
+  .atlas-standard-shell .residence-dimension,
+  .atlas-standard-shell .goal-card,
+  .atlas-standard-shell .calendar-cell,
+  .atlas-standard-shell .execution-task,
+  .atlas-standard-shell .execution-task-main,
+  .atlas-standard-shell .theme-preset,
+  .atlas-standard-shell .settings-module-choice { transition:none !important; }
+  .atlas-standard-shell .residence-pillar:hover,
+  .atlas-standard-shell .residence-dimension:hover,
+  .atlas-standard-shell .goal-card:hover,
+  .atlas-standard-shell .calendar-cell:hover,
+  .atlas-standard-shell .execution-task:hover,
+  .atlas-standard-shell .theme-preset:hover,
+  .atlas-standard-shell .settings-module-choice:hover { transform:none !important; }
+}
