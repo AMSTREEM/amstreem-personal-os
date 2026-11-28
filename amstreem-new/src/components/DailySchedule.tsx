@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
 import { ArrowLeft, ArrowRight, CalendarDays, Clock3, Plus, Trash2, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -66,7 +67,7 @@ export default function DailySchedule({ userId }: { userId: string }) {
     setFormOpen(false);
   };
 
-  const saveBlock = async (event: React.FormEvent<HTMLFormElement>) => {
+  const saveBlock = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!supabase || saving) return;
     if (endTime <= startTime) { setError('Choose an end time later than the start time.'); return; }
