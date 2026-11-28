@@ -168,27 +168,7 @@ export function AppShell() {
       previousFocus?.focus();
     };
   }, [mobileOpen]);
-  useEffect(() => {
-    if (!dockCustomizerOpen) return;
-    const panel = dockCustomizerRef.current;
-    if (!panel) return;
-    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const focusable = () => Array.from(panel.querySelectorAll<HTMLElement>('button:not([disabled]), select:not([disabled]), input:not([disabled]), a[href]'));
-    focusable()[0]?.focus();
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Tab') return;
-      const items = focusable();
-      const first = items[0], last = items[items.length - 1];
-      if (!first || !last) return;
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      previousFocus?.focus();
-    };
-  }, [dockCustomizerOpen]);
+
   useEffect(() => {
     const userId = session?.user.id;
     if (!userId) { setPendingOfflineCaptures(0); return; }
