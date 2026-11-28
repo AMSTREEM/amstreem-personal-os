@@ -593,3 +593,19 @@ test('offline replay reuses the original idempotency key and safely treats a com
   assert.match(api, /export class ApiError/);
   assert.match(api, /new ApiError\(payload\?\.error/);
 });
+
+
+test('mobile launcher includes every registered module and shares one active navigation indicator', () => {
+  const shell = fs.readFileSync(path.join(__dirname, '..', 'client/src/components/AppShell.tsx'), 'utf8');
+  const registry = fs.readFileSync(path.join(__dirname, '..', 'client/src/design/module-registry.ts'), 'utf8');
+  assert.match(shell, /mobile-launcher-grid/);
+  assert.match(shell, /\[\.\.\.rooms, quranDestination\]/);
+  assert.match(shell, /mobile-search-trigger/);
+  const start = shell.indexOf('<nav className="atlas-mobile-dock"');
+  const end = shell.indexOf('</nav>', start);
+  const dock = shell.slice(start, end);
+  const ids = [...dock.matchAll(/layoutId="([^"]+)"/g)].map(match => match[1]);
+  assert.ok(ids.length >= 3);
+  assert.equal(new Set(ids).size, 1);
+  assert.match(registry, /quranShellEntry/);
+});
