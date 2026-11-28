@@ -28,4 +28,8 @@ test('module mutations publish deterministic events in the same workspace commit
  assert.match(server, /progress_daily\?select=metric,value&local_date=gte\./);
  assert.match(server, /async function readAtlasAchievementState/);
  assert.match(server, /type:'challenge.completed'/);
+ assert.match(server, /const \{ requestKey: eventRequestKey, \.\.\.eventFields \} = event/);
+ assert.match(server, /app\.delete\('\/api\/tasks\/:id'[\s\S]*?type:'task\.reopened'/);
+ assert.match(server, /app\.delete\('\/api\/habits\/:id'[\s\S]*?type:'habit\.unchecked'/);
+ assert.match(server, /app\.delete\('\/api\/rhythm\/records\/:id'[\s\S]*?type:'practice\.unlogged'/);
 });
