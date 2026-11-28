@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, CalendarDays, Check, Circle, RefreshCw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import DailySchedule from './DailySchedule';
 
 type Task = {
   id: string;
@@ -20,7 +21,7 @@ const toDateKey = (date: Date) => {
 };
 const dateLabel = (date: Date, options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(undefined, options).format(date);
 
-export default function PlanningWorkspace({ onOpenPlans }: { onOpenPlans: () => void }) {
+export default function PlanningWorkspace({ onOpenPlans, userId }: { onOpenPlans: () => void; userId: string }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -98,6 +99,7 @@ export default function PlanningWorkspace({ onOpenPlans }: { onOpenPlans: () => 
 
   return (
     <section className="planning-workspace">
+      <DailySchedule userId={userId} />
       <div className="planning-heading">
         <div><span className="kicker">YOUR TIME, WITH ROOM TO BREATHE</span><h2>Make space for what matters.</h2><p>A simple weekly view of the tasks you have chosen to schedule. Change dates as life changes.</p></div>
         <button className="today-refresh" onClick={() => void load()} aria-label="Refresh weekly plan"><RefreshCw size={15}/></button>
