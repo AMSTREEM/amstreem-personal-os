@@ -69,6 +69,19 @@ export default function TodayBrief({ onOpenPlans }: { onOpenPlans: () => void })
   const plannedHabits = habits.filter(habit=>habit.weekdays.includes(weekday));
   const completedHabitIds = new Set(habitEntries.map(entry=>entry.habit_id));
   const nextBlock = schedule.find(block=>block.end_time.slice(0,5)>new Date().toTimeString().slice(0,5));
+  const toMinutes = (value:string) => { const [h,m]=value.slice(0,5).split(':').map(Number); return h*60+m; };
+  const overlaps = schedule.slice(1).flatMap((block,index) => {
+    const previous=schedule[index];
+    return toMinutes(block.start_time)<toMinutes(previous.end_time)
+      ? [{first:previous.title,second:block.title,from:Math.max(toMinutes(previous.start_time),toMinutes(block.start_time)),until:Math.min(toMinutes(previous.end_time),toMinutes(block.end_time))}]
+      : [];
+  });
+  const scheduledMinutes=schedule.reduce((sum,block)=>sum+Math.max(0,toMinutes(block.end_time)-toMinutes(block.start_time)),0);
+  const planningSignals = [
+    ...(overlaps.length ? [{title:'Some scheduled blocks overlap',detail:overlaps.slice(0,2).map(x=>x.first+' / '+x.second).join(' · ')}] : []),
+    ...(scheduledMinutes>=480 ? [{title:'Your calendar contains 8+ planned hours',detail:'That is a full planned day before accounting for transitions or unexpected changes.'}] : []),
+    ...(dueToday.length>=4 ? [{title:`${dueToday.length} tasks are dated for today`,detail:'Check whether all of them still belong on today’s list.'}] : []),
+  ];
 
   const markDone = async (item: Item) => {
     if (!supabase) return;
@@ -107,6 +120,7 @@ export default function TodayBrief({ onOpenPlans }: { onOpenPlans: () => void })
             </div>
             <p className="today-rhythm-note">This shows what you've planned and recorded here—not everything happening in your life.</p>
           </div>
+          {planningSignals.length>0&&<div className="today-planning-signals"><div className="today-rhythm-label"><CalendarClock size={13}/> PLANNING CHECK</div>{planningSignals.map((signal,i)=><div className="today-planning-signal" key={i}><strong>{signal.title}</strong><span>{signal.detail}</span></div>)}<p>These are prompts to review—not automatic changes. Amstreem has not moved or cancelled anything.</p></div>}
           <div className="today-focus">
             <div className="today-focus-title"><div><span className="kicker">YOUR ATTENTION</span><h3>{sectionTitle}</h3></div><span className="today-count">{focusTasks.length} {focusTasks.length === 1 ? 'NEXT STEP' : 'NEXT STEPS'}</span></div>
             {focusTasks.length ? <div className="today-task-list">{focusTasks.map(item => {
