@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import { AnimatePresence, MotionConfig, motion, useReducedMotion } from 'motion/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, json } from '../lib/api';
+import { enqueueOfflineCapture, flushOfflineCaptures, getOfflineCaptureCount } from '../lib/offlineCaptureQueue';
 import { applyAtlasTheme, watchAtlasSystemTheme } from '../design/theme';
 import { atlasModules as rooms, quranShellEntry as quranDestination, atlasNavigationGroups as navigationGroups, atlasCommandDestinations as commandDestinations, atlasQuickCaptureTypes } from '../design/module-registry';
 import { ArrowRight, BookOpen, CalendarDays, Check, Compass, History as HistoryIcon, House, ListChecks, LogOut, Pause, Play, Plus, Search, Settings, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Timer, X, Zap } from 'lucide-react';
@@ -75,6 +76,39 @@ export function AppShell() {
   const [quickCaptureType, setQuickCaptureType] = useState<(typeof atlasQuickCaptureTypes)[number]>('task');
   const [quickTaskSaving, setQuickTaskSaving] = useState(false);
   const [quickTaskError, setQuickTaskError] = useState('');
+  const [pendingOfflineCaptures, setPendingOfflineCaptures] = useState(0);
+  useEffect(() => {
+    const userId = session?.user.id;
+    if (!userId) { setPendingOfflineCaptures(0); return; }
+    const refreshCount = () => setPendingOfflineCaptures(getOfflineCaptureCount(userId));
+    const syncQueue = async () => {
+      if (!navigator.onLine) { refreshCount(); return; }
+      try {
+        const result = await flushOfflineCaptures(userId, capture => api(capture.endpoint, {
+          method: 'POST',
+          headers: { 'Idempotency-Key': capture.idempotencyKey },
+          body: JSON.stringify(capture.payload)
+        }));
+        setPendingOfflineCaptures(result.remaining);
+        if (result.sent > 0) {
+          for (const key of [['tasks'], ['overview'], ['notes'], ['habits']]) void queryClient.invalidateQueries({ queryKey: key });
+        }
+      } catch (error) {
+        refreshCount();
+        console.warn('Atlas could not sync queued captures yet:', error);
+      }
+    };
+    refreshCount();
+    void syncQueue();
+    const onOnline = () => { void syncQueue(); };
+    const onVisible = () => { if (document.visibilityState === 'visible') void syncQueue(); };
+    window.addEventListener('online', onOnline);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [session?.user.id, queryClient]);
   useEffect(() => {
     if (!session?.user || !user) return;
     let completed = session.user.user_metadata?.onboarding_completed === true;
@@ -148,10 +182,23 @@ export function AppShell() {
     const payload = quickCaptureType === 'task' ? { title, category: 'Personal' } : quickCaptureType === 'note' ? { title, body: '' } : { title, emoji: '✦' };
     try {
       await api(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-      setQuickTaskTitle(''); setCommandOpen(false);
+      setQuickTaskTitle(''); setQuickTaskError(''); setCommandOpen(false);
       for (const key of [['tasks'], ['overview'], ['notes'], ['habits']]) void queryClient.invalidateQueries({ queryKey: key });
-    } catch (error) { setQuickTaskError(error instanceof Error ? error.message : 'Could not save this item.'); }
-    finally { setQuickTaskSaving(false); }
+    } catch (error) {
+      if ((error instanceof TypeError || !navigator.onLine) && session?.user.id) {
+        try {
+          const count = enqueueOfflineCapture(session.user.id, endpoint, payload);
+          setPendingOfflineCaptures(count);
+          setQuickTaskTitle('');
+          setQuickTaskError('');
+          setCommandOpen(false);
+        } catch (queueError) {
+          setQuickTaskError(queueError instanceof Error ? queueError.message : 'Could not save this capture offline.');
+        }
+      } else {
+        setQuickTaskError(error instanceof Error ? error.message : 'Could not save this item.');
+      }
+    } finally { setQuickTaskSaving(false); }
   }
   const commandItems = useMemo(() => commandDestinations.map((item,index) => ({ label: item.label, detail: ('detail' in item && item.detail) ? item.detail : 'Open module', to: item.to, icon: item.icon, shortcut: index < 9 ? 'g '+(index+1) : '' })).filter(item => (item.label+' '+item.detail).toLowerCase().includes(commandQuery.toLowerCase())),[commandQuery]);
   const entrancePreset = useEntrancePreset(location.pathname);
@@ -245,7 +292,7 @@ export function AppShell() {
         
         <div className="topbar-context"><b>{(current?.label) || (location.pathname === '/values' ? faithTabLabel : location.pathname === '/quran' ? 'Qur’an' : location.pathname === '/habits' ? 'Habits & Self-Control' : location.pathname === '/learning-library' ? 'Education & Learning' : location.pathname === '/reviews-insights' ? 'Growth' : location.pathname === '/admin' ? 'Administration' : location.pathname === '/settings' ? 'Settings' : 'Personal tools')}</b></div>
         <button className="mobile-more-trigger" type="button" aria-label="More and settings" aria-expanded={mobileOpen} onClick={() => setMobileOpen(v => !v)}><SlidersHorizontal size={17}/><span>More</span></button>
-        <div className="topbar-right"><button className="global-capture-trigger" type="button" onClick={() => {setCommandOpen(true);setCommandQuery('');}}><Search size={14}/><span>Quick capture</span><kbd>⌘ K</kbd></button><button className="tour-launcher" type="button" onClick={() => setTourOpen(true)}><Compass size={14} /> Guided tour</button><span className="privacy-indicator"><span /> PRIVATE BY DESIGN</span><span className="topbar-date">{new Intl.DateTimeFormat(undefined,{timeZone:settings.data?.timezone || 'Africa/Lagos',weekday:'short',month:'short',day:'numeric'}).format(new Date())}</span></div>
+        <div className="topbar-right"><button className="global-capture-trigger" type="button" onClick={() => {setCommandOpen(true);setCommandQuery('');}}><Search size={14}/><span>Quick capture</span><kbd>⌘ K</kbd></button><button className="tour-launcher" type="button" onClick={() => setTourOpen(true)}><Compass size={14} /> Guided tour</button><span className="privacy-indicator"><span /> PRIVATE BY DESIGN</span>{pendingOfflineCaptures > 0 && <span className="atlas-offline-queue" role="status" aria-live="polite">{pendingOfflineCaptures} queued</span>}<span className="topbar-date">{new Intl.DateTimeFormat(undefined,{timeZone:settings.data?.timezone || 'Africa/Lagos',weekday:'short',month:'short',day:'numeric'}).format(new Date())}</span></div>
       </motion.header>
 
       <div className="page-container" ref={workspaceRef}>
@@ -291,7 +338,7 @@ export function AppShell() {
       <nav className="atlas-mobile-dock" aria-label="Primary navigation">
         <MotionNavLink to="/residence" end data-module="residence" className={({isActive}) => 'atlas-mobile-dock__item atlas-nav-item ' + (isActive ? 'is-active' : '')} whileTap={{ scale: 0.96 }}><House size={18}/><span>Residence</span>{location.pathname === '/residence' && <motion.span className="atlas-mobile-dock__indicator" layoutId="atlas-mobile-dock-indicator"/>}</MotionNavLink>
         <MotionNavLink to="/actions" data-module="actions" className={({isActive}) => 'atlas-mobile-dock__item atlas-nav-item ' + (isActive || location.pathname === '/focus' ? 'is-active' : '')} whileTap={{ scale: 0.96 }}><ListChecks size={18}/><span>Actions</span>{(location.pathname === '/actions' || location.pathname === '/focus') && <motion.span className="atlas-mobile-dock__indicator" layoutId="atlas-mobile-dock-indicator"/>}</MotionNavLink>
-        <button type="button" className="atlas-mobile-dock__item atlas-mobile-dock__capture" aria-label="Quick capture" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Plus size={20}/><span>Capture</span></button>
+        <button type="button" className="atlas-mobile-dock__item atlas-mobile-dock__capture" aria-label={pendingOfflineCaptures > 0 ? 'Quick capture, ' + pendingOfflineCaptures + ' queued' : 'Quick capture'} onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Plus size={20}/><span>Capture</span>{pendingOfflineCaptures > 0 && <small className="atlas-mobile-dock__queue-count">{pendingOfflineCaptures}</small>}</button>
         <MotionNavLink to="/calendar" data-module="calendar" className={({isActive}) => 'atlas-mobile-dock__item atlas-nav-item ' + (isActive ? 'is-active' : '')} whileTap={{ scale: 0.96 }}><CalendarDays size={18}/><span>Calendar</span>{location.pathname === '/calendar' && <motion.span className="atlas-mobile-dock__indicator" layoutId="atlas-mobile-dock-indicator"/>}</MotionNavLink>
         <button type="button" className="atlas-mobile-dock__item" onClick={() => setMobileOpen(true)} aria-expanded={mobileOpen}><SlidersHorizontal size={18}/><span>More</span></button>
       </nav>
