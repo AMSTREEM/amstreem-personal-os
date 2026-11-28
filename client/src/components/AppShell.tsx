@@ -363,13 +363,13 @@ export function AppShell() {
             const Icon = item.icon;
             const active = item.paths.includes(location.pathname);
             const shortcutIndex = rooms.findIndex(room => room.id === item.id) + 1;
-            return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} data-module={item.id} title={sidebarCollapsed ? item.label : undefined} className={'nav-link room-nav-link atlas-nav-item ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-mobile-dock-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>g {shortcutIndex}</kbd></MotionNavLink>;
+            return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} data-module={item.id} title={sidebarCollapsed ? item.label : undefined} className={'nav-link room-nav-link atlas-nav-item ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-navigation-pill" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>g {shortcutIndex}</kbd></MotionNavLink>;
           })}
         </div>)}
         <div className="nav-group nav-group--specialist">
           <div className="nav-group__label">QUR’AN</div>
           <MotionNavLink to="/quran" end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} data-module="quran" title={sidebarCollapsed ? 'Qur’an' : undefined} className={'nav-link room-nav-link atlas-nav-item ' + (location.pathname === '/quran' ? 'nav-link--active' : '')}>
-            {location.pathname === '/quran' && <motion.span className="room-nav-indicator" layoutId="atlas-mobile-dock-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}
+            {location.pathname === '/quran' && <motion.span className="room-nav-indicator" layoutId="atlas-navigation-pill" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}
             <BookOpen size={17} strokeWidth={1.8}/><span>Qur’an</span><kbd>g 9</kbd>
           </MotionNavLink>
         </div>
@@ -463,7 +463,7 @@ export function AppShell() {
         <MagneticButton className="atlas-dock-action" aria-label="Open Daily Check-In" onClick={() => { navigate('/residence'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></MagneticButton>
       </motion.nav>
       <nav className="atlas-mobile-dock" aria-label="Primary navigation">
-        {dockModules.map((item, slot) => { const Icon = item.icon; const active = item.paths.includes(location.pathname) || (item.id === 'actions' && location.pathname === '/focus'); return <MotionNavLink key={item.id} to={item.to} data-module={item.id} className={'atlas-mobile-dock__item atlas-nav-item ' + (active ? 'is-active' : '')} whileTap={{ scale: 0.96 }} onContextMenu={event => { event.preventDefault(); setDockCustomizerOpen(true); }}><Icon size={18}/><span>{item.label}</span>{active && <motion.span className="atlas-mobile-dock__indicator" layoutId="atlas-room-indicator"/>}</MotionNavLink>; })}
+        {dockModules.map((item, slot) => { const Icon = item.icon; const active = item.paths.includes(location.pathname) || (item.id === 'actions' && location.pathname === '/focus'); return <MotionNavLink key={item.id} to={item.to} data-module={item.id} className={'atlas-mobile-dock__item atlas-nav-item ' + (active ? 'is-active' : '')} whileTap={{ scale: 0.96 }} onContextMenu={event => { event.preventDefault(); setDockCustomizerOpen(true); }}><Icon size={18}/><span>{item.label}</span>{active && <motion.span className="atlas-mobile-dock__indicator" layoutId="atlas-navigation-pill"/>}</MotionNavLink>; })}
         <button type="button" className="atlas-mobile-dock__item atlas-mobile-dock__capture" aria-label={pendingOfflineCaptures > 0 ? 'Quick capture, ' + pendingOfflineCaptures + ' queued' : 'Quick capture'} onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Plus size={20}/><span>Capture</span>{pendingOfflineCaptures > 0 && <small className="atlas-mobile-dock__queue-count">{pendingOfflineCaptures}</small>}</button>
         <button type="button" className="atlas-mobile-dock__item" onClick={() => setMobileOpen(true)} aria-expanded={mobileOpen}><SlidersHorizontal size={18}/><span>More</span></button>
       </nav>
