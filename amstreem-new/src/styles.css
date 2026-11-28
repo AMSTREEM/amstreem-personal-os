@@ -607,3 +607,27 @@
 .bridge-safety{display:flex;align-items:center;gap:7px;padding-top:10px;border-top:1px solid #2d352a;color:#9da58f;font-size:9px}
 .bridge-safety svg{color:#d6bd83;flex:none}
 @media(max-width:680px){.intelligence-action-bridge{padding:15px}.bridge-compose{grid-template-columns:1fr}}
+
+
+/* Context-rich daily rhythm */
+.today-rhythm{margin:18px 0;padding:17px 18px;border:1px solid #30372d;border-radius:6px;background:#171c16}
+.today-rhythm-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.today-rhythm-head h3{margin:5px 0 0;color:#e4e0d5;font:500 15px Manrope}
+.today-rhythm-head>span{color:#899080;font:9px 'DM Mono';letter-spacing:.6px}
+.today-rhythm-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.today-rhythm-column{min-width:0}
+.today-rhythm-label{display:flex;align-items:center;gap:7px;margin-bottom:10px;color:#c6b783;font:9px 'DM Mono';letter-spacing:.8px}
+.today-rhythm-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #2a3027}
+.today-rhythm-item strong{overflow:hidden;color:#d9d8cd;font-size:11px;font-weight:500;text-overflow:ellipsis;white-space:nowrap}
+.today-rhythm-item span{flex:none;color:#899080;font:8px 'DM Mono'}
+.today-rhythm-empty{margin:0;color:#858d7d;font-size:10px;line-height:1.7}
+.today-rhythm-next{margin:10px 0 0;color:#a8ad9e;font-size:9px}
+.today-rhythm-next strong{color:#d6bd83;font-weight:500}
+.today-habit-count{display:flex;align-items:baseline;gap:8px;margin:3px 0 11px}
+.today-habit-count strong{color:#e5dfcb;font:500 25px Manrope}
+.today-habit-count span{color:#92998c;font-size:9px}
+.today-habit-list{display:flex;flex-wrap:wrap;gap:6px}
+.today-habit-list span{padding:5px 7px;border:1px solid #343a30;border-radius:3px;color:#a1a696;font-size:9px}
+.today-habit-list span.recorded{border-color:#55533a;color:#d6bd83}
+.today-rhythm-note{margin:13px 0 0;padding-top:10px;border-top:1px solid #2a3027;color:#777f72;font-size:8px;line-height:1.6}
+@media(max-width:620px){.today-rhythm-grid{grid-template-columns:1fr;gap:16px}.today-rhythm-item span{font-size:7px}}
