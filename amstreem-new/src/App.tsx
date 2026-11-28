@@ -1,19 +1,19 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import AuthScreen from './components/AuthScreen';
-import IntelligenceScreen from './components/IntelligenceScreen';
-import ContextOverview from './components/ContextOverview';
-import ContextConnections from './components/ContextConnections';
-import IntelligenceChat from './components/IntelligenceChat';
-import LifeWorkspace from './components/LifeWorkspace';
-import TodayBrief from './components/TodayBrief';
-import PlanningWorkspace from './components/PlanningWorkspace';
-import HabitTracker from './components/HabitTracker';
-import PersonalInsights from './components/PersonalInsights';
-import CrossFeatureUnderstanding from './components/CrossFeatureUnderstanding';
-import MemoryHistory from './components/MemoryHistory';
-import PersonalTimeline from './components/PersonalTimeline';
-import PrivacySettings from './components/PrivacySettings';
+const IntelligenceScreen = lazy(() => import('./components/IntelligenceScreen'));
+const ContextOverview = lazy(() => import('./components/ContextOverview'));
+const ContextConnections = lazy(() => import('./components/ContextConnections'));
+const IntelligenceChat = lazy(() => import('./components/IntelligenceChat'));
+const LifeWorkspace = lazy(() => import('./components/LifeWorkspace'));
+const TodayBrief = lazy(() => import('./components/TodayBrief'));
+const PlanningWorkspace = lazy(() => import('./components/PlanningWorkspace'));
+const HabitTracker = lazy(() => import('./components/HabitTracker'));
+const PersonalInsights = lazy(() => import('./components/PersonalInsights'));
+const CrossFeatureUnderstanding = lazy(() => import('./components/CrossFeatureUnderstanding'));
+const MemoryHistory = lazy(() => import('./components/MemoryHistory'));
+const PersonalTimeline = lazy(() => import('./components/PersonalTimeline'));
+const PrivacySettings = lazy(() => import('./components/PrivacySettings'));
 import { isSupabaseConfigured, supabase, type MemoryRow } from './lib/supabase';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Bookmark, CalendarDays,
@@ -228,6 +228,7 @@ function Workspace({ user }: { user: User }) {
             </div>
           </section>
 
+<Suspense fallback={<div className="module-loading">Preparing this part of your space…</div>}>
           {section === 'Today' && (
             <>
               <section className="hero-composition">
@@ -305,6 +306,8 @@ function Workspace({ user }: { user: User }) {
               {notes.length ? <div className="thought-list">{notes.map(note => <article className="thought-item" key={note.id}><div className="thought-glyph"><Activity size={17} /></div><div className="thought-body"><p>{note.text}</p><span>{timeLabel(note.createdAt)}</span></div><button className="delete-capture" onClick={() => removeNote(note.id)} aria-label="Delete capture"><Trash2 size={15} /></button></article>)}</div> : <div className="empty-world"><div className="empty-glyph"><Activity size={23} /></div><h3>Nothing to catch up on.</h3><p>This space will reflect the things you choose to do here. No streaks, scores or pressure.</p></div>}
             </section>
           )}
+
+</Suspense>
 
           <footer className="page-footer"><span>AMSTREEM <i>✳</i> A MORE HUMAN WAY TO MOVE FORWARD</span><span>BUILT TO GROW WITH YOU <i>·</i> 0.2</span></footer>
         </div>
