@@ -21,7 +21,7 @@ function cssBlock(source, selector) {
   return source.slice(open + 1, close);
 }
 function cssValue(block, name) {
-  const match = block.match(new RegExp('(?:^|\s)' + name + ':\s*(#[0-9A-Fa-f]{6})'));
+  const match = block.match(new RegExp('(?:^|\\s)' + name + ':\\s*(#[0-9A-Fa-f]{6})'));
   return match?.[1] || null;
 }
 function luminance(hex) {
