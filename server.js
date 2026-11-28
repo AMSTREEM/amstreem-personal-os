@@ -1670,7 +1670,7 @@ app.post('/api/weekly-challenge/sync',async(req,res)=>{
   const completedAt=new Date().toISOString();
   db.prepare('UPDATE weekly_challenges SET completed_at=COALESCE(completed_at,?),claimed_at=? WHERE week_start=?').run(completedAt,completedAt,weekStart);
   awardXp('weekly-challenge:'+weekStart,'Weekly challenge',50);
-  publishAtlasEvent(req,{type:'challenge.completed',module:'residence',entityId:weekStart,localDate:dateKey(),payload:{weekStart,challengeId:challenge.challenge_id}});
+  publishAtlasEvent(req,{requestKey:'weekly-challenge:'+weekStart,type:'challenge.completed',module:'residence',entityId:weekStart,localDate:dateKey(),payload:{weekStart,challengeId:challenge.challenge_id}});
   challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
   state=await weeklyChallengeState(challenge,weekStart,req);
   state.justCompleted=true;
