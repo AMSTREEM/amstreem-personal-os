@@ -691,3 +691,172 @@ body{background:radial-gradient(ellipse at 82% 0%,rgba(91,79,48,.16),transparent
  .hero-composition{min-height:310px}
  .hero-message h2{font-size:29px}
 }
+
+
+/* AMSTREEM — precision workspace design system */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+:root{
+ --bg:#171b22;--panel:#1d232c;--panel-2:#222a35;--panel-3:#29323e;
+ --line:#303946;--line-strong:#414c5a;--muted:#929dab;--text:#f1f3f5;
+ --gold:#d6bd83;--sage:#aab8a5;--danger:#d58f89;
+ font-family:'Geist',Inter,system-ui,sans-serif;color:var(--text);background:var(--bg);
+ font-synthesis:none;text-rendering:optimizeLegibility;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--text)}
+body{background:linear-gradient(180deg,#191e26 0,#171b22 380px);font-family:'Geist',Inter,system-ui,sans-serif;font-size:13px}
+button,input,textarea,select{font-family:inherit}
+button{transition:background .14s ease,border-color .14s ease,color .14s ease,transform .14s ease}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+::selection{background:#d6bd8340;color:#fff}
+.rail{width:68px;padding:18px 8px 13px;background:#151920;border-color:var(--line);backdrop-filter:none}
+.wordmark{justify-content:center;width:100%;padding:0;margin:0 0 34px}
+.wordmark-symbol{font:700 30px/.9 'Geist';letter-spacing:-3px}
+.wordmark-name,.rail-caption,.rail-note,.profile-row>div:nth-child(2),.profile-row .auth-signout{display:none}
+.rail-nav{gap:5px;width:100%}
+.rail-link{position:relative;width:100%;height:42px;justify-content:center;gap:0;padding:0;border-radius:7px;color:#9aa4b2}
+.rail-link>span:not(.active-indicator){display:none}
+.rail-link.selected{background:#29313b;border:1px solid #414c59;color:#f5f6f7;box-shadow:none}
+.rail-link.selected svg{color:var(--gold)}
+.rail-link:hover{background:#252d37;color:#fff}
+.rail-link:after{content:attr(title);position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);z-index:30;padding:6px 9px;background:#303946;border:1px solid #4a5664;border-radius:5px;color:#f1f3f5;font-size:11px;white-space:nowrap;opacity:0;pointer-events:none}
+.rail-link:hover:after{opacity:1}
+.active-indicator{position:absolute;right:6px;top:6px;width:5px;height:5px;border-radius:50%;background:var(--gold)}
+.rail-bottom{width:100%;display:flex;justify-content:center}
+.profile-row{width:100%;justify-content:center;padding:12px 0 0;border-color:var(--line)}
+.profile-avatar{width:32px;height:32px;background:#343d49;color:var(--gold)}
+.main-stage{margin-left:68px;min-height:100vh}
+.topline{height:52px;padding:0 26px;background:#171b22;border-color:var(--line);position:sticky;top:0;z-index:20}
+.topline-left,.topline-right{gap:9px}
+.topline-left>span:first-of-type{font:500 9px 'JetBrains Mono';letter-spacing:1.2px;color:#8792a0}
+.crumb-current{font-size:12px;color:#e4e8ed}
+.environment-status{font:9px 'JetBrains Mono';letter-spacing:.5px;color:#aab3bf}
+.environment-status i{background:#8fae9a}
+.help-button{width:29px;height:29px;border:1px solid var(--line);border-radius:6px;background:#1d232c;color:#aeb8c4}
+.top-avatar{width:27px;height:27px;background:#343d49;color:var(--gold)}
+.canvas{max-width:1600px;padding:25px 30px 28px}
+.intro-block{margin:0 0 20px;align-items:flex-end}
+.kicker,.rail-caption{font:500 9px 'JetBrains Mono';letter-spacing:.8px;color:#9aa5b2}
+.kicker-line{background:var(--gold);width:16px}
+.intro-block h1{font:600 clamp(25px,2.6vw,34px)/1.12 'Geist';letter-spacing:-1.25px;color:#f2f4f6;margin:8px 0 5px}
+.intro-block h1 em{font-style:normal;color:#b9c1cb}
+.intro-block p{font-size:12px;line-height:1.55;color:#9aa5b2;max-width:600px}
+.date-stamp{padding:0 0 4px;gap:3px}
+.date-stamp span{font:9px 'JetBrains Mono';color:#8e99a7}
+.date-stamp strong{font-size:12px;color:#d9dfe6}
+.hero-composition{min-height:185px;padding:25px 28px;border-radius:9px;border:1px solid #3c4653;background:linear-gradient(112deg,#242c36 0%,#202731 62%,#282c30 100%);box-shadow:none;overflow:hidden}
+.hero-composition:before{background:linear-gradient(90deg,#222a34 0%,#222a34e8 52%,transparent 100%)}
+.hero-orbit{right:7%;width:245px;height:245px;opacity:.5}
+.orbit{border-color:#77765f}
+.orbit-core{background:#343b3c;border-color:#8b8267}
+.hero-message{max-width:520px}
+.hero-message .kicker{color:var(--gold)}
+.hero-message h2{font-size:27px;line-height:1.15;letter-spacing:-1px;margin:10px 0}
+.hero-message h2 em{color:#c6cdd5;font-style:normal}
+.hero-message p{font-size:11px;line-height:1.55;color:#aab4c0;max-width:430px}
+.begin-button{min-height:33px;padding:0 11px;border:1px solid #7b7054;border-radius:6px;background:#d6bd83;color:#1b2026;font-size:11px;font-weight:600}
+.begin-button:hover{background:#e2cc99}
+.hero-index{font:9px 'JetBrains Mono';color:#a6afba}
+.hero-index i{background:var(--gold)}
+.today-brief,.context-overview,.start-strip,.collection-area,.life-workspace,.planning-workspace,.habit-tracker,.personal-insights,.action-center{margin-top:18px}
+.today-brief-head,.today-focus-title,.today-rhythm-head,.collection-header,.life-toolbar{margin-bottom:12px}
+.today-brief-head h2,.today-focus h3,.today-rhythm h3,.collection-header h2,.life-overview h2{font-size:17px;letter-spacing:-.35px;color:#edf0f3}
+.today-brief-head p,.life-overview p{font-size:11px;color:#98a3b0}
+.today-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:12px 0}
+.today-stats>div,.life-stats>div{min-height:64px;padding:10px 12px;border:1px solid var(--line);border-radius:7px;background:#1d232c;display:grid;grid-template-columns:18px 1fr;align-items:center;column-gap:7px}
+.today-stats svg{color:var(--gold);grid-row:span 2;width:15px}
+.today-stats strong,.life-stats strong{font:500 19px 'JetBrains Mono';font-variant-numeric:tabular-nums;color:#f0f2f5}
+.today-stats span,.life-stats span{font:8px 'JetBrains Mono';letter-spacing:.4px;color:#9aa5b2}
+.today-rhythm,.today-focus,.today-planning-signals,.context-overview,.life-item,.thought-item,.personal-timeline,.planning-board,.habit-week,.insight-card,.action-card{background:#1d232c;border:1px solid var(--line);border-radius:7px;box-shadow:none}
+.today-rhythm,.today-focus{padding:14px}
+.today-rhythm-head>span,.today-count,.today-rhythm-label{font:9px 'JetBrains Mono';color:#9aa5b2;letter-spacing:.4px}
+.today-rhythm-grid{gap:12px}
+.today-rhythm-column{padding:10px;background:#222a35;border:1px solid #303a47;border-radius:6px}
+.today-rhythm-item{padding:8px 0;border-bottom:1px solid #35404c}
+.today-rhythm-item strong,.today-task-copy strong{font-size:11px;color:#e9edf1}
+.today-rhythm-item span,.today-task-copy span{font-size:10px;color:#9ca7b4}
+.today-rhythm-note,.today-planning-signals>p,.life-note,.local-note{font-size:10px;color:#8995a3}
+.today-planning-signals{padding:12px 14px;margin-top:8px;background:#252a2e;border-color:#514b3b}
+.today-planning-signal{padding:7px 0;border-bottom:1px solid #41413a}
+.today-planning-signal strong{font-size:11px;color:#e4dfd1}
+.today-planning-signal span{font-size:10px;color:#aeb3b5}
+.today-task{min-height:46px;border-bottom:1px solid #303946}
+.today-task-check{color:#9da9b7}
+.today-task-check:hover{color:var(--gold)}
+.today-priority,.priority-high{color:#d7b985;background:#3a3428;border:1px solid #574d38;border-radius:4px;padding:3px 6px;font:8px 'JetBrains Mono'}
+.today-brief-foot{border-top:1px solid var(--line);padding-top:10px}
+.today-brief-foot span{font:9px 'JetBrains Mono';color:#9aa5b2}
+.today-brief-foot button,.outline-button,.life-filters button,.memory-filters button{border:1px solid var(--line);background:#222a35;color:#c5cdd6;border-radius:5px;font-size:10px;padding:7px 9px}
+.today-brief-foot button:hover,.outline-button:hover,.life-filters button:hover,.memory-filters button:hover{border-color:#596574;background:#2a3440}
+.start-grid{gap:8px}
+.start-card{background:#1d232c;border:1px solid var(--line);border-radius:7px;padding:13px}
+.start-card:hover{background:#242c36;border-color:#596574;transform:translateY(-1px)}
+.start-card strong{font-size:11px}
+.start-card>span:not(.start-number):not(.start-icon){font-size:10px;color:#9aa5b2}
+.closing-line{border-top:1px solid var(--line);margin-top:25px;padding-top:17px}
+.closing-line p{font-size:14px;color:#dce1e6}
+.closing-line p em{color:#aab4bf}
+.page-footer{border-color:var(--line);margin-top:26px;padding-top:12px}
+.page-footer span{font:8px 'JetBrains Mono';color:#7f8a98;letter-spacing:.5px}
+.collection-area,.life-workspace,.planning-workspace,.habit-tracker,.personal-insights,.action-center{color:var(--text)}
+.collection-header{align-items:center}
+.collection-header h2,.life-overview h2{font-size:19px}
+.memory-search,.life-toolbar,.planning-toolbar,.habit-toolbar{background:#1d232c;border:1px solid var(--line);border-radius:7px}
+.memory-search input,.life-form input,.life-form textarea,.life-form select,.capture-modal textarea,.capture-modal select{background:#171d25;color:#eef1f4;border:1px solid #3a4552;border-radius:5px}
+.memory-filters button.active,.life-filters button.active{background:#34352f;border-color:#817554;color:#e6d6ad}
+.thought-list,.life-list{gap:6px}
+.thought-item,.life-item{padding:12px 13px}
+.thought-item:hover,.life-item:hover{border-color:#4b5867}
+.thought-body p,.life-item-main p{font-size:11px;line-height:1.6;color:#c0c8d1}
+.thought-meta,.thought-body>span,.life-item-meta,.life-item-foot{font:9px 'JetBrains Mono';color:#8f9baa}
+.memory-type-tag,.life-kind{color:#d6bd83}
+.memory-review-row{border-top:1px solid var(--line);padding-top:8px}
+.memory-confirm-button{background:#28332e;border:1px solid #3d594a;color:#b8d1c0;border-radius:5px;font-size:10px;padding:6px 8px}
+.life-overview{padding:15px;background:#1d232c;border:1px solid var(--line);border-radius:7px}
+.life-stats{gap:6px}
+.life-toolbar{padding:8px}
+.life-add-actions button,.life-empty button,.life-save,.modal-bottom button{background:var(--gold);color:#1b2026;border:1px solid var(--gold);border-radius:5px;font-size:10px;font-weight:600;padding:8px 10px}
+.life-add-actions button:hover,.life-empty button:hover,.life-save:hover,.modal-bottom button:hover{background:#e4cf9e}
+.life-item h3{font-size:12px;color:#e8edf2}
+.life-delete,.delete-capture{color:#98a4b2}
+.life-empty{background:#1d232c;border:1px dashed #46515e;border-radius:7px;color:#aeb8c4;padding:32px 18px}
+.life-form-layer,.modal-layer{background:#080b10bf;backdrop-filter:blur(8px)}
+.life-form,.capture-modal{background:#202731;border:1px solid #46515f;border-radius:9px;box-shadow:0 24px 80px #0008}
+.life-form h2,.capture-modal h2{font-size:22px;letter-spacing:-.7px}
+.life-form label,.memory-type-select-label{font-size:10px;color:#b3bdc8}
+.planning-toolbar,.habit-toolbar{padding:9px}
+.planning-day,.habit-day{background:#1d232c;border:1px solid var(--line);border-radius:6px}
+.planning-day-header,.habit-day-header{font:9px 'JetBrains Mono';color:#a5afbc}
+.planning-task,.schedule-block,.habit-entry{background:#252e39;border:1px solid #384452;border-radius:5px}
+.insight-card,.action-card{padding:13px}
+.insight-card h3,.action-card h3{font-size:12px}
+.insight-card p,.action-card p{font-size:10px;color:#a8b3c0}
+button:disabled{opacity:.45;cursor:not-allowed}
+.toast{background:#28332e;border:1px solid #45614e;color:#d5e6d9;border-radius:7px}
+.module-loading,.today-loading,.today-error,.life-error{background:#202731;border:1px solid var(--line);border-radius:6px;color:#aeb8c4;padding:14px;font-size:11px}
+.mobile-menu{display:none}
+@media(max-width:900px){
+ .rail{width:60px;padding-left:6px;padding-right:6px}
+ .main-stage{margin-left:60px}
+ .canvas{padding:22px 18px}
+ .topline{padding:0 18px}
+ .life-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:640px){
+ .rail{width:58px}
+ .main-stage{margin-left:58px}
+ .canvas{padding:17px 12px 22px}
+ .topline{height:48px;padding:0 12px}
+ .intro-block h1{font-size:25px}
+ .intro-block p{font-size:11px}
+ .hero-composition{min-height:180px;padding:18px}
+ .hero-orbit{right:-100px;opacity:.2}
+ .hero-message h2{font-size:23px}
+ .hero-message p{max-width:280px}
+ .today-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .today-rhythm-grid{grid-template-columns:1fr}
+ .start-grid{grid-template-columns:1fr}
+ .date-stamp{display:none}
+ .collection-header,.life-toolbar{align-items:flex-start;gap:10px;flex-wrap:wrap}
+ .life-add-actions{display:flex;flex-wrap:wrap;gap:5px}
+}
