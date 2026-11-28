@@ -8305,3 +8305,224 @@ html, body { background: var(--atlas-bg); color: var(--atlas-text-1); }
   .atlas-standard-shell .tour-launcher { transition: none; }
   .atlas-standard-shell .tour-launcher:hover { transform: none; }
 }
+
+
+/* ── ATLAS / MODULE EXPERIENCES — constellation, editorial and instrument UI ── */
+.atlas-standard-shell .goal-grid { gap: 15px; }
+.atlas-standard-shell .goal-card,
+.atlas-standard-shell .project-card,
+.atlas-standard-shell .room4-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb,var(--line) 84%,rgba(151,207,181,.18));
+  border-radius: 19px;
+  background: linear-gradient(145deg,color-mix(in srgb,var(--surface) 97%,#14221c),var(--surface));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035),0 14px 36px rgba(0,0,0,.055);
+  transition: transform .24s cubic-bezier(.2,.8,.2,1),border-color .24s,box-shadow .24s;
+}
+.atlas-standard-shell .goal-card:hover,
+.atlas-standard-shell .project-card:hover,
+.atlas-standard-shell .room4-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(151,207,181,.34);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05),0 22px 48px rgba(0,0,0,.1);
+}
+.atlas-standard-shell .goal-card::before,
+.atlas-standard-shell .project-card::before {
+  position: absolute;
+  top: 0;
+  left: 18px;
+  right: 18px;
+  height: 1px;
+  content: "";
+  background: linear-gradient(90deg,transparent,rgba(151,207,181,.35),transparent);
+}
+.atlas-standard-shell .goal-card__top,
+.atlas-standard-shell .project-card__top { gap: 12px; }
+.atlas-standard-shell .goal-card h3,
+.atlas-standard-shell .project-card h3 { letter-spacing: -.035em; }
+.atlas-standard-shell .goal-progress-track {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: color-mix(in srgb,var(--line) 65%,transparent);
+}
+.atlas-standard-shell .goal-progress-track > span {
+  border-radius: inherit;
+  background: linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent-strong) 70%,#b8dec8));
+  box-shadow: 0 0 15px rgba(116,190,164,.24);
+}
+.atlas-standard-shell .goal-meta-chip,
+.atlas-standard-shell .project-meta > span {
+  border-color: color-mix(in srgb,var(--line) 78%,rgba(151,207,181,.2));
+  border-radius: 999px;
+  background: rgba(116,190,164,.045);
+}
+.atlas-standard-shell .calendar-workspace-grid { gap: 16px; }
+.atlas-standard-shell .calendar-month-card,
+.atlas-standard-shell .calendar-day-agenda {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: linear-gradient(145deg,var(--surface),var(--surface-raised));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04),0 16px 40px rgba(0,0,0,.055);
+}
+.atlas-standard-shell .calendar-head {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.atlas-standard-shell .calendar-grid { gap: 5px; padding: 12px; }
+.atlas-standard-shell .calendar-cell {
+  min-height: clamp(58px,7vw,88px);
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: color-mix(in srgb,var(--surface-raised) 55%,transparent);
+  transition: background .18s,border-color .18s,transform .18s;
+}
+.atlas-standard-shell .calendar-cell:hover {
+  transform: translateY(-1px);
+  border-color: rgba(151,207,181,.26);
+  background: rgba(116,190,164,.07);
+}
+.atlas-standard-shell .calendar-cell--selected,
+.atlas-standard-shell .calendar-cell--active {
+  border-color: rgba(151,207,181,.4);
+  background: linear-gradient(145deg,rgba(116,190,164,.16),rgba(116,190,164,.055));
+  box-shadow: inset 0 0 0 1px rgba(151,207,181,.08);
+}
+.atlas-standard-shell .calendar-day-agenda { padding: 20px; }
+.atlas-standard-shell .calendar-agenda-list { gap: 9px; }
+.atlas-standard-shell .calendar-agenda-list > * {
+  border-radius: 12px;
+  background: color-mix(in srgb,var(--surface-raised) 75%,transparent);
+}
+.atlas-standard-shell .growth-combined-view { gap: 22px; }
+.atlas-standard-shell .growth-workspace-switcher {
+  position: sticky;
+  top: 12px;
+  z-index: 5;
+  padding: 6px;
+  border: 1px solid color-mix(in srgb,var(--line) 80%,rgba(151,207,181,.2));
+  border-radius: 14px;
+  background: color-mix(in srgb,var(--surface) 84%,transparent);
+  box-shadow: 0 12px 32px rgba(0,0,0,.07);
+  backdrop-filter: blur(18px);
+}
+.atlas-standard-shell .growth-view-section {
+  padding: clamp(17px,2.2vw,27px);
+  border: 1px solid var(--line);
+  border-radius: 19px;
+  background: linear-gradient(145deg,var(--surface),var(--surface-raised));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035),0 14px 36px rgba(0,0,0,.045);
+}
+.atlas-standard-shell .growth-section-heading {
+  margin-bottom: 17px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.atlas-standard-shell .habits-module-section {
+  padding: clamp(17px,2vw,25px);
+  border: 1px solid var(--line);
+  border-radius: 19px;
+  background: linear-gradient(145deg,var(--surface),var(--surface-raised));
+}
+.atlas-standard-shell .habits-module-heading {
+  padding-bottom: 13px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.atlas-standard-shell .habit-row,
+.atlas-standard-shell .workspace-task-row,
+.atlas-standard-shell .execution-task {
+  border-color: var(--line-soft);
+  transition: background .18s,border-color .18s;
+}
+.atlas-standard-shell .habit-row:hover,
+.atlas-standard-shell .workspace-task-row:hover,
+.atlas-standard-shell .execution-task:hover {
+  background: color-mix(in srgb,var(--accent-wash) 45%,transparent);
+}
+.atlas-standard-shell .execution-task-list {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.atlas-standard-shell .execution-task {
+  padding: 13px 15px;
+}
+.atlas-standard-shell .execution-task + .execution-task { border-top: 1px solid var(--line-soft); }
+.atlas-standard-shell .execution-focus-panel,
+.atlas-standard-shell .execution-focus-card {
+  border: 1px solid rgba(151,207,181,.2);
+  border-radius: 18px;
+  background: radial-gradient(ellipse at 90% 0%,rgba(116,190,164,.12),transparent 50%),linear-gradient(145deg,var(--surface),var(--surface-raised));
+}
+.atlas-standard-shell .focus-room-layout { gap: 18px; }
+.atlas-standard-shell .focus-timer-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(151,207,181,.25);
+  border-radius: 25px;
+  background: radial-gradient(ellipse at 50% 0%,rgba(116,190,164,.14),transparent 56%),linear-gradient(145deg,var(--surface),var(--surface-raised));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06),0 24px 65px rgba(0,0,0,.1);
+}
+.atlas-standard-shell .room4-path-card,
+.atlas-standard-shell .room4-resource {
+  border-radius: 15px;
+  border-color: var(--line);
+  background: linear-gradient(140deg,var(--surface),var(--surface-raised));
+  transition: transform .2s,border-color .2s,box-shadow .2s;
+}
+.atlas-standard-shell .room4-path-card:hover,
+.atlas-standard-shell .room4-resource:hover {
+  transform: translateY(-2px);
+  border-color: rgba(151,207,181,.3);
+  box-shadow: 0 14px 32px rgba(0,0,0,.07);
+}
+.atlas-standard-shell .page-container .atlas-add-disclosure {
+  border: 1px dashed color-mix(in srgb,var(--line) 70%,rgba(151,207,181,.3));
+  border-radius: 14px;
+  background: color-mix(in srgb,var(--surface-raised) 50%,transparent);
+}
+.atlas-standard-shell .page-container .atlas-add-disclosure > summary {
+  padding: 13px 15px;
+  color: var(--accent-strong);
+  font-weight: 650;
+  transition: background .18s;
+}
+.atlas-standard-shell .page-container .atlas-add-disclosure > summary:hover { background: var(--accent-wash); }
+.atlas-standard-shell .page-container .field-input,
+.atlas-standard-shell .page-container input:not([type="checkbox"]):not([type="radio"]),
+.atlas-standard-shell .page-container textarea,
+.atlas-standard-shell .page-container select {
+  min-height: 42px;
+  border-radius: 10px;
+}
+:root[data-theme^="light-"] .atlas-standard-shell .goal-card,
+:root[data-theme^="light-"] .atlas-standard-shell .project-card,
+:root[data-theme^="light-"] .atlas-standard-shell .room4-card,
+:root[data-theme^="light-"] .atlas-standard-shell .calendar-month-card,
+:root[data-theme^="light-"] .atlas-standard-shell .calendar-day-agenda,
+:root[data-theme^="light-"] .atlas-standard-shell .growth-view-section,
+:root[data-theme^="light-"] .atlas-standard-shell .habits-module-section {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.92),0 14px 36px rgba(40,65,48,.045);
+}
+@media(max-width:760px) {
+  .atlas-standard-shell .growth-workspace-switcher { top: 6px; }
+  .atlas-standard-shell .calendar-grid { gap: 3px; padding: 8px; }
+  .atlas-standard-shell .calendar-cell { min-height: 54px; border-radius: 8px; }
+  .atlas-standard-shell .calendar-day-agenda { padding: 15px; }
+  .atlas-standard-shell .goal-grid { gap: 10px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .atlas-standard-shell .goal-card,
+  .atlas-standard-shell .project-card,
+  .atlas-standard-shell .room4-path-card,
+  .atlas-standard-shell .room4-resource,
+  .atlas-standard-shell .calendar-cell { transition: none; }
+  .atlas-standard-shell .goal-card:hover,
+  .atlas-standard-shell .project-card:hover,
+  .atlas-standard-shell .room4-path-card:hover,
+  .atlas-standard-shell .room4-resource:hover,
+  .atlas-standard-shell .calendar-cell:hover { transform: none; }
+}
