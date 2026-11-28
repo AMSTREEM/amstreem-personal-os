@@ -103,5 +103,5 @@ test('Atlas UI loads its variable Inter font locally and the service worker cach
   assert.match(main, /@fontsource-variable\/inter\/wght\.css/);
   assert.match(styles, /\.atlas-standard-shell \{ font-family: var\(--atlas-font-ui\); \}/);
   assert.match(worker, /\(\?:js\|css\|woff2\)/);
-  assert.doesNotMatch(worker, /pathname\.startsWith\('\/fonts\/'\)[\s\S]*?respondWith/);
+  assert.match(worker, /pathname\.startsWith\('\/fonts\/'\) \|\| \/quran\|tajweed\|recitation/);
 });
