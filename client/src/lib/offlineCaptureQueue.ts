@@ -73,8 +73,7 @@ export function flushOfflineCaptures(userId: string, send: OfflineCaptureSend): 
   })();
 
   activeFlushes.set(userId, run);
-  void run.finally(() => {
-    if (activeFlushes.get(userId) === run) activeFlushes.delete(userId);
-  });
+  const cleanup = () => { if (activeFlushes.get(userId) === run) activeFlushes.delete(userId); };
+  void run.then(cleanup, cleanup);
   return run;
 }
