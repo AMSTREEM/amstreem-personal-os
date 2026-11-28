@@ -1682,7 +1682,7 @@ async function readAtlasAchievementState(req) {
  const metrics={tasks:totals.tasks_completed||0,focusMinutes:totals.focus_minutes||0,focusSessions:totals.focus_sessions||0,lessons:totals.learning_items_completed||0,goals:totals.goals_completed||0,habitCheckins:totals.habit_checkins||0};
  const unlockedById=new Map((unlocks||[]).map(row=>[row.achievement_id,row.unlocked_at]));
  const achievements=(definitions||[]).map(item=>{
-  const metric=aliases[item.metric]||item.metric,value=Number(totals[item.metric]||0),unlockedAt=unlockedById.get(item.id)||null;
+  const value=Number(totals[item.metric]||0),unlockedAt=unlockedById.get(item.id)||null;
   return {id:item.id,name:item.title,title:item.title,description:item.description,icon:item.icon,metric,target:Number(item.target),value,unlocked:Boolean(unlockedAt),progress:Math.min(100,Math.round(value/Math.max(1,Number(item.target))*100)),remaining:Math.max(0,Number(item.target)-value),unlockedAt,tier:item.tier,secret:item.secret};
  });
  return {metrics,achievements,unlocked:achievements.filter(item=>item.unlocked).length,total:achievements.length,recent:achievements.filter(item=>item.unlockedAt).sort((a,b)=>b.unlockedAt.localeCompare(a.unlockedAt)).slice(0,5)};
