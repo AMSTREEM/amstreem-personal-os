@@ -494,3 +494,29 @@
 .connections-empty{padding:17px 12px;text-align:center;border:1px dashed #363b31;border-radius:5px;color:#8d9386;font-size:10px;margin-top:12px}
 .connections-foot{margin-top:15px;color:#72796d;font:8px 'DM Mono';letter-spacing:.9px}
 @media(max-width:760px){.context-connections{padding:16px}.connections-heading{display:block}.connections-count{display:block;margin-top:10px}.connection-create{grid-template-columns:1fr;gap:11px}.connection-arrow{transform:rotate(90deg)}.connection-add{justify-content:center}.connection-item{grid-template-columns:minmax(0,1fr) 18px minmax(0,.8fr) 27px;gap:6px;padding:10px}.connection-memory p{font-size:9px}.connection-target strong{font-size:10px}}
+
+
+/* Transparent cross-feature understanding suggestions */
+.understanding-area{margin-top:24px;padding:22px;border:1px solid #30352d;border-radius:7px;background:#171b16}
+.understanding-heading{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:14px}
+.understanding-heading .kicker{display:flex;align-items:center;gap:6px}
+.understanding-heading h2{font:500 19px Manrope;letter-spacing:-.5px;color:#e8e6dc;margin:10px 0 7px}
+.understanding-heading p{font-size:10px;line-height:1.7;color:#92988b;max-width:580px;margin:0}
+.understanding-count{font:8px 'DM Mono';letter-spacing:.7px;color:#d6bd83;white-space:nowrap;padding-top:5px}
+.understanding-note{padding:10px 12px;background:#20251e;border-left:2px solid #bda66f;color:#b5b9ab;font-size:9px;line-height:1.6;margin-bottom:12px}
+.understanding-list{display:grid;gap:8px}
+.understanding-card{display:grid;grid-template-columns:minmax(0,1fr) 20px minmax(0,.8fr) auto;align-items:center;gap:12px;padding:13px;border:1px solid #30352d;border-radius:5px;background:#131711}
+.understanding-memory,.understanding-target{min-width:0}
+.understanding-memory span,.understanding-target span{font:8px 'DM Mono';letter-spacing:.8px;color:#858b7e}
+.understanding-memory p{font-size:10px;line-height:1.6;color:#d9d7cd;margin:5px 0 0;overflow-wrap:anywhere}
+.understanding-target strong{display:block;font:600 11px Manrope;color:#e4e1d6;margin-top:5px;overflow-wrap:anywhere}
+.understanding-target small{display:block;margin-top:6px;color:#a99b76;font-size:9px}
+.understanding-arrow{color:#bda66f;justify-self:center}
+.understanding-actions{display:flex;gap:5px;align-items:center}
+.understanding-actions button{display:flex;align-items:center;justify-content:center;gap:5px;min-height:30px;padding:0 9px;border:1px solid #756846;border-radius:4px;background:#26271e;color:#d8c58e;font-size:9px}
+.understanding-actions button+button{width:29px;padding:0;border-color:#3a4035;background:transparent;color:#92988b}
+.understanding-actions button:disabled{opacity:.5}
+.understanding-empty{padding:17px 12px;text-align:center;border:1px dashed #363b31;border-radius:5px;color:#8d9386;font-size:10px}
+.understanding-message{font-size:10px;color:#b8c3a8;margin:8px 0}
+.understanding-foot{display:flex;align-items:center;gap:6px;margin:14px 0 0;color:#777e72;font:8px 'DM Mono';letter-spacing:.4px;line-height:1.6}
+@media(max-width:760px){.understanding-area{padding:16px}.understanding-heading{display:block}.understanding-count{display:block;margin-top:9px}.understanding-card{grid-template-columns:minmax(0,1fr) 18px minmax(0,.8fr);gap:7px;padding:10px}.understanding-actions{grid-column:1/-1;justify-content:flex-end}.understanding-memory p{font-size:9px}.understanding-target strong{font-size:10px}}
