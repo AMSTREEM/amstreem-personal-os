@@ -59,7 +59,7 @@ export function AppShell() {
     try {
       const saved = localStorage.getItem('atlas-sidebar-collapsed');
       if (saved !== null) return saved === 'true';
-      return window.matchMedia('(min-width: 768px) and (max-width: 1023px)').matches;
+      return window.matchMedia('(min-width: 640px) and (max-width: 1023px)').matches;
     } catch { return false; }
   });
   useEffect(() => {
