@@ -25,4 +25,5 @@ export type MemoryRow = {
   source: 'user_created' | 'user_confirmed' | 'imported';
   created_at: string;
   updated_at: string;
+  reviewed_at: string | null;
 };
