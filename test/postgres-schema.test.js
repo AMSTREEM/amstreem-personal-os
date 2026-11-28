@@ -626,7 +626,10 @@ test('phone dock customizer is keyboard-operable and restores focus when dismiss
   assert.ok(shell.includes('dockCustomizerRef'));
   assert.ok(shell.includes('ref={dockCustomizerRef} className="atlas-dock-customizer" role="dialog" aria-modal="true"'));
   assert.ok(shell.includes('}, [dockCustomizerOpen]);'));
-  assert.ok(shell.includes("setDockCustomizerOpen(false); waitingForDestination = false;"));
+  assert.ok(shell.includes("if (event.key === 'Escape')"));
+  assert.ok(shell.includes("document.addEventListener('keydown', onKeyDown)"));
+  assert.ok(shell.includes('previousFocus?.focus();'));
+  assert.ok(shell.includes('event.shiftKey'));
   assert.ok(shell.includes('Customize bottom bar'));
   assert.ok(shell.includes("localStorage.setItem('atlas-phone-dock'"));
 });
