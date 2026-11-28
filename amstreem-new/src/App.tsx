@@ -51,7 +51,7 @@ function Workspace({ user }: { user: User }) {
       if (!Array.isArray(parsed)) return [];
       return parsed.filter((item): item is { id: number; text: string; createdAt: number } =>
         item && typeof item.id === 'number' && typeof item.text === 'string' && typeof item.createdAt === 'number'
-      ).map(item => ({ ...item, id: String(item.id), reviewedAt: null, memoryType: 'other' as MemoryType, source: 'user_created' as const }));
+      ).map(item => ({ ...item, id: String(item.id), reviewedAt: null, memoryType: 'other' as MemoryType, source: 'user_created' as const, reviewedAt: null }));
     } catch {
       return [];
     }
@@ -128,7 +128,7 @@ function Workspace({ user }: { user: User }) {
     window.localStorage.removeItem('amstreem.captures.v1');
     setLocalNotes([]);
     const { data } = await supabase.from('memories').select('*').order('updated_at', { ascending: false });
-    if (data) setNotes((data as MemoryRow[]).map(row => ({ id: row.id, text: row.content, createdAt: new Date(row.created_at).getTime(), memoryType: row.memory_type, source: row.source })));
+    if (data) setNotes((data as MemoryRow[]).map(row => ({ id: row.id, text: row.content, createdAt: new Date(row.created_at).getTime(), reviewedAt: row.reviewed_at ? new Date(row.reviewed_at).getTime() : null, memoryType: row.memory_type, source: row.source })));
     setNotice('Your selected local captures are now in your account.');
   };
 
@@ -143,7 +143,7 @@ function Workspace({ user }: { user: User }) {
     const { data, error } = await supabase.from('memories').insert({ user_id: user.id, content: value, memory_type: captureType, sensitivity: 'ordinary', source: 'user_created' }).select('*').single();
     if (error) { setNotice('Could not save your memory: ' + error.message); return; }
     const row = data as MemoryRow;
-    setNotes(current => [{ id: row.id, text: row.content, createdAt: new Date(row.created_at).getTime(), memoryType: row.memory_type, source: row.source }, ...current]);
+    setNotes(current => [{ id: row.id, text: row.content, createdAt: new Date(row.created_at).getTime(), reviewedAt: row.reviewed_at ? new Date(row.reviewed_at).getTime() : null, memoryType: row.memory_type, source: row.source }, ...current]);
     setDraft(''); setCaptureType('other'); setCaptureOpen(false); setSection('My world');
     setNotice('Saved securely to your Amstreem account.');
     window.setTimeout(() => setNotice(''), 3200);
