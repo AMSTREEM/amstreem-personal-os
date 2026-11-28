@@ -7755,6 +7755,9 @@ html, body { background: var(--atlas-bg); color: var(--atlas-text-1); }
   }
 }
 
+/* Stage 3 · Inter is self-hosted; Arabic reader font options remain unchanged. */
+.atlas-standard-shell { font-family: var(--atlas-font-ui); }
+
 /* Stage 3 · Command palette actions and workspace search results. */
 .command-actions {
   display: flex;
