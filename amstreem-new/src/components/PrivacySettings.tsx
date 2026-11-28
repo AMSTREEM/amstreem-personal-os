@@ -30,7 +30,7 @@ export default function PrivacySettings({ userId, email }: { userId: string; ema
         const rows: unknown[] = [];
         while (true) {
           const { data, error } = await supabase.from(table as ExportTable).select('*').range(offset, offset + 999);
-          if (error) throw new Error('Could not export ' + table.replaceAll('_', ' ') + '. No partial file was downloaded.');
+          if (error) throw new Error('Could not export ' + table.replace(/_/g, ' ') + '. No partial file was downloaded.');
           const page = data || [];
           rows.push(...page);
           if (page.length < 1000) break;
