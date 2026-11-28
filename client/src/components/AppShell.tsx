@@ -8,7 +8,7 @@ import { enqueueOfflineCapture, flushOfflineCaptures, getOfflineCaptureCount } f
 import { applyAtlasTheme, watchAtlasSystemTheme } from '../design/theme';
 import { atlasMotion } from '../design/motion';
 import { atlasModules as rooms, quranShellEntry as quranDestination, atlasNavigationGroups as navigationGroups, atlasCommandDestinations as commandDestinations, atlasQuickCaptureTypes, atlasSearchSources } from '../design/module-registry';
-import { ArrowRight, BookOpen, Check, Compass, History as HistoryIcon, LogOut, Pause, Play, Plus, Search, Settings, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Timer, X, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, Bell, Check, Compass, History as HistoryIcon, LogOut, Pause, Play, Plus, Search, Settings, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Timer, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
 import { AtlasOnboarding } from './AtlasOnboarding';
@@ -303,6 +303,7 @@ export function AppShell() {
   const commandItems = useMemo(() => commandDestinations.map((item,index) => ({ label: item.label, detail: ('detail' in item && item.detail) ? item.detail : 'Open module', to: item.to, icon: item.icon, shortcut: index < 9 ? 'g '+(index+1) : '' })).filter(item => (item.label+' '+item.detail).toLowerCase().includes(commandQuery.toLowerCase())),[commandQuery]);
   const entrancePreset = useEntrancePreset(location.pathname);
   const settings = useQuery({ queryKey: ['settings'], queryFn: () => api<Record<string, string>>('/settings') });
+  const unreadNotifications = useQuery({ queryKey: ['atlas-notification-count'], queryFn: () => api<{ count: number }>('/notifications/unread-count'), refetchInterval: 60_000 });
   const quickDate = atlasDate(settings.data?.timezone || 'Africa/Lagos');
   const quickReligion = settings.data?.faith_tradition || settings.data?.religion || 'none';
   const quickDeen = useQuery({ queryKey: ['deen', quickDate], queryFn: () => api<QuickDeen>('/deen/summary?date=' + quickDate), enabled: commandOpen && quickReligion === 'islam' });
@@ -445,7 +446,7 @@ export function AppShell() {
         
         <div className="topbar-context"><b>{(current?.label) || (location.pathname === '/values' ? faithTabLabel : location.pathname === '/quran' ? 'Qur’an' : location.pathname === '/habits' ? 'Habits & Self-Control' : location.pathname === '/learning-library' ? 'Education & Learning' : location.pathname === '/reviews-insights' ? 'Growth' : location.pathname === '/admin' ? 'Administration' : location.pathname === '/settings' ? 'Settings' : 'Personal tools')}</b></div>
         <button className="mobile-more-trigger" type="button" aria-label="More and settings" aria-expanded={mobileOpen} onClick={() => setMobileOpen(v => !v)}><SlidersHorizontal size={17}/><span>More</span></button><button className="mobile-search-trigger" type="button" aria-label="Search Atlas" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={18}/></button>
-        <div className="topbar-right"><button className="global-capture-trigger" type="button" onClick={() => {setCommandOpen(true);setCommandQuery('');}}><Search size={14}/><span>Quick capture</span><kbd>⌘ K</kbd></button><button className="tour-launcher" type="button" onClick={() => setTourOpen(true)}><Compass size={14} /> Guided tour</button><span className="privacy-indicator"><span /> PRIVATE BY DESIGN</span>{pendingOfflineCaptures > 0 && <span className="atlas-offline-queue" role="status" aria-live="polite">{pendingOfflineCaptures} queued</span>}<span className="topbar-date">{new Intl.DateTimeFormat(undefined,{timeZone:settings.data?.timezone || 'Africa/Lagos',weekday:'short',month:'short',day:'numeric'}).format(new Date())}</span></div>
+        <div className="topbar-right"><button className="global-capture-trigger" type="button" onClick={() => {setCommandOpen(true);setCommandQuery('');}}><Search size={14}/><span>Quick capture</span><kbd>⌘ K</kbd></button><button className="tour-launcher" type="button" onClick={() => navigate("/growth")} aria-label={unreadNotifications.data?.count ? "Notifications, "+unreadNotifications.data.count+" unread" : "Notifications"}><Bell size={14} /> Notifications{(unreadNotifications.data?.count || 0) > 0 && <span className="atlas-notification-count">{Math.min(99, unreadNotifications.data!.count)}</span>}</button><button className="tour-launcher" type="button" onClick={() => setTourOpen(true)}><Compass size={14} /> Guided tour</button><span className="privacy-indicator"><span /> PRIVATE BY DESIGN</span>{pendingOfflineCaptures > 0 && <span className="atlas-offline-queue" role="status" aria-live="polite">{pendingOfflineCaptures} queued</span>}<span className="topbar-date">{new Intl.DateTimeFormat(undefined,{timeZone:settings.data?.timezone || 'Africa/Lagos',weekday:'short',month:'short',day:'numeric'}).format(new Date())}</span></div>
       </motion.header>
 
       <div className="page-container" ref={workspaceRef}>
