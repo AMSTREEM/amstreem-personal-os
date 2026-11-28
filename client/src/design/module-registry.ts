@@ -66,6 +66,5 @@ export const atlasSearchSources: AtlasSearchSource[] = [
   { id: 'goals', endpoint: '/projects', route: '/goals', kind: 'Project' },
   { id: 'habits', endpoint: '/habits', route: '/habits', kind: 'Habit' },
   { id: 'learning', endpoint: '/learning/paths', route: '/learning-library', kind: 'Learning path' },
-  { id: 'learning', endpoint: '/learning/lessons', route: '/learning-library', kind: 'Lesson' },
   { id: 'learning', endpoint: '/notes', route: '/learning-library', kind: 'Note' }
 ];
