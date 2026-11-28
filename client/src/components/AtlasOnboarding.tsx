@@ -69,7 +69,7 @@ export function AtlasOnboarding({ onComplete }: Props) {
         <span><Compass size={17}/> AMSTREEM ATLAS</span>
         <span>SETUP · {step + 1} / 3</span>
       </header>
-      <div className="atlas-onboarding__progress" aria-hidden="true"><i style={{ width: ((step + 1) / 3 * 100) + '%' }}/></div>
+      <div className="atlas-onboarding__progress" aria-hidden="true"><i style={{ transform: 'scaleX(' + ((step + 1) / 3) + ')' }}/></div>
       <form onSubmit={submit}>
         <span className="atlas-onboarding__eyebrow">{current.eyebrow}</span>
         <h1 id="atlas-onboarding-title">{current.title}</h1>
