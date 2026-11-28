@@ -9,7 +9,7 @@
       'abyssal-trench': '#03060C',
       'whispering-woods': '#030806',
       'crimson-velvet': '#080304',
-      'light-porcelain': '#F5F6F3',
+      'light-porcelain': '#F6F4EF',
       'light-sandstone': '#F6F0E7',
       'light-sage': '#EFF4EF',
       'light-lavender': '#F4F1F8',
