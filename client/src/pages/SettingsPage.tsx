@@ -26,6 +26,7 @@ const xpModuleOptions = [
   { id: 'residence', name: 'Residence', desc: 'Weekly challenge completion.' }
 ];
 const defaultXpModules = xpModuleOptions.map(module => module.id);
+const defaultStreakModules = ['habits'];
 const themes = [
   { group: 'System', items: [
     { id: 'system', name: 'System', note: 'Follow your device appearance', colors: ['#0A0E13','#F6F4EF','#22D3EE','#EAF0F6'] }
@@ -57,6 +58,7 @@ export function SettingsPage() {
   const [features, setFeatures] = useState<string[]>(['calendar','focus','rituals','selfcontrol','learning','library','deen']);
   const [selectedLifeAreas, setSelectedLifeAreas] = useState<string[]>(defaultLifeAreas);
   const [xpEnabledModules, setXpEnabledModules] = useState<string[]>(defaultXpModules);
+  const [streaksEnabledModules, setStreaksEnabledModules] = useState<string[]>(defaultStreakModules);
   const [soundFeedback, setSoundFeedback] = useState(() => { try { return localStorage.getItem('atlas-sound-feedback') === 'on'; } catch { return false; } });
   const [highContrast, setHighContrast] = useState(() => { try { return localStorage.getItem('atlas-high-contrast') === 'on'; } catch { return false; } });
   const [motionPreference, setMotionPreference] = useState<AtlasMotionPreference>(() => { try { const value = localStorage.getItem('atlas-motion-preference'); return value === 'reduced' || value === 'full' ? value : 'system'; } catch { return 'system'; } });
@@ -75,10 +77,11 @@ export function SettingsPage() {
       try { setFeatures(settings.data.features ? JSON.parse(settings.data.features).map((feature: string) => feature === 'values' ? 'deen' : feature) : ['calendar','focus','rituals','selfcontrol','learning','library','deen']); } catch { setFeatures(['calendar','focus','rituals','selfcontrol','learning','library','deen']); }
       try { const saved = settings.data.life_areas ? JSON.parse(settings.data.life_areas) : defaultLifeAreas; setSelectedLifeAreas(Array.isArray(saved) ? saved.filter((id: string) => lifeAreaOptions.some(area => area.id === id)) : defaultLifeAreas); } catch { setSelectedLifeAreas(defaultLifeAreas); }
       try { const saved = settings.data.xp_enabled_modules ? JSON.parse(settings.data.xp_enabled_modules) : defaultXpModules; setXpEnabledModules(Array.isArray(saved) ? saved.filter((id: string) => xpModuleOptions.some(module => module.id === id)) : defaultXpModules); } catch { setXpEnabledModules(defaultXpModules); }
+      try { const saved = settings.data.streaks_enabled_modules ? JSON.parse(settings.data.streaks_enabled_modules) : defaultStreakModules; setStreaksEnabledModules(Array.isArray(saved) ? saved.filter((id: string) => id === 'habits') : defaultStreakModules); } catch { setStreaksEnabledModules(defaultStreakModules); }
     }
   }, [settings.data]);
   const save = useMutation({
-    mutationFn: () => { applyAtlasTheme(theme); return api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), timezone, theme, features, life_areas: selectedLifeAreas, communication_style: communicationStyle, xp_enabled_modules: xpEnabledModules })); },
+    mutationFn: () => { applyAtlasTheme(theme); return api('/settings', json('PATCH', { display_name: name, north_star: northStar, daily_target: Number(target), timezone, theme, features, life_areas: selectedLifeAreas, communication_style: communicationStyle, xp_enabled_modules: xpEnabledModules, streaks_enabled_modules: streaksEnabledModules })); },
     onSuccess: () => { setMessage('Your preferences have been saved.'); void client.invalidateQueries({ queryKey: ['settings'] }); }
   });
   async function exportData() {
@@ -132,6 +135,15 @@ export function SettingsPage() {
               <input type="checkbox" checked={xpEnabledModules.includes(module.id)} onChange={event => setXpEnabledModules(current => event.target.checked ? [...current, module.id] : current.filter(id => id !== module.id))} />
               <span><b>{module.name}</b><small>{module.desc}</small></span>
             </label>)}
+          </div>
+        </Field>
+        <Field label="Streaks">
+          <p className="field__hint">Streaks are optional too. The current habit streak uses check-in events and allows one recovery day per week.</p>
+          <div className="settings-module-grid">
+            <label className="settings-module-choice">
+              <input type="checkbox" checked={streaksEnabledModules.includes('habits')} onChange={event => setStreaksEnabledModules(event.target.checked ? ['habits'] : [])} />
+              <span><b>Habits</b><small>Count habit check-in streaks with one weekly recovery day.</small></span>
+            </label>
           </div>
         </Field>
         <Field label="Optional workspace views"><p className="field__hint">Your six core pillars always stay available. Turn secondary views on or off as your workspace needs change.</p><div className="settings-module-grid">{[{id:'calendar',name:'Calendar',desc:'A calendar view inside Projects & Tasks.'},{id:'library',name:'Personal Library',desc:'A library tab inside Learning Studio.'}].map(module => <label className="settings-module-choice" key={module.id}><input type="checkbox" checked={features.includes(module.id)} onChange={event => setFeatures(current => event.target.checked ? [...current,module.id] : current.filter(id => id !== module.id))} /><span><b>{module.name}</b><small>{module.desc}</small></span></label>)}</div></Field>
