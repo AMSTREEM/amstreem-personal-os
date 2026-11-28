@@ -180,10 +180,10 @@ function Workspace({ user }: { user: User }) {
           <span className="wordmark-symbol">a<span>.</span></span>
           <span className="wordmark-name">amstreem</span>
         </button>
-        <div className="rail-caption">YOUR ENVIRONMENT</div>
+        <div className="rail-caption">NAVIGATION</div>
         <nav className="rail-nav" aria-label="Main navigation">
           {navigation.map(({ label, icon: Icon }, index) => (
-            <button key={label} className={section === label ? 'rail-link selected' : 'rail-link'} onClick={() => changeSection(label)}>
+            <button key={label} title={label} aria-label={label} className={section === label ? 'rail-link selected' : 'rail-link'} onClick={() => changeSection(label)}>
               <Icon size={17} strokeWidth={1.7} />
               <span>{label}</span>
               {label === 'My world' && notes.length > 0 && <span className="nav-count">{notes.length}</span>}
