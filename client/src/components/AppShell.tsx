@@ -48,6 +48,7 @@ export function AppShell() {
   const workspaceRef = useRef<HTMLDivElement>(null);
   const commandPanelRef = useRef<HTMLElement>(null);
   const mobileDrawerRef = useRef<HTMLElement>(null);
+  const dockCustomizerRef = useRef<HTMLElement>(null);
   const bootContentRef = useRef<HTMLDivElement>(null);
   useSpotlightGrid(workspaceRef);
 
@@ -139,6 +140,27 @@ export function AppShell() {
     };
   }, [mobileOpen]);
   useEffect(() => {
+    if (!dockCustomizerOpen) return;
+    const panel = dockCustomizerRef.current;
+    if (!panel) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusable = () => Array.from(panel.querySelectorAll<HTMLElement>('button:not([disabled]), select:not([disabled]), input:not([disabled]), a[href]'));
+    focusable()[0]?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+      const items = focusable();
+      const first = items[0], last = items[items.length - 1];
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      previousFocus?.focus();
+    };
+  }, [dockCustomizerOpen]);
+  useEffect(() => {
     const userId = session?.user.id;
     if (!userId) { setPendingOfflineCaptures(0); return; }
     const refreshCount = () => setPendingOfflineCaptures(getOfflineCaptureCount(userId));
@@ -204,7 +226,7 @@ export function AppShell() {
       const typing = !!el && (el.isContentEditable || ['INPUT','TEXTAREA','SELECT'].includes(el.tagName));
       const commandKey = event.metaKey || event.ctrlKey;
       if (commandKey && event.key.toLowerCase() === 'k') { event.preventDefault(); setCommandOpen(value => !value); setCommandQuery(''); return; }
-      if (event.key === 'Escape') { setCommandOpen(false); setMobileOpen(false); waitingForDestination = false; return; }
+      if (event.key === 'Escape') { setCommandOpen(false); setMobileOpen(false); setDockCustomizerOpen(false); waitingForDestination = false; return; }
       if (typing || (location.pathname === '/quran' && !commandKey)) return;
       if (!commandKey && event.key.toLowerCase() === 'g') {
         waitingForDestination = true;
@@ -399,7 +421,7 @@ export function AppShell() {
     
     <AnimatePresence>
       {dockCustomizerOpen && <motion.div className="atlas-dock-customizer-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={event => { if (event.target === event.currentTarget) setDockCustomizerOpen(false); }}>
-        <motion.section className="atlas-dock-customizer" role="dialog" aria-modal="true" aria-label="Customize phone navigation" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }}>
+        <motion.section ref={dockCustomizerRef} className="atlas-dock-customizer" role="dialog" aria-modal="true" aria-label="Customize phone navigation" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }}>
           <header><div><b>Customize your bar</b><small>Choose the three destinations beside Capture and More</small></div><button type="button" aria-label="Close customizer" onClick={() => setDockCustomizerOpen(false)}><X size={18}/></button></header>
           {dockModules.map((item, slot) => <label key={slot} className="atlas-dock-customizer__field"><span>Destination {slot + 1}</span><select value={dockDestinationIds[slot]} onChange={event => updateDockSlot(slot, event.target.value)}>{rooms.map(room => <option key={room.id} value={room.id} disabled={dockDestinationIds.includes(room.id) && dockDestinationIds[slot] !== room.id}>{room.label}</option>)}</select></label>)}
           <button type="button" className="atlas-dock-customizer__done" onClick={() => setDockCustomizerOpen(false)}>Done</button>
