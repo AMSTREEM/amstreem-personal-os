@@ -7780,3 +7780,116 @@ html, body { background: var(--atlas-bg); color: var(--atlas-text-1); }
   color: var(--atlas-brand);
 }
 .command-results--search { border-top: 1px solid var(--atlas-border); }
+
+
+/* Stage 3 · phone-first launcher, bottom navigation and capture sheet. */
+.mobile-search-trigger { display: none; }
+.atlas-standard-shell :where(input:not([type="checkbox"]):not([type="radio"]), textarea, select) { font-size: 16px; }
+.atlas-standard-shell button,
+.atlas-standard-shell a { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.mobile-launcher { display: grid; gap: 18px; }
+.mobile-launcher-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.mobile-launcher-tile {
+  min-width: 0;
+  min-height: 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 8px;
+  border: 1px solid var(--atlas-border);
+  border-radius: var(--atlas-radius-md);
+  background: var(--atlas-surface-2);
+  color: var(--atlas-text-2);
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+}
+.mobile-launcher-tile svg { color: var(--module-accent, var(--atlas-brand)); }
+.mobile-launcher-tile.is-active {
+  border-color: color-mix(in srgb, var(--module-accent, var(--atlas-brand)) 42%, transparent);
+  background: color-mix(in srgb, var(--module-accent, var(--atlas-brand)) 12%, var(--atlas-surface-2));
+  color: var(--atlas-text-1);
+}
+.mobile-launcher-utilities { display: grid; gap: 7px; }
+.mobile-launcher-utilities > a,
+.mobile-launcher-utilities > button {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border: 1px solid var(--atlas-border);
+  border-radius: var(--atlas-radius-sm);
+  background: var(--atlas-surface-1);
+  color: var(--atlas-text-2);
+  text-align: left;
+  font: inherit;
+}
+.mobile-launcher-utilities > a span,
+.mobile-launcher-utilities > button span { flex: 1; }
+.mobile-launcher-utilities .mobile-more-life-areas { margin-bottom: 8px; }
+
+@media (max-width: 639px) {
+  .mobile-search-trigger {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    flex: 0 0 44px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--atlas-border);
+    border-radius: 12px;
+    background: var(--atlas-surface-1);
+    color: var(--atlas-text-1);
+  }
+  .mobile-more-trigger { min-height: 44px; }
+  .atlas-mobile-dock {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: calc(64px + env(safe-area-inset-bottom)) !important;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom)) !important;
+    border-radius: 18px 18px 0 0 !important;
+    border-bottom: 0 !important;
+    transform: none !important;
+    box-shadow: 0 -8px 28px rgb(0 0 0 / .12);
+  }
+  .atlas-mobile-dock__item { min-height: 44px !important; }
+  .main-area { padding-bottom: calc(64px + env(safe-area-inset-bottom)) !important; }
+  .page-container { padding-bottom: calc(88px + env(safe-area-inset-bottom)) !important; }
+  .mobile-more-drawer {
+    position: fixed !important;
+    inset: calc(52px + env(safe-area-inset-top)) 0 calc(64px + env(safe-area-inset-bottom)) 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: 0 0 20px 20px;
+    padding: 18px 16px 24px !important;
+  }
+  .mobile-launcher-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .command-backdrop {
+    align-items: flex-end !important;
+    justify-content: stretch !important;
+    padding: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  .command-panel {
+    width: 100% !important;
+    max-width: none !important;
+    max-height: calc(100dvh - env(safe-area-inset-top) - 12px) !important;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: 22px 22px 0 0 !important;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+  .command-search { padding-top: 12px; }
+}
