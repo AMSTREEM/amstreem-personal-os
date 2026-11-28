@@ -30,4 +30,6 @@ test('habit streaks are computed from the event ledger and can be disabled in Se
  assert.match(server,/activity_events\?select=type,entity_id,local_date,payload,occurred_at/);
  assert.match(server,/streaks_enabled_modules/);
  assert.match(settings,/streaks_enabled_modules: streaksEnabledModules/);
+ const rituals=fs.readFileSync(path.join(root,'client/src/pages/RitualsPage.tsx'),'utf8');
+ assert.match(rituals,/habit\.streaksEnabled === false \? 'streaks off'/);
 });
