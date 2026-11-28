@@ -14,6 +14,7 @@ test('XP preferences are saved by Settings and enforced by the database projecti
  assert.match(server,/xpModules=\['actions','goals','habits','learning','growth','residence'\]/);
  assert.match(server,/v_xp_modules/);
  assert.match(settings,/xp_enabled_modules: xpEnabledModules/);
+ assert.match(settings,/id: 'goals', name: 'Goals'/);
  assert.match(migration,/personal_os_workspaces/);
  assert.match(migration,/xp_enabled_modules/);
  assert.match(migration,/not \(v_xp_modules \? new\.module\)/);
