@@ -9,6 +9,7 @@ import { PwaUpdatePrompt } from './components/PwaUpdatePrompt';
 import { AtlasMotionProvider } from './design/MotionPreferenceProvider';
 import './styles.css';
 import './design/tokens.css';
+import '@fontsource-variable/inter';
 
 const queryClient = new QueryClient({
   defaultOptions: {
