@@ -9,8 +9,8 @@ type Suggestion = { memory:Memory; item:Item; terms:string[] };
 
 const stopWords = new Set(['about','after','again','also','because','before','being','could','from','have','into','just','more','most','need','only','other','over','same','should','some','that','their','them','then','there','these','they','this','through','want','what','when','where','which','while','with','would','your','make','work','life','goal','project','task']);
 const terms = (value:string) => Array.from(new Set(
-  value.toLowerCase().normalize('NFKD').replace(/[^a-z0-9\\s]/g,' ')
-    .split(/\\s+/).filter(word=>word.length>=4 && !stopWords.has(word))
+  value.toLowerCase().normalize('NFKD').replace(/[^a-z0-9\s]/g,' ')
+    .split(/\s+/).filter(word=>word.length>=4 && !stopWords.has(word))
 ));
 export default function CrossFeatureUnderstanding({userId}:{userId:string}) {
   const [memories,setMemories]=useState<Memory[]>([]);
