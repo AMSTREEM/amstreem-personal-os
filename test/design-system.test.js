@@ -21,8 +21,10 @@ function cssBlock(source, selector) {
   return source.slice(open + 1, close);
 }
 function cssValue(block, name) {
-  const match = block.match(new RegExp('(?:^|\\s)' + name + ':\\s*(#[0-9A-Fa-f]{6})'));
-  return match?.[1] || null;
+  const line = block.split(/\r?\n/).find(value => value.trim().startsWith(name + ':'));
+  if (!line) return null;
+  const value = line.slice(line.indexOf(':') + 1).trim().replace(/;$/, '');
+  return /^#[0-9A-Fa-f]{6}$/.test(value) ? value : null;
 }
 function luminance(hex) {
   const rgb = hex.match(/[0-9a-f]{2}/gi).map(value => parseInt(value, 16) / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
