@@ -67,6 +67,21 @@ export function AppShell() {
     try { localStorage.setItem('atlas-sidebar-collapsed', String(sidebarCollapsed)); } catch {}
   }, [sidebarCollapsed]);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [dockCustomizerOpen, setDockCustomizerOpen] = useState(false);
+  const [dockDestinationIds, setDockDestinationIds] = useState<string[]>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('atlas-phone-dock') || 'null');
+      if (Array.isArray(saved) && saved.length === 3 && new Set(saved).size === 3 && saved.every(id => rooms.some(room => room.id === id))) return saved;
+    } catch {}
+    return ['residence', 'actions', 'calendar'];
+  });
+  useEffect(() => {
+    try { localStorage.setItem('atlas-phone-dock', JSON.stringify(dockDestinationIds)); } catch {}
+  }, [dockDestinationIds]);
+  const dockModules = useMemo(() => dockDestinationIds.map(id => rooms.find(room => room.id === id)).filter((item): item is typeof rooms[number] => Boolean(item)), [dockDestinationIds]);
+  const updateDockSlot = (slot: number, nextId: string) => {
+    setDockDestinationIds(current => current.map((id, index) => index === slot ? nextId : id === nextId ? current[slot] : id));
+  };
   const [profileOpen, setProfileOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
@@ -352,12 +367,22 @@ export function AppShell() {
           </div>
           <div className="mobile-launcher-utilities">
             <div className="mobile-more-life-areas"><span className="eyebrow">YOUR LIFE AREAS</span><div>{selectedLifeAreas.map(id => <span key={id}>{lifeAreaNames[id]}</span>)}</div><NavLink to="/settings" onClick={() => setMobileOpen(false)}>Edit your areas <ArrowRight size={13}/></NavLink></div>
+            <button type="button" onClick={() => { setMobileOpen(false); setDockCustomizerOpen(true); }}><SlidersHorizontal size={17}/><span>Customize bottom bar</span><ArrowRight size={14}/></button>
             <NavLink to="/settings" onClick={() => setMobileOpen(false)}><SlidersHorizontal size={17}/><span>Settings</span><ArrowRight size={14}/></NavLink>
             {role === 'admin' && <NavLink to="/admin" onClick={() => setMobileOpen(false)}><Settings size={17}/><span>Administration</span><ArrowRight size={14}/></NavLink>}
             <button type="button" onClick={() => { setMobileOpen(false); void signOut(); }}><LogOut size={17}/><span>Sign out</span></button>
           </div>
         </nav></motion.aside></>}
     
+    <AnimatePresence>
+      {dockCustomizerOpen && <motion.div className="atlas-dock-customizer-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={event => { if (event.target === event.currentTarget) setDockCustomizerOpen(false); }}>
+        <motion.section className="atlas-dock-customizer" role="dialog" aria-modal="true" aria-label="Customize phone navigation" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }}>
+          <header><div><b>Customize your bar</b><small>Choose the three destinations beside Capture and More</small></div><button type="button" aria-label="Close customizer" onClick={() => setDockCustomizerOpen(false)}><X size={18}/></button></header>
+          {dockModules.map((item, slot) => <label key={slot} className="atlas-dock-customizer__field"><span>Destination {slot + 1}</span><select value={dockDestinationIds[slot]} onChange={event => updateDockSlot(slot, event.target.value)}>{rooms.map(room => <option key={room.id} value={room.id} disabled={dockDestinationIds.includes(room.id) && dockDestinationIds[slot] !== room.id}>{room.label}</option>)}</select></label>)}
+          <button type="button" className="atlas-dock-customizer__done" onClick={() => setDockCustomizerOpen(false)}>Done</button>
+        </motion.section>
+      </motion.div>}
+    </AnimatePresence>
     <a className="atlas-skip-link" href="#atlas-main-content">Skip to content</a>
     <div className="atlas-live-region" aria-live="polite" aria-atomic="true">{current?.label || "Atlas workspace"}</div>
     <main className="main-area" id="atlas-main-content" tabIndex={-1}>
@@ -416,10 +441,8 @@ export function AppShell() {
         <MagneticButton className="atlas-dock-action" aria-label="Open Daily Check-In" onClick={() => { navigate('/residence'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></MagneticButton>
       </motion.nav>
       <nav className="atlas-mobile-dock" aria-label="Primary navigation">
-        <MotionNavLink to="/residence" end data-module="residence" className={({isActive}) => 'atlas-mobile-dock__item atlas-nav-item ' + (isActive ? 'is-active' : '')} whileTap={{ scale: 0.96 }}><House size={18}/><span>Residence</span>{location.pathname === '/residence' && <motion.span className="atlas-mobile-dock__indicator" layoutId="atlas-mobile-dock-indicator"/>}</MotionNavLink>
-        <MotionNavLink to="/actions" data-module="actions" className={({isActive}) => 'atlas-mobile-dock__item atlas-nav-item ' + (isActive || location.pathname === '/focus' ? 'is-active' : '')} whileTap={{ scale: 0.96 }}><ListChecks size={18}/><span>Actions</span>{(location.pathname === '/actions' || location.pathname === '/focus') && <motion.span className="atlas-mobile-dock__indicator" layoutId="atlas-mobile-dock-indicator"/>}</MotionNavLink>
+        {dockModules.map((item, slot) => { const Icon = item.icon; const active = item.paths.includes(location.pathname) || (item.id === 'actions' && location.pathname === '/focus'); return <MotionNavLink key={item.id} to={item.to} data-module={item.id} className={'atlas-mobile-dock__item atlas-nav-item ' + (active ? 'is-active' : '')} whileTap={{ scale: 0.96 }} onContextMenu={event => { event.preventDefault(); setDockCustomizerOpen(true); }}><Icon size={18}/><span>{item.label}</span>{active && <motion.span className="atlas-mobile-dock__indicator" layoutId="atlas-room-indicator"/>}</MotionNavLink>; })}
         <button type="button" className="atlas-mobile-dock__item atlas-mobile-dock__capture" aria-label={pendingOfflineCaptures > 0 ? 'Quick capture, ' + pendingOfflineCaptures + ' queued' : 'Quick capture'} onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Plus size={20}/><span>Capture</span>{pendingOfflineCaptures > 0 && <small className="atlas-mobile-dock__queue-count">{pendingOfflineCaptures}</small>}</button>
-        <MotionNavLink to="/calendar" data-module="calendar" className={({isActive}) => 'atlas-mobile-dock__item atlas-nav-item ' + (isActive ? 'is-active' : '')} whileTap={{ scale: 0.96 }}><CalendarDays size={18}/><span>Calendar</span>{location.pathname === '/calendar' && <motion.span className="atlas-mobile-dock__indicator" layoutId="atlas-mobile-dock-indicator"/>}</MotionNavLink>
         <button type="button" className="atlas-mobile-dock__item" onClick={() => setMobileOpen(true)} aria-expanded={mobileOpen}><SlidersHorizontal size={18}/><span>More</span></button>
       </nav>
       <footer className="app-footer"><span>AMSTREEM ATLAS</span><span>Make room for what matters.</span></footer>
