@@ -1658,6 +1658,7 @@ app.post('/api/weekly-challenge/sync',(req,res)=>{
   const completedAt=new Date().toISOString();
   db.prepare('UPDATE weekly_challenges SET completed_at=COALESCE(completed_at,?),claimed_at=? WHERE week_start=?').run(completedAt,completedAt,weekStart);
   awardXp('weekly-challenge:'+weekStart,'Weekly challenge',50);
+  publishAtlasEvent(req,{type:'challenge.completed',module:'residence',entityId:weekStart,localDate:dateKey(),payload:{weekStart,challengeId:challenge.challenge_id}});
   challenge=one('SELECT * FROM weekly_challenges WHERE week_start=?',weekStart);
   state=weeklyChallengeState(challenge,weekStart);
   state.justCompleted=true;
@@ -1669,17 +1670,43 @@ app.get('/api/weekly-challenge',(req,res)=>{
  if(!challenge)return res.status(404).json({error:'This week’s challenge has not been created yet.'});
  res.json(weeklyChallengeState(challenge,weekStart));
 });
-app.get('/api/achievements',(req,res)=>{
- const metrics=achievementMetrics(),achievements=achievementDefinitions(metrics);
- res.json({metrics,achievements,unlocked:achievements.filter(x=>x.unlocked).length,total:achievements.length,recent:achievements.filter(x=>x.unlockedAt).sort((a,b)=>b.unlockedAt.localeCompare(a.unlockedAt)).slice(0,5)});
+async function readAtlasAchievementState(req) {
+ const [definitions,unlocks,projection]=await Promise.all([
+  atlasRest(req,'atlas_achievement_definitions?select=id,title,description,icon,metric,target,tier,secret&order=id.asc'),
+  atlasRest(req,'atlas_achievement_unlocks?select=achievement_id,unlocked_at&order=unlocked_at.desc&limit=200'),
+  atlasRest(req,'progress_daily?select=metric,value&limit=1000')
+ ]);
+ const totals={};
+ for(const row of projection||[])totals[row.metric]=(totals[row.metric]||0)+Number(row.value||0);
+ const aliases={tasks_completed:'tasks',focus_minutes:'focusMinutes',focus_sessions:'focusSessions',learning_items_completed:'lessons',goals_completed:'goals',habit_checkins:'habitCheckins'};
+ const metrics={tasks:totals.tasks_completed||0,focusMinutes:totals.focus_minutes||0,focusSessions:totals.focus_sessions||0,lessons:totals.learning_items_completed||0,goals:totals.goals_completed||0,habitCheckins:totals.habit_checkins||0};
+ const unlockedById=new Map((unlocks||[]).map(row=>[row.achievement_id,row.unlocked_at]));
+ const achievements=(definitions||[]).map(item=>{
+  const metric=aliases[item.metric]||item.metric,value=Number(totals[item.metric]||0),unlockedAt=unlockedById.get(item.id)||null;
+  return {id:item.id,name:item.title,title:item.title,description:item.description,icon:item.icon,metric,target:Number(item.target),value,unlocked:Boolean(unlockedAt),progress:Math.min(100,Math.round(value/Math.max(1,Number(item.target))*100)),remaining:Math.max(0,Number(item.target)-value),unlockedAt,tier:item.tier,secret:item.secret};
+ });
+ return {metrics,achievements,unlocked:achievements.filter(item=>item.unlocked).length,total:achievements.length,recent:achievements.filter(item=>item.unlockedAt).sort((a,b)=>b.unlockedAt.localeCompare(a.unlockedAt)).slice(0,5)};
+}
+app.get('/api/achievements',async(req,res)=>{
+ try { res.json(await readAtlasAchievementState(req)); }
+ catch(error) { console.warn('Atlas achievements unavailable; using legacy workspace values:',error.message); const metrics=achievementMetrics(),achievements=achievementDefinitions(metrics); res.json({metrics,achievements,unlocked:achievements.filter(x=>x.unlocked).length,total:achievements.length,recent:achievements.filter(x=>x.unlockedAt).sort((a,b)=>b.unlockedAt.localeCompare(a.unlockedAt)).slice(0,5)}); }
 });
-app.post('/api/achievements/sync',(req,res)=>{
- const metrics=achievementMetrics(),eligible=achievementDefinitions(metrics).filter(x=>x.unlocked&&!x.unlockedAt);
- const insert=db.prepare('INSERT OR IGNORE INTO achievement_unlocks(achievement_id) VALUES(?)');
- const sync=db.transaction(()=>eligible.forEach(x=>insert.run(x.id)));
- sync();
- const achievements=achievementDefinitions(metrics);
- res.json({newUnlocks:achievements.filter(x=>eligible.some(e=>e.id===x.id)),achievements,unlocked:achievements.filter(x=>x.unlocked).length,total:achievements.length,recent:achievements.filter(x=>x.unlockedAt).sort((a,b)=>b.unlockedAt.localeCompare(a.unlockedAt)).slice(0,5)});
+app.post('/api/achievements/sync',async(req,res)=>{
+ try {
+  const state=await readAtlasAchievementState(req);
+  const known=new Set(all('SELECT achievement_id FROM achievement_unlocks').map(item=>item.achievement_id));
+  const newUnlocks=state.achievements.filter(item=>item.unlocked&&!known.has(item.id));
+  const insert=db.prepare('INSERT OR IGNORE INTO achievement_unlocks(achievement_id) VALUES(?)');
+  const sync=db.transaction(()=>newUnlocks.forEach(item=>insert.run(item.id)));
+  sync();
+  res.json({...state,newUnlocks});
+ } catch(error) {
+  const metrics=achievementMetrics(),eligible=achievementDefinitions(metrics).filter(x=>x.unlocked&&!x.unlockedAt);
+  const insert=db.prepare('INSERT OR IGNORE INTO achievement_unlocks(achievement_id) VALUES(?)');
+  db.transaction(()=>eligible.forEach(x=>insert.run(x.id)))();
+  const achievements=achievementDefinitions(metrics);
+  res.json({newUnlocks:achievements.filter(x=>eligible.some(e=>e.id===x.id)),achievements,unlocked:achievements.filter(x=>x.unlocked).length,total:achievements.length,recent:achievements.filter(x=>x.unlockedAt).sort((a,b)=>b.unlockedAt.localeCompare(a.unlockedAt)).slice(0,5)});
+ }
 });
 app.get('/api/progress',async(req,res)=>{
  const thresholds=[0,50,150,300,500,800,1200,1700,2300,3000,4000,5200,6600,8200,10000];
