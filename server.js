@@ -1681,15 +1681,31 @@ app.post('/api/achievements/sync',(req,res)=>{
  const achievements=achievementDefinitions(metrics);
  res.json({newUnlocks:achievements.filter(x=>eligible.some(e=>e.id===x.id)),achievements,unlocked:achievements.filter(x=>x.unlocked).length,total:achievements.length,recent:achievements.filter(x=>x.unlockedAt).sort((a,b)=>b.unlockedAt.localeCompare(a.unlockedAt)).slice(0,5)});
 });
-app.get('/api/progress',(req,res)=>{
- const totalXp=one('SELECT COALESCE(SUM(points),0) total FROM xp_events').total;
+app.get('/api/progress',async(req,res)=>{
  const thresholds=[0,50,150,300,500,800,1200,1700,2300,3000,4000,5200,6600,8200,10000];
+ const titles=['Newcomer','Starter','Builder','Pathfinder','Maker','Strategist','Specialist','Architect','Vanguard','Atlas'];
+ let totalXp=one('SELECT COALESCE(SUM(points),0) total FROM xp_events').total;
+ let lastEvent=one('SELECT category,points,awarded_at FROM xp_events ORDER BY awarded_at DESC,id DESC LIMIT 1')||null;
+ let dailyProjection=[];
+ let xpByCategory={};
+ let ledgerSource='legacy';
+ try {
+  const [ledger,projection]=await Promise.all([
+   atlasRest(req,'xp_ledger?select=points,category,awarded_at,local_date&order=awarded_at.desc&limit=1000'),
+   atlasRest(req,'progress_daily?select=module,metric,value,local_date&local_date=eq.'+encodeURIComponent(dateKey())+'&order=module,metric')
+  ]);
+  if(Array.isArray(ledger)){
+   totalXp=ledger.reduce((sum,row)=>sum+Number(row.points||0),0);
+   lastEvent=ledger[0]?{category:ledger[0].category,points:ledger[0].points,awarded_at:ledger[0].awarded_at}:null;
+   for(const row of ledger)xpByCategory[row.category]=(xpByCategory[row.category]||0)+Number(row.points||0);
+   ledgerSource='event-ledger';
+  }
+  if(Array.isArray(projection))dailyProjection=projection;
+ }catch(error){console.warn('Atlas progress projection unavailable; using the legacy workspace projection:',error.message);}
  while(totalXp>=thresholds[thresholds.length-1])thresholds.push(thresholds[thresholds.length-1]+Math.round(1000+thresholds.length*125));
  let index=0;while(index+1<thresholds.length&&totalXp>=thresholds[index+1])index++;
  const level=index+1,currentFloor=thresholds[index],nextFloor=thresholds[index+1];
- const titles=['Newcomer','Starter','Builder','Pathfinder','Maker','Strategist','Specialist','Architect','Vanguard','Atlas'];
- const lastEvent=one('SELECT category,points,awarded_at FROM xp_events ORDER BY awarded_at DESC,id DESC LIMIT 1')||null;
- res.json({totalXp,level,title:titles[index]||'Master Builder',currentFloor,nextFloor,progressPct:Math.max(0,Math.min(100,Math.round((totalXp-currentFloor)/(nextFloor-currentFloor)*100))),remaining:Math.max(0,nextFloor-totalXp),lastEvent});
+ res.json({totalXp,level,title:titles[index]||'Master Builder',currentFloor,nextFloor,progressPct:Math.max(0,Math.min(100,Math.round((totalXp-currentFloor)/(nextFloor-currentFloor)*100))),remaining:Math.max(0,nextFloor-totalXp),lastEvent,atlas:{source:ledgerSource,daily:dailyProjection,xpByCategory}});
 });
 app.get('/api/projects',(q,s)=>{const rows=all("SELECT p.*,g.title AS goal_title,(SELECT COUNT(*) FROM tasks t WHERE t.project_id=p.id AND t.done=0) AS open_tasks,(SELECT COUNT(*) FROM project_milestones m WHERE m.project_id=p.id) AS milestone_count,(SELECT COALESCE(SUM(ss.minutes),0) FROM sessions ss WHERE ss.project_id=p.id OR ss.task_id IN (SELECT t.id FROM tasks t WHERE t.project_id=p.id)) AS focus_minutes,(SELECT COUNT(*) FROM tasks t WHERE t.project_id=p.id) AS task_count,(SELECT COUNT(*) FROM tasks t WHERE t.project_id=p.id AND t.done=1) AS completed_tasks FROM projects p LEFT JOIN goals g ON g.id=p.goal_id WHERE p.status!='archived' ORDER BY p.status='completed',COALESCE(p.target_date,'9999-12-31'),p.id DESC");s.json(rows.map(p=>({...p,progress_pct:p.task_count?Math.round(p.completed_tasks/p.task_count*100):0,milestones:all('SELECT * FROM project_milestones WHERE project_id=? ORDER BY sort_order,id',p.id)})));});
 app.post('/api/projects',(q,s)=>{const title=String(q.body.title||'').trim();const goalId=q.body.goal_id?Number(q.body.goal_id):null;if(!title)return s.status(400).json({error:'A project needs a title.'});if(goalId&&!one('SELECT id FROM goals WHERE id=?',goalId))return s.status(400).json({error:'Choose an existing goal.'});const r=db.prepare('INSERT INTO projects(title,description,goal_id,target_date) VALUES(?,?,?,?)').run(title,String(q.body.description||''),goalId,q.body.target_date||null);s.status(201).json(one('SELECT * FROM projects WHERE id=?',r.lastInsertRowid));});
