@@ -3,6 +3,7 @@ import type { User, Session } from '@supabase/supabase-js';
 import AuthScreen from './components/AuthScreen';
 import IntelligenceScreen from './components/IntelligenceScreen';
 import ContextOverview from './components/ContextOverview';
+import IntelligenceChat from './components/IntelligenceChat';
 import { isSupabaseConfigured, supabase, type MemoryRow } from './lib/supabase';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Bookmark,
@@ -241,6 +242,7 @@ function Workspace({ user }: { user: User }) {
 
           {section === 'Intelligence' && (
             <IntelligenceScreen userId={user.id} onSaved={refreshNotes} />
+            <IntelligenceChat />
           )}
 
           {section === 'My world' && (
