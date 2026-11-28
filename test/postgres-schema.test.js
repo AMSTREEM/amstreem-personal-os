@@ -613,9 +613,9 @@ test('mobile launcher includes every registered module and shares one active nav
 
 test('mobile More launcher behaves as an accessible modal drawer with focus restoration', () => {
   const shell = fs.readFileSync(path.join(__dirname, '..', 'client/src/components/AppShell.tsx'), 'utf8');
-  assert.match(shell, /mobileDrawerRef/);
-  assert.match(shell, /className="mobile-more-drawer" role="dialog" aria-modal="true"/);
-  assert.match(shell, /\\}, \\[mobileOpen\\]\\)/);
-  assert.match(shell, /previousFocus\\?\\.focus\\(\\)/);
-  assert.match(shell, /aria-label=\\{quickCaptureType ===/);
+  assert.ok(shell.includes('mobileDrawerRef'));
+  assert.ok(shell.includes('className="mobile-more-drawer" role="dialog" aria-modal="true"'));
+  assert.ok(shell.includes('}, [mobileOpen]);'));
+  assert.ok(shell.includes('previousFocus?.focus();'));
+  assert.ok(shell.includes('aria-label={quickCaptureType ==='));
 });
