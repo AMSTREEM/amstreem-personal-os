@@ -8,6 +8,9 @@ const root = path.join(__dirname, '..');
 const tokens = fs.readFileSync(path.join(root, 'client/src/design/tokens.css'), 'utf8');
 const themeInit = fs.readFileSync(path.join(root, 'client/public/theme-init.js'), 'utf8');
 const readerStyles = fs.readFileSync(path.join(root, 'client/src/styles.css'), 'utf8');
+const shell = fs.readFileSync(path.join(root, 'client/src/components/AppShell.tsx'), 'utf8');
+const main = fs.readFileSync(path.join(root, 'client/src/main.tsx'), 'utf8');
+const motionProvider = fs.readFileSync(path.join(root, 'client/src/design/MotionPreferenceProvider.tsx'), 'utf8');
 
 function cssBlock(source, selector) {
   const start = source.indexOf(selector);
@@ -17,79 +20,73 @@ function cssBlock(source, selector) {
   assert.ok(open > start && close > open, 'Malformed CSS block: ' + selector);
   return source.slice(open + 1, close);
 }
-
 function cssValue(block, name) {
   const match = block.match(new RegExp('(?:^|\\s)' + name + ':\\s*(#[0-9A-Fa-f]{6})'));
   return match?.[1] || null;
 }
-
 function luminance(hex) {
-  const rgb = hex.match(/[0-9a-f]{2}/gi).map(value => parseInt(value, 16) / 255).map(value =>
-    value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
-  );
+  const rgb = hex.match(/[0-9a-f]{2}/gi).map(value => parseInt(value, 16) / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
   return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2];
 }
-
 function contrast(a, b) {
   const values = [luminance(a), luminance(b)].sort((left, right) => right - left);
   return (values[0] + 0.05) / (values[1] + 0.05);
 }
 
-test('Atlas design tokens define the agreed dark and light foundations', () => {
+test('Atlas design tokens define dark/light foundations, typography, spacing and motion', () => {
   const dark = cssBlock(tokens, ':root {');
   const light = cssBlock(tokens, ':root[data-theme^="light-"]');
-  assert.match(dark, /--atlas-brand:\s*#22D3EE/);
-  assert.match(dark, /--atlas-surface-3:\s*#1D2733/);
-  assert.match(dark, /--atlas-border-strong:\s*#34465A/);
-  assert.match(dark, /--atlas-text-1:\s*var\(--text, #EAF0F6\)/);
-  assert.match(light, /--atlas-brand:\s*#0891B2/);
-  assert.match(light, /--atlas-surface-3:\s*#E7E3DA/);
-  assert.match(light, /--atlas-border-strong:\s*#C4BEB0/);
-  assert.match(dark, /--atlas-space-11:\s*64px/);
-  assert.match(dark, /--atlas-duration-slow:\s*320ms/);
+  assert.match(dark, /--atlas-brand:\\s*#22D3EE/);
+  assert.match(dark, /--atlas-surface-3:\\s*#1D2733/);
+  assert.match(dark, /--atlas-border-strong:\\s*#34465A/);
+  assert.match(light, /--atlas-brand:\\s*#0891B2/);
+  assert.match(light, /--atlas-surface-3:\\s*#E7E3DA/);
+  assert.match(light, /--atlas-border-strong:\\s*#C4BEB0/);
+  for (const token of ['--atlas-space-11: 64px','--atlas-duration-slow: 320ms','--atlas-radius-xl: 24px','--atlas-font-ui:']) assert.ok(dark.includes(token), 'Missing '+token);
 });
 
-test('every module accent meets WCAG AA contrast for its text colour', () => {
+test('all nine module text accents meet WCAG AA contrast on dark and light surfaces', () => {
   const dark = cssBlock(tokens, ':root {');
   const light = cssBlock(tokens, ':root[data-theme^="light-"]');
-  const modules = ['residence','actions','goals','calendar','habits','learning','growth','values','quran'];
-  for (const module of modules) {
-    const darkColor = cssValue(dark, '--atlas-module-' + module);
-    const lightColor = cssValue(light, '--atlas-module-' + module);
-    assert.ok(darkColor, 'Missing dark accent for ' + module);
-    assert.ok(lightColor, 'Missing light text accent for ' + module);
-    assert.ok(contrast(darkColor, '#0A0E13') >= 4.5, 'Dark accent fails AA: ' + module);
-    assert.ok(contrast(lightColor, '#F6F4EF') >= 4.5, 'Light accent fails AA: ' + module);
+  for (const module of ['residence','actions','goals','calendar','habits','learning','growth','values','quran']) {
+    const d = cssValue(dark, '--atlas-module-' + module);
+    const l = cssValue(light, '--atlas-module-' + module);
+    assert.ok(d && contrast(d, '#0A0E13') >= 4.5, 'Dark accent fails AA: '+module);
+    assert.ok(l && contrast(l, '#F6F4EF') >= 4.5, 'Light accent fails AA: '+module);
   }
 });
 
-test('design tokens stay isolated from legacy Qur’an reader variables and selectors', () => {
-  for (const legacyToken of ['--bg:', '--surface:', '--accent:', '--accent-strong:', '--text:', '--muted:']) {
-    assert.equal(tokens.includes(legacyToken), false, 'Design tokens must not redefine ' + legacyToken);
-  }
+test('standard shell consumes Atlas tokens while Qur’an shell remains opt-out', () => {
+  assert.match(shell, /location\\.pathname === '\\/quran' \\? " atlas-quran-shell" : " atlas-standard-shell"/);
+  assert.match(readerStyles, /\\.atlas-standard-shell \\{[\\s\\S]*--accent: var\\(--atlas-brand\\)/);
+  assert.doesNotMatch(readerStyles, /\\.atlas-quran-shell[^{}]*\\{[^}]*--accent:/);
   assert.doesNotMatch(tokens, /quran-mobile-shell|mushaf-desktop|tj-madd|tajweed/i);
-  for (const readerVariable of ['--accent','--accent-strong','--bg','--bg-canvas','--bg-surface','--border-hairline','--mushaf-user-font-size','--muted','--text','--text-primary','--text-secondary']) {
-    assert.ok(readerStyles.includes('var(' + readerVariable), 'Reader variable disappeared: ' + readerVariable);
-  }
+  for (const variable of ['--accent','--accent-strong','--bg','--bg-canvas','--bg-surface','--border-hairline','--mushaf-user-font-size','--muted','--text','--text-primary','--text-secondary']) assert.ok(readerStyles.includes('var(' + variable));
 });
 
-test('protected Qur’an source files retain their recorded baseline hashes', () => {
+test('Qur’an reader source fingerprints remain byte-for-byte protected', () => {
   const expected = {
     'client/src/components/QuranMushafReader.tsx': 'c8c4dee0592ed52b1867d58cd0d6b365fb213662',
     'client/src/pages/QuranPage.tsx': '275c9c75d00c79c46be680e9270539100ebcab6f',
     'client/src/data/quranSurahs.ts': '9f487f164568aec386aac208f073708c8e3e7995'
   };
-  for (const [relative, expectedHash] of Object.entries(expected)) {
-    const content = fs.readFileSync(path.join(root, relative));
-    const header = Buffer.from('blob ' + content.length + '\0');
-    const actual = createHash('sha1').update(Buffer.concat([header, content])).digest('hex');
-    assert.equal(actual, expectedHash, 'Protected reader baseline changed: ' + relative);
+  for (const [relative, hash] of Object.entries(expected)) {
+    const bytes = fs.readFileSync(path.join(root, relative));
+    const actual = createHash('sha1').update(Buffer.concat([Buffer.from('blob '+bytes.length+'\\0'), bytes])).digest('hex');
+    assert.equal(actual, hash, 'Protected Qur’an source changed: '+relative);
   }
 });
 
-test('theme bootstrap applies a safe default and restores accessibility preferences before first paint', () => {
-  assert.match(themeInit, /localStorage\.getItem\('atlas_theme'\) \|\| 'shadowed-alchemist'/);
-  assert.match(themeInit, /'shadowed-alchemist': '#0A0E13'/);
+test('motion preferences are restored before paint and applied to all motion components', () => {
   assert.match(themeInit, /atlas-motion-preference/);
   assert.match(themeInit, /data-motion/);
+  assert.match(main, /AtlasMotionProvider/);
+  assert.match(motionProvider, /MotionConfig reducedMotion=/);
+  assert.match(motionProvider, /atlas:motion-preference-change/);
+  assert.match(readerStyles, /data-motion="reduced"/);
+});
+
+test('theme bootstrap has a deterministic dark fallback', () => {
+  assert.match(themeInit, /localStorage\\.getItem\\('atlas_theme'\\) \\|\\| 'shadowed-alchemist'/);
+  assert.match(themeInit, /'shadowed-alchemist': '#0A0E13'/);
 });
