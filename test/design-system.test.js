@@ -21,7 +21,7 @@ function cssBlock(source, selector) {
   return source.slice(open + 1, close);
 }
 function cssValue(block, name) {
-  const match = block.match(new RegExp('(?:^|\\s)' + name + ':\\s*(#[0-9A-Fa-f]{6})'));
+  const match = block.match(new RegExp('(?:^|\s)' + name + ':\s*(#[0-9A-Fa-f]{6})'));
   return match?.[1] || null;
 }
 function luminance(hex) {
@@ -36,12 +36,12 @@ function contrast(a, b) {
 test('Atlas design tokens define dark/light foundations, typography, spacing and motion', () => {
   const dark = cssBlock(tokens, ':root {');
   const light = cssBlock(tokens, ':root[data-theme^="light-"]');
-  assert.match(dark, /--atlas-brand:\\s*#22D3EE/);
-  assert.match(dark, /--atlas-surface-3:\\s*#1D2733/);
-  assert.match(dark, /--atlas-border-strong:\\s*#34465A/);
-  assert.match(light, /--atlas-brand:\\s*#0891B2/);
-  assert.match(light, /--atlas-surface-3:\\s*#E7E3DA/);
-  assert.match(light, /--atlas-border-strong:\\s*#C4BEB0/);
+  assert.match(dark, /--atlas-brand:\s*#22D3EE/);
+  assert.match(dark, /--atlas-surface-3:\s*#1D2733/);
+  assert.match(dark, /--atlas-border-strong:\s*#34465A/);
+  assert.match(light, /--atlas-brand:\s*#0891B2/);
+  assert.match(light, /--atlas-surface-3:\s*#E7E3DA/);
+  assert.match(light, /--atlas-border-strong:\s*#C4BEB0/);
   for (const token of ['--atlas-space-11: 64px','--atlas-duration-slow: 320ms','--atlas-radius-xl: 24px','--atlas-font-ui:']) assert.ok(dark.includes(token), 'Missing '+token);
 });
 
