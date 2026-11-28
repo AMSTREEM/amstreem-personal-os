@@ -92,3 +92,16 @@ test('theme bootstrap has a deterministic dark fallback', () => {
   assert.ok(themeInit.includes("localStorage.getItem('atlas_theme') || 'shadowed-alchemist'"));
   assert.ok(themeInit.includes("'shadowed-alchemist': '#0A0E13'"));
 });
+
+
+test('Atlas UI loads its variable Inter font locally and the service worker caches hashed font assets', () => {
+  const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
+  const main = fs.readFileSync(path.join(__dirname, '..', 'client/src/main.tsx'), 'utf8');
+  const worker = fs.readFileSync(path.join(__dirname, '..', 'public/service-worker.js'), 'utf8');
+  const styles = fs.readFileSync(path.join(__dirname, '..', 'client/src/styles.css'), 'utf8');
+  assert.equal(packageJson.dependencies['@fontsource-variable/inter'], '^5.3.0');
+  assert.match(main, /@fontsource-variable\/inter\/wght\.css/);
+  assert.match(styles, /\.atlas-standard-shell \{ font-family: var\(--atlas-font-ui\); \}/);
+  assert.match(worker, /\(\?:js\|css\|woff2\)/);
+  assert.doesNotMatch(worker, /pathname\.startsWith\('\/fonts\/'\)[\s\S]*?respondWith/);
+});
