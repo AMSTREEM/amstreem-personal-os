@@ -59,11 +59,10 @@
   --atlas-space-4: 16px;
   --atlas-space-5: 20px;
   --atlas-space-6: 24px;
-  --atlas-space-7: 28px;
-  --atlas-space-8: 32px;
-  --atlas-space-9: 40px;
-  --atlas-space-10: 48px;
-  --atlas-space-11: 64px;
+  --atlas-space-7: 32px;
+  --atlas-space-8: 40px;
+  --atlas-space-9: 48px;
+  --atlas-space-10: 64px;
 
   --atlas-radius-sm: 8px;
   --atlas-radius-md: 12px;
@@ -96,9 +95,9 @@
   --atlas-surface-1: #FFFFFF;
   --atlas-surface-2: #F0EDE6;
   --atlas-surface-3: #E7E3DA;
-  --atlas-border: #D8D2C7;
-  --atlas-text-1: #18212B;
-  --atlas-text-2: #44515E;
+  --atlas-border: #DDD8CD;
+  --atlas-text-1: #121C27;
+  --atlas-text-2: #3A4A5E;
   --atlas-text-3: #5B6A80;
   --atlas-border-strong: #C4BEB0;
   --atlas-text-3: var(--subtle, #5B6A80);
