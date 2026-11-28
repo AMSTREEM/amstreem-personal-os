@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError, json } from '../lib/api';
 import { enqueueOfflineCapture, flushOfflineCaptures, getOfflineCaptureCount } from '../lib/offlineCaptureQueue';
 import { applyAtlasTheme, watchAtlasSystemTheme } from '../design/theme';
+import { atlasMotion } from '../design/motion';
 import { atlasModules as rooms, quranShellEntry as quranDestination, atlasNavigationGroups as navigationGroups, atlasCommandDestinations as commandDestinations, atlasQuickCaptureTypes, atlasSearchSources } from '../design/module-registry';
 import { ArrowRight, BookOpen, Check, Compass, History as HistoryIcon, LogOut, Pause, Play, Plus, Search, Settings, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Timer, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
@@ -363,7 +364,7 @@ export function AppShell() {
             const Icon = item.icon;
             const active = item.paths.includes(location.pathname);
             const shortcutIndex = rooms.findIndex(room => room.id === item.id) + 1;
-            return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} data-module={item.id} title={sidebarCollapsed ? item.label : undefined} className={'nav-link room-nav-link atlas-nav-item ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-navigation-pill" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>g {shortcutIndex}</kbd></MotionNavLink>;
+            return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={atlasMotion.spring.snappy} data-module={item.id} title={sidebarCollapsed ? item.label : undefined} className={'nav-link room-nav-link atlas-nav-item ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-navigation-pill" transition={atlasMotion.spring.snappy} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>g {shortcutIndex}</kbd></MotionNavLink>;
           })}
         </div>)}
         <div className="nav-group nav-group--specialist">
@@ -453,7 +454,7 @@ export function AppShell() {
         {commandQuery.trim().length >= 2 && <div className="command-results command-results--search"><span className="eyebrow">SEARCH RESULTS</span>{searchIndex.isLoading && <p>Searching your workspace…</p>}{searchResults.map(item => <button key={item.id} type="button" onClick={() => { setCommandOpen(false); navigate(item.to); }}><Search size={15}/><span><b>{item.title}</b><small>{item.detail}</small></span></button>)}{!searchIndex.isLoading && !searchResults.length && <p>No matching workspace records.</p>}</div>}
         <div className="command-footer"><span>Navigate between rooms</span><span>⌘ 1 — 6</span></div>
       </motion.section></motion.div>}</AnimatePresence>
-      <motion.nav className="atlas-command-dock" layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }} aria-label="Atlas command dock">
+      <motion.nav className="atlas-command-dock" layout transition={atlasMotion.spring.snappy} aria-label="Atlas command dock">
         <MagneticButton className="atlas-dock-action" aria-label="Open command search" onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Search size={15}/><span>Command</span><kbd>⌘ K</kbd></MagneticButton>
         <MagneticButton className="atlas-dock-action" aria-label="Quick capture a task" onClick={() => { setCommandOpen(true); setCommandQuery('add a task'); }}><Plus size={15}/><span>Quick Capture</span></MagneticButton>
         <motion.div className={'atlas-dock-focus ' + (focusSessionVisible ? 'is-expanded' : '')} layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }}>
