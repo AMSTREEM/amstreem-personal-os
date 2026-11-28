@@ -33,7 +33,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  if (/^\/assets\/.*-[A-Za-z0-9_-]{8,}\.(?:js|css)$/i.test(pathname)) {
+  if (/^\/assets\/.*-[A-Za-z0-9_-]{8,}\.(?:js|css|woff2)$/i.test(pathname)) {
     event.respondWith(caches.match(request).then(cached => cached || fetch(request).then(response => {
       if (response.ok) caches.open(CACHE_VERSION).then(cache => cache.put(request, response.clone()));
       return response;
