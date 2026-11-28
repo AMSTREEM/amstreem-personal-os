@@ -7929,3 +7929,16 @@ html, body { background: var(--atlas-bg); color: var(--atlas-text-1); }
   .atlas-dock-customizer-backdrop { align-items: end; padding: 0; }
   .atlas-dock-customizer { width: 100%; border-radius: 22px 22px 0 0; padding: 22px 18px calc(18px + env(safe-area-inset-bottom)); }
 }
+
+/* Module accent roles: fill for indicators, text for labels and charts. */
+.atlas-standard-shell .room-view-transition { background-image: var(--atlas-module-glow); background-repeat: no-repeat; background-position: top center; background-size: 100% 240px; }
+.atlas-standard-shell .room-view-transition[data-module="residence"] { --module: var(--atlas-module-residence-fill); --module-text: var(--atlas-module-residence); }
+.atlas-standard-shell .room-view-transition[data-module="actions"] { --module: var(--atlas-module-actions-fill); --module-text: var(--atlas-module-actions); }
+.atlas-standard-shell .room-view-transition[data-module="goals"] { --module: var(--atlas-module-goals-fill); --module-text: var(--atlas-module-goals); }
+.atlas-standard-shell .room-view-transition[data-module="calendar"] { --module: var(--atlas-module-calendar-fill); --module-text: var(--atlas-module-calendar); }
+.atlas-standard-shell .room-view-transition[data-module="habits"] { --module: var(--atlas-module-habits-fill); --module-text: var(--atlas-module-habits); }
+.atlas-standard-shell .room-view-transition[data-module="learning"] { --module: var(--atlas-module-learning-fill); --module-text: var(--atlas-module-learning); }
+.atlas-standard-shell .room-view-transition[data-module="growth"] { --module: var(--atlas-module-growth-fill); --module-text: var(--atlas-module-growth); }
+.atlas-standard-shell .room-view-transition[data-module="values"] { --module: var(--atlas-module-values-fill); --module-text: var(--atlas-module-values); }
+.atlas-standard-shell .room-view-transition[data-module="quran"] { --module: var(--atlas-module-quran-fill); --module-text: var(--atlas-module-quran); }
+.atlas-standard-shell .atlas-nav-item[data-module] { --module-accent: var(--module-text, var(--atlas-brand)); }
