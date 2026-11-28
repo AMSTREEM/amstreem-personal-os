@@ -37,13 +37,13 @@ const modules = [
   },
   {
     id: 'reflection',
-    routes: ['/api/reviews', '/api/self-control'],
+    routes: ['/api/reviews', '/api/self-control', '/api/insights', '/api/weekly-review'],
     files: ['client/src/pages/ReviewsPage.tsx', 'client/src/pages/SelfControlPage.tsx', 'client/src/pages/InsightsPage.tsx'],
     dependsOn: ['shared-contracts', 'execution']
   },
   {
     id: 'platform',
-    routes: ['/api/feedback', '/api/admin', '/api/announcements', '/api/login-event', '/api/leaderboard', '/api/welcome', '/api/overview', '/api/onboarding', '/api/intelligence', '/api/weekly-challenge', '/api/achievements', '/api/settings'],
+    routes: ['/api/feedback', '/api/admin', '/api/announcements', '/api/login-event', '/api/leaderboard', '/api/welcome', '/api/overview', '/api/onboarding', '/api/intelligence', '/api/weekly-challenge', '/api/achievements', '/api/settings', '/api/notifications', '/api/briefing'],
     files: ['client/src/pages/AdminPage.tsx', 'client/src/pages/SettingsPage.tsx', 'client/src/pages/TodayPage.tsx', 'client/src/components/AppShell.tsx', 'client/src/components/AtlasOnboarding.tsx', 'client/src/components/AtlasWalkthrough.tsx', 'client/src/components/PwaUpdatePrompt.tsx', 'client/src/design/module-registry.ts', 'client/src/design/tokens.css', 'client/src/design/theme.ts'],
     dependsOn: ['shared-contracts', 'workspace']
   },
