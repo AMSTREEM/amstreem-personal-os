@@ -51,7 +51,7 @@ function Workspace({ user }: { user: User }) {
       if (!Array.isArray(parsed)) return [];
       return parsed.filter((item): item is { id: number; text: string; createdAt: number } =>
         item && typeof item.id === 'number' && typeof item.text === 'string' && typeof item.createdAt === 'number'
-      ).map(item => ({ ...item, id: String(item.id), reviewedAt: null, memoryType: 'other' as MemoryType, source: 'user_created' as const, reviewedAt: null }));
+      ).map(item => ({ ...item, id: String(item.id), memoryType: 'other' as MemoryType, source: 'user_created' as const, reviewedAt: null }));
     } catch {
       return [];
     }
