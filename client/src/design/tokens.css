@@ -4,15 +4,15 @@
  */
 :root {
   color-scheme: dark;
-  --atlas-bg: var(--bg, #0A0E13);
-  --atlas-surface-1: var(--surface, #10161D);
-  --atlas-surface-2: var(--surface-raised, #161E27);
+  --atlas-bg: #0A0E13;
+  --atlas-surface-1: #10161D;
+  --atlas-surface-2: #161E27;
   --atlas-surface-3: #1D2733;
-  --atlas-border: var(--line, #243140);
+  --atlas-border: #243140;
   --atlas-border-strong: #34465A;
-  --atlas-text-1: var(--text, #EAF0F6);
-  --atlas-text-2: var(--muted, #A9B6C4);
-  --atlas-text-3: var(--subtle, #7D8CA3);
+  --atlas-text-1: #EAF0F6;
+  --atlas-text-2: #A9B6C4;
+  --atlas-text-3: #7D8CA3;
 
   --atlas-brand: #22D3EE;
   --atlas-brand-solid: #22D3EE;
@@ -92,7 +92,14 @@
 
 :root[data-theme^="light-"] {
   color-scheme: light;
+  --atlas-bg: #F6F4EF;
+  --atlas-surface-1: #FFFFFF;
+  --atlas-surface-2: #F0EDE6;
   --atlas-surface-3: #E7E3DA;
+  --atlas-border: #D8D2C7;
+  --atlas-text-1: #18212B;
+  --atlas-text-2: #44515E;
+  --atlas-text-3: #5B6A80;
   --atlas-border-strong: #C4BEB0;
   --atlas-text-3: var(--subtle, #5B6A80);
   --atlas-brand: #0891B2;
