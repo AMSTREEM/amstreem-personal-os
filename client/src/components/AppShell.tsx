@@ -44,6 +44,7 @@ export function AppShell() {
     return () => document.removeEventListener('change', celebrate, true);
   }, []);
   const workspaceRef = useRef<HTMLDivElement>(null);
+  const commandPanelRef = useRef<HTMLElement>(null);
   const bootContentRef = useRef<HTMLDivElement>(null);
   useSpotlightGrid(workspaceRef);
 
@@ -77,6 +78,27 @@ export function AppShell() {
   const [quickTaskSaving, setQuickTaskSaving] = useState(false);
   const [quickTaskError, setQuickTaskError] = useState('');
   const [pendingOfflineCaptures, setPendingOfflineCaptures] = useState(0);
+  useEffect(() => {
+    if (!commandOpen) return;
+    const panel = commandPanelRef.current;
+    if (!panel) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const focusable = () => Array.from(panel.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), a[href]'));
+    focusable()[0]?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+      const items = focusable();
+      const first = items[0], last = items[items.length - 1];
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      previousFocus?.focus();
+    };
+  }, [commandOpen]);
   useEffect(() => {
     const userId = session?.user.id;
     if (!userId) { setPendingOfflineCaptures(0); return; }
@@ -313,8 +335,8 @@ export function AppShell() {
         </EntrancePresetContext.Provider>
       </div>
       </motion.div>
-      <AnimatePresence initial={false}>{commandOpen && <motion.div className="command-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} onMouseDown={event => {if(event.target===event.currentTarget)setCommandOpen(false);}}><motion.section className="command-panel" role="dialog" aria-modal="true" aria-label="Atlas quick capture" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
-        <div className="command-search"><Search size={17}/><input autoFocus value={commandQuery} onChange={event=>setCommandQuery(event.target.value)} placeholder="Search pillars, capture a task, or check in…"/><kbd>ESC</kbd></div>
+      <AnimatePresence initial={false}>{commandOpen && <motion.div className="command-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }} onMouseDown={event => {if(event.target===event.currentTarget)setCommandOpen(false);}}><motion.section ref={commandPanelRef} className="command-panel" role="dialog" aria-modal="true" aria-label="Atlas command palette and quick capture" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}>
+        <div className="command-search"><Search size={17}/><input autoFocus aria-label="Search Atlas destinations" value={commandQuery} onChange={event=>setCommandQuery(event.target.value)} placeholder="Search pillars, capture a task, or check in…"/><kbd>ESC</kbd></div>
         {commandQuery.toLowerCase() !== 'shortcuts' && <div className="quick-capture-types" role="group" aria-label="Capture type">
           {atlasQuickCaptureTypes.map(type => <button key={type} type="button" aria-pressed={quickCaptureType === type} onClick={() => setQuickCaptureType(type)}>{type === 'task' ? 'Task' : type === 'note' ? 'Note' : 'Habit'}</button>)}
         </div>}
