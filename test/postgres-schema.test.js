@@ -579,3 +579,17 @@ test('Atlas shell uses the specified 640px phone/tablet breakpoint and 56px desk
   assert.match(styles, /\.sidebar--expanded/);
   assert.match(styles, /\.atlas-mobile-dock,\.mobile-more-trigger/);
 });
+
+
+test('offline replay reuses the original idempotency key and safely treats a committed replay as delivered', () => {
+  const queue = fs.readFileSync(path.join(__dirname, '..', 'client/src/lib/offlineCaptureQueue.ts'), 'utf8');
+  const shell = fs.readFileSync(path.join(__dirname, '..', 'client/src/components/AppShell.tsx'), 'utf8');
+  const api = fs.readFileSync(path.join(__dirname, '..', 'client/src/lib/api.ts'), 'utf8');
+  assert.match(shell, /const idempotencyKey = crypto\.randomUUID\(\)/);
+  assert.match(shell, /Idempotency-Key': idempotencyKey/);
+  assert.match(shell, /enqueueOfflineCapture\(session\.user\.id, endpoint, payload, idempotencyKey\)/);
+  assert.match(shell, /error instanceof ApiError && error\.code === 'idempotency_replayed'/);
+  assert.match(queue, /idempotencyKey\)/);
+  assert.match(api, /export class ApiError/);
+  assert.match(api, /new ApiError\(payload\?\.error/);
+});
