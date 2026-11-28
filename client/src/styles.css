@@ -7942,3 +7942,7 @@ html, body { background: var(--atlas-bg); color: var(--atlas-text-1); }
 .atlas-standard-shell .room-view-transition[data-module="values"] { --module: var(--atlas-module-values-fill); --module-text: var(--atlas-module-values); }
 .atlas-standard-shell .room-view-transition[data-module="quran"] { --module: var(--atlas-module-quran-fill); --module-text: var(--atlas-module-quran); }
 .atlas-standard-shell .atlas-nav-item[data-module] { --module-accent: var(--module-text, var(--atlas-brand)); }
+
+
+/* Stage 4: concise, projection-backed Residence activity line. */
+.residence-pulse__ledger { display: block; margin-top: 0.35rem; color: var(--text-2, #a9b6c4); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.015em; line-height: 1.5; }
