@@ -467,3 +467,30 @@
 .memory-type-select-label{display:grid;gap:7px;margin-top:13px;color:#9a9f8e;font:8px 'DM Mono';letter-spacing:.8px}
 .memory-type-select-label select{width:100%;padding:11px 12px;border:1px solid #373d32;border-radius:3px;background:#151a14;color:#e8e4d8;font:11px 'DM Sans'}
 .memory-type-select-label select:focus{outline:1px solid #d6bd83}
+
+
+/* User-controlled links between personal context and active life items */
+.context-connections{margin-top:30px;border:1px solid #30352d;border-radius:7px;background:linear-gradient(130deg,#191d18,#141713);padding:22px}
+.connections-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:18px}
+.connections-heading h2{font:500 19px Manrope;letter-spacing:-.5px;margin:10px 0 7px;color:#e8e6dc}
+.connections-heading p{font-size:10px;line-height:1.7;color:#92988b;max-width:570px;margin:0}
+.connections-count{font:8px 'DM Mono';letter-spacing:.7px;color:#d6bd83;white-space:nowrap;padding-top:4px}
+.connection-create{display:grid;grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr) auto;align-items:end;gap:10px;padding:15px;border:1px solid #30352d;border-radius:6px;background:#11150f}
+.connection-create label{display:grid;gap:7px;color:#858b7e;font:8px 'DM Mono';letter-spacing:1px}
+.connection-create select{width:100%;min-width:0;height:39px;border:1px solid #3b4035;border-radius:4px;background:#191d17;color:#e4e1d6;padding:0 9px;font:10px 'DM Sans'}
+.connection-create select:disabled{opacity:.45}
+.connection-arrow{color:#bda66f;justify-self:center}
+.connection-add{height:39px;display:flex;align-items:center;gap:6px;border:1px solid #bca66f;border-radius:4px;background:#cdb780;color:#191a15;padding:0 12px;font-size:10px;font-weight:700;white-space:nowrap}
+.connection-add:disabled{opacity:.4;cursor:not-allowed}
+.connection-message{font-size:10px;color:#b8c3a8;margin:11px 2px}
+.connection-list{display:grid;gap:8px;margin-top:13px}
+.connection-item{display:grid;grid-template-columns:minmax(0,1fr) 22px minmax(0,.75fr) 30px;align-items:center;gap:12px;padding:13px;border:1px solid #2d332b;border-radius:5px;background:#151914}
+.connection-memory,.connection-target{min-width:0}
+.connection-memory span,.connection-target span{font:8px 'DM Mono';letter-spacing:.8px;color:#858b7e}
+.connection-memory p{font-size:10px;line-height:1.6;color:#d9d7cd;margin:5px 0 0;overflow-wrap:anywhere}
+.connection-target strong{display:block;font:600 11px Manrope;color:#e4e1d6;margin-top:6px;overflow-wrap:anywhere}
+.connection-remove{width:29px;height:29px;display:grid;place-items:center;border:1px solid transparent;border-radius:4px;background:transparent;color:#858b7e}
+.connection-remove:hover{border-color:#59403a;color:#e0a18d;background:#2b211d}
+.connections-empty{padding:17px 12px;text-align:center;border:1px dashed #363b31;border-radius:5px;color:#8d9386;font-size:10px;margin-top:12px}
+.connections-foot{margin-top:15px;color:#72796d;font:8px 'DM Mono';letter-spacing:.9px}
+@media(max-width:760px){.context-connections{padding:16px}.connections-heading{display:block}.connections-count{display:block;margin-top:10px}.connection-create{grid-template-columns:1fr;gap:11px}.connection-arrow{transform:rotate(90deg)}.connection-add{justify-content:center}.connection-item{grid-template-columns:minmax(0,1fr) 18px minmax(0,.8fr) 27px;gap:6px;padding:10px}.connection-memory p{font-size:9px}.connection-target strong{font-size:10px}}
