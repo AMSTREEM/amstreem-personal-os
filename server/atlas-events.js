@@ -18,6 +18,6 @@ function createAtlasEvent({ requestKey, type, module, entityId = null, occurredA
   const digest = crypto.createHash('sha256').update(requestKey).digest('hex').slice(0, 32);
   const key = 'atlas:' + digest + ':' + type + ':' + (entityId || 'event');
   if (key.length > 240) throw new TypeError('Atlas event key exceeds the storage limit.');
-  return { key, type, module, entityId, occurredAt: occurred.toISOString(), localDate, payload, source };
+  return { key, type, module, entity_id: entityId, occurred_at: occurred.toISOString(), local_date: localDate, payload, source };
 }
 module.exports = { EVENT_MODULES, EVENT_TYPES, createAtlasEvent };
