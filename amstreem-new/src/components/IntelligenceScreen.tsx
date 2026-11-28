@@ -70,11 +70,11 @@ export default function IntelligenceScreen({ userId, onSaved }: Props) {
   if (!started) return (
     <section className="intelligence-discovery">
       <div className="discovery-mark"><Sparkles size={22} /></div>
-      <span className="kicker">UNDERSTANDING BEFORE ADVICE</span>
-      <h2>Before Amstreem can help,<br /><em>it should understand.</em></h2>
-      <p>A short, optional conversation about what matters to you, how you like to work, and what support feels useful. Your answers become private context that you can edit or remove at any time.</p>
+      <span className="kicker">ADD MORE PERSONAL CONTEXT</span>
+      <h2>Help Amstreem understand<br /><em>more of your world.</em></h2>
+      <p>Add another layer of context about what matters, how you like to work, or what support feels useful. Your answers stay private and can be removed from My world.</p>
       <div className="discovery-meta"><span>5 SHORT PROMPTS</span><i /><span>SKIP ANYTHING</span><i /><span>YOU STAY IN CONTROL</span></div>
-      <button className="begin-button" onClick={() => setStarted(true)}>Start with what matters <ArrowRight size={16} /></button>
+      <button className="begin-button" onClick={() => setStarted(true)}>Add more context <ArrowRight size={16} /></button>
     </section>
   );
 
