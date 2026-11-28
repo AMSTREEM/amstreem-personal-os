@@ -1,6 +1,8 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const { createAtlasEvent } = require('../server/atlas-events');
 test('Atlas event envelope is deterministic for request retries and matches the ledger contract', () => {
  const input={requestKey:'request-key-123',type:'task.completed',module:'actions',entityId:'42',occurredAt:'2026-11-28T04:00:00.000Z',localDate:'2026-11-28',payload:{goalLinked:true}};
@@ -19,7 +21,7 @@ test('module mutations publish deterministic events in the same workspace commit
  assert.match(server, /const context = \{ userId: user\.id, db: workspaceDb, events: \[\] \}/);
  assert.match(server, /req\.atlasEvents = context\.events/);
  assert.match(server, /events: req\.atlasEvents \|\| \[\]/);
- for (const eventType of ['task.completed','task.reopened','focus.ended','goal.completed','goal.reopened','goal.milestone_reached','goal.milestone_unreached','habit.checked','habit.unchecked','learning.item_completed','learning.item_reopened','learning.study_logged','review.submitted','practice.logged','practice.unlogged']) {
+ for (const eventType of ['task.completed','task.reopened','focus.ended','goal.completed','goal.reopened','goal.milestone_reached','goal.milestone_unreached','habit.checked','habit.unchecked','learning.item_completed','learning.item_reopened','learning.study_logged','review.submitted','practice.logged','practice.unlogged','challenge.completed']) {
   assert.ok(server.includes("type:'" + eventType + "'"), 'Missing event publisher for ' + eventType);
  }
  assert.doesNotMatch(server, /type:'quran\./);
