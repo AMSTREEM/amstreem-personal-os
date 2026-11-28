@@ -120,7 +120,7 @@ export function TodayPage() {
   const atlasProgress = useQuery({ queryKey: ['progress'], queryFn: () => api<AtlasProgress>('/progress') });
   const atlasMetric = (metric: string) => atlasProgress.data?.atlas?.daily.find(item => item.metric === metric)?.value || 0;
   const weeklyChallengeSync = useMutation({ mutationFn: () => api<WeeklyChallenge>('/weekly-challenge/sync', json('POST', {})) });
-  useEffect(() => { weeklyChallengeSync.mutate(); }, [today]);
+  useEffect(() => { weeklyChallengeSync.mutate(); }, [today, weeklyChallengeSync.mutate]);
   const focusSessions = useQuery({ queryKey: ['sessions'], queryFn: () => api<FocusSession[]>('/sessions') });
   const tasks = useQuery({ queryKey: ['tasks'], queryFn: () => api<Task[]>('/tasks') });
   const habits = useQuery({ queryKey: ['habits', today], queryFn: () => api<Habit[]>('/habits?date=' + today) });
