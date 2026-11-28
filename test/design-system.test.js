@@ -44,7 +44,10 @@ test('Atlas design tokens define dark/light foundations, typography, spacing and
   assert.match(light, /--atlas-brand:\s*#0891B2/);
   assert.match(light, /--atlas-surface-3:\s*#E7E3DA/);
   assert.match(light, /--atlas-border-strong:\s*#C4BEB0/);
-  for (const token of ['--atlas-space-11: 64px','--atlas-duration-slow: 320ms','--atlas-radius-xl: 24px','--atlas-font-ui:']) assert.ok(dark.includes(token), 'Missing '+token);
+  assert.ok(light.includes('--atlas-border: #DDD8CD;'));
+  assert.ok(light.includes('--atlas-text-1: #121C27;'));
+  assert.ok(light.includes('--atlas-text-2: #3A4A5E;'));
+  for (const token of ['--atlas-space-10: 64px','--atlas-duration-slow: 320ms','--atlas-radius-xl: 24px','--atlas-font-ui:']) assert.ok(dark.includes(token), 'Missing '+token);
 });
 
 test('all nine module text accents meet WCAG AA contrast on dark and light surfaces', () => {
