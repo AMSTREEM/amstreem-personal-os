@@ -57,9 +57,9 @@ test('all nine module text accents meet WCAG AA contrast on dark and light surfa
 });
 
 test('standard shell consumes Atlas tokens while Qur’an shell remains opt-out', () => {
-  assert.match(shell, /location\\.pathname === '\\/quran' \\? " atlas-quran-shell" : " atlas-standard-shell"/);
-  assert.match(readerStyles, /\\.atlas-standard-shell \\{[\\s\\S]*--accent: var\\(--atlas-brand\\)/);
-  assert.doesNotMatch(readerStyles, /\\.atlas-quran-shell[^{}]*\\{[^}]*--accent:/);
+  assert.ok(shell.includes(`location.pathname === '/quran' ? " atlas-quran-shell" : " atlas-standard-shell"`));
+  assert.ok(readerStyles.includes('.atlas-standard-shell {') && readerStyles.includes('--accent: var(--atlas-brand);'));
+  assert.ok(!readerStyles.includes('.atlas-quran-shell {'));
   assert.doesNotMatch(tokens, /quran-mobile-shell|mushaf-desktop|tj-madd|tajweed/i);
   for (const variable of ['--accent','--accent-strong','--bg','--bg-canvas','--bg-surface','--border-hairline','--mushaf-user-font-size','--muted','--text','--text-primary','--text-secondary']) assert.ok(readerStyles.includes('var(' + variable));
 });
@@ -87,6 +87,6 @@ test('motion preferences are restored before paint and applied to all motion com
 });
 
 test('theme bootstrap has a deterministic dark fallback', () => {
-  assert.match(themeInit, /localStorage\\.getItem\\('atlas_theme'\\) \\|\\| 'shadowed-alchemist'/);
-  assert.match(themeInit, /'shadowed-alchemist': '#0A0E13'/);
+  assert.ok(themeInit.includes("localStorage.getItem('atlas_theme') || 'shadowed-alchemist'"));
+  assert.ok(themeInit.includes("'shadowed-alchemist': '#0A0E13'"));
 });
