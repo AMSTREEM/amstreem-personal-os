@@ -70,12 +70,11 @@ export default function TodayBrief({ onOpenPlans }: { onOpenPlans: () => void })
   const completedHabitIds = new Set(habitEntries.map(entry=>entry.habit_id));
   const nextBlock = schedule.find(block=>block.end_time.slice(0,5)>new Date().toTimeString().slice(0,5));
   const toMinutes = (value:string) => { const [h,m]=value.slice(0,5).split(':').map(Number); return h*60+m; };
-  const overlaps = schedule.slice(1).flatMap((block,index) => {
-    const previous=schedule[index];
-    return toMinutes(block.start_time)<toMinutes(previous.end_time)
-      ? [{first:previous.title,second:block.title,from:Math.max(toMinutes(previous.start_time),toMinutes(block.start_time)),until:Math.min(toMinutes(previous.end_time),toMinutes(block.end_time))}]
-      : [];
-  });
+  const overlaps = schedule.flatMap((block,index) => schedule.slice(index+1).flatMap(other =>
+    toMinutes(other.start_time)<toMinutes(block.end_time) && toMinutes(other.end_time)>toMinutes(block.start_time)
+      ? [{first:block.title,second:other.title}]
+      : []
+  ));
   const scheduledMinutes=schedule.reduce((sum,block)=>sum+Math.max(0,toMinutes(block.end_time)-toMinutes(block.start_time)),0);
   const planningSignals = [
     ...(overlaps.length ? [{title:'Some scheduled blocks overlap',detail:overlaps.slice(0,2).map(x=>x.first+' / '+x.second).join(' · ')}] : []),
