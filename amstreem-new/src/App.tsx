@@ -88,7 +88,7 @@ function Workspace({ user }: { user: User }) {
 
   const importLocal = async () => {
     if (!supabase || localNotes.length === 0) return;
-    const { error } = await supabase.from('memories').insert(localNotes.map(note => ({ content: note.text, memory_type: 'other', sensitivity: 'ordinary', source: 'imported' })));
+    const { error } = await supabase.from('memories').insert(localNotes.map(note => ({ user_id: user.id, content: note.text, memory_type: 'other', sensitivity: 'ordinary', source: 'imported' })));
     if (error) { setNotice('Import failed. Your original local captures are still safe: ' + error.message); return; }
     window.localStorage.removeItem('amstreem.captures.v1');
     setLocalNotes([]);
@@ -105,7 +105,7 @@ function Workspace({ user }: { user: User }) {
   const capture = async () => {
     const value = draft.trim();
     if (!value || !supabase) return;
-    const { data, error } = await supabase.from('memories').insert({ content: value, memory_type: 'other', sensitivity: 'ordinary', source: 'user_created' }).select('*').single();
+    const { data, error } = await supabase.from('memories').insert({ user_id: user.id, content: value, memory_type: 'other', sensitivity: 'ordinary', source: 'user_created' }).select('*').single();
     if (error) { setNotice('Could not save your memory: ' + error.message); return; }
     const row = data as MemoryRow;
     setNotes(current => [{ id: row.id, text: row.content, createdAt: new Date(row.created_at).getTime() }, ...current]);
