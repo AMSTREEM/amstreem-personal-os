@@ -72,7 +72,7 @@ test('Qur’an reader source fingerprints remain byte-for-byte protected', () =>
   };
   for (const [relative, hash] of Object.entries(expected)) {
     const bytes = fs.readFileSync(path.join(root, relative));
-    const actual = createHash('sha1').update(Buffer.concat([Buffer.from('blob '+bytes.length+'\\0'), bytes])).digest('hex');
+    const actual = createHash('sha1').update(Buffer.concat([Buffer.from('blob '+bytes.length+String.fromCharCode(0)), bytes])).digest('hex');
     assert.equal(actual, hash, 'Protected Qur’an source changed: '+relative);
   }
 });
