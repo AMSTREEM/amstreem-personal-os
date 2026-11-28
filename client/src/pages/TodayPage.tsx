@@ -35,6 +35,7 @@ type SelfControlSummary = { summary: { id: number; name: string; symbol: string;
 type StoredTimer = { remaining: number; deadline: number | null; taskId?: string; lessonId?: string; projectId?: string };
 type FocusSession = { session_date: string; minutes: number; focus: string };
 type AtlasProgress = { totalXp: number; atlas?: { daily: { module: string; metric: string; value: number; local_date: string }[] } };
+type AtlasBriefing = { localDate: string; agenda: { id: string | number; title: string; startAt: string; allDay: boolean }[]; dueTasks: { id: string | number; title: string; priority?: number }[]; overdueTasks: { id: string | number; title: string; dueDate: string }[]; habitsDue: { id: string | number; title: string; emoji?: string; done: boolean }[]; nextAction: { type: string; id: string | number; title: string } | null; counts: { dueTasks: number; overdueTasks: number; habitsDue: number; habitsComplete: number; calendarEvents: number }; explanation: string };
 type WeeklyChallenge = { challenge_id: string; title: string; description: string; metric: string; target: number; value: number; progress: number; remaining: number; complete: boolean; earned: boolean; source: string; justCompleted?: boolean };
 const TIMER_KEY = 'atlas-focus-timer-v1';
 const faithPractices = ['bible', 'prayer', 'reflection', 'worship', 'service'];
@@ -132,6 +133,7 @@ export function TodayPage() {
   const calendarSummary = useQuery({ queryKey: ['calendar-summary', today.slice(0, 7)], queryFn: () => api<CalendarSummary>('/calendar?month=' + today.slice(0, 7)) });
   const selfControl = useQuery({ queryKey: ['self-control', today], queryFn: () => api<SelfControlSummary>('/self-control?date=' + today) });
   const announcements = useQuery({ queryKey: ['announcements'], queryFn: () => api<AnnouncementFeed>('/announcements') });
+  const atlasBriefing = useQuery({ queryKey: ['atlas-briefing', today], queryFn: () => api<{ briefing: AtlasBriefing; generated_at: string } | null>('/briefing'), refetchInterval: 5 * 60_000 });
 
   const saveDaily = useMutation({
     mutationFn: (payload: Partial<DailyReview>) => api<DailyReview>('/reviews', json('POST', {
@@ -320,6 +322,20 @@ export function TodayPage() {
         </form>
       </Card>}
     </section>
+
+    {atlasBriefing.data?.briefing && <Card className="residence-briefing-card">
+      <div className="residence-section-heading">
+        <div><span className="eyebrow">ATLAS / DAILY BRIEFING</span><h2>Your day, at a glance</h2><p>{atlasBriefing.data.briefing.explanation}</p></div>
+        <Sparkles size={18}/>
+      </div>
+      <div className="stat-grid stat-grid--three">
+        <div className="stat-card"><div className="stat-card__top">DUE TODAY</div><strong>{atlasBriefing.data.briefing.counts.dueTasks}</strong><small>{atlasBriefing.data.briefing.counts.overdueTasks} overdue</small></div>
+        <div className="stat-card"><div className="stat-card__top">HABITS</div><strong>{atlasBriefing.data.briefing.counts.habitsComplete}/{atlasBriefing.data.briefing.counts.habitsDue}</strong><small>checked in today</small></div>
+        <div className="stat-card"><div className="stat-card__top">AGENDA</div><strong>{atlasBriefing.data.briefing.counts.calendarEvents}</strong><small>calendar events</small></div>
+      </div>
+      {atlasBriefing.data.briefing.nextAction && <p className="insight-copy"><b>Suggested next step:</b> {atlasBriefing.data.briefing.nextAction.title}</p>}
+      <div className="row-actions"><Link className="text-link" to="/growth">Open insights & reviews <ArrowRight size={13}/></Link></div>
+    </Card>}
 
     <section className="residence-band residence-band--overview" aria-label="Life at a glance"><MagneticDotField/>
       <div className="residence-band-heading"><span className="eyebrow">02 / YOUR LIFE AT A GLANCE</span><p>Connected areas of your life, with activity drawn from your existing records.</p></div>
