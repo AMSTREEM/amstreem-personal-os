@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, json } from '../lib/api';
 import { enqueueOfflineCapture, flushOfflineCaptures, getOfflineCaptureCount } from '../lib/offlineCaptureQueue';
 import { applyAtlasTheme, watchAtlasSystemTheme } from '../design/theme';
-import { atlasModules as rooms, quranShellEntry as quranDestination, atlasNavigationGroups as navigationGroups, atlasCommandDestinations as commandDestinations, atlasQuickCaptureTypes } from '../design/module-registry';
+import { atlasModules as rooms, quranShellEntry as quranDestination, atlasNavigationGroups as navigationGroups, atlasCommandDestinations as commandDestinations, atlasQuickCaptureTypes, atlasSearchSources } from '../design/module-registry';
 import { ArrowRight, BookOpen, CalendarDays, Check, Compass, History as HistoryIcon, House, ListChecks, LogOut, Pause, Play, Plus, Search, Settings, PanelLeftClose, PanelLeftOpen, SlidersHorizontal, Timer, X, Zap } from 'lucide-react';
 import { useAuth } from '../auth/AuthProvider';
 import { AtlasWalkthrough } from './AtlasWalkthrough';
@@ -30,6 +30,7 @@ const MotionNavLink = motion.create(NavLink);
 type QuickPrayer = { prayer: string; completed: number; on_time: number };
 type QuickDeen = { prayers: QuickPrayer[] };
 type QuickHabit = { id: number; title: string; emoji: string; done: number };
+type AtlasSearchItem = { id: string; title: string; detail: string; to: string };
 function atlasDate(timeZone = 'Africa/Lagos') { return new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
 function sparkAtElement(node: HTMLElement) { const rect = node.getBoundingClientRect(); window.dispatchEvent(new CustomEvent('atlas:spark-burst', { detail: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } })); }
 export function AppShell() {
@@ -229,6 +230,39 @@ export function AppShell() {
   const quickReligion = settings.data?.faith_tradition || settings.data?.religion || 'none';
   const quickDeen = useQuery({ queryKey: ['deen', quickDate], queryFn: () => api<QuickDeen>('/deen/summary?date=' + quickDate), enabled: commandOpen && quickReligion === 'islam' });
   const quickHabits = useQuery({ queryKey: ['habits', quickDate], queryFn: () => api<QuickHabit[]>('/habits?date=' + quickDate), enabled: commandOpen });
+  const searchIndex = useQuery({
+    queryKey: ['atlas-command-search-index'],
+    queryFn: async () => {
+      const groups = await Promise.all(atlasSearchSources.map(async source => {
+        try {
+          const response = await api<unknown>(source.endpoint);
+          const records = Array.isArray(response)
+            ? response
+            : response && typeof response === 'object'
+              ? Object.values(response as Record<string, unknown>).filter(Array.isArray).flat()
+              : [];
+          return records.map((value, index): AtlasSearchItem | null => {
+            if (!value || typeof value !== 'object') return null;
+            const record = value as Record<string, unknown>;
+            const title = [record.title, record.name, record.label].find(item => typeof item === 'string' && item.trim()) as string | undefined;
+            if (!title) return null;
+            const detail = typeof record.description === 'string' ? record.description : source.kind;
+            return { id: source.id + ':' + String(record.id ?? index) + ':' + source.kind, title, detail: source.kind + ' · ' + detail, to: source.route };
+          }).filter((item): item is AtlasSearchItem => item !== null);
+        } catch {
+          return [];
+        }
+      }));
+      return groups.flat();
+    },
+    enabled: commandOpen && commandQuery.trim().length >= 2,
+    staleTime: 30_000
+  });
+  const searchResults = useMemo(() => {
+    const query = commandQuery.trim().toLowerCase();
+    if (query.length < 2) return [];
+    return (searchIndex.data || []).filter(item => (item.title + ' ' + item.detail).toLowerCase().includes(query)).slice(0, 8);
+  }, [searchIndex.data, commandQuery]);
   const quickPrayerMutation = useMutation({
     onMutate: item => { if (!item.completed) playAtlasFeedback('tick'); },
     mutationFn: (item: QuickPrayer) => api('/deen/prayer', json('PATCH', { date: quickDate, prayer: item.prayer, completed: !item.completed })),
@@ -341,11 +375,17 @@ export function AppShell() {
           {atlasQuickCaptureTypes.map(type => <button key={type} type="button" aria-pressed={quickCaptureType === type} onClick={() => setQuickCaptureType(type)}>{type === 'task' ? 'Task' : type === 'note' ? 'Note' : 'Habit'}</button>)}
         </div>}
         {commandQuery.toLowerCase() !== 'shortcuts' && <form className="command-task-form" onSubmit={captureQuickItem}><Zap size={15}/><input value={quickTaskTitle} onChange={event=>setQuickTaskTitle(event.target.value)} placeholder={quickCaptureType === 'task' ? 'What needs doing?' : quickCaptureType === 'note' ? 'Give this note a title…' : 'Name a habit to build…'} maxLength={quickCaptureType === 'habit' ? 100 : 180}/><button disabled={!quickTaskTitle.trim()||quickTaskSaving}>{quickTaskSaving?'Saving…':'Save ' + quickCaptureType}</button></form>}
-        {quickTaskError && <p className="command-error">{quickTaskError}</p>}
+        {quickTaskError && <p className="command-error">{quickTaskError}</p>
+        {commandQuery.toLowerCase() !== 'shortcuts' && <div className="command-actions" aria-label="Quick actions">
+          <button type="button" onClick={() => { setQuickCaptureType('task'); setQuickTaskTitle(''); }}>New task</button>
+          <button type="button" onClick={() => { setCommandOpen(false); navigate('/focus'); }}>Start focus</button>
+          <button type="button" onClick={() => { setCommandOpen(false); navigate('/habits'); }}>Habit check-ins</button>
+        </div>}}
         {quickReligion === 'islam' && <div className="command-checkins"><span className="eyebrow">TODAY · SALAH</span><div className="command-checkin-list">{(quickDeen.data?.prayers || []).map(item => <button type="button" key={item.prayer} className={item.completed ? 'is-complete' : ''} disabled={quickPrayerMutation.isPending} onClick={event => { if (!item.completed) sparkAtElement(event.currentTarget); quickPrayerMutation.mutate(item); }}><span>{item.completed ? '✓' : '○'}</span>{item.prayer}<small>{item.completed ? 'Recorded' : 'Mark done'}</small></button>)}</div></div>}
         {!!quickHabits.data?.length && <div className="command-checkins"><span className="eyebrow">TODAY · HABITS</span><div className="command-checkin-list">{quickHabits.data.map(item => <button type="button" key={item.id} className={item.done ? 'is-complete' : ''} disabled={quickHabitMutation.isPending} onClick={event => { if (!item.done) sparkAtElement(event.currentTarget); quickHabitMutation.mutate(item.id); }}><span>{item.done ? '✓' : '○'}</span>{item.title}<small>{item.done ? 'Done' : 'Mark done'}</small></button>)}</div></div>}
         {commandQuery.toLowerCase() === 'shortcuts' && <div className="command-shortcuts"><span className="eyebrow">KEYBOARD SHORTCUTS</span><div><kbd>g</kbd> then <kbd>1–9</kbd><span>Jump to a module</span></div><div><kbd>c</kbd><span>Quick capture</span></div><div><kbd>/</kbd> or <kbd>⌘ K</kbd><span>Open command palette</span></div><div><kbd>?</kbd><span>Show shortcuts</span></div><div><kbd>Esc</kbd><span>Close overlays</span></div></div>}
-        <div className="command-results"><span className="eyebrow">JUMP TO OR CHECK IN</span>{commandItems.map(item=>{const Icon=item.icon;return <button key={item.label} type="button" onClick={()=>{setCommandOpen(false);navigate(item.to);}}><Icon size={16}/><span><b>{item.label}</b><small>{item.detail}</small></span><kbd>{item.shortcut}</kbd></button>;})}{!commandItems.length && commandQuery.toLowerCase() !== 'shortcuts' && <p>No matching destination.</p>}</div>
+        <div className="command-results"><span className="eyebrow">JUMP TO</span>{commandItems.map(item=>{const Icon=item.icon;return <button key={item.label} type="button" onClick={()=>{setCommandOpen(false);navigate(item.to);}}><Icon size={16}/><span><b>{item.label}</b><small>{item.detail}</small></span><kbd>{item.shortcut}</kbd></button>;})}{!commandItems.length && commandQuery.toLowerCase() !== 'shortcuts' && <p>No matching destination.</p>}</div>
+        {commandQuery.trim().length >= 2 && <div className="command-results command-results--search"><span className="eyebrow">SEARCH RESULTS</span>{searchIndex.isLoading && <p>Searching your workspace…</p>}{searchResults.map(item => <button key={item.id} type="button" onClick={() => { setCommandOpen(false); navigate(item.to); }}><Search size={15}/><span><b>{item.title}</b><small>{item.detail}</small></span></button>)}{!searchIndex.isLoading && !searchResults.length && <p>No matching workspace records.</p>}</div>}
         <div className="command-footer"><span>Navigate between rooms</span><span>⌘ 1 — 6</span></div>
       </motion.section></motion.div>}</AnimatePresence>
       <motion.nav className="atlas-command-dock" layout transition={{ type: 'spring', stiffness: 420, damping: 34, bounce: 0 }} aria-label="Atlas command dock">
