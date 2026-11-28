@@ -375,7 +375,7 @@ export function AppShell() {
           {atlasQuickCaptureTypes.map(type => <button key={type} type="button" aria-pressed={quickCaptureType === type} onClick={() => setQuickCaptureType(type)}>{type === 'task' ? 'Task' : type === 'note' ? 'Note' : 'Habit'}</button>)}
         </div>}
         {commandQuery.toLowerCase() !== 'shortcuts' && <form className="command-task-form" onSubmit={captureQuickItem}><Zap size={15}/><input value={quickTaskTitle} onChange={event=>setQuickTaskTitle(event.target.value)} placeholder={quickCaptureType === 'task' ? 'What needs doing?' : quickCaptureType === 'note' ? 'Give this note a title…' : 'Name a habit to build…'} maxLength={quickCaptureType === 'habit' ? 100 : 180}/><button disabled={!quickTaskTitle.trim()||quickTaskSaving}>{quickTaskSaving?'Saving…':'Save ' + quickCaptureType}</button></form>}
-        {quickTaskError && <p className="command-error">{quickTaskError}</p>
+        {quickTaskError && <p className="command-error">{quickTaskError}</p>}
         {commandQuery.toLowerCase() !== 'shortcuts' && <div className="command-actions" aria-label="Quick actions">
           <button type="button" onClick={() => { setQuickCaptureType('task'); setQuickTaskTitle(''); }}>New task</button>
           <button type="button" onClick={() => { setCommandOpen(false); navigate('/focus'); }}>Start focus</button>
