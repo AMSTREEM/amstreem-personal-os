@@ -11,6 +11,8 @@ const readerStyles = fs.readFileSync(path.join(root, 'client/src/styles.css'), '
 const shell = fs.readFileSync(path.join(root, 'client/src/components/AppShell.tsx'), 'utf8');
 const main = fs.readFileSync(path.join(root, 'client/src/main.tsx'), 'utf8');
 const motionProvider = fs.readFileSync(path.join(root, 'client/src/design/MotionPreferenceProvider.tsx'), 'utf8');
+const motionTokens = fs.readFileSync(path.join(root, 'client/src/design/motion.ts'), 'utf8');
+const html = fs.readFileSync(path.join(root, 'client/index.html'), 'utf8');
 
 function cssBlock(source, selector) {
   const start = source.indexOf(selector);
@@ -90,6 +92,8 @@ test('phone launcher, customisable destinations and capture sheet meet the shell
   assert.ok(shell.includes('onContextMenu'));
   assert.ok(shell.includes('Customize bottom bar'));
   assert.ok(shell.includes('atlas-dock-customizer'));
+  assert.ok(shell.includes('layoutId="atlas-navigation-pill"'));
+  assert.ok(shell.includes('data-module={current?.id || "residence"}'));
   assert.ok(readerStyles.includes('min-height: calc(64px + env(safe-area-inset-bottom))'));
   assert.ok(readerStyles.includes('grid-template-columns: repeat(3, minmax(0, 1fr))'));
   assert.ok(readerStyles.includes('overscroll-behavior: contain'));
@@ -100,6 +104,13 @@ test('motion preferences are restored before paint and applied to all motion com
   assert.match(themeInit, /atlas-motion-preference/);
   assert.match(themeInit, /data-motion/);
   assert.match(main, /AtlasMotionProvider/);
+  assert.ok(main.includes("@fontsource-variable/inter"));
+  assert.ok(motionTokens.includes('stiffness: 420, damping: 34'));
+  assert.ok(motionTokens.includes('stiffness: 260, damping: 28'));
+  assert.ok(motionTokens.includes('stiffness: 520, damping: 22'));
+  assert.ok(html.includes('viewport-fit=cover'));
+  assert.ok(html.includes('media="(prefers-color-scheme: dark)"'));
+  assert.ok(html.includes('media="(prefers-color-scheme: light)"'));
   assert.match(motionProvider, /MotionConfig reducedMotion=/);
   assert.match(motionProvider, /atlas:motion-preference-change/);
   assert.match(readerStyles, /data-motion="reduced"/);
