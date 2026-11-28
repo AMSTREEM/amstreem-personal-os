@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { User, Session, SupabaseClient } from '@supabase/supabase-js';
+import AuthScreen from './components/AuthScreen';
+import { isSupabaseConfigured, supabase, type MemoryRow } from './lib/supabase';
 import {
   Activity, ArrowDownRight, ArrowRight, ArrowUpRight, Atom, Bookmark,
   Check, ChevronDown, CircleHelp, Command, Compass, Feather, Folder,
   Layers3, Menu, Plus, Search, Send, Sparkles, Trash2, X, Download, Pencil
 } from 'lucide-react';
 
-type Note = { id: number; text: string; createdAt: number };
+type Note = { id: string; text: string; createdAt: number };
 type Section = 'Today' | 'Intelligence' | 'My world' | 'Projects' | 'Activity';
 
 const navigation: { label: Section; icon: typeof Compass }[] = [
@@ -20,20 +23,19 @@ const timeLabel = (timestamp: number) => new Intl.DateTimeFormat(undefined, {
   month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
 }).format(timestamp);
 
-export default function App() {
+function Workspace({ user }: { user: User }) {
   const [section, setSection] = useState<Section>('Today');
   const [draft, setDraft] = useState('');
-  const [notes, setNotes] = useState<Note[]>(() => {
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [localNotes, setLocalNotes] = useState<Note[]>(() => { 
     try {
       const saved = window.localStorage.getItem('amstreem.captures.v1');
       if (!saved) return [];
       const parsed: unknown = JSON.parse(saved);
       if (!Array.isArray(parsed)) return [];
-      return parsed.filter((item): item is Note =>
-        item && typeof item.id === 'number' &&
-        typeof item.text === 'string' &&
-        typeof item.createdAt === 'number'
-      );
+      return parsed.filter((item): item is { id: number; text: string; createdAt: number } =>
+        item && typeof item.id === 'number' && typeof item.text === 'string' && typeof item.createdAt === 'number'
+      ).map(item => ({ ...item, id: String(item.id) }));
     } catch {
       return [];
     }
@@ -45,20 +47,28 @@ export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [notice, setNotice] = useState('');
   useEffect(() => {
-    try {
-      window.localStorage.setItem('amstreem.captures.v1', JSON.stringify(notes));
-    } catch {
-      setNotice('This browser could not save your captures. Check available site storage.');
-    }
-  }, [notes]);
+    let active = true;
+    const load = async () => {
+      const client = supabase;
+      if (!client) return;
+      const { data, error } = await client.from('memories').select('*').order('updated_at', { ascending: false });
+      if (!active) return;
+      if (error) { setNotice('Could not load your cloud memories: ' + error.message); return; }
+      setNotes((data as MemoryRow[]).map(row => ({ id: row.id, text: row.content, createdAt: new Date(row.created_at).getTime() })));
+    };
+    void load();
+    return () => { active = false; };
+  }, [user.id]);
 
   const visibleNotes = notes.filter(note => note.text.toLocaleLowerCase().includes(searchQuery.trim().toLocaleLowerCase()));
   const startEditing = (note: Note) => { setEditingId(note.id); setEditDraft(note.text); };
-  const saveEdit = () => {
+  const saveEdit = async () => {
     const value = editDraft.trim();
-    if (!value || editingId === null) return;
+    if (!value || editingId === null || !supabase) return;
+    const { error } = await supabase.from('memories').update({ content: value }).eq('id', editingId);
+    if (error) { setNotice('Could not update this memory: ' + error.message); return; }
     setNotes(current => current.map(note => note.id === editingId ? { ...note, text: value } : note));
-    setEditingId(null); setEditDraft(''); setNotice('Your capture was updated.');
+    setEditingId(null); setEditDraft(''); setNotice('Your cloud memory was updated.');
     window.setTimeout(() => setNotice(''), 3200);
   };
   const exportNotes = () => {
@@ -67,10 +77,24 @@ export default function App() {
     link.href = url; link.download = 'amstreem-captures.json'; link.click(); URL.revokeObjectURL(url);
   };
 
-  const removeNote = (id: number) => {
+  const removeNote = async (id: string) => {
+    if (!supabase) return;
+    const { error } = await supabase.from('memories').delete().eq('id', id);
+    if (error) { setNotice('Could not delete this memory: ' + error.message); return; }
     setNotes(current => current.filter(note => note.id !== id));
-    setNotice('Capture removed from this device.');
+    setNotice('Memory deleted from your account.');
     window.setTimeout(() => setNotice(''), 3200);
+  };
+
+  const importLocal = async () => {
+    if (!supabase || localNotes.length === 0) return;
+    const { error } = await supabase.from('memories').insert(localNotes.map(note => ({ content: note.text, memory_type: 'other', sensitivity: 'ordinary', source: 'imported' })));
+    if (error) { setNotice('Import failed. Your original local captures are still safe: ' + error.message); return; }
+    window.localStorage.removeItem('amstreem.captures.v1');
+    setLocalNotes([]);
+    const { data } = await supabase.from('memories').select('*').order('updated_at', { ascending: false });
+    if (data) setNotes((data as MemoryRow[]).map(row => ({ id: row.id, text: row.content, createdAt: new Date(row.created_at).getTime() })));
+    setNotice('Your selected local captures are now in your account.');
   };
 
   const greeting = useMemo(() => {
@@ -78,14 +102,15 @@ export default function App() {
     return hour < 12 ? 'Good morning.' : hour < 18 ? 'Good afternoon.' : 'Good evening.';
   }, []);
 
-  const capture = () => {
+  const capture = async () => {
     const value = draft.trim();
-    if (!value) return;
-    setNotes(current => [{ id: Date.now(), text: value, createdAt: Date.now() }, ...current]);
-    setDraft('');
-    setCaptureOpen(false);
-    setSection('My world');
-    setNotice('Saved to your world on this device.');
+    if (!value || !supabase) return;
+    const { data, error } = await supabase.from('memories').insert({ content: value, memory_type: 'other', sensitivity: 'ordinary', source: 'user_created' }).select('*').single();
+    if (error) { setNotice('Could not save your memory: ' + error.message); return; }
+    const row = data as MemoryRow;
+    setNotes(current => [{ id: row.id, text: row.content, createdAt: new Date(row.created_at).getTime() }, ...current]);
+    setDraft(''); setCaptureOpen(false); setSection('My world');
+    setNotice('Saved securely to your Amstreem account.');
     window.setTimeout(() => setNotice(''), 3200);
   };
 
@@ -126,9 +151,9 @@ export default function App() {
             <p>Built around your life.<br /><strong>Not the other way around.</strong></p>
           </div>
           <div className="profile-row">
-            <div className="profile-avatar">A</div>
-            <div><strong>Your space</strong><span>Personal environment</span></div>
-            <ChevronDown size={14} />
+            <div className="profile-avatar">{(user.email || 'A').slice(0,1).toUpperCase()}</div>
+            <div><strong>{user.email || 'Your space'}</strong><span>Private account</span></div>
+            <button className="auth-signout" onClick={() => { void supabase?.auth.signOut(); }}>Sign out</button>
           </div>
         </div>
       </aside>
@@ -221,10 +246,10 @@ export default function App() {
 
           {section === 'My world' && (
             <section className="collection-area">
-              <div className="collection-header"><div><span className="kicker">YOUR CHOSEN CONTEXT</span><h2>{notes.length ? 'Things you chose to keep.' : 'An open space, ready when you are.'}</h2></div><div className="memory-actions">{notes.length > 0 && <button className="outline-button" onClick={exportNotes}><Download size={15} /> Export</button>}<button className="outline-button" onClick={() => { setDraft(''); setCaptureOpen(true); }}><Plus size={16} /> Capture a thought</button></div></div>
+              <div className="collection-header"><div><span className="kicker">YOUR CHOSEN CONTEXT</span><h2>{notes.length ? 'Things you chose to keep.' : 'An open space, ready when you are.'}</h2></div><div className="memory-actions">{localNotes.length > 0 && <button className="outline-button" onClick={importLocal}><Download size={15} /> Import {localNotes.length} local captures</button>}{notes.length > 0 && <button className="outline-button" onClick={exportNotes}><Download size={15} /> Export</button>}<button className="outline-button" onClick={() => { setDraft(''); setCaptureOpen(true); }}><Plus size={16} /> Capture a thought</button></div></div>
               {notes.length > 0 && <div className="memory-search"><Search size={16} /><input aria-label="Search captures" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search your captures…" /><span>{visibleNotes.length} / {notes.length}</span></div>}
               {notes.length ? visibleNotes.length ? <div className="thought-list">{visibleNotes.map(note => <article className="thought-item" key={note.id}><div className="thought-glyph"><Feather size={17} /></div><div className="thought-body"><p>{note.text}</p><span>CAPTURED · {timeLabel(note.createdAt)}</span></div><button className="delete-capture" onClick={() => startEditing(note)} aria-label="Edit capture"><Pencil size={15} /></button><button className="delete-capture" onClick={() => removeNote(note.id)} aria-label="Delete capture"><Trash2 size={15} /></button></article>)}</div> : <div className="empty-world compact-empty"><h3>No matching captures.</h3><p>Try another word or clear your search.</p><button className="outline-button" onClick={() => setSearchQuery('')}>Clear search</button></div> : <div className="empty-world"><div className="empty-glyph"><Layers3 size={23} /></div><h3>Your world begins with what matters to you.</h3><p>Save a thought, an idea, a question or a detail you want to keep in view.</p><button className="begin-button" onClick={() => { setDraft(''); setCaptureOpen(true); }}>Capture your first thought <ArrowRight size={15} /></button></div>}
-              <p className="local-note">Captures are saved in this browser on this device. They are not uploaded or synced to an account yet. Clearing this browser’s site data may remove them.</p>
+              <p className="local-note">Your memories are stored in your Amstreem account. Only you can access your rows. Local captures are kept separate until you explicitly import them.</p>
             </section>
           )}
 
@@ -262,4 +287,20 @@ export default function App() {
       {notice && <div className="toast"><Check size={15} />{notice}</div>}
     </div>
   );
+}
+
+export default function App() {
+  const [session, setSession] = useState<Session | null>(null);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (!supabase) { setReady(true); return; }
+    void supabase.auth.getSession().then(({ data }) => { setSession(data.session); setReady(true); });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => setSession(nextSession));
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  if (!isSupabaseConfigured || !supabase) return <main className="auth-screen"><section className="auth-card"><div className="auth-brand"><span className="wordmark-symbol">a<span>.</span></span><span className="wordmark-name">amstreem</span></div><h1>Connection <em>needed.</em></h1><p className="auth-copy">The secure account connection is not configured yet. Add the Supabase URL and publishable key to the Render environment to continue.</p></section></main>;
+  if (!ready) return <main className="auth-screen"><section className="auth-card"><div className="auth-orb"><Sparkles size={25}/></div><p className="auth-copy">Preparing your private space…</p></section></main>;
+  if (!session) return <AuthScreen client={supabase} />;
+  return <Workspace user={session.user} />;
 }
