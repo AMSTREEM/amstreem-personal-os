@@ -7688,3 +7688,69 @@ html, body { background: var(--atlas-bg); color: var(--atlas-text-1); }
   .topbar { height: calc(52px + env(safe-area-inset-top)); min-height: calc(52px + env(safe-area-inset-top)); }
   .app-frame,.main-area { min-height: 100vh; min-height: 100dvh; }
 }
+
+
+/* Stage 3 Atlas standard shell palette. The protected Qur’an route opts out. */
+.atlas-standard-shell {
+  --bg: var(--atlas-bg);
+  --sidebar: var(--atlas-surface-1);
+  --surface: var(--atlas-surface-1);
+  --surface-raised: var(--atlas-surface-2);
+  --line: var(--atlas-border);
+  --line-soft: color-mix(in srgb, var(--atlas-border) 68%, transparent);
+  --text: var(--atlas-text-1);
+  --muted: var(--atlas-text-2);
+  --subtle: var(--atlas-text-3);
+  --accent: var(--atlas-brand);
+  --accent-strong: var(--atlas-brand);
+  --accent-wash: color-mix(in srgb, var(--atlas-brand) 12%, transparent);
+  --success: var(--atlas-success);
+  --danger: var(--atlas-danger);
+  color: var(--atlas-text-1);
+  background: var(--atlas-bg);
+  font-family: var(--atlas-font-ui);
+}
+.atlas-standard-shell .topbar {
+  background: color-mix(in srgb, var(--atlas-bg) 88%, transparent);
+  border-color: var(--atlas-border);
+}
+.atlas-standard-shell .nav-link--active {
+  border-color: color-mix(in srgb, var(--atlas-brand) 24%, transparent);
+  background: color-mix(in srgb, var(--atlas-brand) 11%, transparent);
+  color: var(--atlas-brand);
+}
+.atlas-standard-shell .button--primary {
+  background: var(--atlas-brand-solid);
+  color: var(--atlas-on-brand);
+}
+.atlas-standard-shell :focus-visible {
+  outline-color: var(--atlas-brand);
+}
+.atlas-standard-shell .sidebar,
+.atlas-standard-shell .mobile-more-drawer,
+.atlas-standard-shell .command-panel {
+  background-color: var(--atlas-surface-1);
+  border-color: var(--atlas-border);
+}
+.atlas-standard-shell .page-container {
+  color: var(--atlas-text-1);
+}
+:root[data-contrast="high"] .atlas-standard-shell {
+  --line: var(--atlas-border-strong);
+  --line-soft: var(--atlas-border-strong);
+  --muted: var(--atlas-text-1);
+  --subtle: var(--atlas-text-2);
+}
+:root[data-motion="reduced"] .atlas-standard-shell *,
+:root[data-motion="reduced"] .atlas-standard-shell *::before,
+:root[data-motion="reduced"] .atlas-standard-shell *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .atlas-standard-shell {
+    scroll-behavior: auto;
+  }
+}
