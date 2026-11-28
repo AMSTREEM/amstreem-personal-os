@@ -631,3 +631,11 @@
 .today-habit-list span.recorded{border-color:#55533a;color:#d6bd83}
 .today-rhythm-note{margin:13px 0 0;padding-top:10px;border-top:1px solid #2a3027;color:#777f72;font-size:8px;line-height:1.6}
 @media(max-width:620px){.today-rhythm-grid{grid-template-columns:1fr;gap:16px}.today-rhythm-item span{font-size:7px}}
+
+
+.today-planning-signals{margin:14px 0;padding:14px 16px;border:1px solid #574c32;border-radius:5px;background:#211f17}
+.today-planning-signals>.today-rhythm-label{color:#d6bd83}
+.today-planning-signal{display:flex;flex-direction:column;gap:4px;padding:8px 0;border-top:1px solid #393326}
+.today-planning-signal strong{color:#e2ddcf;font-size:11px;font-weight:550}
+.today-planning-signal span{color:#a9a28d;font-size:10px;line-height:1.6}
+.today-planning-signals>p{margin:9px 0 0;color:#898472;font-size:9px;line-height:1.6}
