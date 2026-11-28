@@ -2034,7 +2034,9 @@ async function startServer() {
   const httpServer = app.listen(PORT, '0.0.0.0', () => {
     console.info(JSON.stringify({ timestamp: new Date().toISOString(), level: 'info', event: 'server.started', environment: APP_ENV, port: Number(PORT) }));
   });
-  const stopAtlasScheduler = startAtlasScheduler({ supabaseUrl: supabaseConfig.url, serviceKey: process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY, appEnv: APP_ENV });
+  const stopAtlasScheduler = process.env.ATLAS_STAGING === 'true'
+    ? startAtlasScheduler({ supabaseUrl: supabaseConfig.url, serviceKey: process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY, appEnv: APP_ENV })
+    : () => {};
   let shuttingDown = false;
   const shutdown = signal => {
     if (shuttingDown) return;
