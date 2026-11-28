@@ -10,7 +10,7 @@ function createAtlasEvent({ requestKey, type, module, entityId = null, occurredA
   if (!EVENT_TYPES.has(type)) throw new TypeError('Unsupported Atlas event type.');
   if (!EVENT_MODULES.has(module)) throw new TypeError('Unsupported Atlas event module.');
   if (entityId !== null && (typeof entityId !== 'string' || !entityId.length || entityId.length > 160)) throw new TypeError('Invalid Atlas event entity ID.');
-  if (typeof localDate !== 'string' || !DATE_KEY.test(localDate) || Number.isNaN(Date.parse(localDate + 'T12:00:00Z'))) throw new TypeError('Atlas event localDate must be YYYY-MM-DD.');
+  if (typeof localDate !== 'string' || !DATE_KEY.test(localDate) || Number.isNaN(Date.parse(localDate + 'T12:00:00Z')) || new Date(localDate + 'T12:00:00Z').toISOString().slice(0, 10) !== localDate) throw new TypeError('Atlas event localDate must be a real YYYY-MM-DD date.');
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new TypeError('Atlas event payload must be an object.');
   if (!SOURCES.has(source)) throw new TypeError('Unsupported Atlas event source.');
   const occurred = occurredAt instanceof Date ? occurredAt : new Date(occurredAt);
