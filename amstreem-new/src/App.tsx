@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { User, Session, SupabaseClient } from '@supabase/supabase-js';
+import type { User, Session } from '@supabase/supabase-js';
 import AuthScreen from './components/AuthScreen';
 import { isSupabaseConfigured, supabase, type MemoryRow } from './lib/supabase';
 import {
