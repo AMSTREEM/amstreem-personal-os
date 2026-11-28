@@ -1416,7 +1416,7 @@ CREATE TABLE IF NOT EXISTS weekly_challenges (week_start TEXT PRIMARY KEY, chall
 CREATE TABLE IF NOT EXISTS feedback_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT NOT NULL, message TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);
 `;
 const one=(s,...a)=>db.prepare(s).get(...a), all=(s,...a)=>db.prepare(s).all(...a);
-function awardXp(eventKey,category,points){if(!eventKey||!Number.isInteger(points)||points<1)return;db.prepare('INSERT OR IGNORE INTO xp_events(event_key,category,points) VALUES(?,?,?)').run(eventKey,category,points);}
+
 const dateKey=(d=new Date())=>{
  let timezone='Africa/Lagos';
  try {
