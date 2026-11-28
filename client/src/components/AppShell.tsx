@@ -326,13 +326,13 @@ export function AppShell() {
             const Icon = item.icon;
             const active = item.paths.includes(location.pathname);
             const shortcutIndex = rooms.findIndex(room => room.id === item.id) + 1;
-            return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} data-module={item.id} title={sidebarCollapsed ? item.label : undefined} className={'nav-link room-nav-link atlas-nav-item ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>g {shortcutIndex}</kbd></MotionNavLink>;
+            return <MotionNavLink key={item.id} to={item.to} end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} data-module={item.id} title={sidebarCollapsed ? item.label : undefined} className={'nav-link room-nav-link atlas-nav-item ' + (active ? 'nav-link--active' : '')}>{active && <motion.span className="room-nav-indicator" layoutId="atlas-mobile-dock-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}<Icon size={17} strokeWidth={1.8} /><span>{item.label}</span><kbd>g {shortcutIndex}</kbd></MotionNavLink>;
           })}
         </div>)}
         <div className="nav-group nav-group--specialist">
           <div className="nav-group__label">QUR’AN</div>
           <MotionNavLink to="/quran" end onClick={() => setMobileOpen(false)} whileTap={{ scale: 0.985 }} transition={{ type: 'spring', stiffness: 500, damping: 32 }} data-module="quran" title={sidebarCollapsed ? 'Qur’an' : undefined} className={'nav-link room-nav-link atlas-nav-item ' + (location.pathname === '/quran' ? 'nav-link--active' : '')}>
-            {location.pathname === '/quran' && <motion.span className="room-nav-indicator" layoutId="atlas-room-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}
+            {location.pathname === '/quran' && <motion.span className="room-nav-indicator" layoutId="atlas-mobile-dock-indicator" transition={{ type: 'spring', stiffness: 420, damping: 35, bounce: 0 }} />}
             <BookOpen size={17} strokeWidth={1.8}/><span>Qur’an</span><kbd>g 9</kbd>
           </MotionNavLink>
         </div>
@@ -416,7 +416,7 @@ export function AppShell() {
         <MagneticButton className="atlas-dock-action" aria-label="Open Daily Check-In" onClick={() => { navigate('/residence'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><Check size={15}/><span>Daily Check-In</span></MagneticButton>
       </motion.nav>
       <nav className="atlas-mobile-dock" aria-label="Primary navigation">
-        <MotionNavLink to="/residence" end data-module="residence" className={({isActive}) => 'atlas-mobile-dock__item atlas-nav-item ' + (isActive ? 'is-active' : '')} whileTap={{ scale: 0.96 }}><House size={18}/><span>Residence</span>{location.pathname === '/residence' && <motion.span className="atlas-mobile-dock__indicator" layoutId="atlas-room-indicator"/>}</MotionNavLink>
+        <MotionNavLink to="/residence" end data-module="residence" className={({isActive}) => 'atlas-mobile-dock__item atlas-nav-item ' + (isActive ? 'is-active' : '')} whileTap={{ scale: 0.96 }}><House size={18}/><span>Residence</span>{location.pathname === '/residence' && <motion.span className="atlas-mobile-dock__indicator" layoutId="atlas-mobile-dock-indicator"/>}</MotionNavLink>
         <MotionNavLink to="/actions" data-module="actions" className={({isActive}) => 'atlas-mobile-dock__item atlas-nav-item ' + (isActive || location.pathname === '/focus' ? 'is-active' : '')} whileTap={{ scale: 0.96 }}><ListChecks size={18}/><span>Actions</span>{(location.pathname === '/actions' || location.pathname === '/focus') && <motion.span className="atlas-mobile-dock__indicator" layoutId="atlas-mobile-dock-indicator"/>}</MotionNavLink>
         <button type="button" className="atlas-mobile-dock__item atlas-mobile-dock__capture" aria-label={pendingOfflineCaptures > 0 ? 'Quick capture, ' + pendingOfflineCaptures + ' queued' : 'Quick capture'} onClick={() => { setCommandOpen(true); setCommandQuery(''); }}><Plus size={20}/><span>Capture</span>{pendingOfflineCaptures > 0 && <small className="atlas-mobile-dock__queue-count">{pendingOfflineCaptures}</small>}</button>
         <MotionNavLink to="/calendar" data-module="calendar" className={({isActive}) => 'atlas-mobile-dock__item atlas-nav-item ' + (isActive ? 'is-active' : '')} whileTap={{ scale: 0.96 }}><CalendarDays size={18}/><span>Calendar</span>{location.pathname === '/calendar' && <motion.span className="atlas-mobile-dock__indicator" layoutId="atlas-mobile-dock-indicator"/>}</MotionNavLink>
