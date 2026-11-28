@@ -543,10 +543,10 @@ test('offline quick captures are account-scoped, idempotent and replay on reconn
   const shell = fs.readFileSync(path.join(__dirname, '..', 'client/src/components/AppShell.tsx'), 'utf8');
   assert.match(queue, /atlas-offline-captures-v1:/);
   assert.match(queue, /storageKey\(userId\)/);
-  assert.match(queue, /idempotencyKey: crypto\.randomUUID\(\)/);
+  assert.match(queue, /idempotencyKey = crypto\.randomUUID\(\)/);
   assert.match(queue, /await send\(capture\)/);
   assert.match(queue, /queue = queue\.filter\(item => item\.id !== capture\.id\)/);
-  assert.match(shell, /enqueueOfflineCapture\(session\.user\.id, endpoint, payload\)/);
+  assert.match(shell, /enqueueOfflineCapture\(session\.user\.id, endpoint, payload, idempotencyKey\)/);
   assert.match(shell, /flushOfflineCaptures\(userId/);
   assert.match(shell, /'Idempotency-Key': capture\.idempotencyKey/);
   assert.match(shell, /addEventListener\('online'/);
