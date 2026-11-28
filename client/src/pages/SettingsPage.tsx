@@ -20,6 +20,7 @@ const lifeAreaOptions = [
 const defaultLifeAreas = lifeAreaOptions.map(area => area.id);
 const xpModuleOptions = [
   { id: 'actions', name: 'Actions', desc: 'Tasks and focus sessions.' },
+  { id: 'goals', name: 'Goals', desc: 'Completed goals and milestones.' },
   { id: 'habits', name: 'Habits', desc: 'Habit check-ins.' },
   { id: 'learning', name: 'Learning', desc: 'Completed learning items.' },
   { id: 'growth', name: 'Growth', desc: 'Submitted reviews.' },
