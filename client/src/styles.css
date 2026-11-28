@@ -7893,3 +7893,39 @@ html, body { background: var(--atlas-bg); color: var(--atlas-text-1); }
   }
   .command-search { padding-top: 12px; }
 }
+
+
+/* Stage 3 · accessible per-device phone navigation customizer. */
+.atlas-dock-customizer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(3 8 14 / .58);
+  backdrop-filter: blur(8px);
+}
+.atlas-dock-customizer {
+  width: min(100%, 440px);
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--atlas-border);
+  border-radius: var(--atlas-radius-xl);
+  background: var(--atlas-surface-1);
+  color: var(--atlas-text-1);
+  box-shadow: var(--atlas-shadow);
+}
+.atlas-dock-customizer header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.atlas-dock-customizer header div { display: grid; gap: 5px; }
+.atlas-dock-customizer header b { font-size: 16px; }
+.atlas-dock-customizer header small { color: var(--atlas-text-2); font-size: 12px; line-height: 1.5; }
+.atlas-dock-customizer header button { width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid var(--atlas-border); border-radius: 10px; background: var(--atlas-surface-2); color: var(--atlas-text-1); }
+.atlas-dock-customizer__field { display: grid; gap: 7px; color: var(--atlas-text-2); font-size: 12px; font-weight: 600; }
+.atlas-dock-customizer__field select { min-height: 46px; padding: 0 12px; border: 1px solid var(--atlas-border); border-radius: 10px; background: var(--atlas-surface-2); color: var(--atlas-text-1); }
+.atlas-dock-customizer__done { min-height: 46px; border: 0; border-radius: 10px; background: var(--atlas-brand-solid); color: var(--atlas-on-brand); font-weight: 700; }
+@media (max-width: 639px) {
+  .atlas-dock-customizer-backdrop { align-items: end; padding: 0; }
+  .atlas-dock-customizer { width: 100%; border-radius: 22px 22px 0 0; padding: 22px 18px calc(18px + env(safe-area-inset-bottom)); }
+}
